@@ -8,7 +8,8 @@ import { CONTAINER_TYPES, type DesignDocument, type DesignNode, type NodeType } 
  * so future versions can migrate old projects instead of rejecting them.
  */
 export const FILE_FORMAT = 'stylecode';
-export const SCHEMA_VERSION = 1;
+/** 2: auto-layout, sizing, roles, effects and image layers (version 1 files load unchanged). */
+export const SCHEMA_VERSION = 2;
 export const FILE_EXTENSION = '.stylecode.json';
 
 export interface ProjectFile {
@@ -16,17 +17,32 @@ export interface ProjectFile {
   version: number;
   savedAt: string;
   document: DesignDocument;
+  /** Images used by the document, base64-encoded, so a saved file is self-contained. */
+  assets?: Record<string, { type: string; data: string }>;
 }
 
-export function toProjectFile(doc: DesignDocument): ProjectFile {
-  return { format: FILE_FORMAT, version: SCHEMA_VERSION, savedAt: new Date().toISOString(), document: doc };
+export function toProjectFile(doc: DesignDocument, assets?: ProjectFile['assets']): ProjectFile {
+  const file: ProjectFile = { format: FILE_FORMAT, version: SCHEMA_VERSION, savedAt: new Date().toISOString(), document: doc };
+  if (assets && Object.keys(assets).length) file.assets = assets;
+  return file;
+}
+
+/** Asset ids referenced by image layers. */
+export function referencedAssets(doc: DesignDocument): string[] {
+  return [
+    ...new Set(
+      Object.values(doc.nodes)
+        .filter((n) => n.type === 'image' && n.src)
+        .map((n) => n.src),
+    ),
+  ];
 }
 
 export type ParseResult = { ok: true; doc: DesignDocument; warnings: string[] } | { ok: false; error: string };
 
 const has = (map: object, key: string) => Object.prototype.hasOwnProperty.call(map, key);
 
-const KNOWN_TYPES = new Set<NodeType>(['page', 'frame', 'rect', 'ellipse', 'text']);
+const KNOWN_TYPES = new Set<NodeType>(['page', 'frame', 'rect', 'ellipse', 'text', 'image']);
 
 /**
  * Validates untrusted project data (a file, or something from storage) and

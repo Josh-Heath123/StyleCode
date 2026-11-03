@@ -30,18 +30,27 @@ That is the smallest version that proves the core idea: visual input and AI work
 - Local persistence: IndexedDB autosave, multiple projects, open/save `.stylecode.json` files, schema versioning and repair
 - Example project; 48 unit tests including a property test of operation inverses
 
-## Phase 2: Editor depth and layout
+## Phase 2: Editor depth and layout ✅
 
-The goal is an editor that is genuinely useful without AI and whose structure produces good code.
+The goal: an editor that is genuinely useful without AI and whose structure produces good code.
 
-- **Auto-layout frames**: direction, gap, padding, alignment, hug/fill sizing; rendered with real flexbox on the canvas
-- **"Tidy into auto-layout"**: deterministic inference of rows, columns, gaps and alignment from rough geometry
-- **Semantic roles** on layers (button, nav, header, card, image, input, link), shown in the layers panel
-- Smart guides and snapping (edges, centres, equal spacing), with distance labels
-- Images (stored locally in IndexedDB), shadows, gradients, per-corner radius, backdrop blur
-- Component library: a small set of ready-made pieces (button, input, card, nav bar) built from frames
+- **Auto-layout frames**: row or column, gap, padding per side, distribution (start, centre, end, space between), alignment, and fixed, hug or fill sizing; children can opt out of the flow. Resolved by an engine in the model and written back as positions, so undo, snapping and the future AI all see one geometry
+- **Layout parity test**: a randomised browser test lays out 150 nested trees per run with the engine and with real CSS flexbox and checks they agree to half a pixel
+- **Tidy into auto layout** (<kbd>Shift</kbd>+<kbd>A</kbd>): recursive XY-cut infers nested rows and columns, gaps, alignment and space-between clusters from rough geometry, centres single centred layers, and tidies nested frames in the same step; wrapping a selection and removing auto layout as well
+- Reordering inside auto layout by dragging (with an insertion line) or with the arrow keys; the layers panel lists auto-layout children in reading order
+- **Semantic roles** on layers (button, navigation, header, footer, section, card, list, heading, paragraph, label, link, image, input…), shown in the layers panel
+- **Smart guides**: moving, resizing and drawing snap to the edges and centres of siblings and the parent frame, with guide lines; <kbd>Ctrl</kbd>/<kbd>⌘</kbd> turns snapping off
+- **Images** stored locally in IndexedDB (content-addressed, so each picture is stored once) and embedded in saved project files; insert with the dock, the Insert tab, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd>, drag-and-drop or paste; fit (cover, contain, fill) and replace
+- **Effects**: drop shadows, linear gradients and background blur
+- **Blocks**: button, secondary button, badge, text field, card, navigation bar and hero section, in light and dark, built from auto-layout frames with roles set
 - Layer list virtualisation for very large documents
-- End-to-end tests (Playwright) for the core interactions
+- **End-to-end tests** (Playwright) for drawing, selection, resize and rotate, text, properties, undo, reload, auto layout, tidy, reordering, snapping, blocks, the layers list, and images through save and open, alongside 73 unit tests
+- Project file format version 2 (version 1 files open unchanged)
+
+Moved to later phases, because nothing in the core loop depends on them yet:
+
+- Per-corner radius, equal-spacing guides and distance labels (Phase 5)
+- Wrapping rows and grid layout (Phase 3, where responsive export needs them)
 
 ## Phase 3: Design to code
 
@@ -49,6 +58,7 @@ The goal is an editor that is genuinely useful without AI and whose structure pr
 - Code panel beside the canvas: selecting a layer highlights its code; editing a layer's CSS declarations writes back to the design
 - Live preview of the generated code in a sandboxed iframe at desktop, tablet and mobile widths
 - Responsive output from auto-layout; absolutely positioned content exported faithfully but flagged
+- Wrapping rows and a simple grid layout, so card grids reflow at narrow widths
 - Export a project as a ZIP (static site or a minimal Vite React app)
 - Snapshot tests that pin generated code for known documents
 
@@ -69,4 +79,5 @@ The goal is an editor that is genuinely useful without AI and whose structure pr
 - Error handling and recovery for storage, files and providers
 - Performance pass against large documents
 - Annotations: sketch arrows and notes on the canvas that the AI reads as instructions (the "mark up a printout" interaction)
+- Editor polish carried over from Phase 2: per-corner radius, equal-spacing guides and distance labels
 - Documentation site, demo GIFs, contribution guide, GitHub presentation

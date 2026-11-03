@@ -1,3 +1,4 @@
+import { effectiveSizing } from '../model/layout';
 import type { DesignNode } from '../model/types';
 
 /**
@@ -33,6 +34,8 @@ const px = (n: number) => `${Math.round(n * 100) / 100}px`;
 
 /** Typography declarations for a text layer (also used to measure text). */
 export function textDeclarations(node: DesignNode): CssDeclarations {
+  // Auto-width text never wraps, unless an auto-layout parent gives it a width to fill.
+  const wraps = node.textResize !== 'auto-width' || node.widthMode === 'fill';
   return {
     color: node.fill ?? 'transparent',
     fontFamily: fontStack(node.fontFamily),
@@ -41,23 +44,28 @@ export function textDeclarations(node: DesignNode): CssDeclarations {
     lineHeight: node.lineHeight,
     letterSpacing: node.letterSpacing ? px(node.letterSpacing) : undefined,
     textAlign: node.textAlign,
-    whiteSpace: node.textResize === 'auto-width' ? 'pre' : 'pre-wrap',
-    overflowWrap: node.textResize === 'auto-width' ? undefined : 'break-word',
+    whiteSpace: wraps ? 'pre-wrap' : 'pre',
+    overflowWrap: wraps ? 'break-word' : undefined,
   };
 }
 
-/**
- * CSS for a layer positioned absolutely inside its parent. Assumes
- * `box-sizing: border-box`, which the canvas and exported code both set.
- */
-export function nodeDeclarations(node: DesignNode): CssDeclarations {
-  const css: CssDeclarations = {
-    position: 'absolute',
-    left: px(node.x),
-    top: px(node.y),
-    width: px(node.width),
-    height: px(node.height),
-  };
+/** A paint value: the fill colour, or a linear gradient from it to `gradientTo`. */
+export function paintValue(node: DesignNode): string | undefined {
+  if (node.gradientTo) {
+    const angle = Math.round(node.gradientAngle * 100) / 100;
+    return `linear-gradient(${angle}deg, ${node.fill ?? 'transparent'}, ${node.gradientTo})`;
+  }
+  return node.fill ?? undefined;
+}
+
+export function shadowValue(node: DesignNode): string | undefined {
+  if (!node.shadowColor) return undefined;
+  return `${px(node.shadowX)} ${px(node.shadowY)} ${px(node.shadowBlur)} ${px(node.shadowSpread)} ${node.shadowColor}`;
+}
+
+/** Everything about how a layer looks, independent of how it is positioned. */
+export function appearanceDeclarations(node: DesignNode): CssDeclarations {
+  const css: CssDeclarations = {};
   if (node.rotation) css.transform = `rotate(${Math.round(node.rotation * 100) / 100}deg)`;
   if (node.opacity < 1) css.opacity = Math.round(node.opacity * 1000) / 1000;
 
@@ -66,10 +74,77 @@ export function nodeDeclarations(node: DesignNode): CssDeclarations {
     return css;
   }
 
-  if (node.fill) css.background = node.fill;
+  const paint = node.type === 'image' ? (node.fill ?? undefined) : paintValue(node);
+  if (paint) css.background = paint;
   if (node.stroke && node.strokeWidth > 0) css.border = `${px(node.strokeWidth)} solid ${node.stroke}`;
   if (node.type === 'ellipse') css.borderRadius = '50%';
   else if (node.radius > 0) css.borderRadius = px(node.radius);
-  if (node.type === 'frame' && node.clip) css.overflow = 'hidden';
+  if ((node.type === 'frame' && node.clip) || node.type === 'image') css.overflow = 'hidden';
+  const shadow = shadowValue(node);
+  if (shadow) css.boxShadow = shadow;
+  if (node.backdropBlur > 0) {
+    css.backdropFilter = `blur(${px(node.backdropBlur)})`;
+    css.WebkitBackdropFilter = css.backdropFilter;
+  }
+  return css;
+}
+
+/**
+ * CSS for a layer positioned absolutely inside its parent: how the canvas
+ * renders every layer, using positions the layout engine has already
+ * resolved. Assumes `box-sizing: border-box`, which the canvas and exported
+ * code both set.
+ */
+export function nodeDeclarations(node: DesignNode): CssDeclarations {
+  return {
+    position: 'absolute',
+    left: px(node.x),
+    top: px(node.y),
+    width: px(node.width),
+    height: px(node.height),
+    ...appearanceDeclarations(node),
+  };
+}
+
+const JUSTIFY = { start: 'flex-start', center: 'center', end: 'flex-end', 'space-between': 'space-between' } as const;
+const ALIGN = { start: 'flex-start', center: 'center', end: 'flex-end' } as const;
+
+/** Flexbox declarations for an auto-layout frame, as exported code expresses it. */
+export function flexContainerDeclarations(node: DesignNode): CssDeclarations {
+  if (node.type !== 'frame' || node.layout === 'none') return {};
+  const pad = [node.paddingTop, node.paddingRight, node.paddingBottom, node.paddingLeft];
+  return {
+    display: 'flex',
+    flexDirection: node.layout,
+    gap: node.gap ? px(node.gap) : undefined,
+    padding: pad.some(Boolean) ? pad.map(px).join(' ') : undefined,
+    justifyContent: node.justify === 'start' ? undefined : JUSTIFY[node.justify],
+    alignItems: ALIGN[node.align],
+  };
+}
+
+/**
+ * Size and placement declarations for a layer inside an auto-layout parent:
+ * the flexbox equivalent of what the layout engine computes. Used by code
+ * export and to check the engine against the browser.
+ */
+export function flexItemDeclarations(node: DesignNode, parent: DesignNode): CssDeclarations {
+  if (node.positioning === 'absolute') {
+    return { position: 'absolute', left: px(node.x), top: px(node.y), width: px(node.width), height: px(node.height) };
+  }
+  const row = parent.layout === 'row';
+  const main = row ? 'width' : 'height';
+  const cross = row ? 'height' : 'width';
+  const css: CssDeclarations = { position: 'relative', flex: 'none' };
+  const mainMode = effectiveSizing(node, main, parent);
+  const crossMode = effectiveSizing(node, cross, parent);
+  if (mainMode === 'fill') {
+    css.flex = '1 1 0';
+    css[row ? 'minWidth' : 'minHeight'] = 0;
+  } else if (mainMode === 'fixed') {
+    css[main] = px(node[main]);
+  }
+  if (crossMode === 'fill') css.alignSelf = 'stretch';
+  else if (crossMode === 'fixed') css[cross] = px(node[cross]);
   return css;
 }

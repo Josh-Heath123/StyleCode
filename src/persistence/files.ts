@@ -1,4 +1,4 @@
-import { FILE_EXTENSION, toProjectFile } from '../model/serialize';
+import { FILE_EXTENSION, toProjectFile, type ProjectFile } from '../model/serialize';
 import type { DesignDocument } from '../model/types';
 
 /** Saving and opening project files on the user's disk. */
@@ -17,28 +17,40 @@ function fileNameFor(name: string): string {
   return `${slug || 'untitled'}${FILE_EXTENSION}`;
 }
 
-/** Saves the document as a file. Returns false if the user cancelled the save dialog. */
-export async function exportProjectFile(doc: DesignDocument): Promise<boolean> {
-  const blob = new Blob([JSON.stringify(toProjectFile(doc), null, 2)], { type: 'application/json' });
+/**
+ * Saves the document as a file. The save dialog opens straight away (browsers
+ * only allow it right after a click); embedded images are gathered after.
+ * Returns false if the user cancelled the dialog.
+ */
+export async function exportProjectFile(
+  doc: DesignDocument,
+  gatherAssets: () => Promise<ProjectFile['assets']> = async () => undefined,
+): Promise<boolean> {
+  const build = async () =>
+    new Blob([JSON.stringify(toProjectFile(doc, await gatherAssets()), null, 2)], { type: 'application/json' });
   const suggestedName = fileNameFor(doc.name);
   const picker = (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
 
   if (picker) {
+    let handle: Awaited<ReturnType<SaveFilePicker>> | null = null;
     try {
-      const handle = await picker({
+      handle = await picker({
         suggestedName,
         types: [{ description: 'StyleCode project', accept: { 'application/json': ['.json'] } }],
       });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return true;
     } catch (error) {
       if ((error as DOMException)?.name === 'AbortError') return false;
       // Fall through to a regular download if the picker is unavailable here.
     }
+    if (handle) {
+      const writable = await handle.createWritable();
+      await writable.write(await build());
+      await writable.close();
+      return true;
+    }
   }
 
+  const blob = await build();
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

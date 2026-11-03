@@ -586,6 +586,17 @@ kbd {
   stroke-width: 2;
 }
 
+.ov-guide {
+  stroke: var(--melon);
+  stroke-width: 1;
+}
+
+.ov-insert {
+  stroke: var(--melon);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
 .ov-marquee {
   fill: var(--blue-faint);
   stroke: var(--blue);
@@ -682,12 +693,13 @@ kbd {
    -------------------------------------------------------------------------- */
 
 .layers {
-  padding: 6px 0 24px;
   position: relative;
 }
 
 .layer-row {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   height: 28px;
@@ -1241,4 +1253,180 @@ kbd {
 
 .dock-slot .dock {
   pointer-events: auto;
+}
+
+/* Image layers */
+.sc-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sc-image-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(17, 20, 26, 0.35);
+  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.04) 0 10px, transparent 10px 20px);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 2: sidebar tabs, blocks, sections
+   -------------------------------------------------------------------------- */
+
+.panel-tabs {
+  display: flex;
+  gap: 2px;
+  height: 40px;
+  padding: 0 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.panel-tab {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-control);
+  background: transparent;
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.panel-tab:hover {
+  color: var(--text);
+}
+
+.panel-tab.is-active {
+  color: var(--text);
+  background: var(--surface-3);
+}
+
+.panel-tabpanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-hint {
+  margin: 8px 0 0;
+  color: var(--text-3);
+  line-height: 1.45;
+}
+
+.button.wide {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button.wide kbd {
+  margin-left: auto;
+}
+
+.block-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.block-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  text-align: left;
+  cursor: grab;
+}
+
+.block-card:hover {
+  border-color: var(--blue);
+}
+
+.block-preview {
+  position: relative;
+  display: block;
+  height: 84px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e9ecf1;
+  pointer-events: none;
+}
+
+.block-preview[data-theme='dark'] {
+  background: #070a10;
+}
+
+.block-preview-inner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 50% 50%;
+}
+
+.block-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.block-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.block-description {
+  color: var(--text-3);
+}
+
+.role-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.role-label {
+  color: var(--text-3);
+}
+
+.gradient-toggle {
+  margin: 10px 0 8px;
+}
+
+.field[data-disabled] {
+  opacity: 0.5;
+}
+
+.field[data-disabled] .field-label {
+  cursor: default;
+}
+
+.layer-role {
+  flex: none;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--text-3);
+  background: var(--surface-3);
+}
+
+.layer-row.is-selected .layer-role {
+  color: var(--blue-hi);
+  background: rgba(47, 123, 255, 0.18);
 }

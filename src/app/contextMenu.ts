@@ -1,7 +1,10 @@
 import type { Editor } from '../editor/editor';
 import type { MenuEntry } from '../ui/Menu';
 import {
+  addAutoLayout,
   canUngroup,
+  hasAutoLayoutSelected,
+  removeAutoLayout,
   copyFromMenu,
   deleteSelection,
   duplicateSelection,
@@ -41,6 +44,10 @@ export function canvasMenuEntries(editor: Editor): MenuEntry[] {
     { label: 'Send backward', shortcut: K.backward, onSelect: () => reorderSelection(editor, 'backward') },
     { label: 'Send to back', shortcut: K.back, onSelect: () => reorderSelection(editor, 'back') },
     { kind: 'separator' },
+    { label: 'Add auto layout', shortcut: K.addAutoLayout, onSelect: () => addAutoLayout(editor) },
+    ...(hasAutoLayoutSelected(editor)
+      ? [{ label: 'Remove auto layout', shortcut: K.removeAutoLayout, onSelect: () => removeAutoLayout(editor) }]
+      : []),
     { label: 'Group selection', shortcut: K.group, onSelect: () => groupSelection(editor) },
     { label: 'Ungroup', shortcut: K.ungroup, onSelect: () => ungroupSelection(editor), disabled: !canUngroup(editor) },
     { kind: 'separator' },

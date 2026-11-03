@@ -91,7 +91,7 @@ describe('applyOps', () => {
     const base = createDocument();
     const d = applyOps(base, [{ type: 'create', parentId: base.rootId, index: 0, nodes: [createNode('rect', {}, 'r')] }]).doc;
     const out = applyOps(d, [{ type: 'update', id: 'r', props: { width: -5, opacity: 3, rotation: 270 } }]).doc;
-    expect(out.nodes.r.width).toBe(1);
+    expect(out.nodes.r.width).toBe(0);
     expect(out.nodes.r.opacity).toBe(1);
     expect(out.nodes.r.rotation).toBe(-90);
   });

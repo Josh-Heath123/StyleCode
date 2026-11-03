@@ -9,13 +9,13 @@
  * React or touch the DOM.
  */
 
-export type NodeType = 'page' | 'frame' | 'rect' | 'ellipse' | 'text';
+export type NodeType = 'page' | 'frame' | 'rect' | 'ellipse' | 'text' | 'image';
 
 /** Node types that can contain children. */
 export const CONTAINER_TYPES: ReadonlySet<NodeType> = new Set<NodeType>(['page', 'frame']);
 
 /** Node types a user (or the AI) may create. The page is created with the document. */
-export const CREATABLE_TYPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text'];
+export const CREATABLE_TYPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image'];
 
 export type TextAlign = 'left' | 'center' | 'right';
 
@@ -26,6 +26,49 @@ export type TextAlign = 'left' | 'center' | 'right';
  * - fixed: both dimensions are fixed; overflowing text is visible
  */
 export type TextResize = 'auto-width' | 'auto-height' | 'fixed';
+
+/** Auto-layout direction of a frame; 'none' means children are positioned freely. */
+export type LayoutDirection = 'none' | 'row' | 'column';
+
+/** Distribution of children along the layout direction (CSS justify-content). */
+export type Justify = 'start' | 'center' | 'end' | 'space-between';
+
+/** Alignment of children across the layout direction (CSS align-items). */
+export type Align = 'start' | 'center' | 'end';
+
+/**
+ * How a dimension is decided.
+ * - fixed: the stored size
+ * - hug: fit the content (auto-layout frames)
+ * - fill: take the space available in an auto-layout parent
+ */
+export type SizingMode = 'fixed' | 'hug' | 'fill';
+
+/** Whether a child of an auto-layout frame takes part in the flow or keeps its own position. */
+export type Positioning = 'auto' | 'absolute';
+
+/** What a layer is, semantically. Drives HTML tags in exported code and context for the AI. */
+export const ROLES = [
+  'auto',
+  'button',
+  'link',
+  'nav',
+  'header',
+  'footer',
+  'section',
+  'card',
+  'heading',
+  'paragraph',
+  'label',
+  'input',
+  'image',
+  'list',
+  'list-item',
+] as const;
+export type Role = (typeof ROLES)[number];
+
+/** How an image fills its box (CSS object-fit). */
+export type ImageFit = 'cover' | 'contain' | 'fill';
 
 /**
  * Every editable property of a node. Each key is described in the property
@@ -70,6 +113,40 @@ export interface NodeProps {
   letterSpacing: number;
   textAlign: TextAlign;
   textResize: TextResize;
+
+  /** Frames only: auto-layout (CSS flexbox). */
+  layout: LayoutDirection;
+  gap: number;
+  paddingTop: number;
+  paddingRight: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  justify: Justify;
+  align: Align;
+
+  /** Sizing within auto-layout. */
+  widthMode: SizingMode;
+  heightMode: SizingMode;
+  positioning: Positioning;
+
+  role: Role;
+
+  /** Drop shadow; no shadow when the colour is null. */
+  shadowColor: string | null;
+  shadowX: number;
+  shadowY: number;
+  shadowBlur: number;
+  shadowSpread: number;
+  /** Background blur behind the layer, in px (frosted glass). */
+  backdropBlur: number;
+  /** Second colour of a linear gradient from `fill`; no gradient when null. */
+  gradientTo: string | null;
+  /** Gradient direction in degrees, CSS convention (180 = top to bottom). */
+  gradientAngle: number;
+
+  /** Images only: local asset id, or empty for a placeholder. */
+  src: string;
+  fit: ImageFit;
 }
 
 export type PropKey = keyof NodeProps;

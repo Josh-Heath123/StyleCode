@@ -4,6 +4,7 @@ import type { Camera } from '../editor/camera';
 import type { Editor } from '../editor/editor';
 import { EditorContext } from '../editor/react';
 import { LayersPanel } from '../panels/LayersPanel';
+import { InsertPanel } from '../panels/InsertPanel';
 import { PropertiesPanel } from '../panels/PropertiesPanel';
 import type { ProjectSession } from '../persistence/session';
 import { fitAllCamera } from './actions';
@@ -33,8 +34,8 @@ export function App({ editor, session, initialCamera }: AppProps) {
     <EditorContext.Provider value={editor}>
       <div className="app">
         <TopBar session={session} onOpenProjects={() => setProjectsOpen(true)} onCameraRestore={restoreCamera} />
-        <aside className="panel panel-left" aria-label="Layers panel">
-          <LayersPanel />
+        <aside className="panel panel-left" aria-label="Layers and insert panel">
+          <LeftPanel />
         </aside>
         <main className="canvas-area" style={{ display: 'contents' }}>
           <Canvas />
@@ -49,6 +50,38 @@ export function App({ editor, session, initialCamera }: AppProps) {
         )}
       </div>
     </EditorContext.Provider>
+  );
+}
+
+/** The left sidebar: the layer tree, or the library of things to insert. */
+function LeftPanel() {
+  const [tab, setTab] = useState<'layers' | 'insert'>('layers');
+  const tabs = [
+    { id: 'layers', label: 'Layers' },
+    { id: 'insert', label: 'Insert' },
+  ] as const;
+  return (
+    <>
+      <div className="panel-tabs" role="tablist" aria-label="Sidebar">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`tabpanel-${t.id}`}
+            className={`panel-tab${tab === t.id ? ' is-active' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${tab}`} aria-labelledby={`tab-${tab}`}>
+        {tab === 'layers' ? <LayersPanel /> : <InsertPanel />}
+      </div>
+    </>
   );
 }
 

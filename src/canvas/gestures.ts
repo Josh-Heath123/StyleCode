@@ -1,4 +1,5 @@
-import type { Editor } from '../editor/editor';
+import type { Editor, Guide } from '../editor/editor';
+import { flowInsertion } from '../model/autolayout';
 import { duplicateOps, moveByOps, reparentKeepingPosition, backgroundBehind, luminance } from '../model/commands';
 import { createNode } from '../model/defaults';
 import { sortByDocumentOrder, topLevelIds } from '../model/document';
@@ -9,13 +10,16 @@ import {
   matrixRotation,
   rectFromPoints,
   unionWorldBounds,
+  worldBounds,
   worldMatrix,
 } from '../model/geometry';
 import { childrenInRect, containerAtPoint } from '../model/hit';
 import { createId } from '../model/ids';
+import { isAutoLayout, isInFlow } from '../model/layout';
 import { OpBuilder, type Op } from '../model/ops';
 import { localScaleForRotation, resizeBox, rotateByDrag, type Handle } from '../model/transform';
-import type { DesignDocument, NodeProps, NodeType, Point } from '../model/types';
+import type { DesignDocument, NodeProps, NodeType, Point, Rect } from '../model/types';
+import { snapBox, snapPoint, snapTargets, SNAP_DISTANCE, type SnapTargets } from './snapping';
 
 /**
  * Pointer gestures on the canvas. Each gesture is a small state machine
@@ -45,6 +49,18 @@ function passedThreshold(start: { clientX: number; clientY: number }, e: Pointer
 
 const round = Math.round;
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Snapping is on unless Ctrl/⌘ is held during the drag. */
+const snapping = (ev: PointerEvent) => !(ev.ctrlKey || ev.metaKey);
+const snapThreshold = (editor: Editor) => SNAP_DISTANCE / editor.getState().camera.zoom;
+
+/** Converts an insertion line from a frame's content space to world space. */
+function lineToWorld(doc: DesignDocument, frameId: string, line: { x1: number; y1: number; x2: number; y2: number }): Guide {
+  const m = childSpaceMatrix(doc, frameId);
+  const a = applyToPoint(m, { x: line.x1, y: line.y1 });
+  const b = applyToPoint(m, { x: line.x2, y: line.y2 });
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, kind: 'insert' };
+}
 
 // ---------------------------------------------------------------------------
 // Pan
@@ -110,8 +126,11 @@ export function beginTextCreation(editor: Editor, id: string, transactionId: num
 export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool): Gesture {
   const { editor } = ctx;
   const base = editor.getState().doc;
-  const start = ctx.toWorld(e.clientX, e.clientY);
-  const parentId = containerAtPoint(base, start);
+  const rawStart = ctx.toWorld(e.clientX, e.clientY);
+  const parentId = containerAtPoint(base, rawStart);
+  const inLayout = isAutoLayout(base.nodes[parentId]);
+  const targets = inLayout ? null : snapTargets(base, parentId, new Set());
+  const start = targets && snapping(e) ? snapPoint(rawStart, targets, snapThreshold(editor)).point : rawStart;
   const toParent = invert(childSpaceMatrix(base, parentId));
   const id = createId();
   const props = initialProps(base, tool, parentId);
@@ -127,7 +146,14 @@ export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool
     nodes: [createNode(tool, { ...props, ...extra }, id)],
   });
 
-  const rectTo = (p: Point, ev: PointerEvent) => {
+  const rectTo = (raw: Point, ev: PointerEvent) => {
+    let p = raw;
+    let guides: Guide[] = [];
+    if (targets && snapping(ev) && !ev.shiftKey && !ev.altKey) {
+      const snapped = snapPoint(raw, targets, snapThreshold(editor));
+      p = snapped.point;
+      guides = snapped.guides;
+    }
     let dx = p.x - start.x;
     let dy = p.y - start.y;
     if (ev.shiftKey) {
@@ -138,11 +164,15 @@ export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool
     const a = ev.altKey ? { x: start.x - dx, y: start.y - dy } : start;
     const b = { x: start.x + dx, y: start.y + dy };
     const r = rectFromPoints(applyToPoint(toParent, a), applyToPoint(toParent, b));
-    return { x: round(r.x), y: round(r.y), width: Math.max(1, round(r.width)), height: Math.max(1, round(r.height)) };
+    return {
+      rect: { x: round(r.x), y: round(r.y), width: Math.max(1, round(r.width)), height: Math.max(1, round(r.height)) },
+      guides,
+    };
   };
 
   const finish = (transactionId: number | undefined) => {
     editor.setDropTarget(null);
+    editor.setGuides([]);
     editor.setTool('move');
     if (tool === 'text' && transactionId !== undefined) beginTextCreation(editor, id, transactionId);
   };
@@ -155,8 +185,9 @@ export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool
         dragging = true;
         editor.beginGesture();
       }
-      const rect = rectTo(ctx.toWorld(ev.clientX, ev.clientY), ev);
+      const { rect, guides } = rectTo(ctx.toWorld(ev.clientX, ev.clientY), ev);
       editor.previewGesture([createOp(tool === 'text' ? { ...rect, textResize: 'auto-height' } : rect)], [id]);
+      editor.setGuides(guides);
     },
     up() {
       if (dragging) {
@@ -175,6 +206,7 @@ export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool
     cancel() {
       editor.cancelGesture();
       editor.setDropTarget(null);
+      editor.setGuides([]);
     },
   };
 }
@@ -194,12 +226,47 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
   const top = sortByDocumentOrder(base, topLevelIds(base, ids)).filter((id) => id !== base.rootId && !base.nodes[id].locked);
   const start = ctx.toWorld(e.clientX, e.clientY);
   const exclude = new Set(top);
+  const startBounds: Rect | null = unionWorldBounds(base, top);
+  const targetCache = new Map<string, SnapTargets>();
   let dragging = false;
   let duplicate: { ops: Op[]; newIds: string[] } | null = null;
   let target: string | null = null;
+  /** In an auto-layout frame: the child the moved layers are inserted before (null = at the end). */
+  let anchor: string | null = null;
   let lastDelta: Point = { x: 0, y: 0 };
 
-  const build = (delta: Point, withReparent: boolean) => {
+  // Layers the user deliberately positioned absolutely inside an auto-layout frame move freely there.
+  const freeIn = (frameId: string) =>
+    top.every((id) => base.nodes[id].parentId === frameId && base.nodes[id].positioning === 'absolute');
+  const reorders = (frameId: string | null) => !!frameId && isAutoLayout(base.nodes[frameId]) && !freeIn(frameId);
+
+  // Layers in a row or column are being reordered among their siblings. Passing over a sibling
+  // frame they could not fit inside (one card over another) keeps reordering instead of
+  // dropping into it; a smaller layer can still be dropped into a bigger sibling.
+  const flowParent =
+    top.length > 0 && top.every((id) => base.nodes[id].parentId === base.nodes[top[0]].parentId && isInFlow(base, base.nodes[id]))
+      ? base.nodes[top[0]].parentId
+      : null;
+  const resolveTarget = (found: string): string => {
+    if (!flowParent || !startBounds || found === flowParent) return found;
+    let sibling = found;
+    while (base.nodes[sibling].parentId && base.nodes[sibling].parentId !== flowParent) sibling = base.nodes[sibling].parentId!;
+    if (base.nodes[sibling].parentId !== flowParent) return found;
+    const room = worldBounds(base, sibling);
+    const fits = startBounds.width < room.width && startBounds.height < room.height;
+    return fits ? found : flowParent;
+  };
+
+  const targetsFor = (containerId: string) => {
+    let t = targetCache.get(containerId);
+    if (!t) {
+      t = snapTargets(base, containerId, duplicate ? new Set() : exclude);
+      targetCache.set(containerId, t);
+    }
+    return t;
+  };
+
+  const build = (delta: Point, final: boolean) => {
     const builder = new OpBuilder(base);
     let moving = top;
     if (duplicate) {
@@ -208,15 +275,36 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
     }
     builder.push(...moveByOps(builder.doc, moving, delta));
     let reparented = false;
-    if (withReparent && target) {
+    if (target) {
       for (const id of moving) {
         if (builder.doc.nodes[id].parentId !== target) {
           reparentKeepingPosition(builder, id, target, builder.doc.nodes[target].children.length);
           reparented = true;
         }
       }
+      if (!isAutoLayout(builder.doc.nodes[target])) {
+        // Outside auto-layout, "absolute" has no meaning; clear it so the layer joins any flow it enters later.
+        for (const id of moving) {
+          if (builder.doc.nodes[id].positioning === 'absolute')
+            builder.push({ type: 'update', id, props: { positioning: 'auto' } });
+        }
+      }
+      if (reorders(target)) {
+        if (!final) {
+          // While dragging, lift the layers out of the flow so they follow the pointer and the
+          // rest of the row or column closes up around the gap.
+          for (const id of moving) builder.push({ type: 'update', id, props: { positioning: 'absolute' } });
+        } else {
+          for (const id of moving) {
+            const siblings = builder.doc.nodes[target].children.filter((c) => c !== id);
+            const index = anchor && siblings.includes(anchor) ? siblings.indexOf(anchor) : siblings.length;
+            builder.push({ type: 'move', id, parentId: target, index });
+            builder.push({ type: 'update', id, props: { positioning: 'auto' } });
+          }
+        }
+      }
     }
-    return { ops: builder.ops, moving, reparented, doc: builder.doc };
+    return { ops: builder.ops, moving, reparented };
   };
 
   return {
@@ -229,16 +317,37 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
         editor.beginGesture();
       }
       const p = ctx.toWorld(ev.clientX, ev.clientY);
-      let delta = { x: round(p.x - start.x), y: round(p.y - start.y) };
+      let delta = { x: p.x - start.x, y: p.y - start.y };
       if (ev.shiftKey) delta = Math.abs(delta.x) >= Math.abs(delta.y) ? { x: delta.x, y: 0 } : { x: 0, y: delta.y };
+      target = resolveTarget(containerAtPoint(base, p, exclude));
+
+      let guides: Guide[] = [];
+      if (!reorders(target) && startBounds && snapping(ev)) {
+        const moved = { ...startBounds, x: startBounds.x + delta.x, y: startBounds.y + delta.y };
+        const snap = snapBox(moved, targetsFor(target), snapThreshold(editor));
+        if (!(ev.shiftKey && delta.y === 0)) delta.y += snap.dy;
+        if (!(ev.shiftKey && delta.x === 0)) delta.x += snap.dx;
+        guides = snap.guides;
+      }
+      delta = { x: snap2(delta.x), y: snap2(delta.y) };
       lastDelta = delta;
 
       // Re-parent live, so a layer dragged out of a clipping frame stays visible.
-      target = containerAtPoint(base, p, exclude);
-      const { ops, moving } = build(delta, true);
+      const { ops, moving } = build(delta, false);
       const changesParent = top.some((id) => base.nodes[id].parentId !== target);
       editor.setDropTarget(changesParent && target !== base.rootId ? target : null);
       editor.previewGesture(ops, moving);
+
+      if (target && reorders(target)) {
+        const doc = editor.getState().doc;
+        const local = applyToPoint(invert(childSpaceMatrix(doc, target)), p);
+        const movingSet = new Set(moving);
+        const insertion = flowInsertion(doc, target, local, movingSet);
+        const siblings = doc.nodes[target].children.filter((c) => !movingSet.has(c));
+        anchor = siblings[insertion.index] ?? null;
+        guides = [lineToWorld(doc, target, insertion.line)];
+      }
+      editor.setGuides(guides);
     },
     up() {
       if (!dragging) {
@@ -247,12 +356,19 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
       }
       const { ops, moving, reparented } = build(lastDelta, true);
       editor.previewGesture(ops, moving);
-      editor.commitGesture(duplicate ? 'Duplicate' : reparented ? 'Move into frame' : 'Move', moving);
+      const label = duplicate ? 'Duplicate' : reorders(target) ? 'Reorder' : reparented ? 'Move into frame' : 'Move';
+      editor.commitGesture(label, moving);
     },
     cancel() {
       editor.cancelGesture();
     },
   };
+}
+
+/** Whole pixels when not snapped to something fractional. */
+function snap2(n: number): number {
+  const r = Math.round(n);
+  return Math.abs(r - n) < 0.01 ? r : round2(n);
 }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +419,17 @@ export const HANDLES = {
 
 export type HandleName = keyof typeof HANDLES;
 
+/**
+ * Resizing a dimension by hand makes it fixed: a filling or hugging layer
+ * stops filling or hugging along the axes the handle changes.
+ */
+function fixedSizing(node: DesignDocument['nodes'][string], handle: Handle): Partial<NodeProps> {
+  const props: Partial<NodeProps> = {};
+  if (handle.hx !== 0 && node.widthMode !== 'fixed') props.widthMode = 'fixed';
+  if (handle.hy !== 0 && node.heightMode !== 'fixed') props.heightMode = 'fixed';
+  return props;
+}
+
 export function resizeGesture(ctx: GestureContext, ids: readonly string[], handleName: HandleName, cursor: string): Gesture {
   const { editor } = ctx;
   const base = editor.getState().doc;
@@ -312,23 +439,40 @@ export function resizeGesture(ctx: GestureContext, ids: readonly string[], handl
 
   if (top.length === 1) {
     const node = base.nodes[top[0]];
-    const toParent = invert(childSpaceMatrix(base, node.parentId!));
-    const exact = node.rotation === 0 && matrixRotation(childSpaceMatrix(base, node.parentId!)) === 0;
+    const parentSpace = childSpaceMatrix(base, node.parentId!);
+    const toParent = invert(parentSpace);
+    const exact = node.rotation === 0 && matrixRotation(parentSpace) === 0;
+    const flow = isInFlow(base, node);
+    const targets = exact && !flow ? snapTargets(base, node.parentId!, new Set([node.id])) : null;
     return {
       cursor,
       move(ev) {
         const p = applyToPoint(toParent, ctx.toWorld(ev.clientX, ev.clientY));
         const r = resizeBox(node, handle, p, { keepAspect: ev.shiftKey, fromCenter: ev.altKey });
-        const rr = exact
+        let rr = exact
           ? { x: round(r.x), y: round(r.y), width: Math.max(1, round(r.width)), height: Math.max(1, round(r.height)) }
           : { x: round2(r.x), y: round2(r.y), width: round2(r.width), height: round2(r.height) };
-        const props: Partial<NodeProps> = rr;
+        let guides: Guide[] = [];
+        if (targets && snapping(ev) && !ev.shiftKey && !ev.altKey) {
+          // Only the dragged edges snap. The parent is unrotated here, so world = parent space + offset.
+          const origin = applyToPoint(parentSpace, { x: 0, y: 0 });
+          const world = { x: rr.x + origin.x, y: rr.y + origin.y, width: rr.width, height: rr.height };
+          const edge = (h: -1 | 0 | 1) => (h === 1 ? ['end' as const] : h === -1 ? ['start' as const] : []);
+          const snap = snapBox(world, targets, snapThreshold(editor), { x: edge(handle.hx), y: edge(handle.hy) });
+          if (handle.hx === 1) rr = { ...rr, width: Math.max(1, round2(rr.width + snap.dx)) };
+          if (handle.hx === -1) rr = { ...rr, x: round2(rr.x + snap.dx), width: Math.max(1, round2(rr.width - snap.dx)) };
+          if (handle.hy === 1) rr = { ...rr, height: Math.max(1, round2(rr.height + snap.dy)) };
+          if (handle.hy === -1) rr = { ...rr, y: round2(rr.y + snap.dy), height: Math.max(1, round2(rr.height - snap.dy)) };
+          guides = snap.guides;
+        }
+        const props: Partial<NodeProps> = { ...rr, ...fixedSizing(node, handle) };
         if (node.type === 'text') {
           // Dragging a text box's height fixes it; dragging its width makes it wrap.
           if (handle.hy !== 0) props.textResize = 'fixed';
           else if (node.textResize === 'auto-width') props.textResize = 'auto-height';
         }
         editor.previewGesture([{ type: 'update', id: node.id, props }]);
+        editor.setGuides(guides);
       },
       up() {
         editor.commitGesture('Resize');
@@ -364,7 +508,13 @@ export function resizeGesture(ctx: GestureContext, ids: readonly string[], handl
         const width = Math.max(1, round2(node.width * sw));
         const height = Math.max(1, round2(node.height * sh));
         const local = applyToPoint(toParent, c);
-        const props: Partial<NodeProps> = { x: round2(local.x - width / 2), y: round2(local.y - height / 2), width, height };
+        const props: Partial<NodeProps> = {
+          x: round2(local.x - width / 2),
+          y: round2(local.y - height / 2),
+          width,
+          height,
+          ...fixedSizing(node, handle),
+        };
         if (node.type === 'text') props.textResize = 'fixed';
         return { type: 'update', id: node.id, props };
       });
