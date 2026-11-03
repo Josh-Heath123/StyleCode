@@ -108,6 +108,11 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     appliesTo: FRAME,
     description: 'Alignment of auto-layout children across the layout direction',
   },
+  wrap: {
+    spec: { kind: 'boolean' },
+    appliesTo: FRAME,
+    description: 'Rows only: children that do not fit move onto a new line, with the same gap between lines',
+  },
   widthMode: {
     spec: { kind: 'enum', values: ['fixed', 'hug', 'fill'] },
     appliesTo: SHAPES,

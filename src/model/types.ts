@@ -123,6 +123,8 @@ export interface NodeProps {
   paddingLeft: number;
   justify: Justify;
   align: Align;
+  /** Rows only: children that don't fit move onto a new line (CSS flex-wrap). */
+  wrap: boolean;
 
   /** Sizing within auto-layout. */
   widthMode: SizingMode;

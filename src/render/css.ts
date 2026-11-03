@@ -1,4 +1,4 @@
-import { effectiveSizing } from '../model/layout';
+import { effectiveSizing, isWrapping } from '../model/layout';
 import type { DesignNode } from '../model/types';
 
 /**
@@ -30,7 +30,7 @@ export function fontStack(family: string): string {
   return `${quoted}, sans-serif`;
 }
 
-const px = (n: number) => `${Math.round(n * 100) / 100}px`;
+export const px = (n: number) => `${Math.round(n * 100) / 100}px`;
 
 /** Typography declarations for a text layer (also used to measure text). */
 export function textDeclarations(node: DesignNode): CssDeclarations {
@@ -113,9 +113,13 @@ const ALIGN = { start: 'flex-start', center: 'center', end: 'flex-end' } as cons
 export function flexContainerDeclarations(node: DesignNode): CssDeclarations {
   if (node.type !== 'frame' || node.layout === 'none') return {};
   const pad = [node.paddingTop, node.paddingRight, node.paddingBottom, node.paddingLeft];
+  const wraps = isWrapping(node);
   return {
     display: 'flex',
     flexDirection: node.layout,
+    // Lines of a wrapping row sit together, aligned like the items within them.
+    flexWrap: wraps ? 'wrap' : undefined,
+    alignContent: wraps ? ALIGN[node.align] : undefined,
     gap: node.gap ? px(node.gap) : undefined,
     padding: pad.some(Boolean) ? pad.map(px).join(' ') : undefined,
     justifyContent: node.justify === 'start' ? undefined : JUSTIFY[node.justify],
@@ -146,5 +150,8 @@ export function flexItemDeclarations(node: DesignNode, parent: DesignNode): CssD
   }
   if (crossMode === 'fill') css.alignSelf = 'stretch';
   else if (crossMode === 'fixed') css[cross] = px(node[cross]);
+  // A wrapping row that hugs its width is as wide as all its children on one line. Without
+  // this a column would squeeze it to its widest child and it would wrap.
+  if (isWrapping(node) && node.widthMode === 'hug') css.width = 'max-content';
   return css;
 }

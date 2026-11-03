@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isExportableImage } from '../codegen/exporters';
 import { ASSETS, idbGet, idbPut } from './idb';
 
 /**
@@ -88,6 +89,10 @@ async function naturalSize(blob: Blob): Promise<{ width: number; height: number 
 /** Stores an image file locally and returns its asset id and pixel size. */
 export async function storeImage(file: Blob): Promise<StoredAsset> {
   if (!file.type.startsWith('image/')) throw new Error('That file is not an image.');
+  // Only formats every browser shows, so the image appears in exported code too.
+  if (!isExportableImage(file.type)) {
+    throw new Error('That image format isn\u2019t supported. Use PNG, JPEG, WebP, GIF, AVIF, SVG, BMP or ICO.');
+  }
   if (file.size > MAX_IMAGE_BYTES) throw new Error('That image is larger than 15 MB. Use a smaller or compressed version.');
   const buffer = await file.arrayBuffer();
   const id = await hashId(buffer);
@@ -167,11 +172,40 @@ export interface EmbeddedAsset {
   data: string;
 }
 
-function toBase64(buffer: ArrayBuffer): string {
+export function toBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
+}
+
+/** The stored images among `ids`, with their type and bytes. Missing ones are left out. */
+export async function loadAssetFiles(ids: Iterable<string>): Promise<Map<string, { type: string; data: Uint8Array }>> {
+  const out = new Map<string, { type: string; data: Uint8Array }>();
+  for (const id of new Set(ids)) {
+    if (!ASSET_ID.test(id)) continue;
+    const record = await idbGet<AssetRecord>(ASSETS, id);
+    if (record) out.set(id, { type: record.type, data: new Uint8Array(await record.blob.arrayBuffer()) });
+  }
+  return out;
+}
+
+const typeCache = new Map<string, string | null>();
+
+/** The file types of stored images (null for missing ones), cached after the first look. */
+export async function loadAssetTypes(ids: Iterable<string>): Promise<Map<string, string | null>> {
+  const out = new Map<string, string | null>();
+  for (const id of new Set(ids)) {
+    if (!typeCache.has(id)) {
+      const record = ASSET_ID.test(id) ? await idbGet<AssetRecord>(ASSETS, id).catch(() => undefined) : undefined;
+      // Only remember images that exist: a missing one may be added later.
+      if (record) typeCache.set(id, record.type);
+      out.set(id, record?.type ?? null);
+    } else {
+      out.set(id, typeCache.get(id)!);
+    }
+  }
+  return out;
 }
 
 /** Reads the given assets for embedding in a project file. Missing assets are skipped. */

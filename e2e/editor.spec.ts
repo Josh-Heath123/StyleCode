@@ -57,15 +57,15 @@ test('edits properties from the panel as single undo steps', async ({ page }) =>
   const width = page.getByLabel('Width', { exact: true });
   await width.fill('300/2+10');
   await width.press('Enter');
-  expect((await node(page, rect)).width).toBe(160);
+  await expect.poll(async () => (await node(page, rect)).width).toBe(160);
 
   const hex = page.getByLabel('Fill hex value');
   await hex.fill('2F7BFF');
   await hex.press('Enter');
-  expect((await node(page, rect)).fill).toBe('#2f7bff');
+  await expect.poll(async () => (await node(page, rect)).fill).toBe('#2f7bff');
 
   await page.keyboard.press('Control+z');
-  expect((await node(page, rect)).fill).not.toBe('#2f7bff');
+  await expect.poll(async () => (await node(page, rect)).fill).not.toBe('#2f7bff');
 });
 
 test('keeps the project after a reload', async ({ page }) => {

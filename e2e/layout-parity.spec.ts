@@ -39,6 +39,7 @@ test('the layout engine matches the browser’s flexbox', async ({ page }) => {
         paddingLeft: int(0, 24),
         justify: pick(['start', 'center', 'end', 'space-between'] as const),
         align: pick(['start', 'center', 'end'] as const),
+        wrap: random() < 0.35,
         stroke: random() < 0.3 ? '#000000' : null,
         strokeWidth: int(1, 4),
         fill: null,
@@ -54,7 +55,7 @@ test('the layout engine matches the browser’s flexbox', async ({ page }) => {
       const ops: { type: 'create'; parentId: string; index: number; nodes: Node[] }[] = [
         { type: 'create', parentId: base.rootId, index: 0, nodes: [root] },
       ];
-      const count = int(1, 5);
+      const count = int(1, 7);
       for (let i = 0; i < count; i++) {
         const kind = pick(['rect', 'rect', 'ellipse', 'text', 'frame'] as const);
         const sizing = {

@@ -246,4 +246,81 @@ describe('auto-layout engine', () => {
     expect(box(doc, 'row')).toEqual([0, 0, 120, 16]);
     expect(box(doc, 'dot')).toEqual([0, 16, 8, 8]);
   });
+
+  it('wraps a row onto new lines, each as tall as its tallest layer', () => {
+    const doc = laidOut(
+      build({ layout: 'row', wrap: true, gap: 10, align: 'center', width: 200, heightMode: 'hug' }, [
+        { id: 'a', props: { width: 80, height: 30 } },
+        { id: 'b', props: { width: 80, height: 40 } },
+        { id: 'c', props: { width: 80, height: 20 } },
+      ]),
+    );
+    expect(box(doc, 'a')).toEqual([0, 5, 80, 30]);
+    expect(box(doc, 'b')).toEqual([90, 0, 80, 40]);
+    expect(box(doc, 'c')).toEqual([0, 50, 80, 20]);
+    expect(box(doc, 'f')).toEqual([50, 60, 200, 70]);
+  });
+
+  it('shares each line among its filling layers and stretches to the line', () => {
+    const doc = laidOut(
+      build({ layout: 'row', wrap: true, gap: 10, width: 200, height: 300 }, [
+        { id: 'a', props: { width: 150, height: 30 } },
+        { id: 'b', props: { widthMode: 'fill', heightMode: 'fill', height: 999 } },
+        { id: 'c', props: { width: 120, height: 50 } },
+        { id: 'd', props: { widthMode: 'fill', height: 20 } },
+      ]),
+    );
+    // Line 1: a and b (b fills the 40px left, stretched to 30); line 2: c and d.
+    expect(box(doc, 'b')).toEqual([160, 0, 40, 30]);
+    expect(box(doc, 'c')).toEqual([0, 40, 120, 50]);
+    expect(box(doc, 'd')).toEqual([130, 40, 70, 20]);
+  });
+
+  it('measures layers stretched in a wrapping row at their natural size first', () => {
+    // A card hugging its width whose body fills its height: the body's width still counts.
+    const base = build({ layout: 'row', wrap: true, gap: 10, width: 600, height: 300 }, [
+      { id: 'tall', props: { width: 100, height: 120 } },
+    ]);
+    const doc = laidOut(
+      applyOps(base, [
+        {
+          type: 'create',
+          parentId: 'f',
+          index: 1,
+          nodes: [createNode('frame', { layout: 'column', widthMode: 'hug', heightMode: 'fill', gap: 4 }, 'card')],
+        },
+        { type: 'create', parentId: 'card', index: 0, nodes: [createNode('text', { text: 'Title' }, 'title')] },
+        {
+          type: 'create',
+          parentId: 'card',
+          index: 1,
+          nodes: [createNode('text', { text: 'A much longer body text', heightMode: 'fill' }, 'body')],
+        },
+      ]).doc,
+    );
+    expect(box(doc, 'card')).toEqual([110, 0, 23 * 8, 120]);
+    expect(box(doc, 'body')).toEqual([0, 24, 23 * 8, 96]);
+  });
+
+  it('doesn\u2019t keep an old stretched size when a line gets shorter', () => {
+    const base = build({ layout: 'row', wrap: true, width: 600, height: 300 }, [
+      { id: 'tall', props: { width: 100, height: 150 } },
+    ]);
+    let doc = laidOut(
+      applyOps(base, [
+        {
+          type: 'create',
+          parentId: 'f',
+          index: 1,
+          nodes: [createNode('frame', { layout: 'row', widthMode: 'hug', heightMode: 'fill' }, 'card')],
+        },
+        { type: 'create', parentId: 'card', index: 0, nodes: [createNode('rect', { width: 6, heightMode: 'fill' }, 'bar')] },
+        { type: 'create', parentId: 'card', index: 1, nodes: [createNode('rect', { width: 50, height: 40 }, 'content')] },
+      ]).doc,
+    );
+    expect(box(doc, 'bar')[3]).toBe(150);
+    doc = laidOut(applyOps(doc, [{ type: 'update', id: 'tall', props: { height: 60 } }]).doc);
+    expect(box(doc, 'card')[3]).toBe(60);
+    expect(box(doc, 'bar')[3]).toBe(60);
+  });
 });
