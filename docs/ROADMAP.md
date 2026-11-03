@@ -50,17 +50,26 @@ The goal: an editor that is genuinely useful without AI and whose structure prod
 Moved to later phases, because nothing in the core loop depends on them yet:
 
 - Per-corner radius, equal-spacing guides and distance labels (Phase 5)
-- Wrapping rows and grid layout (Phase 3, where responsive export needs them)
+- Wrapping rows (delivered in Phase 3) and grid layout (moved to Phase 5)
 
-## Phase 3: Design to code
+## Phase 3: Design to code ✅
 
-- HTML/CSS generator and React generator, both pure functions of the document
-- Code panel beside the canvas: selecting a layer highlights its code; editing a layer's CSS declarations writes back to the design
-- Live preview of the generated code in a sandboxed iframe at desktop, tablet and mobile widths
-- Responsive output from auto-layout; absolutely positioned content exported faithfully but flagged
-- Wrapping rows and a simple grid layout, so card grids reflow at narrow widths
-- Export a project as a ZIP (static site or a minimal Vite React app)
-- Snapshot tests that pin generated code for known documents
+- **HTML/CSS and React generators**, both pure functions of the document, sharing the canvas's CSS mapping
+- **Semantic HTML from roles** (`nav`, `button`, `a`, `h1`–`h6` levelled by size, `ul`/`li`, `input`, `article`, `img`), kept valid; readable class names from layer names
+- **Faithful at the design width**: a browser test renders exported pages and compares every layer with the canvas (within a pixel), in free layout and in auto layout
+- **Responsive below the design width**: one media query per page lets rows wrap, fixed widths shrink, heights grow and large type and spacing scale; tested for sideways scrolling at phone and tablet widths. Free layout is flagged
+- **React**: a TypeScript component and CSS module per screen; repeated structures extracted into components, with text, images and colours (as CSS variables) as props
+- **Code panel** beside the canvas: HTML, CSS, React and CSS module for the screen, the selected layer's code highlighted, click a line to select its layer, copy
+- **Code → design**: edit a layer's CSS in the code panel and it flows back into the design as one undoable step; anything that can't be represented is reported
+- **Live preview** of the exported page in a sandboxed frame at the design width, 768px and 390px
+- **Export as a ZIP**: a static website, or a Vite + React + TypeScript app that installs and builds as is; images and the Inter font included
+- **Wrapping rows** in auto layout (`flex-wrap`), covered by the layout parity test
+- Snapshot tests that pin generated code; a round-trip test that reads every layer's CSS back into the same design
+
+Moved to later phases:
+
+- Grid layout and minimum/maximum widths for responsive grids (Phase 5)
+- Per-breakpoint design overrides, such as a different layout on mobile (Phase 5)
 
 ## Phase 4: AI collaboration
 
@@ -80,4 +89,5 @@ Moved to later phases, because nothing in the core loop depends on them yet:
 - Performance pass against large documents
 - Annotations: sketch arrows and notes on the canvas that the AI reads as instructions (the "mark up a printout" interaction)
 - Editor polish carried over from Phase 2: per-corner radius, equal-spacing guides and distance labels
+- Layout carried over from Phase 3: grid layout, min/max widths, per-breakpoint overrides
 - Documentation site, demo GIFs, contribution guide, GitHub presentation

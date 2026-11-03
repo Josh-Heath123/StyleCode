@@ -32,7 +32,8 @@ A useful consequence of rule 3: small local models become viable. A 4–8B model
              │                                  ┌─────────────────┼──────────┐  │
              │                                  ▼                 ▼          ▼  │
              │                            canvas (DOM)   code generators  IndexedDB
-             │                                           (Phase 3)       + files │
+             │                                          → code panel,    + files │
+             │                                            preview, ZIP            │
              └──────────────────────────────────────────────────────────────────┘
  (Phase 4)   local dev server: proxies AI calls, holds API keys, talks to Ollama
 ```
@@ -44,10 +45,11 @@ Source layout:
 | `src/model` | Document types, property registry, operations, geometry, commands, the auto-layout engine and layout inference, file format. Pure TypeScript, no React, no DOM. | nothing outside `model` |
 | `src/editor` | The editor store (document + editing state), history, camera, React bindings. | `model` |
 | `src/render` | The single design-property → CSS mapping. | `model` |
+| `src/codegen` | Code generation: screens as element trees, HTML/CSS and React printers, CSS → design parsing, site and app export, ZIP. Pure TypeScript, no DOM. | `model`, `render` |
 | `src/canvas` | Canvas viewport, layer rendering, overlay, pointer gestures, snapping, text measurement, the layout normaliser. | `model`, `editor`, `render`, `ui` |
-| `src/panels` | Layers, insert and properties panels and their controls. | everything above |
+| `src/panels` | Layers, insert, properties and code panels and their controls. | everything above |
 | `src/persistence` | IndexedDB storage, image assets, project files, example project. | `model`, `editor` |
-| `src/app` | App shell, top bar, tool dock, shortcuts, shared actions, inserting images and blocks. | everything |
+| `src/app` | App shell, top bar, tool dock, shortcuts, shared actions, inserting images and blocks, preview and export. | everything |
 | `src/ui` | Generic UI: icons, menus. | nothing app-specific |
 
 The `model` layer is the part that matters most and is tested most heavily. Everything above it is a view or an input method. Unit tests (Vitest) sit next to the code they test; browser tests (Playwright) live in `e2e/` and drive the real app.
@@ -105,7 +107,11 @@ Auto-layout frames arrange their children like CSS flexbox. On a DOM canvas ther
 | Render auto-layout frames with `display: flex` and read positions back from the DOM | Exact by definition, but the document would no longer know where its own layers are. Hit-testing, snapping, the selection overlay, resize maths, the AI's context and undo would all wait on a render-then-measure step, and every layout change would cost two renders. |
 | **Resolve layout in the model and write the result back as x/y/width/height** ✅ | One geometry for everything. Layout runs inside the transaction of the edit that caused it, so undo is exact and the AI sees real coordinates. The price is keeping a flexbox subset faithful to the browser, which a test enforces (below). |
 
-`model/layout.ts` supports: row or column; gap; padding per side; `justify` start, centre, end or space-between; `align` start, centre or end; children that are **fixed**, **hug** their content (auto-layout frames and auto-sized text) or **fill** the space left (`flex: 1 1 0; min-width: 0` along the main axis, `align-self: stretch` across it); children set to ignore auto layout (`position: absolute`); hidden children skipped. There is no wrapping yet, and rotation does not affect layout, as in CSS.
+`model/layout.ts` supports: row or column; gap; padding per side; `justify` start, centre, end or space-between; `align` start, centre or end; children that are **fixed**, **hug** their content (auto-layout frames and auto-sized text) or **fill** the space left (`flex: 1 1 0; min-width: 0` along the main axis, `align-self: stretch` across it); children set to ignore auto layout (`position: absolute`); hidden children skipped; and **wrapping rows** (`flex-wrap: wrap`). Rotation does not affect layout, as in CSS.
+
+A wrapping row places layers on a line until the next one doesn't fit, then starts a new line; lines are as tall as their tallest layer and separated by the gap. Filling layers count as their minimum size when lines are formed, then share what is left on their own line, and layers set to fill the height stretch to their line rather than the frame. The block of lines is aligned like the layers within them (`align-content` follows `align-items`), so a single wrapped line sits where an unwrapped row would. A wrapping row that hugs its width is as wide as all its layers on one line (`width: max-content`).
+
+To know how tall a line is, the engine first measures each layer that stretches across it at its **natural size**, as CSS does: a frame at its content (with any layer filling its own length counted at its minimum, and layers stretching across it measured the same way), text at its wrapped height, a shape at its border. Only then are the stretched layers sized to the line.
 
 `layoutRoots` works out which frames a change can affect: the outermost frame of each unbroken chain of auto-layout ancestors. Editing a word deep inside a card re-lays out that card and whatever hugs it, and nothing else.
 
@@ -119,7 +125,7 @@ Auto-layout frames arrange their children like CSS flexbox. On a DOM canvas ther
 - Sizes can be 0: an empty hugging frame collapses to its padding.
 - Text is measured to hundredths of a pixel and rounded up, not to whole pixels, or a row of labels drifts.
 
-The code generators in Phase 3 will emit the same declarations, so this test also pins what exported code does.
+The parity test also generates wrapping rows (about a quarter of frames, with filling and stretched layers among them). The code generators emit the same declarations, so this test also pins what exported code does; a second test (section 9) checks whole exported pages.
 
 ### Tidy into auto layout
 
@@ -165,7 +171,7 @@ Text is measured with an off-screen element styled by the same CSS mapping, so m
 
 There is no account and no server. The open project autosaves to **IndexedDB** half a second after each change and on tab hide. Projects can be saved to and opened from `.stylecode.json` files (using the File System Access API's save dialog where the browser supports it, a download otherwise). Opening a file always creates a new local project, so it can never overwrite existing work. If the same project is open in two tabs, a notice explains that the last tab to save wins.
 
-**Images** are stored in their own IndexedDB store as blobs, keyed by a SHA-256 hash of their content (`asset_…`). The same picture added twice is stored once, and image layers refer to it by id, so the document stays small and copying an image layer between projects just works. Images up to 15 MB are accepted. Layers on screen share one object URL per image, released a few seconds after the last one goes away; a layer whose image is missing shows a placeholder and picks the image up as soon as it is added. Images finish loading in the background, and an insert waits for any drag or scrub in progress to end so it never interrupts it. Saving to a file embeds the images that project uses (base64, under `assets`), so a saved file is self-contained; opening it puts them back into the local store. Nothing is uploaded anywhere.
+**Images** are stored in their own IndexedDB store as blobs, keyed by a SHA-256 hash of their content (`asset_…`). The same picture added twice is stored once, and image layers refer to it by id, so the document stays small and copying an image layer between projects just works. Images up to 15 MB are accepted, in the formats every browser shows (PNG, JPEG, WebP, GIF, AVIF, SVG, BMP, ICO), so a picture on the canvas always appears in exported code too. Layers on screen share one object URL per image, released a few seconds after the last one goes away; a layer whose image is missing shows a placeholder and picks the image up as soon as it is added. Images finish loading in the background, and an insert waits for any drag or scrub in progress to end so it never interrupts it. Saving to a file embeds the images that project uses (base64, under `assets`), so a saved file is self-contained; opening it puts them back into the local store. Nothing is uploaded anywhere.
 
 **Blocks** (button, badge, text field, card, navigation bar, hero section, in light or dark) are plain functions that build a subtree of auto-layout frames with roles set. They are inserted like anything else, as one undoable operation, and are fully editable afterwards; there is no separate component system to keep in sync.
 
@@ -221,16 +227,68 @@ API keys are **never stored in or sent to the browser**. StyleCode already runs 
 | Context window | Ollama picks its default context size from available VRAM (4K tokens on typical laptops) and silently truncates prompts that exceed it. | The app sets `num_ctx` explicitly on the native API and budgets the context it sends. |
 | Installation | Ollama installs with one download on Windows, macOS and Linux. | Clear setup instructions, connection check in settings, and no-AI mode always available. |
 
-## 9. Code generation (Phase 3, designed now)
+## 9. Code generation
 
-Generators are pure functions from the document to files:
+Generators are pure functions from the document to files, in `src/codegen`. The AI never writes code (section 1): it will change the document, and the generators compile it.
 
-- **HTML/CSS**: semantic tags chosen from node roles (`nav`, `header`, `button`, `section`), class names from layer names, the same CSS declarations the canvas renders.
-- **React**: one component per top-level frame, with reusable components extracted from repeated structures.
+### From a screen to an element tree
 
-The hard problem is layout. A sketch is absolutely positioned boxes, but good code uses flexbox and grid. Phase 2 solved the model side: **auto-layout frames** whose behaviour is pinned to real flexbox (section 5), a deterministic **tidy** command that infers rows, columns, gaps and alignment from rough geometry, and **semantic roles** that say which element a layer is. The generators emit `render/css.ts`'s flexbox declarations for auto-layout frames and choose tags from roles. Code generated from auto-layout frames is responsive; absolutely positioned content is exported faithfully but flagged.
+Each top-level frame is a **screen**. `buildScreen` turns it into a tree of elements, each with a tag, a class, attributes and a CSS rule, and both printers (HTML and React) work from that tree.
 
-Code → design sync is deliberately limited: a full React parser round-trip is a rabbit hole. Instead, the code panel will allow editing each layer's CSS declarations, which map one-to-one onto registry properties and so can be parsed back into operations.
+- **Tags come from roles**: `nav`, `header`, `footer`, `section`, `article` (card), `button`, `a` (link), `ul`/`li` (list), `input`, `h1`–`h6` (headings, levelled by font size within the screen: the largest is `h1`), `p`, `img`. Text without a role is a `p`, or a `span` where only phrasing content is allowed. The HTML stays valid: inside a button, link, heading or paragraph only phrasing elements are used, nothing interactive nests inside a button or link, and a list holds only list items (anything else is wrapped in an `li` with `display: contents`, which leaves the layout alone).
+- **An input** is a text layer, or a frame holding one, with the input role: it becomes `<input placeholder="…">` with the frame's box and the text's type style.
+- **Class names** come from layer names (`Hero title` → `hero-title`). Layers still called "Frame 3" or "Text" are named by role, by their first words of text, or by what they are (`row`, `column`, `box`, `circle`), and repeats get `-2`, `-3`.
+- **Images** reference `assets/<id>.<ext>`; an image whose picture isn't on this device exports as a labelled placeholder box, with a warning.
+
+### Faithful at the design width
+
+Declarations come from `render/css.ts`, the mapping the canvas renders with: layers in auto layout get their flexbox declarations (the ones the parity test checks), layers in free layout and layers that ignore auto layout get `position: absolute` with their exact position and size. A short base stylesheet resets browser defaults (margins, button and input styles, list bullets) and carries the bundled Inter font. The screen itself becomes `width: 100%; max-width: <design width>; margin: 0 auto`, so on a wider screen it is centred on its own background.
+
+`e2e/code.spec.ts` renders the exported page for the example project (in free layout and tidied into auto layout) at the design width and compares every layer's box with the canvas: they agree to within a pixel.
+
+### Responsive below the design width
+
+Fixed pixel layouts break on phones, so every screen's stylesheet ends with one media query, active only below the design width, that adapts it:
+
+- rows wrap onto new lines;
+- fixed widths become maximums (`max-width: 100%`), and frames that hug their content may shrink to the space available;
+- a layer filling a row keeps a readable width (at least 240px, or the whole line);
+- headings and paragraphs stacked in a column may wrap; labels in rows (buttons, links, badges) stay on one line;
+- heights set by the design become minimums, so content that wraps can grow;
+- images keep their aspect ratio;
+- large type (28px and up) scales with the viewport (`clamp(…, …vw, size)`, never below the larger of 20px and 60% of its size), and so do page-wide side padding (never below 16px) and wide gaps in rows (never below 12px).
+
+At the design width none of this applies, so it cannot disturb the faithful layout. Layers in free layout can't adapt this way; the code panel says so and points to <kbd>Shift</kbd>+<kbd>A</kbd>. The same test renders the tidied example at 390px and 768px and checks that nothing scrolls sideways.
+
+### React
+
+Each screen becomes a TypeScript component with a CSS module (`LandingPage.tsx`, `LandingPage.module.css`). **Repeated structures become components**: two subtrees count as the same when their elements and CSS match; whatever differs between them (text, images, alt text, placeholders, fill and text colours) becomes props. Colours are passed as CSS custom properties, so the styles stay in the stylesheet:
+
+```tsx
+function Card({ iconBackground, title, description }: CardProps) {
+  return (
+    <article className={s.card}>
+      <div className={s.icon} style={{ '--icon-background': iconBackground } as CSSProperties} />
+      <h2 className={s.title}>{title}</h2>
+      …
+```
+
+The largest repeated structures win, a structure used only once stays inline, and a component is named after what its instances' names share (`tag-card`, `price-card` → `Card`). A prop is named after its layer when the instances' layers share a name (`title`), and generically (`text`, `imageSrc`) when each was named by its own content; names that would clash with JavaScript's reserved words or with the file's own identifiers get a suffix. Screen components never take a name `App.tsx` uses itself, and static-site pages never overwrite `index.html` or `base.css`.
+
+### Exports and preview
+
+- **Website**: one HTML page per screen (the first is `index.html`), a stylesheet per page, shared `base.css`, images and fonts. No build step and no JavaScript.
+- **React app**: Vite + React + TypeScript, one component per screen (switched by the address, `#screen-name`, when there are several), images imported so Vite bundles them, and the same dependency versions StyleCode is built with. An exported app was installed and built (`npm install && npm run build`) as part of developing this.
+- Both are written into a **ZIP** by a small writer in `codegen/zip.ts` (stored, not compressed; the archive is checked with `unzip -t` and read back in tests), saved through the system save dialog where the browser has one.
+- The **preview** renders the exact exported HTML and CSS (fonts and images inlined) in an `<iframe sandbox="">` (no scripts, no access to the app) at the design width, 768px and 390px. The only addition is a hidden scrollbar, so a tall page isn't laid out a scrollbar's width narrower than the design.
+
+### Code → design
+
+A full React-to-design round trip is a rabbit hole. Instead, the code panel lets you edit the CSS of the selected layer's rule, limited to declarations that map onto design properties: size, position (for freely placed layers), flexbox direction, wrapping, alignment, gap and padding, background (colour or two-colour gradient), border, radius, overflow, shadow, backdrop blur, opacity, rotation, object-fit and typography. `codegen/parseCss.ts` turns the edited text into property changes, applied as one undoable step; removing a declaration resets what it described (removing `border` removes the stroke). Declarations StyleCode sets itself (`position`, `flex`, `margin`…) and ones it can't represent (`filter`, dashed borders, several shadows) are reported, and nothing changes. Any CSS colour is accepted; the browser's own parser turns it into hex. A unit test reads every layer of a test page back through the parser and checks the regenerated CSS is identical.
+
+### Tests
+
+Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, so any change to generated code shows up as a reviewable diff. Other unit tests cover tags and HTML validity, escaping, the split between design-width and responsive rules, component extraction, CSS parsing, the export file sets and the ZIP format; the browser tests cover fidelity, phone widths, the code panel, the preview and both downloads.
 
 ## 10. Known risks
 
@@ -241,7 +299,8 @@ Code → design sync is deliberately limited: a full React parser round-trip is 
 | Silent context truncation in Ollama | Explicit `num_ctx` and a context budget. |
 | AI damaging existing work | Scoped operations, locked layers protected, preview, atomic undoable transactions. |
 | DOM canvas performance at scale | Per-node subscriptions, transform-based pan/zoom, structural sharing, a virtualised layer list. |
-| Canvas and export disagreeing | One CSS mapping used by both; CSS box-model semantics in the document; a randomised browser test comparing the layout engine with real flexbox. |
+| Canvas and export disagreeing | One CSS mapping used by both; CSS box-model semantics in the document; a randomised browser test comparing the layout engine with real flexbox; a browser test comparing whole exported pages with the canvas. |
+| Fixed-width designs breaking on phones | Responsive rules that apply only below the design width; a browser test for sideways scrolling at 390px and 768px; free layout flagged in the code panel. |
 | Large images bloating storage and files | Content-addressed storage (each picture stored once), a 15 MB limit per image, and only images in use are embedded in saved files. |
 | API key exposure | Keys live in a local server process, never in browser code or storage. |
 | Scope creep | Each phase must leave the app working; no feature without a place in the core loop. |

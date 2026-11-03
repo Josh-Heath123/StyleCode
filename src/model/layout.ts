@@ -20,7 +20,8 @@ import type { DesignDocument, DesignNode, NodeProps } from './types';
  * - `justify-content: flex-start | center | flex-end | space-between`
  * - `align-items: flex-start | center | flex-end`, plus `align-self: stretch` (fill across)
  * - children `flex: none` (fixed or hug) or `flex: 1 1 0; min-width: 0` (fill along)
- * - no wrapping; transforms (rotation) do not affect layout, as in CSS
+ * - rows with `flex-wrap: wrap` and `align-content` matching `align-items`
+ * - transforms (rotation) do not affect layout, as in CSS
  */
 
 /** Measures a text layer: its natural size, or its height when wrapped at `width`. */
@@ -32,6 +33,11 @@ type Box = { x: number; y: number; width: number; height: number };
 
 export function isAutoLayout(node: DesignNode | undefined): boolean {
   return !!node && node.type === 'frame' && node.layout !== 'none';
+}
+
+/** Whether an auto-layout frame moves children that don't fit onto new lines. Only rows wrap. */
+export function isWrapping(node: DesignNode | undefined): boolean {
+  return !!node && node.type === 'frame' && node.layout === 'row' && node.wrap;
 }
 
 /** Whether a layer is positioned by its parent's auto-layout rather than its own x/y. */
@@ -144,29 +150,36 @@ class LayoutRun {
   /**
    * Resolves a layer's size, optionally with one or both dimensions imposed by
    * its parent, and lays out its subtree if it is an auto-layout frame.
+   *
+   * `natural` asks for the size a layer would have along that axis if nothing
+   * set it (CSS `auto`): its content for frames and text, its border for
+   * shapes. Wrapping rows need it to find how tall each line is before
+   * stretching the layers in it.
    */
-  size(id: string, assigned: Partial<Size>): Size {
+  size(id: string, assigned: Partial<Size>, natural?: Axis): Size {
     const node = this.doc.nodes[id];
-    if (isAutoLayout(node)) return this.frame(node, assigned);
+    if (isAutoLayout(node)) return this.frame(node, assigned, natural);
 
     const current = this.box(id);
     let width: number;
     let height: number;
     if (node.type === 'text') {
+      const fixedHeight = node.textResize === 'fixed' && natural !== 'height';
       if (assigned.width !== undefined) {
         width = assigned.width;
-        height = assigned.height ?? (node.textResize === 'fixed' ? current.height : this.measure(node, width).height);
+        height = assigned.height ?? (fixedHeight ? current.height : this.measure(node, width).height);
       } else if (node.textResize === 'auto-width') {
-        const natural = this.measure(node);
-        width = natural.width;
-        height = assigned.height ?? natural.height;
+        const size = this.measure(node);
+        width = size.width;
+        height = assigned.height ?? size.height;
       } else {
         width = current.width;
-        height = assigned.height ?? (node.textResize === 'fixed' ? current.height : this.measure(node, width).height);
+        height = assigned.height ?? (fixedHeight ? current.height : this.measure(node, width).height);
       }
     } else {
-      width = assigned.width ?? current.width;
-      height = assigned.height ?? current.height;
+      // A shape has no content, so its natural size is just its border.
+      width = assigned.width ?? (natural === 'width' ? 0 : current.width);
+      height = assigned.height ?? (natural === 'height' ? 0 : current.height);
     }
     width = Math.max(minSize(node, 'width'), width);
     height = Math.max(minSize(node, 'height'), height);
@@ -174,7 +187,7 @@ class LayoutRun {
     return { width, height };
   }
 
-  private frame(node: DesignNode, assigned: Partial<Size>): Size {
+  private frame(node: DesignNode, assigned: Partial<Size>, natural?: Axis): Size {
     const row = node.layout === 'row';
     const mainKey: Axis = row ? 'width' : 'height';
     const crossKey: Axis = row ? 'height' : 'width';
@@ -189,7 +202,7 @@ class LayoutRun {
 
     const own = (axis: Axis): number | undefined => {
       const mode = axis === 'width' ? node.widthMode : node.heightMode;
-      const size = assigned[axis] ?? (mode === 'hug' ? undefined : current[axis]);
+      const size = assigned[axis] ?? (mode === 'hug' || axis === natural ? undefined : current[axis]);
       return size === undefined ? undefined : Math.max(size, minSize(node, axis));
     };
     const ownMain = own(mainKey);
@@ -210,9 +223,17 @@ class LayoutRun {
         cross: 0,
       }));
 
+    if (isWrapping(node)) {
+      const pads = { left: node.paddingLeft, right: node.paddingRight, top: node.paddingTop, bottom: node.paddingBottom };
+      return this.wrappedRow(node, items, ownMain, ownCross, pads, border);
+    }
+
     const knownInnerCross = ownCross === undefined ? undefined : innerOf(ownCross, padCrossStart, padCrossEnd);
     const sizeItem = (item: (typeof items)[number], main: number | undefined, cross: number | undefined) => {
-      const s = this.size(item.id, { [mainKey]: main, [crossKey]: cross });
+      // A layer stretching across a frame whose cross size isn't known yet (the frame is being
+      // measured for its natural size) counts at its own natural size, as in CSS.
+      const natural = item.crossMode === 'fill' && cross === undefined ? crossKey : undefined;
+      const s = this.size(item.id, { [mainKey]: main, [crossKey]: cross }, natural);
       item.main = s[mainKey];
       item.cross = s[crossKey];
     };
@@ -226,7 +247,9 @@ class LayoutRun {
     const fills = items.filter((item) => item.mainMode === 'fill');
     let finalMain: number;
     if (ownMain === undefined) {
-      // A hugging frame has no fill children (they are treated as fixed), so it just adds up.
+      // A hugging frame has no fill children (they are treated as fixed), so it just adds up. A frame
+      // measured for its natural size can have them: as in CSS (flex: 1 1 0) they count at their minimum.
+      for (const item of fills) sizeItem(item, minSize(this.doc.nodes[item.id], mainKey), stretch(item));
       finalMain = items.reduce((sum, item) => sum + item.main, 0) + gaps + padMainStart + padMainEnd + border;
     } else {
       finalMain = ownMain;
@@ -241,6 +264,11 @@ class LayoutRun {
 
     // 3. Cross size: hugging frames fit their tallest (or widest) child.
     const finalCross = ownCross ?? Math.max(0, ...items.map((item) => item.cross)) + padCrossStart + padCrossEnd + border;
+    // Layers that stretch across, measured at their natural size above, now take the frame's size.
+    if (knownInnerCross === undefined) {
+      const inner = innerOf(finalCross, padCrossStart, padCrossEnd);
+      for (const item of items) if (item.crossMode === 'fill') sizeItem(item, item.main, inner);
+    }
 
     // 4. Positions, relative to the padding box (inside the frame's border).
     const innerMain = innerOf(finalMain, padMainStart, padMainEnd);
@@ -264,6 +292,109 @@ class LayoutRun {
     }
 
     const size = { [mainKey]: Math.max(0, finalMain), [crossKey]: Math.max(0, finalCross) } as Size;
+    this.set(node.id, size);
+    return size;
+  }
+
+  /**
+   * A row with wrapping on (CSS `flex-wrap: wrap`). Items are placed on a line
+   * until the next one doesn't fit, then a new line starts; lines are as tall
+   * as their tallest item and are separated by the gap. Filling layers share
+   * the space left on their own line, layers set to fill the height stretch
+   * to their line, and the block of lines is aligned like the items
+   * (`align-content` follows `align-items`).
+   */
+  private wrappedRow(
+    node: DesignNode,
+    items: { id: string; mainMode: string; crossMode: string; main: number; cross: number }[],
+    ownWidth: number | undefined,
+    ownHeight: number | undefined,
+    pad: { left: number; right: number; top: number; bottom: number },
+    border: number,
+  ): Size {
+    const gap = node.gap;
+    const innerWidth = ownWidth === undefined ? Infinity : Math.max(0, ownWidth - border - pad.left - pad.right);
+    const stretches = (item: (typeof items)[number]) => item.crossMode === 'fill';
+    const naturalFor = (item: (typeof items)[number]) => (stretches(item) ? 'height' : undefined);
+
+    // 1. Sizes before lines are formed. A filling layer counts as its minimum (its flex basis).
+    for (const item of items) {
+      if (item.mainMode === 'fill') {
+        item.main = minSize(this.doc.nodes[item.id], 'width');
+      } else {
+        const s = this.size(item.id, {}, naturalFor(item));
+        item.main = s.width;
+        item.cross = s.height;
+      }
+    }
+
+    // 2. Break into lines.
+    const lines: (typeof items)[] = [];
+    let used = 0;
+    for (const item of items) {
+      const line = lines[lines.length - 1];
+      if (line && used + gap + item.main <= innerWidth + 0.01) {
+        line.push(item);
+        used += gap + item.main;
+      } else {
+        lines.push([item]);
+        used = item.main;
+      }
+    }
+
+    // 3. Within each line: share the space left among filling layers, then stretch to the line.
+    const lineHeights: number[] = [];
+    let widest = 0;
+    for (const line of lines) {
+      const fills = line.filter((item) => item.mainMode === 'fill');
+      const taken = line.reduce((sum, item) => sum + item.main, 0) + gap * (line.length - 1);
+      if (fills.length && ownWidth !== undefined) {
+        const share = Math.max(0, innerWidth - taken) / fills.length;
+        for (const item of fills) {
+          const s = this.size(item.id, { width: item.main + share }, naturalFor(item));
+          item.main = s.width;
+          item.cross = s.height;
+        }
+      } else {
+        for (const item of fills) item.cross = this.size(item.id, { width: item.main }, naturalFor(item)).height;
+      }
+      const height = Math.max(0, ...line.map((item) => item.cross));
+      for (const item of line) {
+        if (stretches(item)) item.cross = this.size(item.id, { width: item.main, height }).height;
+      }
+      lineHeights.push(height);
+      widest = Math.max(widest, line.reduce((sum, item) => sum + item.main, 0) + gap * (line.length - 1));
+    }
+
+    // 4. The frame's size.
+    const linesHeight = lineHeights.reduce((a, b) => a + b, 0) + gap * Math.max(0, lines.length - 1);
+    const width = ownWidth ?? widest + pad.left + pad.right + border;
+    const height = ownHeight ?? linesHeight + pad.top + pad.bottom + border;
+
+    // 5. Positions: the block of lines, then each item within its line.
+    const inner = {
+      width: Math.max(0, width - border - pad.left - pad.right),
+      height: Math.max(0, height - border - pad.top - pad.bottom),
+    };
+    const align = (free: number) => (node.align === 'center' ? free / 2 : node.align === 'end' ? free : 0);
+    let y = pad.top + align(inner.height - linesHeight);
+    lines.forEach((line, i) => {
+      const lineHeight = lineHeights[i];
+      const free = inner.width - line.reduce((sum, item) => sum + item.main, 0) - gap * (line.length - 1);
+      let x = pad.left;
+      let spacing = gap;
+      if (node.justify === 'center') x += free / 2;
+      else if (node.justify === 'end') x += free;
+      else if (node.justify === 'space-between' && line.length > 1 && free > 0) spacing += free / (line.length - 1);
+      for (const item of line) {
+        const at = stretches(item) ? y : y + align(lineHeight - item.cross);
+        this.set(item.id, { x, y: at });
+        x += item.main + spacing;
+      }
+      y += lineHeight + gap;
+    });
+
+    const size = { width: Math.max(0, width), height: Math.max(0, height) };
     this.set(node.id, size);
     return size;
   }

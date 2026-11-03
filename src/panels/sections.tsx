@@ -242,6 +242,19 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
               onChange={(v, p) => set({ paddingRight: v }, p, 'Padding')}
             />
           </div>
+          {row && (
+            <label className="toggle-row" title="Layers that don't fit move onto a new line, with the gap between lines">
+              <input
+                type="checkbox"
+                checked={common(nodes, 'wrap') === true}
+                ref={(el) => {
+                  if (el) el.indeterminate = common(nodes, 'wrap') === MIXED;
+                }}
+                onChange={(e) => set({ wrap: e.target.checked }, 'commit', e.target.checked ? 'Wrap' : "Don't wrap")}
+              />
+              Wrap onto new lines
+            </label>
+          )}
         </>
       )}
     </section>

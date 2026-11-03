@@ -5,11 +5,13 @@ import type { ProjectSession } from '../persistence/session';
 import { Icon } from '../ui/Icon';
 import { MenuButton, type MenuEntry } from '../ui/Menu';
 import { SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from './actions';
+import { exportZip } from './codeExport';
 
 interface TopBarProps {
   session: ProjectSession;
   onOpenProjects: () => void;
   onCameraRestore: (camera: Camera | null) => void;
+  onPreview: () => void;
 }
 
 const STATUS_TEXT = {
@@ -20,7 +22,7 @@ const STATUS_TEXT = {
   unavailable: 'Storage unavailable',
 } as const;
 
-export function TopBar({ session, onOpenProjects, onCameraRestore }: TopBarProps) {
+export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview }: TopBarProps) {
   const editor = useEditor();
   const name = useEditorState((s) => s.doc.name);
   const zoom = useEditorState((s) => s.camera.zoom);
@@ -63,6 +65,23 @@ export function TopBar({ session, onOpenProjects, onCameraRestore }: TopBarProps
       onSelect: () =>
         run(async () => {
           if (await session.exportToFile()) editor.notify('Project saved to file.');
+        }),
+    },
+  ];
+
+  const exportEntries = (): MenuEntry[] => [
+    {
+      label: 'Website (HTML and CSS)…',
+      onSelect: () =>
+        run(async () => {
+          if (await exportZip(editor, 'site')) editor.notify('Website exported.');
+        }),
+    },
+    {
+      label: 'React app (Vite + TypeScript)…',
+      onSelect: () =>
+        run(async () => {
+          if (await exportZip(editor, 'react')) editor.notify('React app exported.');
         }),
     },
   ];
@@ -161,6 +180,13 @@ export function TopBar({ session, onOpenProjects, onCameraRestore }: TopBarProps
       <MenuButton label="Zoom" entries={zoomEntries} className="text-button zoom-button" minWidth={210}>
         {Math.round(zoom * 100)}%
         <Icon name="chevronDown" size={12} />
+      </MenuButton>
+      <span className="topbar-divider" />
+      <button type="button" className="text-button" data-tip="See the exported page at different widths" onClick={onPreview}>
+        <Icon name="play" size={13} /> Preview
+      </button>
+      <MenuButton label="Export code" entries={exportEntries} className="button primary export-button" minWidth={240}>
+        <Icon name="download" size={14} /> Export
       </MenuButton>
     </header>
   );

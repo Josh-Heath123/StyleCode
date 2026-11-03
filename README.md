@@ -1,8 +1,8 @@
 # StyleCode
 
-A local-first visual UI editor where **the canvas is the prompt**. Draw an interface, select part of it and (in a later phase) ask an AI to change it, then export real frontend code. Everything runs on your machine: no account, no server, no hosting costs.
+A local-first visual UI editor where **the canvas is the prompt**. Draw an interface, export it as real HTML/CSS or React, and (in the next phase) select part of it and ask an AI to change it. Everything runs on your machine: no account, no server, no hosting costs.
 
-![The StyleCode editor: an example landing page tidied into auto layout, with a row of cards selected](docs/editor.png)
+![The StyleCode editor: an example landing page in auto layout, with a card selected and its code open beside the canvas](docs/editor.png)
 
 ## Why
 
@@ -12,7 +12,16 @@ Under the hood, one design document is the single source of truth. Every edit (y
 
 ## Status
 
-**Phases 1 and 2 are complete.** The visual editor works on its own, and its layouts are built the way real interfaces are:
+**Phases 1 to 3 are complete.** The visual editor works on its own, its layouts are built the way real interfaces are, and it turns designs into code:
+
+- **Code beside the canvas**: the Code tab shows the selected screen as HTML, CSS and React, with the selected layer's code highlighted. Click a line to select its layer.
+- **Edit CSS, change the design**: a layer's CSS is editable in the code panel and flows back into the design, as one undoable step. Anything StyleCode can't represent is reported, not dropped.
+- **Exported code matches the canvas**: at the design width the exported page lays out exactly like the canvas (a browser test compares every layer). Below it, rows wrap, fixed widths shrink and large type and spacing scale down, so pages work on phones.
+- **Semantic HTML** from roles: `nav`, `button`, `a`, `h1`–`h6`, `ul`/`li`, `input`, `article`, `img`, kept valid (nothing interactive inside a button, only list items in a list).
+- **React with components**: each screen is a TypeScript component with a CSS module, and repeated structures (a row of cards) become one component with props for what differs.
+- **Preview** the exported page in a sandboxed frame at the design width, tablet and phone widths.
+- **Export** a ZIP: a static website (no build step) or a Vite + React + TypeScript app, with images and the Inter font included.
+- **Wrapping rows**: rows can wrap onto new lines, like CSS `flex-wrap`.
 
 - Draw frames, rectangles, ellipses, text and images; nest layers inside frames
 - Select, multi-select, marquee, move, resize, rotate; drag layers in and out of frames
@@ -29,7 +38,7 @@ Under the hood, one design document is the single source of truth. Every edit (y
 - Pan and zoom with mouse, trackpad or touch (two-finger pinch)
 - Projects autosave in your browser; save to and open from `.stylecode.json` files (images included)
 
-Next up: design-to-code (HTML/CSS and React export with a live preview), then AI collaboration with local (Ollama) or bring-your-own-key models. See [docs/ROADMAP.md](docs/ROADMAP.md).
+Next up: AI collaboration with a local model (Ollama) or your own API key: select part of a design, describe the change, and review it on the canvas before accepting. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Getting started
 
@@ -42,7 +51,7 @@ npm install
 npm run dev
 ```
 
-Then open <http://localhost:5173>. To try a finished layout, choose **Projects → New example project**. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row.
+Then open <http://localhost:5173>. To try a finished layout, choose **Projects → New example project**. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
 
 For a faster, production build:
 
@@ -82,9 +91,23 @@ npm run preview    # serves the build at http://localhost:4173
 
 Number fields accept arithmetic (`1440/3`), step with the arrow keys and can be scrubbed by dragging their label.
 
+### Code and export
+
+Each top-level frame is a **screen**: one page of the exported site, or one component of the React app.
+
+| Action | How |
+| --- | --- |
+| See a screen's code | **Code** tab on the right; select a layer to highlight its code, or click a line to select its layer |
+| Change a layer through CSS | edit its CSS at the top of the Code tab, then <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> (<kbd>Esc</kbd> cancels) |
+| Copy a file | the copy button beside the file tabs |
+| Preview the page | **Preview** in the top bar: design width, tablet (768px) and phone (390px) |
+| Export | **Export** in the top bar: a website (HTML and CSS) or a React app (Vite + TypeScript), as a ZIP |
+
+Layouts in auto layout export as flexbox and adapt to smaller screens; layers in free layout keep fixed positions, and the Code tab says so. Selecting the screen and pressing <kbd>Shift</kbd>+<kbd>A</kbd> fixes that.
+
 ## Your data
 
-Projects are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Projects → Save to file…** to keep a portable copy or move a project between browsers (the images used in the project are embedded in the file), and **Open project file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored projects, so save important work to a file.
+Projects are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Projects → Save to file…** to keep a portable copy or move a project between browsers (the images used in the project are embedded in the file), and **Open project file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored projects, so save important work to a file. Code export and the preview also run entirely on your machine.
 
 ## Project structure
 
@@ -93,13 +116,14 @@ src/
   model/        design document, property registry, operations, geometry, commands,
                 auto-layout engine and inference, file format (pure TS, fully tested)
   editor/       editor store, history, camera, React bindings
-  render/       the single design → CSS mapping shared by the canvas and (soon) code export
+  render/       the single design → CSS mapping shared by the canvas and code export
+  codegen/      HTML/CSS and React generators, CSS → design parser, site and app export, ZIP (pure TS, tested)
   canvas/       viewport, layer rendering, selection overlay, gestures, snapping, text measurement
-  panels/       layers, insert and properties panels
+  panels/       layers, insert, properties and code panels
   persistence/  IndexedDB storage, image assets, project files, example project
-  app/          app shell, top bar, tool dock, shortcuts, actions, blocks
+  app/          app shell, top bar, tool dock, shortcuts, actions, blocks, preview and export
   ui/           icons and menus
-e2e/            browser tests (Playwright), including the layout parity test
+e2e/            browser tests (Playwright), including layout parity and export fidelity
 docs/           architecture and roadmap
 ```
 

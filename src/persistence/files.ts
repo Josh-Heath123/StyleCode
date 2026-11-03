@@ -22,13 +22,28 @@ function fileNameFor(name: string): string {
  * only allow it right after a click); embedded images are gathered after.
  * Returns false if the user cancelled the dialog.
  */
-export async function exportProjectFile(
+export function exportProjectFile(
   doc: DesignDocument,
   gatherAssets: () => Promise<ProjectFile['assets']> = async () => undefined,
 ): Promise<boolean> {
-  const build = async () =>
-    new Blob([JSON.stringify(toProjectFile(doc, await gatherAssets()), null, 2)], { type: 'application/json' });
-  const suggestedName = fileNameFor(doc.name);
+  return saveFile(
+    fileNameFor(doc.name),
+    { description: 'StyleCode project', mime: 'application/json', extension: '.json' },
+    async () => new Blob([JSON.stringify(toProjectFile(doc, await gatherAssets()), null, 2)], { type: 'application/json' }),
+  );
+}
+
+/**
+ * Saves a file the user names, with the system save dialog where the browser
+ * has one and a download otherwise. The dialog opens before `build` runs,
+ * because browsers only allow it straight after a click. Returns false if the
+ * user cancelled.
+ */
+export async function saveFile(
+  suggestedName: string,
+  kind: { description: string; mime: string; extension: string },
+  build: () => Promise<Blob>,
+): Promise<boolean> {
   const picker = (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
 
   if (picker) {
@@ -36,7 +51,7 @@ export async function exportProjectFile(
     try {
       handle = await picker({
         suggestedName,
-        types: [{ description: 'StyleCode project', accept: { 'application/json': ['.json'] } }],
+        types: [{ description: kind.description, accept: { [kind.mime]: [kind.extension] } }],
       });
     } catch (error) {
       if ((error as DOMException)?.name === 'AbortError') return false;

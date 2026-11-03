@@ -8,8 +8,12 @@ import { CONTAINER_TYPES, type DesignDocument, type DesignNode, type NodeType } 
  * so future versions can migrate old projects instead of rejecting them.
  */
 export const FILE_FORMAT = 'stylecode';
-/** 2: auto-layout, sizing, roles, effects and image layers (version 1 files load unchanged). */
-export const SCHEMA_VERSION = 2;
+/**
+ * 2: auto-layout, sizing, roles, effects and image layers.
+ * 3: wrapping rows.
+ * Older files load unchanged: every new property defaults to the old behaviour.
+ */
+export const SCHEMA_VERSION = 3;
 export const FILE_EXTENSION = '.stylecode.json';
 
 export interface ProjectFile {

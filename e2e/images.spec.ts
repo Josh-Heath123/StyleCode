@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
+import { SCHEMA_VERSION } from '../src/model/serialize';
 import { openFreshProject, snapshot } from './helpers';
 
 /** A small solid-colour PNG, generated so the test needs no fixture files. */
@@ -59,7 +60,7 @@ test('adds an image, saves it inside the project file and restores it on open', 
   const filePath = testInfo.outputPath('project.stylecode.json');
   await download.saveAs(filePath);
   const file = JSON.parse(readFileSync(filePath, 'utf8'));
-  expect(file.version).toBe(2);
+  expect(file.version).toBe(SCHEMA_VERSION);
   expect(file.assets[image.src].type).toBe('image/png');
 
   // Forget every stored image, then open the file: the picture comes back from the file itself.

@@ -34,6 +34,7 @@ const BASE_PROPS: NodeProps = {
   paddingLeft: 0,
   justify: 'start',
   align: 'start',
+  wrap: false,
   widthMode: 'fixed',
   heightMode: 'fixed',
   positioning: 'auto',
