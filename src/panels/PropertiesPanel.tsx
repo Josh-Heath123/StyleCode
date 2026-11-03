@@ -10,6 +10,19 @@ import type { DesignDocument, DesignNode, NodeProps, NodeType } from '../model/t
 import { FONT_FAMILIES } from '../render/css';
 import { Icon, type IconName } from '../ui/Icon';
 import { ColorField, MIXED, NumberField, Segmented, SelectField, type Mixed, type Phase } from './controls';
+import { isAutoLayout } from '../model/layout';
+import {
+  AutoLayoutSection,
+  BlurSection,
+  common,
+  fixedHeight,
+  fixedWidth,
+  GradientRow,
+  ImageSection,
+  RoleRow,
+  ShadowSection,
+  SizingRow,
+} from './sections';
 
 export const TYPE_ICONS: Record<NodeType, IconName> = {
   page: 'page',
@@ -17,6 +30,7 @@ export const TYPE_ICONS: Record<NodeType, IconName> = {
   rect: 'rect',
   ellipse: 'ellipse',
   text: 'text',
+  image: 'image',
 };
 
 const TYPE_LABELS: Record<NodeType, string> = {
@@ -25,6 +39,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   rect: 'Rectangle',
   ellipse: 'Ellipse',
   text: 'Text',
+  image: 'Image',
 };
 
 const WEIGHTS = [
@@ -38,11 +53,6 @@ const WEIGHTS = [
   { value: 800, label: 'Extra bold' },
   { value: 900, label: 'Black' },
 ];
-
-function common<K extends keyof NodeProps>(nodes: DesignNode[], key: K): Mixed<NodeProps[K]> {
-  const first = nodes[0][key];
-  return nodes.every((n) => n[key] === first) ? first : MIXED;
-}
 
 /**
  * Writes property changes for the selected layers. Previews (scrubbing,
@@ -103,6 +113,8 @@ export function PropertiesPanel() {
   const selection = useEditorState((s) => topLevelIds(s.doc, s.selection), shallowArrayEqual);
   const nodes = useEditorState((s) => selection.map((id) => s.doc.nodes[id]).filter(Boolean), shallowArrayEqual);
   const write = usePropertyWriter(editor);
+  const parents = useEditorState((s) => nodes.map((n) => (n.parentId ? s.doc.nodes[n.parentId] : undefined)), shallowArrayEqual);
+  const parentHasLayout = parents.map((p) => isAutoLayout(p));
 
   if (nodes.length === 0) return <PagePanel editor={editor} />;
 
@@ -112,6 +124,11 @@ export function PropertiesPanel() {
   const set = (props: Partial<NodeProps>, phase: Phase, label: string) => write(ids, props, phase, label);
   const single = nodes.length === 1 ? nodes[0] : null;
   const parentIsPage = single?.parentId === editor.getState().doc.rootId;
+  const inFlow = nodes.map((n, i) => parentHasLayout[i] && n.visible && n.positioning !== 'absolute');
+  const allInFlow = inFlow.every(Boolean);
+  // Distributing only moves layers that are not placed by auto layout.
+  const canDistribute = inFlow.filter((f) => !f).length >= 3;
+  const allInLayoutParent = parentHasLayout.every(Boolean);
 
   return (
     <>
@@ -125,6 +142,7 @@ export function PropertiesPanel() {
           <span className="props-header-count">{nodes.length} layers</span>
         )}
       </div>
+      <RoleRow nodes={nodes} write={write} />
 
       <div className="align-bar" role="toolbar" aria-label="Align">
         {(
@@ -143,7 +161,7 @@ export function PropertiesPanel() {
             className="icon-button"
             aria-label={tip}
             data-tip={tip}
-            disabled={!!single && parentIsPage}
+            disabled={(!!single && parentIsPage) || allInFlow}
             onClick={() => alignSelection(editor, alignment)}
           >
             <Icon name={icon} />
@@ -155,7 +173,7 @@ export function PropertiesPanel() {
           aria-label="Distribute horizontally"
           data-tip="Distribute horizontally"
           data-tip-side="left"
-          disabled={nodes.length < 3}
+          disabled={!canDistribute}
           onClick={() => distributeSelection(editor, 'horizontal')}
         >
           <Icon name="distributeH" />
@@ -166,7 +184,7 @@ export function PropertiesPanel() {
           aria-label="Distribute vertically"
           data-tip="Distribute vertically"
           data-tip-side="left"
-          disabled={nodes.length < 3}
+          disabled={!canDistribute}
           onClick={() => distributeSelection(editor, 'vertical')}
         >
           <Icon name="distributeV" />
@@ -187,37 +205,44 @@ export function PropertiesPanel() {
                 ]}
                 onChange={(label) => {
                   const preset = FRAME_PRESETS.find((p) => p.label === label);
-                  if (preset) set({ width: preset.width, height: preset.height }, 'commit', 'Resize');
+                  if (preset)
+                    set(
+                      { width: preset.width, height: preset.height, widthMode: 'fixed', heightMode: 'fixed' },
+                      'commit',
+                      'Resize',
+                    );
                 }}
               />
             </div>
           )}
           <div className="grid-2">
-            <NumberField label="X" name="X position" value={common(nodes, 'x')} onChange={(v, p) => set({ x: v }, p, 'Move')} />
-            <NumberField label="Y" name="Y position" value={common(nodes, 'y')} onChange={(v, p) => set({ y: v }, p, 'Move')} />
+            <NumberField
+              label="X"
+              name="X position"
+              value={common(nodes, 'x')}
+              disabled={allInFlow}
+              onChange={(v, p) => set({ x: v }, p, 'Move')}
+            />
+            <NumberField
+              label="Y"
+              name="Y position"
+              value={common(nodes, 'y')}
+              disabled={allInFlow}
+              onChange={(v, p) => set({ y: v }, p, 'Move')}
+            />
             <NumberField
               label="W"
               name="Width"
               value={common(nodes, 'width')}
               min={1}
-              onChange={(v, p) =>
-                write(
-                  ids,
-                  (n) =>
-                    n.type === 'text' && n.textResize === 'auto-width' ? { width: v, textResize: 'auto-height' } : { width: v },
-                  p,
-                  'Resize',
-                )
-              }
+              onChange={(v, p) => write(ids, (n) => ({ width: v, ...fixedWidth(n) }), p, 'Resize')}
             />
             <NumberField
               label="H"
               name="Height"
               value={common(nodes, 'height')}
               min={1}
-              onChange={(v, p) =>
-                write(ids, (n) => (n.type === 'text' ? { height: v, textResize: 'fixed' } : { height: v }), p, 'Resize')
-              }
+              onChange={(v, p) => write(ids, (n) => ({ height: v, ...fixedHeight(n) }), p, 'Resize')}
             />
             <NumberField
               label={<Icon name="rotate" size={12} />}
@@ -241,7 +266,27 @@ export function PropertiesPanel() {
               </label>
             )}
           </div>
+          <SizingRow nodes={nodes} parents={parents} write={write} />
+          {allInLayoutParent && (
+            <label className="toggle-row" title="Keep this layer at its own position instead of in the row or column">
+              <input
+                type="checkbox"
+                checked={common(nodes, 'positioning') === 'absolute'}
+                onChange={(e) =>
+                  set(
+                    { positioning: e.target.checked ? 'absolute' : 'auto' },
+                    'commit',
+                    e.target.checked ? 'Ignore auto layout' : 'Join auto layout',
+                  )
+                }
+              />
+              Ignore auto layout
+            </label>
+          )}
+          {allInFlow && <p className="panel-hint">Placed by the parent's auto layout. Drag to reorder.</p>}
         </section>
+
+        {all('frame') && <AutoLayoutSection editor={editor} nodes={nodes} write={write} />}
 
         <section className="section" aria-label="Appearance">
           <div className="section-head">Appearance</div>
@@ -257,7 +302,7 @@ export function PropertiesPanel() {
               suffix="%"
               onChange={(v, p) => set({ opacity: v }, p, 'Opacity')}
             />
-            {all('frame', 'rect') && (
+            {all('frame', 'rect', 'image') && (
               <NumberField
                 label={<Icon name="radius" size={12} />}
                 name="Corner radius"
@@ -271,17 +316,26 @@ export function PropertiesPanel() {
 
         {types.has('text') && all('text') && <TextSection nodes={nodes} write={write} />}
 
+        {all('image') && <ImageSection editor={editor} nodes={nodes} write={write} />}
+
         <PaintSection
           title={all('text') ? 'Colour' : 'Fill'}
           value={common(nodes, 'fill')}
           defaultColor={all('text') ? '#11141a' : all('frame') ? '#ffffff' : '#d9dde4'}
           removable={!all('text')}
-          onChange={(fill, phase, label) => set({ fill }, phase, label)}
-        />
+          onChange={(fill, phase, label) =>
+            // Removing the fill removes a gradient too, rather than leaving one with no controls.
+            write(ids, (n) => (fill === null && n.gradientTo ? { fill, gradientTo: null } : { fill }), phase, label)
+          }
+        >
+          {all('frame', 'rect', 'ellipse') && <GradientRow nodes={nodes} write={write} />}
+        </PaintSection>
 
-        {all('frame', 'rect', 'ellipse') && (
+        {all('frame', 'rect', 'ellipse', 'image') && (
           <StrokeSection nodes={nodes} onChange={(props, phase, label) => set(props, phase, label)} />
         )}
+        {all('frame', 'rect', 'ellipse', 'image') && <ShadowSection nodes={nodes} write={write} />}
+        {all('frame', 'rect', 'ellipse') && <BlurSection nodes={nodes} write={write} />}
 
         {single && (
           <section className="section" aria-label="View">
@@ -334,12 +388,14 @@ function PaintSection({
   defaultColor,
   removable,
   onChange,
+  children,
 }: {
   title: string;
   value: Mixed<string | null>;
   defaultColor: string;
   removable: boolean;
   onChange: (value: string | null, phase: Phase, label: string) => void;
+  children?: React.ReactNode;
 }) {
   const empty = value === null;
   return (
@@ -379,6 +435,7 @@ function PaintSection({
           onChange={(v, phase) => onChange(v, phase, title === 'Colour' ? 'Text colour' : 'Fill')}
         />
       )}
+      {!empty && children}
     </section>
   );
 }
@@ -499,16 +556,6 @@ function TextSection({ nodes, write }: { nodes: DesignNode[]; write: ReturnType<
             { value: 'right', icon: 'textRight', label: 'Align right' },
           ]}
           onChange={(textAlign) => set({ textAlign }, 'commit', 'Text alignment')}
-        />
-        <Segmented
-          name="Resizing"
-          value={common(nodes, 'textResize')}
-          options={[
-            { value: 'auto-width', icon: 'autoWidth', label: 'Auto width' },
-            { value: 'auto-height', icon: 'autoHeight', label: 'Auto height' },
-            { value: 'fixed', icon: 'fixedSize', label: 'Fixed size' },
-          ]}
-          onChange={(textResize) => set({ textResize }, 'commit', 'Text resizing')}
         />
       </div>
     </section>

@@ -26,6 +26,28 @@ const BASE_PROPS: NodeProps = {
   letterSpacing: 0,
   textAlign: 'left',
   textResize: 'auto-width',
+  layout: 'none',
+  gap: 0,
+  paddingTop: 0,
+  paddingRight: 0,
+  paddingBottom: 0,
+  paddingLeft: 0,
+  justify: 'start',
+  align: 'start',
+  widthMode: 'fixed',
+  heightMode: 'fixed',
+  positioning: 'auto',
+  role: 'auto',
+  shadowColor: null,
+  shadowX: 0,
+  shadowY: 8,
+  shadowBlur: 24,
+  shadowSpread: 0,
+  backdropBlur: 0,
+  gradientTo: null,
+  gradientAngle: 180,
+  src: '',
+  fit: 'cover',
 };
 
 const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {
@@ -34,6 +56,7 @@ const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {
   rect: { name: 'Rectangle', fill: '#d9dde4' },
   ellipse: { name: 'Ellipse', fill: '#d9dde4' },
   text: { name: 'Text', fill: '#11141a', text: 'Text', width: 40, height: 22 },
+  image: { name: 'Image', fill: '#e4e7ec', width: 240, height: 160 },
 };
 
 export function defaultProps(type: NodeType): NodeProps {

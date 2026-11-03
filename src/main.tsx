@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
-import { clearMeasureCache, textAutoSize } from './canvas/measure';
+import { clearMeasureCache } from './canvas/measure';
+import { normalizeDocument } from './canvas/normalize';
 import { Editor } from './editor/editor';
 import { createDocument } from './model/document';
 import { ProjectSession } from './persistence/session';
@@ -15,7 +16,7 @@ async function boot() {
   clearMeasureCache();
 
   const editor = new Editor(createDocument());
-  editor.normalizer = textAutoSize;
+  editor.normalizer = normalizeDocument;
   const session = new ProjectSession(editor);
   const camera = await session.init();
 

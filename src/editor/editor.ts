@@ -6,6 +6,15 @@ import { History, type ChangeSource, type Transaction } from './history';
 
 export type Tool = 'move' | 'hand' | 'frame' | 'rect' | 'ellipse' | 'text';
 
+export interface Guide {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  /** snap: an alignment guide; insert: where a layer will land in an auto-layout frame. */
+  kind: 'snap' | 'insert';
+}
+
 export interface EditorState {
   doc: DesignDocument;
   selection: readonly string[];
@@ -17,6 +26,8 @@ export interface EditorState {
   marquee: Rect | null;
   /** Container highlighted as the drop or draw target during a gesture. */
   dropTargetId: string | null;
+  /** Smart guides and insertion lines to draw during a gesture, in world space. */
+  guides: readonly Guide[];
   /** True while a drag gesture is in progress (hides hover feedback, etc.). */
   gesturing: boolean;
   /** Incremented on every history change so the UI can refresh undo/redo state. */
@@ -79,6 +90,7 @@ export class Editor {
       editingTextId: null,
       marquee: null,
       dropTargetId: null,
+      guides: [],
       gesturing: false,
       historyVersion: 0,
       notice: null,
@@ -120,6 +132,11 @@ export class Editor {
 
   setMarquee(marquee: Rect | null): void {
     this.set({ marquee });
+  }
+
+  setGuides(guides: readonly Guide[]): void {
+    if (guides.length === 0 && this.state.guides.length === 0) return;
+    this.set({ guides });
   }
 
   setDropTarget(dropTargetId: string | null): void {
@@ -214,6 +231,22 @@ export class Editor {
     return this.gesture !== null;
   }
 
+  /**
+   * Resolves once no gesture is in progress. Work that finishes in the
+   * background (an image done loading) waits for this before applying, so it
+   * never cancels a drag or a scrub the user is in the middle of.
+   */
+  whenIdle(): Promise<void> {
+    if (!this.gesture) return Promise.resolve();
+    return new Promise((resolve) => {
+      const unsubscribe = this.subscribe(() => {
+        if (this.gesture) return;
+        unsubscribe();
+        resolve();
+      });
+    });
+  }
+
   /** Replaces the gesture's pending operations and shows the result. */
   previewGesture(ops: readonly Op[], selection?: readonly string[]): void {
     const gesture = this.gesture;
@@ -236,8 +269,8 @@ export class Editor {
     const gesture = this.gesture;
     if (!gesture) {
       // The gesture was already cancelled; make sure no feedback is left behind.
-      if (this.state.gesturing || this.state.marquee || this.state.dropTargetId) {
-        this.set({ gesturing: false, marquee: null, dropTargetId: null });
+      if (this.state.gesturing || this.state.marquee || this.state.dropTargetId || this.state.guides.length) {
+        this.set({ gesturing: false, marquee: null, dropTargetId: null, guides: [] });
       }
       return null;
     }
@@ -249,6 +282,7 @@ export class Editor {
         gesturing: false,
         marquee: null,
         dropTargetId: null,
+        guides: [],
         selection: this.validSelection(gesture.base, finalSelection),
       });
       return null;
@@ -257,7 +291,7 @@ export class Editor {
       const result = this.run(gesture.base, gesture.ops);
       const sel = this.validSelection(result.doc, finalSelection);
       if (result.inverse.length === 0) {
-        this.set({ doc: gesture.base, gesturing: false, marquee: null, dropTargetId: null, selection: sel });
+        this.set({ doc: gesture.base, gesturing: false, marquee: null, dropTargetId: null, guides: [], selection: sel });
         return null;
       }
       const tx = this.history.push({
@@ -274,12 +308,13 @@ export class Editor {
         gesturing: false,
         marquee: null,
         dropTargetId: null,
+        guides: [],
         historyVersion: this.state.historyVersion + 1,
       });
       return tx;
     } catch (error) {
       if (!(error instanceof OpError)) throw error;
-      this.set({ doc: gesture.base, gesturing: false, marquee: null, dropTargetId: null });
+      this.set({ doc: gesture.base, gesturing: false, marquee: null, dropTargetId: null, guides: [] });
       this.notify(error.message, 'error');
       return null;
     }
@@ -289,8 +324,8 @@ export class Editor {
     const gesture = this.gesture;
     this.gesture = null;
     if (!gesture) {
-      if (this.state.gesturing || this.state.marquee || this.state.dropTargetId) {
-        this.set({ gesturing: false, marquee: null, dropTargetId: null });
+      if (this.state.gesturing || this.state.marquee || this.state.dropTargetId || this.state.guides.length) {
+        this.set({ gesturing: false, marquee: null, dropTargetId: null, guides: [] });
       }
       return;
     }
@@ -300,6 +335,7 @@ export class Editor {
       gesturing: false,
       marquee: null,
       dropTargetId: null,
+      guides: [],
     });
   }
 
@@ -345,8 +381,8 @@ export class Editor {
 
   /**
    * Swaps in a different document (opening a project). Clears history and
-   * editing state, and re-fits auto-sizing text, since fonts can measure
-   * slightly differently on another machine.
+   * editing state, and re-fits auto-sizing text and auto-layout, since fonts
+   * can measure slightly differently on another machine.
    */
   loadDocument(doc: DesignDocument, camera?: Camera): void {
     this.gesture = null;
@@ -354,9 +390,9 @@ export class Editor {
     this.pendingText.clear();
     let loaded = doc;
     if (this.normalizer) {
-      const texts = new Set(Object.keys(doc.nodes).filter((id) => doc.nodes[id].type === 'text'));
+      const everything = new Set(Object.keys(doc.nodes));
       try {
-        const extra = this.normalizer(doc, texts, doc);
+        const extra = this.normalizer(doc, everything, doc);
         if (extra.length) loaded = applyOps(doc, extra).doc;
       } catch (error) {
         if (!(error instanceof OpError)) throw error;
@@ -369,6 +405,7 @@ export class Editor {
       editingTextId: null,
       marquee: null,
       dropTargetId: null,
+      guides: [],
       gesturing: false,
       camera: camera ?? this.state.camera,
       historyVersion: this.state.historyVersion + 1,

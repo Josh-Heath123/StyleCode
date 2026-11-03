@@ -1,6 +1,8 @@
 import type { Tool } from '../editor/editor';
 import { useEditor, useEditorState } from '../editor/react';
 import { Icon, type IconName } from '../ui/Icon';
+import { SHORTCUT_LABELS as K } from './actions';
+import { insertImagesFromPicker } from './insert';
 
 const TOOLS: { tool: Tool; icon: IconName; label: string; key: string }[] = [
   { tool: 'move', icon: 'move', label: 'Move', key: 'V' },
@@ -37,6 +39,16 @@ export function Dock() {
       {TOOLS.map(button)}
       <span className="dock-divider" />
       {SHAPES.map(button)}
+      <button
+        type="button"
+        className="icon-button"
+        aria-label={`Add image (${K.insertImage})`}
+        data-tip={`Image  ${K.insertImage}`}
+        data-tip-side="top"
+        onClick={() => void insertImagesFromPicker(editor)}
+      >
+        <Icon name="image" size={18} />
+      </button>
     </div>
   );
 }

@@ -2,8 +2,11 @@ import { useEffect } from 'react';
 import { isTypingTarget } from '../canvas/Canvas';
 import type { Editor, Tool } from '../editor/editor';
 import { CLIPBOARD_FORMAT } from '../model/commands';
+import { insertImageFiles, insertImagesFromPicker } from './insert';
 import {
+  addAutoLayout,
   alignSelection,
+  removeAutoLayout,
   copySelectionData,
   deleteSelection,
   duplicateSelection,
@@ -60,6 +63,7 @@ export function useShortcuts(editor: Editor): void {
         if (key === 'z' && !e.shiftKey) return run(() => editor.undo());
         if ((key === 'z' && e.shiftKey) || key === 'y') return run(() => editor.redo());
         if (key === 'd') return run(() => duplicateSelection(editor));
+        if (key === 'k' && e.shiftKey) return run(() => void insertImagesFromPicker(editor));
         if (key === 'a') return run(() => selectAll(editor));
         if (key === 'g') return run(() => (e.shiftKey ? ungroupSelection(editor) : groupSelection(editor)));
         if (e.code === 'BracketRight') return run(() => reorderSelection(editor, e.shiftKey ? 'front' : 'forward'));
@@ -71,6 +75,8 @@ export function useShortcuts(editor: Editor): void {
         if (key === '0') return run(() => zoomTo(editor, 1));
         return;
       }
+
+      if (e.shiftKey && e.code === 'KeyA') return run(() => (e.altKey ? removeAutoLayout(editor) : addAutoLayout(editor)));
 
       if (e.altKey) {
         const align = { a: 'left', d: 'right', w: 'top', s: 'bottom', h: 'hcenter', v: 'vcenter' } as const;
@@ -118,6 +124,13 @@ export function useShortcuts(editor: Editor): void {
 
     const onPaste = (e: ClipboardEvent) => {
       if (isTypingTarget(e.target) || editor.inGesture) return;
+      // Image files (a screenshot, an image copied in a browser) become image layers.
+      const files = [...(e.clipboardData?.files ?? [])].filter((f) => f.type.startsWith('image/'));
+      if (files.length) {
+        e.preventDefault();
+        void insertImageFiles(editor, files);
+        return;
+      }
       const text = e.clipboardData?.getData('text/plain') ?? '';
       const data = text.includes(CLIPBOARD_FORMAT) ? parseClipboardText(text) : getInternalClipboard();
       if (!data) return;

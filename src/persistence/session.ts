@@ -4,7 +4,8 @@ import { createNode } from '../model/defaults';
 import { createDocument } from '../model/document';
 import { createId } from '../model/ids';
 import { applyOps } from '../model/ops';
-import { parseProject, toProjectFile, type ProjectFile } from '../model/serialize';
+import { parseProject, referencedAssets, toProjectFile, type ProjectFile } from '../model/serialize';
+import { exportAssets, importAssets } from './assets';
 import type { DesignDocument } from '../model/types';
 import { createExampleDocument } from './examples';
 import { exportProjectFile, pickProjectFile } from './files';
@@ -233,6 +234,7 @@ export class ProjectSession {
     if (!picked) return null;
     const parsed = parseProject(picked.data);
     if (!parsed.ok) throw new Error(parsed.error);
+    await importAssets((picked.data as { assets?: unknown }).assets);
     // A fresh id means importing never overwrites a local project with the same origin.
     const doc = { ...parsed.doc, id: createId('doc') };
     await this.switchTo(doc, null);
@@ -240,7 +242,8 @@ export class ProjectSession {
   }
 
   async exportToFile(): Promise<boolean> {
-    return exportProjectFile(this.editor.getState().doc);
+    const { doc } = this.editor.getState();
+    return exportProjectFile(doc, () => exportAssets(referencedAssets(doc)));
   }
 
   dispose(): void {

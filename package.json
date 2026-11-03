@@ -1,6 +1,6 @@
 {
   "name": "stylecode",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A local-first visual UI editor where the canvas is the prompt: draw interfaces, collaborate with an AI through structured edits, and export real frontend code.",
   "type": "module",
@@ -11,9 +11,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -21,6 +23,8 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",

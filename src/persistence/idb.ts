@@ -4,8 +4,10 @@
  */
 
 const DB_NAME = 'stylecode';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 export const PROJECTS = 'projects';
+/** Image files, keyed by a hash of their content (shared by all projects). */
+export const ASSETS = 'assets';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -23,6 +25,7 @@ export function openDatabase(): Promise<IDBDatabase> {
         const store = db.createObjectStore(PROJECTS, { keyPath: 'id' });
         store.createIndex('updatedAt', 'updatedAt');
       }
+      if (!db.objectStoreNames.contains(ASSETS)) db.createObjectStore(ASSETS, { keyPath: 'id' });
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error('Could not open local storage.'));

@@ -1,4 +1,4 @@
-import type { NodeProps, NodeType, PropKey } from './types';
+import { ROLES, type NodeProps, type NodeType, type PropKey } from './types';
 
 /**
  * The property registry.
@@ -12,7 +12,7 @@ import type { NodeProps, NodeType, PropKey } from './types';
 export type PropSpec =
   | { kind: 'number'; min?: number; max?: number; integer?: boolean; wrapDegrees?: boolean }
   | { kind: 'boolean' }
-  | { kind: 'string'; maxLength: number }
+  | { kind: 'string'; maxLength: number; pattern?: RegExp }
   | { kind: 'color'; nullable: boolean }
   | { kind: 'enum'; values: readonly string[] };
 
@@ -24,9 +24,13 @@ export interface PropDef {
   description: string;
 }
 
-const SHAPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text'];
-const BOXES: readonly NodeType[] = ['frame', 'rect', 'ellipse'];
+const SHAPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image'];
+const BOXES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'image'];
+const PAINTED: readonly NodeType[] = ['frame', 'rect', 'ellipse'];
 const TEXT: readonly NodeType[] = ['text'];
+const FRAME: readonly NodeType[] = ['frame'];
+const PADDING = { kind: 'number', min: 0, max: 10_000 } as const;
+const OFFSET = { kind: 'number', min: -10_000, max: 10_000 } as const;
 
 export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
   name: { spec: { kind: 'string', maxLength: 200 }, appliesTo: 'all', description: 'Layer name' },
@@ -35,8 +39,9 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
 
   x: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: SHAPES, description: 'Left offset from the parent, in px' },
   y: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: SHAPES, description: 'Top offset from the parent, in px' },
-  width: { spec: { kind: 'number', min: 1, max: 1e5 }, appliesTo: SHAPES, description: 'Width in px' },
-  height: { spec: { kind: 'number', min: 1, max: 1e5 }, appliesTo: SHAPES, description: 'Height in px' },
+  // Zero is allowed: auto-layout can squeeze a filling layer to nothing, as CSS does.
+  width: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: SHAPES, description: 'Width in px' },
+  height: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: SHAPES, description: 'Height in px' },
   rotation: {
     spec: { kind: 'number', wrapDegrees: true },
     appliesTo: SHAPES,
@@ -51,7 +56,11 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
   },
   stroke: { spec: { kind: 'color', nullable: true }, appliesTo: BOXES, description: 'Border colour, hex, or null for none' },
   strokeWidth: { spec: { kind: 'number', min: 0, max: 1000 }, appliesTo: BOXES, description: 'Border width in px' },
-  radius: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: ['frame', 'rect'], description: 'Corner radius in px' },
+  radius: {
+    spec: { kind: 'number', min: 0, max: 1e5 },
+    appliesTo: ['frame', 'rect', 'image'],
+    description: 'Corner radius in px',
+  },
   clip: { spec: { kind: 'boolean' }, appliesTo: ['frame'], description: 'Clip children to the frame bounds' },
 
   text: { spec: { kind: 'string', maxLength: 100_000 }, appliesTo: TEXT, description: 'Text content' },
@@ -77,6 +86,81 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     spec: { kind: 'enum', values: ['auto-width', 'auto-height', 'fixed'] },
     appliesTo: TEXT,
     description: 'auto-width grows with the text, auto-height wraps at a fixed width, fixed keeps both dimensions',
+  },
+
+  layout: {
+    spec: { kind: 'enum', values: ['none', 'row', 'column'] },
+    appliesTo: FRAME,
+    description: 'Auto-layout direction: row or column arranges children automatically (flexbox); none positions them freely',
+  },
+  gap: { spec: PADDING, appliesTo: FRAME, description: 'Space between auto-layout children in px' },
+  paddingTop: { spec: PADDING, appliesTo: FRAME, description: 'Auto-layout padding at the top in px' },
+  paddingRight: { spec: PADDING, appliesTo: FRAME, description: 'Auto-layout padding on the right in px' },
+  paddingBottom: { spec: PADDING, appliesTo: FRAME, description: 'Auto-layout padding at the bottom in px' },
+  paddingLeft: { spec: PADDING, appliesTo: FRAME, description: 'Auto-layout padding on the left in px' },
+  justify: {
+    spec: { kind: 'enum', values: ['start', 'center', 'end', 'space-between'] },
+    appliesTo: FRAME,
+    description: 'Distribution of auto-layout children along the layout direction',
+  },
+  align: {
+    spec: { kind: 'enum', values: ['start', 'center', 'end'] },
+    appliesTo: FRAME,
+    description: 'Alignment of auto-layout children across the layout direction',
+  },
+  widthMode: {
+    spec: { kind: 'enum', values: ['fixed', 'hug', 'fill'] },
+    appliesTo: SHAPES,
+    description:
+      'fixed keeps the width; hug fits an auto-layout frame to its content; fill takes the space left in an auto-layout parent',
+  },
+  heightMode: {
+    spec: { kind: 'enum', values: ['fixed', 'hug', 'fill'] },
+    appliesTo: SHAPES,
+    description:
+      'fixed keeps the height; hug fits an auto-layout frame to its content; fill takes the space left in an auto-layout parent',
+  },
+  positioning: {
+    spec: { kind: 'enum', values: ['auto', 'absolute'] },
+    appliesTo: SHAPES,
+    description: 'Inside an auto-layout frame, absolute keeps the layer at its x/y instead of in the flow',
+  },
+  role: {
+    spec: { kind: 'enum', values: ROLES },
+    appliesTo: SHAPES,
+    description: 'What the layer is: button, nav, heading, card… auto infers it from the layer type',
+  },
+
+  shadowColor: { spec: { kind: 'color', nullable: true }, appliesTo: BOXES, description: 'Drop shadow colour, or null for none' },
+  shadowX: { spec: OFFSET, appliesTo: BOXES, description: 'Shadow horizontal offset in px' },
+  shadowY: { spec: OFFSET, appliesTo: BOXES, description: 'Shadow vertical offset in px' },
+  shadowBlur: { spec: { kind: 'number', min: 0, max: 1000 }, appliesTo: BOXES, description: 'Shadow blur radius in px' },
+  shadowSpread: { spec: OFFSET, appliesTo: BOXES, description: 'Shadow spread in px' },
+  backdropBlur: {
+    spec: { kind: 'number', min: 0, max: 200 },
+    appliesTo: PAINTED,
+    description: 'Blur of whatever is behind the layer in px (frosted glass); 0 for none',
+  },
+  gradientTo: {
+    spec: { kind: 'color', nullable: true },
+    appliesTo: PAINTED,
+    description: 'End colour of a linear gradient starting from fill, or null for a solid fill',
+  },
+  gradientAngle: {
+    spec: { kind: 'number', min: 0, max: 360 },
+    appliesTo: PAINTED,
+    description: 'Gradient direction in degrees (180 = top to bottom)',
+  },
+
+  src: {
+    spec: { kind: 'string', maxLength: 100, pattern: /^(asset_[a-z0-9]{8,64})?$/ },
+    appliesTo: ['image'],
+    description: 'Image asset id, or empty for a placeholder',
+  },
+  fit: {
+    spec: { kind: 'enum', values: ['cover', 'contain', 'fill'] },
+    appliesTo: ['image'],
+    description: 'How the image fills its box',
   },
 };
 
@@ -146,6 +230,7 @@ export function coerceProp<K extends PropKey>(key: K, value: unknown): CoerceRes
     case 'string':
       if (typeof value !== 'string') return { ok: false, error: `${key} must be a string` };
       if (value.length > spec.maxLength) return { ok: false, error: `${key} is longer than ${spec.maxLength} characters` };
+      if (spec.pattern && !spec.pattern.test(value)) return { ok: false, error: `${key} has an invalid format` };
       return { ok: true, value: value as NodeProps[K] };
     case 'color': {
       if (value === null) {

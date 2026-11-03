@@ -3,6 +3,9 @@ import { canvasMenuEntries } from '../app/contextMenu';
 import { clampZoom, screenToWorld, zoomAt } from '../editor/camera';
 import { useEditor, useEditorState } from '../editor/react';
 import { isSelectable } from '../model/hit';
+import { findBlock, type BlockTheme } from '../app/blocks';
+import { insertAtPoint, insertImageFiles } from '../app/insert';
+import { BLOCK_MIME } from '../panels/InsertPanel';
 import type { DesignDocument } from '../model/types';
 import { Menu, type MenuEntry } from '../ui/Menu';
 import {
@@ -339,6 +342,29 @@ export function Canvas() {
       onPointerLeave={() => !gestureRef.current && editor.setHover(null)}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
+      onDragOver={(e) => {
+        const types = e.dataTransfer.types;
+        if (types.includes('Files') || types.includes(BLOCK_MIME)) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }
+      }}
+      onDrop={(e) => {
+        const at = ctx.toWorld(e.clientX, e.clientY);
+        const block = e.dataTransfer.getData(BLOCK_MIME);
+        if (block) {
+          e.preventDefault();
+          const { id, theme } = JSON.parse(block) as { id: string; theme: BlockTheme };
+          const def = findBlock(id);
+          if (def) insertAtPoint(editor, def.build(theme), at, `Add ${def.name.toLowerCase()}`);
+          return;
+        }
+        const files = [...e.dataTransfer.files];
+        if (files.length) {
+          e.preventDefault();
+          void insertImageFiles(editor, files, at);
+        }
+      }}
       aria-label="Design canvas"
       role="application"
     >

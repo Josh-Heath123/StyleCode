@@ -58,7 +58,9 @@ export function measureText(node: DesignNode): { width: number; height: number }
   // An empty text layer still occupies one line.
   el.textContent = node.text || '​';
   const rect = el.getBoundingClientRect();
-  const size = { width: Math.max(1, Math.ceil(rect.width)), height: Math.max(1, Math.ceil(rect.height)) };
+  // Hundredths, rounded up: exact enough to match the browser's own layout, never short enough to wrap.
+  const up = (n: number) => Math.ceil(n * 100 - 1e-6) / 100;
+  const size = { width: Math.max(1, up(rect.width)), height: Math.max(1, up(rect.height)) };
 
   if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value!);
   cache.set(key, size);

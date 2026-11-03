@@ -46,6 +46,7 @@ export function Overlay() {
   const dropTargetId = useEditorState((s) => s.dropTargetId);
   const editingTextId = useEditorState((s) => s.editingTextId);
   const gesturing = useEditorState((s) => s.gesturing);
+  const guides = useEditorState((s) => s.guides);
 
   const selected = topLevelIds(doc, selection).filter((id) => doc.nodes[id] && doc.nodes[id].type !== 'page');
   const single = selected.length === 1 ? doc.nodes[selected[0]] : null;
@@ -101,6 +102,12 @@ export function Overlay() {
           selected.map((id) => <polygon key={id} className="ov-outline" points={toPoints(screenCorners(doc, id, camera))} />)}
 
         {box && !editingSelected && <polygon className="ov-selection" points={toPoints(box)} />}
+
+        {guides.map((g, i) => {
+          const a = worldToScreen(camera, { x: g.x1, y: g.y1 });
+          const b = worldToScreen(camera, { x: g.x2, y: g.y2 });
+          return <line key={i} className={g.kind === 'insert' ? 'ov-insert' : 'ov-guide'} x1={a.x} y1={a.y} x2={b.x} y2={b.y} />;
+        })}
 
         {marquee && (
           <rect

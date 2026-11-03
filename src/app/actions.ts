@@ -17,6 +17,9 @@ import {
 } from '../model/commands';
 import { getAncestors, sortByDocumentOrder, topLevelIds } from '../model/document';
 import { unionWorldBounds } from '../model/geometry';
+import { isAutoLayout, isInFlow } from '../model/layout';
+import { removeAutoLayoutOps, tidyFrameOps, wrapInAutoLayoutOps } from '../model/autolayout';
+import { OpBuilder } from '../model/ops';
 import { isSelectable } from '../model/hit';
 
 /**
@@ -60,6 +63,9 @@ export const SHORTCUT_LABELS = {
   alignBottom: `${ALT}S`,
   alignHCenter: `${ALT}H`,
   alignVCenter: `${ALT}V`,
+  addAutoLayout: `${SHIFT}A`,
+  removeAutoLayout: isMac ? '⌥⇧A' : 'Alt+Shift+A',
+  insertImage: isMac ? '⇧⌘K' : 'Ctrl+Shift+K',
 } as const;
 
 const selectedIds = (editor: Editor) => {
@@ -96,6 +102,31 @@ export function ungroupSelection(editor: Editor): void {
   else editor.notify('Select a frame or group to ungroup.');
 }
 
+/**
+ * Shift+A. A frame without auto-layout is tidied in place: its children are
+ * arranged into the rows and columns their positions suggest. Anything else
+ * is wrapped in a new auto-layout frame that hugs it.
+ */
+export function addAutoLayout(editor: Editor): void {
+  const { doc } = editor.getState();
+  const ids = selectedIds(editor);
+  if (ids.length === 0) return editor.notify('Select a frame, or the layers to arrange, first.');
+  const only = ids.length === 1 ? doc.nodes[ids[0]] : null;
+  const result = only?.type === 'frame' && only.layout === 'none' ? tidyFrameOps(doc, only.id) : wrapInAutoLayoutOps(doc, ids);
+  if (!result.ok) return editor.notify(result.error, 'error');
+  editor.apply(result.ops, { label: 'Add auto layout', selection: [result.frameId] });
+}
+
+export function removeAutoLayout(editor: Editor): void {
+  const ops = removeAutoLayoutOps(editor.getState().doc, selectedIds(editor));
+  if (ops.length) editor.apply(ops, { label: 'Remove auto layout' });
+}
+
+export function hasAutoLayoutSelected(editor: Editor): boolean {
+  const { doc } = editor.getState();
+  return selectedIds(editor).some((id) => isAutoLayout(doc.nodes[id]));
+}
+
 export function canUngroup(editor: Editor): boolean {
   const { doc } = editor.getState();
   return selectedIds(editor).some((id) => doc.nodes[id].type === 'frame' && doc.nodes[id].children.length > 0);
@@ -106,21 +137,57 @@ export function reorderSelection(editor: Editor, direction: 'forward' | 'backwar
   editor.apply(reorderOps(editor.getState().doc, selectedIds(editor), direction), { label: labels[direction] });
 }
 
+/** Selected layers that keep their own position (auto layout places the others). */
+function freelyPlaced(editor: Editor): string[] {
+  const { doc } = editor.getState();
+  return selectedIds(editor).filter((id) => !isInFlow(doc, doc.nodes[id]));
+}
+
+/** Aligns the selection; layers placed by auto layout count towards the bounds but don't move. */
 export function alignSelection(editor: Editor, alignment: Alignment): void {
-  editor.apply(alignOps(editor.getState().doc, selectedIds(editor), alignment), { label: 'Align' });
+  const movable = new Set(freelyPlaced(editor));
+  const ops = alignOps(editor.getState().doc, selectedIds(editor), alignment).filter(
+    (op) => op.type !== 'update' || movable.has(op.id),
+  );
+  editor.apply(ops, { label: 'Align' });
 }
 
 export function distributeSelection(editor: Editor, axis: 'horizontal' | 'vertical'): void {
-  editor.apply(distributeOps(editor.getState().doc, selectedIds(editor), axis), { label: 'Distribute' });
+  const ids = freelyPlaced(editor);
+  if (ids.length < 3) return;
+  editor.apply(distributeOps(editor.getState().doc, ids, axis), { label: 'Distribute' });
 }
 
+/**
+ * Arrow keys: move layers by a pixel (ten with Shift). Layers inside an
+ * auto-layout frame are placed by the layout, so the arrows move them one
+ * place earlier or later in their row or column instead.
+ */
 export function nudgeSelection(editor: Editor, dx: number, dy: number): void {
-  const ids = selectedIds(editor).filter((id) => !editor.getState().doc.nodes[id].locked);
+  const { doc } = editor.getState();
+  const ids = selectedIds(editor).filter((id) => !doc.nodes[id].locked);
   if (ids.length === 0) return;
-  editor.apply(moveByOps(editor.getState().doc, ids, { x: dx, y: dy }), {
-    label: 'Nudge',
-    coalesceKey: `nudge:${ids.join(',')}`,
-  });
+  const inFlow = ids.filter((id) => isInFlow(doc, doc.nodes[id]));
+  const free = ids.filter((id) => !inFlow.includes(id));
+
+  const builder = new OpBuilder(doc);
+  builder.push(...moveByOps(doc, free, { x: dx, y: dy }));
+  // Selected neighbours move together as a block: when moving forward the last one goes first,
+  // and a layer never swaps places with another selected layer.
+  const selected = new Set(inFlow);
+  const ordered = sortByDocumentOrder(doc, inFlow);
+  for (const id of dx + dy > 0 ? ordered.reverse() : ordered) {
+    const parent = builder.doc.nodes[doc.nodes[id].parentId!];
+    const along = parent.layout === 'row' ? dx : dy;
+    if (along === 0) continue;
+    const siblings = parent.children.filter((c) => isInFlow(builder.doc, builder.doc.nodes[c]));
+    const at = siblings.indexOf(id);
+    const swapWith = siblings[at + Math.sign(along)];
+    if (!swapWith || selected.has(swapWith)) continue;
+    builder.push({ type: 'move', id, parentId: parent.id, index: parent.children.indexOf(swapWith) });
+  }
+  if (builder.ops.length === 0) return;
+  editor.apply(builder.ops, { label: inFlow.length ? 'Reorder' : 'Nudge', coalesceKey: `nudge:${ids.join(',')}` });
 }
 
 export function toggleLockSelection(editor: Editor): void {
