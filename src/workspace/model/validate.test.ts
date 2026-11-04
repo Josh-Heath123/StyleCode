@@ -67,7 +67,7 @@ describe('loading', () => {
     expect(parsed.ok && parsed.access).toBe('read-only');
     if (!parsed.ok) return;
     expect(parsed.problems.map((p) => p.code)).toEqual(['evidence.invented', 'finding.saidNeedsSegment']);
-    expect(parsed.workspace.findings.fd_peak.evidence[0].quote).toBe('ten times as many orders');
+    expect(parsed.workspace.findings.fd_peak.evidence[0]).toMatchObject({ quote: 'ten times as many orders' });
   });
 
   it('opens a workspace with an unreadable entry read-only, leaving that entry out of the view', () => {
@@ -134,7 +134,7 @@ describe('rule: a finding said in a session cites a segment from its engagement'
 
   it('counts a quote that is not in the segment as invented evidence', () => {
     const ws = sampleWorkspace();
-    ws.findings.fd_stock.evidence[0].quote = 'we keep stock in a database';
+    ws.findings.fd_stock.evidence[0] = { kind: 'segment', segmentId: 'sg_2', quote: 'we keep stock in a database' };
     expect(codes(ws)).toEqual(expect.arrayContaining(['evidence.invented']));
   });
 

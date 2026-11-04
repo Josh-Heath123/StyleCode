@@ -127,8 +127,12 @@ function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, r
   const quotesOk =
     Array.isArray(s.quotes) &&
     s.quotes.every(
-      (q: { text?: unknown; sessionTitle?: unknown; speakerLabel?: unknown } | null) =>
-        !!q && isNonEmptyText(q.text) && isText(q.sessionTitle) && (q.speakerLabel === null || isNonEmptyText(q.speakerLabel)),
+      (q: { text?: unknown; sessionId?: unknown; sessionTitle?: unknown; speakerLabel?: unknown } | null) =>
+        !!q &&
+        isNonEmptyText(q.text) &&
+        isId(q.sessionId) &&
+        isText(q.sessionTitle) &&
+        (q.speakerLabel === null || isNonEmptyText(q.speakerLabel)),
     );
   if (!isNonEmptyText(s.statement) || !isText(s.engagementName) || !quotesOk)
     report('fact.source', "A company fact keeps a copy of its source's statement and quotes.", 'knowledge', id);
@@ -332,6 +336,8 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
         (src.format === 'vtt' || src.format === 'docx') &&
         oneOf(TRANSCRIPT_PLATFORMS, src.platform));
     if (!sourceOk) report('field.value', 'A transcript has an invalid source.', 'transcripts', t.id);
+    if (!Array.isArray(t.unaskedSpeakers) || !t.unaskedSpeakers.every(isNonEmptyText) || typeof t.unnamedSpeakers !== 'boolean')
+      report('field.type', 'A transcript keeps its speaker warning as a list of names and a yes or no.', 'transcripts', t.id);
     if (!isNonEmptyText(t.importedBy) || !isTimestamp(t.importedAt)) {
       report('field.value', 'A transcript says who imported it and when.', 'transcripts', t.id);
       continue;
@@ -524,7 +530,7 @@ function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding
   for (const e of p.evidence as Evidence[]) {
     const result = checkEvidence(ws, f.engagementId, e);
     if (!result.ok) report(result.code, `In the AI's proposal: ${lowerFirst(result.message)}`, 'findings', f.id);
-    else sessions.add(result.sessionId);
+    else if (result.kind !== 'deleted') sessions.add(result.sessionId);
   }
   const processing = origin.processing as Record<string, unknown> | undefined;
   if (!processing || !(processing.kind === 'local' || (processing.kind === 'external' && isNonEmptyText(processing.provider)))) {
@@ -598,11 +604,17 @@ function checkHistory(f: Finding, report: Report) {
   }
 }
 
-type EvidenceCheck = { ok: true; kind: 'segment' | 'note'; sessionId: string } | { ok: false; code: string; message: string };
+type EvidenceCheck = { ok: true; kind: Evidence['kind']; sessionId: string } | { ok: false; code: string; message: string };
 
 /** Checks one piece of evidence against the engagement it must belong to. */
 function checkEvidence(ws: CompanyWorkspace, engagementId: string, e: Evidence): EvidenceCheck {
   const problem = (code: string, message: string): EvidenceCheck => ({ ok: false, code, message });
+  if (e && e.kind === 'deleted') {
+    // Words removed after a withdrawal (CONSENT.md, rule C8); the session may be gone too.
+    if (!isId(e.sessionId) || !isTimestamp(e.deletedAt))
+      return problem('field.value', 'Deleted evidence names its session and when it was deleted.');
+    return { ok: true, kind: 'deleted', sessionId: e.sessionId };
+  }
   if (!e || !isNonEmptyText(e.quote)) return problem('evidence.quote', 'Evidence quotes the words it rests on.');
   let text: string;
   let sessionId: string;

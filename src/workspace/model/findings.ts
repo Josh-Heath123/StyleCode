@@ -132,17 +132,20 @@ export function promoteToKnowledge(
   if (!finding) return fail('The finding does not exist.');
   if (!isInRecord(finding)) return fail('Only findings in the record can become company knowledge.');
   if (!consultant.trim()) return fail('Adding company knowledge needs the consultant’s name.');
-  const quotes: FactQuote[] = finding.evidence.map((e) => {
+  const quotes: FactQuote[] = [];
+  for (const e of finding.evidence) {
     if (e.kind === 'segment') {
       const segment = get(ws.segments, e.segmentId);
       const transcript = segment && get(ws.transcripts, segment.transcriptId);
       const session = transcript && get(ws.sessions, transcript.sessionId);
-      return { text: e.quote, sessionTitle: session?.title ?? '', speakerLabel: segment?.speakerLabel ?? null };
+      if (session)
+        quotes.push({ text: e.quote, sessionId: session.id, sessionTitle: session.title, speakerLabel: segment.speakerLabel });
+    } else if (e.kind === 'note') {
+      const note = get(ws.notes, e.noteId);
+      const session = note && get(ws.sessions, note.sessionId);
+      if (session) quotes.push({ text: e.quote, sessionId: session.id, sessionTitle: session.title, speakerLabel: null });
     }
-    const note = get(ws.notes, e.noteId);
-    const session = note && get(ws.sessions, note.sessionId);
-    return { text: e.quote, sessionTitle: session?.title ?? '', speakerLabel: null };
-  });
+  }
   return ok({
     id: factId,
     statement: finding.statement,
@@ -178,4 +181,86 @@ export function removeFindings(ws: CompanyWorkspace, findingIds: readonly string
     ]),
   );
   return { ...ws, findings, relations, knowledge };
+}
+
+/** What deleting a session's transcript did, so the consultant can review what is left (CONSENT.md, rule C8). */
+export interface TranscriptRemoval {
+  workspace: CompanyWorkspace;
+  /** Findings removed because nothing they rested on is left. */
+  removedFindingIds: string[];
+  /** Findings that rested partly on the transcript and keep their statement. */
+  keptFindingIds: string[];
+  /** Company facts that keep a statement from the session: their quotes from it were removed, or their source cited it. */
+  factIds: string[];
+}
+
+/**
+ * Deletes a session's transcript and every copy of its words, for example
+ * after the client withdraws consent and asks for it to be deleted (CONSENT.md,
+ * rule C8, decision 2). Each cited segment becomes deleted evidence, in the
+ * finding, in what the AI proposed and in its history, so no quoted words are
+ * left. A finding is removed when nothing it rests on is left, or when it was
+ * said in a session and no transcript segment is left. Company facts lose
+ * their quotes from the session and keep their statement. The consent record
+ * stays, with its withdrawal.
+ */
+export function removeTranscript(ws: CompanyWorkspace, sessionId: string, at: Timestamp): Result<TranscriptRemoval> {
+  const transcript = Object.values(ws.transcripts).find((t) => t.sessionId === sessionId);
+  if (!transcript) return fail('This session has no transcript.');
+  const gone = new Set(
+    Object.values(ws.segments)
+      .filter((s) => s.transcriptId === transcript.id)
+      .map((s) => s.id),
+  );
+  const cites = (list: Evidence[]) => list.some((e) => e.kind === 'segment' && gone.has(e.segmentId));
+  const scrub = (list: Evidence[]): Evidence[] =>
+    list.map((e) => (e.kind === 'segment' && gone.has(e.segmentId) ? { kind: 'deleted', sessionId, deletedAt: at } : e));
+
+  const findings: Record<string, Finding> = {};
+  const touched: string[] = [];
+  const removed: string[] = [];
+  for (const [id, f] of Object.entries(ws.findings)) {
+    const proposed = f.origin.kind === 'ai' ? f.origin.proposed.evidence : [];
+    const inHistory = f.history.some((c) => c.field === 'evidence' && (cites(c.from) || cites(c.to)));
+    if (!cites(f.evidence) && !cites(proposed) && !inHistory) {
+      findings[id] = f;
+      continue;
+    }
+    touched.push(id);
+    const history = f.history
+      .map((c) => (c.field === 'evidence' ? { ...c, from: scrub(c.from), to: scrub(c.to) } : c))
+      .filter((c) => JSON.stringify(c.from) !== JSON.stringify(c.to));
+    const origin =
+      f.origin.kind === 'ai'
+        ? { ...f.origin, proposed: { ...f.origin.proposed, evidence: scrub(f.origin.proposed.evidence) } }
+        : f.origin;
+    const evidence = scrub(f.evidence);
+    const live = evidence.filter((e) => e.kind !== 'deleted');
+    const lostItsBasis =
+      (cites(f.evidence) && live.length === 0) ||
+      (f.provenance.kind === 'said-in-session' && !live.some((e) => e.kind === 'segment'));
+    if (lostItsBasis) removed.push(id);
+    findings[id] = { ...f, evidence, origin, history, updatedAt: at };
+  }
+
+  const segments = Object.fromEntries(Object.entries(ws.segments).filter(([id]) => !gone.has(id)));
+  const transcripts = Object.fromEntries(Object.entries(ws.transcripts).filter(([id]) => id !== transcript.id));
+  const factIds: string[] = [];
+  const knowledge = Object.fromEntries(
+    Object.entries(ws.knowledge).map(([id, fact]) => {
+      if (!fact.source) return [id, fact];
+      const quotes = fact.source.quotes.filter((q) => q.sessionId !== sessionId);
+      const fromHere = quotes.length !== fact.source.quotes.length || touched.includes(fact.source.findingId ?? '');
+      if (fromHere) factIds.push(id);
+      return [id, quotes.length === fact.source.quotes.length ? fact : { ...fact, source: { ...fact.source, quotes } }];
+    }),
+  );
+
+  const workspace = removeFindings({ ...ws, transcripts, segments, findings, knowledge }, removed, at);
+  return ok({
+    workspace,
+    removedFindingIds: removed,
+    keptFindingIds: touched.filter((id) => !removed.includes(id)),
+    factIds,
+  });
 }

@@ -207,7 +207,14 @@ describe('5: company knowledge outlives its source', () => {
       deletedAt: null,
       engagementName: 'Online ordering',
       statement: 'Orders peak in December, at about five times the usual volume.',
-      quotes: [{ text: 'about five times as many orders in December', sessionTitle: 'Kick-off', speakerLabel: 'Alex Owner' }],
+      quotes: [
+        {
+          text: 'about five times as many orders in December',
+          sessionId: 'se_1',
+          sessionTitle: 'Kick-off',
+          speakerLabel: 'Alex Owner',
+        },
+      ],
     });
     expect(validateWorkspace(ws)).toEqual([]);
     expect(promoteToKnowledge(ws, 'fd_risk', 'kf_2', 'Sam', T3).ok).toBe(false);

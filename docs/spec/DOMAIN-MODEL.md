@@ -157,3 +157,12 @@ The user's review of the draft asked for seven changes, all made, each with test
 5. Company knowledge keeps a copy of its source, and survives the source's deletion as "source deleted".
 6. `sharedIds` includes design document ids. WP4 stores each design inside its company's data.
 7. A quote is at least three words, unless it is the whole segment or note.
+
+## Changes from WP5
+
+Made to support the approved consent rules (`docs/spec/CONSENT.md`):
+
+- An AI proposal records where it ran, on this computer or by a named external provider (`origin.processing`, rules C5 and C6).
+- Evidence can be `deleted`: no words, only the session and the date, after a transcript is deleted following a withdrawal (C8, `removeTranscript`).
+- Each quote copied into a company fact records its session, so it can be removed with that session's transcript (C8).
+- A transcript keeps the speakers who weren't asked for consent when it was imported (`unaskedSpeakers`, `unnamedSpeakers`, rule C11).

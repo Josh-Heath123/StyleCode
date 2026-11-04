@@ -85,8 +85,16 @@ export const PROVENANCE_KINDS: readonly ProvenanceKind[] = [
 /** Provenances the AI may give a finding it proposes. It never supplies verified or calculated information. */
 export const AI_PROVENANCES: readonly ProvenanceKind[] = ['said-in-session', 'ai-suggested'];
 
-/** A passage a finding rests on: words quoted from a transcript segment or a note. */
-export type Evidence = { kind: 'segment'; segmentId: string; quote: string } | { kind: 'note'; noteId: string; quote: string };
+/**
+ * A passage a finding rests on: words quoted from a transcript segment or a
+ * note. A passage deleted after the client withdrew consent (CONSENT.md, rule
+ * C8) becomes `deleted`: its words are gone, and only the fact that the
+ * finding rested on something from that session is kept.
+ */
+export type Evidence =
+  | { kind: 'segment'; segmentId: string; quote: string }
+  | { kind: 'note'; noteId: string; quote: string }
+  | { kind: 'deleted'; sessionId: string; deletedAt: Timestamp };
 
 /** The consultant's decision on an AI proposal. Only accepted proposals are part of the record. */
 export type Review =
@@ -213,6 +221,8 @@ export interface FactSource {
 
 export interface FactQuote {
   text: string;
+  /** The session it was said or written in, so it can be removed if that session's transcript is deleted. */
+  sessionId: string;
   sessionTitle: string;
   /** The speaker label of a transcript segment; null for a note. */
   speakerLabel: string | null;
@@ -282,6 +292,14 @@ export interface Transcript {
   source: TranscriptSource;
   importedBy: string;
   importedAt: Timestamp;
+  /**
+   * Speaker labels that, when the transcript was imported, matched neither a
+   * client participant who was asked for consent nor someone on the
+   * consultant's side (CONSENT.md, rule C11). Kept as a warning.
+   */
+  unaskedSpeakers: string[];
+  /** Whether some segments had no speaker label, so they couldn't be checked. */
+  unnamedSpeakers: boolean;
 }
 
 export interface TranscriptSegment {

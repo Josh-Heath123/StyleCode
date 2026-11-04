@@ -278,6 +278,32 @@ export function classifyProvider(settings: { provider: 'ollama' | 'openai' | 'an
   return { kind: 'external', provider: `${company} (${host})` };
 }
 
+/** The speaker warning kept on a transcript (rule C11). */
+export interface SpeakerCheck {
+  unaskedSpeakers: string[];
+  unnamedSpeakers: boolean;
+}
+
+/**
+ * Speakers in a transcript about to be imported who weren't asked for consent:
+ * labels that match neither a client participant named on the consent form
+ * nor a participant on the consultant's side. The import can go ahead; the
+ * result is kept on the transcript as a warning (rule C11).
+ */
+export function checkSpeakers(ws: CompanyWorkspace, sessionId: string, labels: readonly (string | null)[]): SpeakerCheck {
+  const asked = new Set(consentFor(ws, sessionId)?.askedParticipantIds ?? []);
+  const covered = new Set<string>();
+  for (const p of Object.values(ws.participants)) {
+    if (p.sessionId === sessionId && (p.side === 'consultant' || asked.has(p.id)))
+      for (const l of p.speakerLabels) covered.add(l);
+  }
+  const unasked: string[] = [];
+  for (const label of labels) {
+    if (label !== null && !covered.has(label) && !unasked.includes(label)) unasked.push(label);
+  }
+  return { unaskedSpeakers: unasked, unnamedSpeakers: labels.includes(null) };
+}
+
 /** Changes to a record that is still unlocked. A locked record only takes amendments. */
 export function editConsent(
   record: ConsentRecord,

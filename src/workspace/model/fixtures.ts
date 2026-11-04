@@ -171,6 +171,8 @@ export function sampleWorkspace(): CompanyWorkspace {
         source: { kind: 'file', fileName: 'kickoff.vtt', format: 'vtt', platform: 'teams' },
         importedBy: 'Sam Consultant',
         importedAt: T2,
+        unaskedSpeakers: [],
+        unnamedSpeakers: false,
       },
     },
     segments: {

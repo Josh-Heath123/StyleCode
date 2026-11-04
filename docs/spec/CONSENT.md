@@ -1,6 +1,6 @@
 # Consent form
 
-- **Status:** Draft, for the user's approval (Phase 0, WP5)
+- **Status:** Approved by the user on 2026-11-04, with their changes (see "Decisions"). The wording stays a draft until the POPIA review.
 - **Date:** 2026-11-04
 - **Code:** `src/workspace/model/consent.ts` (rules), `validate.ts` (checks), tests in `consent.test.ts`, `rules.test.ts` and `review.test.ts`
 - **Sources:** ADR-0002 and ADR-0003; `docs/spec/MVP.md` story 3.1 and Q15, Q16; `docs/spec/DOMAIN-MODEL.md`; the Phase 0 brief, WP5
@@ -37,7 +37,7 @@ Each statement is shown on the form exactly as it should be said or sent to the 
 | recorded | "I'd like to record the audio of this meeting." |
 | transcribed | "What we say will be turned into a written transcript, by the meeting software or on my computer." |
 | aiExtraction | "I'll use AI to help pick out requirements, questions and risks from the transcript and my notes. I check everything it suggests." |
-| processingLocation | Either "The AI runs on my computer only; nothing is sent elsewhere." or "The AI runs on my computer, and may also be sent to *[provider]* to process." |
+| processingLocation | Either "The AI runs on my computer only; nothing is sent elsewhere." or "The transcript and my notes may be sent to *[provider]*, which processes them under its own terms, possibly outside South Africa." |
 | retention | "The recording is kept for *[N days / until the project ends / only until it's transcribed]*. The transcript and my notes are kept with the project's records." |
 | canStopOrDelete | "You can ask me to stop recording at any time, and ask me to delete the recording and the transcript." |
 
@@ -56,9 +56,10 @@ Each rule is checked in code and covered by a unit test, except where marked as 
 | **C5** | **AI processing needs consent.** The AI processes a session's transcript and notes (MVP Q15) only if its consent allows it at that time. A declined, withdrawn or unconfirmed session's notes are never sent to the AI. Every AI proposal records where it ran, and is invalid if a session it cites didn't allow that. | `canUseAi`; `finding.aiConsent` |
 | **C6** | **Local or external** (MVP Q16). AI processing is *local* only when the provider is Ollama or an OpenAI-compatible server at a loopback address (`localhost`, `127.x.x.x`, `::1`). Anything else is *external*, including Ollama on another computer, and is named by company and host. Local needs "AI processing on this computer = yes". External needs "external provider = yes" and the same provider named on the form; another provider is refused, with the reason. | `classifyProvider`, `canUseAi` |
 | **C7** | **Declined means notes only.** The session can have manual notes, which the AI doesn't process; transcript import, recording and AI stay unavailable, each saying why. | `canCapture`, `canUseAi` |
-| **C8** | **Withdrawal.** Recorded as a dated amendment with the reason. From then on nothing more is captured or processed by the AI. The app offers to delete the audio (Phase 3) and the transcript; see decision 2. What was imported before the withdrawal stays valid until it is deleted. | `amendConsent`, `consentState`; deletion in Phase 1 |
+| **C8** | **Withdrawal.** Recorded as a dated amendment with the reason. From then on nothing more is captured or processed by the AI. What was imported before the withdrawal stays valid until it is deleted. The app offers to delete the audio (Phase 3) and the transcript. Deleting the transcript removes every copy of its words: each cited segment becomes *deleted evidence* (no words, only the session and the date) in the finding, in what the AI proposed and in its history, and company facts lose their quotes from the session. Findings left with nothing to rest on, or said in the session with no transcript segment left, are removed. Afterwards the consultant is shown the findings and company facts that keep a statement from that session, so they can remove those too if the client asks. | `amendConsent`, `consentState`, `removeTranscript`; the interface in Phase 1 |
 | **C9** | **Export.** The engagement's export includes every session's consent record, its amendments and the text of the wording version shown (MVP story 8). | Phase 1 (export) |
-| **C10** | **Retention of audio** is kept as recorded; deleting audio when it falls due is Phase 3 (decision 4). | Phase 3 |
+| **C10** | **Retention of audio** is kept as recorded. "Deleted after transcription" is a promise to the client: the audio is deleted as part of finishing the transcription, not left to a reminder. For "N days" and "until the engagement ends", see decision 4. | Phase 3 |
+| **C11** | **Speakers who weren't asked.** When a transcript is imported, every speaker label that matches neither a client participant named on the consent form nor someone on the consultant's side is listed, with a warning that they weren't asked for consent. Segments without a speaker label are flagged as unchecked. The import can go ahead, and the warning is kept on the transcript. | `checkSpeakers`; `Transcript.unaskedSpeakers`, `unnamedSpeakers` |
 
 ## The interface (sketch)
 
@@ -113,13 +114,35 @@ Attachment           [ Add signed form or email… ]
 - Choosing *Declined* sets every answer to no.
 - Everything works from the keyboard, with labels on every control, and passes the accessibility check.
 
-**Amend and withdraw** (on a locked record): *Amend…* opens the same answers, prefilled with the current state, plus a required reason and an optional attachment; it adds an amendment and never changes the original. *Withdraw consent…* asks for the reason, records the withdrawal, then offers to delete the transcript (and audio), listing the findings that would go with it. The record's history shows the original and each amendment with who, when and why.
+**Amend and withdraw** (on a locked record): *Amend…* opens the same answers, prefilled with the current state, plus a required reason and an optional attachment; it adds an amendment and never changes the original. *Withdraw consent…* asks for the reason, records the withdrawal, then offers to delete the transcript (and audio), listing the findings that would go with it. After deleting, it lists the findings and company facts that keep a statement from the session, each with a way to remove it. The record's history shows the original and each amendment with who, when and why.
 
-## Decisions for the user
+**Import warning** (C11), shown after importing and kept on the transcript:
 
-1. **Transcript import needs transcription = yes** (C1). Should importing a transcript the meeting platform already made also require AI consent? *Recommendation:* no; import needs transcription only, and AI is a separate yes (C5). The client can agree to a transcript without AI.
-2. **Deleting after a withdrawal.** When the consultant accepts the offer to delete the transcript, findings whose only evidence is in it are removed, and others lose that evidence, as for deleting a session (DOMAIN-MODEL decision 4). Company knowledge keeps its copy of the source statement, but should its copied quotes from that transcript go too? *Recommendation:* yes, remove copied quotes from the withdrawn session and keep the statement, which is the consultant's own wording. (The model would then record the session on each copied quote.)
-3. **Several client representatives.** The form has one set of answers for the session. *Recommendation:* the answers are what everyone asked agreed to; if one person says no to something, record no (or "given with limits"), and the guide says so. Per-person answers aren't modelled.
-4. **Retention when audio falls due** (Phase 3). *Recommendation:* the app doesn't delete on its own; when StyleCode opens with audio past its retention date, it shows the list with one action to delete it all, and shows it again until done. Decided in Phase 3's brief.
-5. **Retention of transcripts and notes.** The form's retention is for audio, as the brief says, and the wording tells the client that transcripts and notes are kept with the project's records. *Recommendation:* keep it so for the first version; deleting the transcript on request is covered by withdrawal (C8).
-6. **The draft wording** above, to be reviewed by someone qualified in POPIA before real use.
+```
+│ Transcript imported · 312 segments                                  │
+│ ⚠ 2 speakers weren't asked for consent: "Jo", "Guest 1".            │
+│   Match them to participants, or check that they agreed.            │
+```
+
+## Decisions
+
+The user's decisions (2026-11-04): the recommendations on all six, with these changes.
+
+1. **Transcript import needs transcription = yes** (C1); AI is a separate yes (C5). The client can agree to a transcript without AI.
+2. **Deleting after a withdrawal** (C8): findings and copied quotes from the session go, as described in C8, and statements stay. *Change:* afterwards the consultant is shown the findings and company facts that keep a statement from that session, so they can remove those too if the client asks.
+3. **Several client representatives:** the answers are what everyone asked agreed to; if one person says no to something, record no (or "given with limits"), and the guide says so. Per-person answers aren't modelled.
+4. **Audio past its retention date** (Phase 3): for now, the app doesn't delete on its own; when StyleCode opens with audio past its retention date, it lists it with one action to delete it all, and shows it again until done. *Note for the Phase 3 brief:* "deleted after transcription" is a promise to the client, so the audio is deleted as part of finishing the transcription, not left to a reminder (C10).
+5. **Transcripts and notes** are kept with the project's records, as the wording tells the client; deleting the transcript on request is covered by withdrawal (C8).
+6. **The draft wording** is reviewed by someone qualified in POPIA before real use (see below).
+
+Also added by the user: rule **C11** (speakers who weren't asked), and the external-AI wording "The transcript and my notes may be sent to *[provider]*, which processes them under its own terms, possibly outside South Africa."
+
+## Questions for the POPIA review
+
+For someone qualified in POPIA, before StyleCode is used with real clients. Nothing here is a conclusion; these are the questions.
+
+1. **The wording itself** (draft-1, above): is it enough for consent to be "voluntary, specific and informed" (section 1), and is anything missing, such as who the responsible party is, the purpose, or how to complain?
+2. **Transcripts and notes have no retention period of their own.** Only audio retention is asked (C10); transcripts and notes are kept with the project's records until deleted. Is a retention period needed for them, and should the form ask for one?
+3. **Sending personal information to an AI provider outside South Africa.** Section 72 limits transfers of personal information about a data subject outside the Republic, allowing them for example where the recipient is bound by comparable protection or the data subject consents ([popia.co.za, section 72](https://popia.co.za/section-72-transfers-of-personal-information-outside-republic/), checked 2026-11-04). Is the external-AI statement and its "yes" enough, and should the form name the country or the provider's terms?
+4. **Keeping the consultant's own statements after a withdrawal.** C8 deletes the client's words but keeps findings and company facts in the consultant's wording, which may still describe what the client said. Is that acceptable, or should a withdrawal remove them too unless the client agrees otherwise?
+5. **People in the meeting who weren't asked** (C11): what should the consultant do when a transcript includes speakers who weren't asked?
