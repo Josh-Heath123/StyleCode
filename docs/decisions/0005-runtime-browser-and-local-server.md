@@ -1,6 +1,6 @@
 # ADR-0005: Runtime: the browser plus a local Node server
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context

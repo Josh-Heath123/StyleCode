@@ -1,6 +1,6 @@
 # ADR-0009: Data protection: operating-system disk encryption now, no app-level encryption yet
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context
@@ -11,7 +11,9 @@ The workspace folder (ADR-0006) holds clients' confidential information and, lat
 
 - StyleCode recommends turning on the operating system's disk encryption, in the guide and in the app's workspace settings: Device encryption on Windows 11 Home where the hardware supports it, or BitLocker on Pro, Enterprise and Education ([Microsoft, Device encryption in Windows](https://support.microsoft.com/en-us/windows/device-encryption-in-windows-cf7e2b6f-3e70-4882-9532-18633605b7df), checked 2026-11-04); FileVault on macOS; LUKS on Linux.
 - No app-level encryption for now.
-- The workspace folder is readable only by the user. Deleting a company deletes its folder. Logs never contain client data.
+- On macOS and Linux the workspace folder is readable only by the user. On Windows, Node can't set that, so it relies on the home folder's default permissions (ADR-0006).
+- The app warns if the workspace folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive), because syncing sends client data off the computer, which ADR-0002 rules out.
+- Deleting a company deletes its folder. Logs never contain client data.
 
 ## Options considered
 

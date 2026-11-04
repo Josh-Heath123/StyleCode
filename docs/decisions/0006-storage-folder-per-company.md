@@ -1,6 +1,6 @@
 # ADR-0006: Storage: a workspace folder, one folder and one JSON file per company
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context
@@ -15,9 +15,10 @@ Measured on the user's laptop (Windows 11 Home, Node 22.15.0, 2026-11-04):
 
 ## Decision
 
-- A workspace folder, `StyleCode` in the user's home folder by default, or `STYLECODE_WORKSPACE`. Created readable only by the user.
+- A workspace folder, `StyleCode Data` in the user's home folder by default (so it can't be confused with a checkout of the StyleCode repo), or `STYLECODE_WORKSPACE`.
+- On macOS and Linux the folder is created readable only by the user. On Windows, Node can't do that (mode bits are ignored and `chmod` only changes the read-only flag), so the folder relies on the default permissions of the user's home folder. StyleCode doesn't claim to set them.
 - `companies/<company id>/` per company, holding `workspace.json` (the `CompanyWorkspace`), `workspace.previous.json` (the last good copy), `files/<file id>` and `designs/<document id>.stylecode.json`.
-- Saves are one at a time, written to a temporary file and renamed into place. A workspace with problems is refused (`checkBeforeSave`). Each save names the revision it is based on and is refused if the file has moved on.
+- Saves are one at a time, written to a temporary file and renamed into place. On Windows the rename can fail with `EPERM` or `EBUSY` while antivirus or search indexing has the file open, so it is retried a few times with a short wait before the save is reported as failed. A workspace with problems is refused (`checkBeforeSave`). Each save names the revision it is based on and is refused if the file has moved on.
 - Files are stored by id, never by a name from the browser. Audio is never inside `workspace.json`.
 - Search is in memory over the open workspace, by substring, until a measured need says otherwise.
 - No SQLite for now. A new ADR revisits it when a real workspace takes over a second to load, search needs ranking, or `node:sqlite` is stable with FTS5 on Windows.

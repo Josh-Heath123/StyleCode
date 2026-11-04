@@ -1,6 +1,6 @@
 # ADR-0007: Existing editor projects and engagement designs coexist; designs are copied into the company
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context

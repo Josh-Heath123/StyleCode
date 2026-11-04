@@ -1,6 +1,6 @@
 # ADR-0008: The local workspace API has the AI server's protections, plus file-safety rules
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context
@@ -17,6 +17,8 @@ Every workspace route checks, on every request:
 - `Sec-Fetch-Site`, when present, is `same-origin` or `none`;
 - a StyleCode request header is present.
 
+The server refuses to start if the workspace folder is inside this repo or inside any git repository (a `.git` folder in it or any folder above it), so client data can never be committed. Real client work uses the built app (`npm start`), not `npm run dev`, and the guide says so.
+
 These checks move from `server/ai/handler.ts` into one shared module used by both APIs, with one set of tests. Because these routes touch the disk, also:
 
 - every id is checked with `isValidId` before it becomes part of a path, and names from the browser are never used as paths;
@@ -32,4 +34,5 @@ These checks move from `server/ai/handler.ts` into one shared module used by bot
 ## Consequences
 
 - Phase 1 refactors the request checks into a shared module before adding workspace routes.
-- Browser tests cover a request from another origin and a path with an invalid id.
+- Browser tests cover a request from another origin and a path with an invalid id; unit tests cover a workspace folder inside a git repository.
+- The guide tells consultants to use `npm start` for client work.

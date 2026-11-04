@@ -127,7 +127,7 @@ describe('settings', () => {
     const saved = await configure({ provider: 'openai', providers: { openai: { apiKey: 'sk-secret-123', model: 'gpt-x' } } });
     expect(JSON.stringify(saved)).not.toContain('sk-secret');
     expect(saved.providers.openai).toMatchObject({ hasKey: true, keySource: 'file', model: 'gpt-x' });
-    // Kept on this computer, readable only by the user.
+    // Kept on this computer, readable only by the user (Windows ignores mode bits).
     expect(readFileSync(configFile, 'utf8')).toContain('sk-secret-123');
     if (process.platform !== 'win32') expect(statSync(configFile).mode & 0o777).toBe(0o600);
     // Leaving the key out keeps it; null removes it.
