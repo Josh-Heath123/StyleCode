@@ -336,7 +336,11 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
     if (!get(ws.transcripts, s.transcriptId))
       report('ref.missing', 'A segment belongs to a transcript that is not in this workspace.', 'segments', s.id);
     if (!Number.isInteger(s.index) || s.index < 0) report('field.value', 'A segment has an invalid position.', 'segments', s.id);
-    else indexes.set(s.transcriptId, [...(indexes.get(s.transcriptId) ?? []), s.index]);
+    else {
+      const list = indexes.get(s.transcriptId);
+      if (list) list.push(s.index);
+      else indexes.set(s.transcriptId, [s.index]);
+    }
     if (s.speakerLabel !== null && !isNonEmptyText(s.speakerLabel))
       report('field.type', "A segment's speaker label must be text.", 'segments', s.id);
     if (!isText(s.text)) report('field.type', "A segment's text must be text.", 'segments', s.id);

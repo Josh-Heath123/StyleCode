@@ -103,16 +103,17 @@ export function parseWorkspace(input: unknown): ParseWorkspaceResult {
   for (const map of ENTITY_MAPS) {
     const value = raw[map];
     if (!value || typeof value !== 'object' || Array.isArray(value)) return refuse(`The workspace's ${map} are missing.`);
-    const entries = Object.entries(value as Record<string, unknown>);
-    const readable = entries.filter(([, entry]) => entry && typeof entry === 'object' && !Array.isArray(entry));
-    for (const [key] of entries.filter((e) => !readable.includes(e))) {
-      unreadable.push({
-        code: 'entry.unreadable',
-        message: `An entry can't be read, so it isn't shown.`,
-        where: { map, id: key },
-      });
+    const readable: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      if (entry && typeof entry === 'object' && !Array.isArray(entry)) readable[key] = entry;
+      else
+        unreadable.push({
+          code: 'entry.unreadable',
+          message: `An entry can't be read, so it isn't shown.`,
+          where: { map, id: key },
+        });
     }
-    view[map] = Object.fromEntries(readable);
+    view[map] = readable;
   }
 
   const workspace = view as unknown as CompanyWorkspace;
