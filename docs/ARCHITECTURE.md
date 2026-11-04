@@ -53,6 +53,7 @@ Source layout:
 | `src/app` | App shell, top bar, tool dock, assistant bar, AI settings, shortcuts, shared actions, inserting images and blocks, preview and export, onboarding, the screen-reader announcer and the recovery screen. | everything |
 | `src/ui` | Generic UI: icons, menus, dialog focus handling, error boundaries. | nothing app-specific |
 | `server/ai` | The local AI server (a Vite plugin): settings and keys, provider adapters, streaming. Runs in Node, never in the browser. | Node only |
+| `server/shared` | Node helpers shared by the local servers, such as the rename that retries on Windows. | Node only |
 
 The `model` layer is the part that matters most and is tested most heavily. Everything above it is a view or an input method. Unit tests (Vitest) sit next to the code they test; browser tests (Playwright) live in `e2e/` and drive the real app.
 
@@ -288,7 +289,7 @@ Requests go through a small local server, not from the browser to the provider. 
 | `POST /api/ai/models` | list a provider's models; also the connection check (unsaved settings may be tried) |
 | `POST /api/ai/chat` | stream a reply as lines of JSON: `{"delta"}`… then `{"done"}`, or `{"error"}` in plain words |
 
-Settings live in `~/.stylecode/ai.json` (or the file named by `STYLECODE_AI_CONFIG`). On macOS and Linux it is readable only by the user (mode 0600, in a folder created 0700). On Windows, Node can't set that: mode bits are ignored and `chmod` only changes the read-only flag, so the file relies on the default permissions of the user's home folder, which by default only the user, administrators and the system can open. Saves happen one at a time, each written to a new temporary file and renamed into place, so the file is never half-written. Keys can instead come from `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Keys are never sent to the browser, stored in browser storage, written into frontend code or kept in the repository.
+Settings live in `~/.stylecode/ai.json` (or the file named by `STYLECODE_AI_CONFIG`). On macOS and Linux it is readable only by the user (mode 0600, in a folder created 0700). On Windows, Node can't set that: mode bits are ignored and `chmod` only changes the read-only flag, so the file relies on the default permissions of the user's home folder, which by default only the user, administrators and the system can open. Saves happen one at a time, each written to a new temporary file and renamed into place, so the file is never half-written. On Windows the rename is retried a few times if antivirus or indexing briefly holds the file (`EPERM`, `EBUSY`; `server/shared/rename.ts`). Keys can instead come from `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Keys are never sent to the browser, stored in browser storage, written into frontend code or kept in the repository.
 
 A key saved in the settings only ever goes to the address it was saved with, and a key from an environment variable only to the saved address. Trying another address in the settings dialog uses only a key typed for it; saving a new address without a new key forgets the old key; and provider requests never follow redirects, which would otherwise carry `x-api-key` to wherever the redirect points.
 

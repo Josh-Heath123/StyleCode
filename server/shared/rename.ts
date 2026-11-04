@@ -1,0 +1,34 @@
+import { rename } from 'node:fs/promises';
+
+/**
+ * Error codes Windows gives when antivirus, search indexing or backup software
+ * briefly holds the file being replaced. They usually clear within moments.
+ */
+const TRANSIENT = new Set(['EPERM', 'EBUSY']);
+
+export interface RetryOptions {
+  /** How many times to try in all. */
+  attempts?: number;
+  /** Wait before the first retry, doubled after each one. */
+  delayMs?: number;
+  /** For tests: the rename to use. */
+  renameFile?: (from: string, to: string) => Promise<void>;
+}
+
+/**
+ * Renames a file over another, retrying a few times when Windows reports the
+ * target as busy (ADR-0006). Any other error, or the last failure, is thrown,
+ * so the caller can report a failed save.
+ */
+export async function renameWithRetry(from: string, to: string, options: RetryOptions = {}): Promise<void> {
+  const { attempts = 5, delayMs = 50, renameFile = rename } = options;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await renameFile(from, to);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (attempt >= attempts || !code || !TRANSIENT.has(code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delayMs * 2 ** (attempt - 1)));
+    }
+  }
+}
