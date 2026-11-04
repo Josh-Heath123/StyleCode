@@ -13,7 +13,7 @@ Record these as ADRs in WP1. Don't reopen them.
 
 1. **Same repo.** The workspace is built in this repository. The StyleCode editor keeps working and becomes a module of the product.
 2. **Local-first.** Client data, recordings and files stay on the consultant's computer: no accounts, no hosted services, no running costs. AI stays optional: local models by default, the user's own API key if they choose, or none.
-3. **Consent before recording.** Every session has a consent form that the consultant fills in. It records that consent was asked for and what was agreed. Recording can't start without it.
+3. **Consent before recording.** Every session has a consent form that the consultant fills in. It records that consent was asked for and what was agreed. Recording can't start without it, and neither can importing or pasting a meeting transcript.
 4. **Deterministic where it matters.** Costs, compatibility and constraint checks are calculated by code from sourced data. The AI interprets, proposes and explains.
 
 ## Goal
@@ -24,15 +24,13 @@ Phase 0 builds no user-facing features. It produces the foundations Phase 1 buil
 - the domain model, written up and as TypeScript types with tests;
 - the architecture and storage decisions;
 - the consent form spec;
-- measured answers to the two biggest technical unknowns (local transcription, and local extraction quality);
-- an evaluation harness that later phases keep using;
 - a roadmap for Phases 1–7 with acceptance criteria.
 
 ## Ground rules for this phase
 
 - **Branch:** `phase-0-foundations`, from the base branch the user names. Commit per work package with clear messages. Open a PR at the end; don't merge.
 - **Keep the editor working:** `npm run typecheck`, `npm test` and `npm run test:e2e` stay green after every commit.
-- **No new runtime dependencies in the app.** Spike code lives under `spikes/`, with its own `package.json` (or Python environment), and is never imported by `src/`.
+- **No new runtime dependencies in the app.** Phase 0 has no spikes: the transcription and extraction tests open Phases 3 and 2 instead (see "Moved out of Phase 0" below).
 - **Never commit** real client data, recordings of real people, or API keys. Use role-played material only, and keep audio out of git (`.gitignore`).
 - **Research claims need sources:** link and date accessed. Performance figures are measured on the user's machine, not quoted.
 - **Where this brief says the user decides,** present the options with a recommendation, then wait.
@@ -68,16 +66,16 @@ The first version is one end-to-end slice:
 1. Create a company workspace (profile: name, industry, what they do, existing systems, notes).
 2. Create an engagement (a project for that company) and a session (a meeting) within it.
 3. Fill in the consent form for the session.
-4. Record the session, or import an audio file, and get a transcript with speakers.
-5. Take manual notes during the session, time-stamped against the recording.
-6. Review the findings the AI proposes from the transcript (requirements, constraints, questions, risks…). Each is linked to the transcript passage it came from, and can be accepted, edited or rejected.
+4. Import a meeting transcript (an export from Teams, Zoom or Google Meet, such as `.vtt` or `.docx`), or paste one. The consent form applies to imported transcripts too.
+5. Take manual notes during the session, time-stamped.
+6. Review the findings the AI proposes from the transcript and the session's notes (requirements, constraints, questions, risks…). Each is linked to the transcript passage or note it came from, and can be accepted, edited or rejected.
 7. See the engagement's consolidated record: confirmed findings, assumptions and open questions.
 8. Export a specification from the record (Markdown first).
 
 The StyleCode canvas can be opened from an engagement, but isn't yet informed by the record.
 
 Write user stories with acceptance criteria for each step, plus:
-- an explicit out-of-scope list: live follow-up questions, the technology catalogue, the cost engine, a canvas informed by the record, and sync between devices;
+- an explicit out-of-scope list: recording and local transcription (Phase 3), live follow-up questions, the technology catalogue, the cost engine, a canvas informed by the record, and sync between devices;
 - the open questions for the user.
 
 ⏸ **Check-in:** the user approves the slice.
@@ -90,10 +88,10 @@ Write `docs/spec/DOMAIN-MODEL.md` and draft the types in `src/workspace/model/`:
 | --- | --- |
 | Company | Profile fields, plus accumulated company knowledge (facts with provenance) |
 | Engagement | Belongs to a company; links to designs (StyleCode documents) |
-| Session | Belongs to an engagement; date, participants, audio file references, transcript |
+| Session | Belongs to an engagement; date, participants, transcript (imported in Phase 2, recorded in Phase 3), audio file references (Phase 3) |
 | ConsentRecord | One per session, with amendments (WP5) |
 | Participant | Name, role, side (client or consultant), and the speaker label it maps to |
-| TranscriptSegment | Speaker, start and end time, text, confidence |
+| TranscriptSegment | Speaker, start and end time, text, confidence (times and confidence only where the source provides them: a pasted transcript may have neither) |
 | Note | Manual and time-stamped |
 | FileRef | An uploaded document, attached to a company or an engagement |
 | Finding | Kind, statement, status, provenance, evidence links, relations |
@@ -129,7 +127,7 @@ Add a new section to `docs/ARCHITECTURE.md`, plus an ADR for each decision. For 
 
 ### WP5: Consent form (`docs/spec/CONSENT.md`)
 
-The consultant fills in this form for each session, before recording. Spec the form, its rules and its UI (a sketch is enough). Implementation comes in Phase 1 (the form) and Phase 2 (recording is blocked without it).
+The consultant fills in this form for each session, before recording or importing a transcript. Spec the form, its rules and its UI (a sketch is enough). Implementation comes in Phase 1 (the form), Phase 2 (transcript import is blocked without it) and Phase 3 (recording is blocked without it).
 
 **Fields:**
 
@@ -153,15 +151,52 @@ The consultant fills in this form for each session, before recording. Spec the f
 **Rules (enforced in code and tested):**
 
 - Recording and audio import are unavailable until the session has a consent record with recording = yes.
+- Importing or pasting a transcript is unavailable until the session has a consent record that covers it (the exact rule is settled in WP5).
 - If external AI processing = no, only local models may process that session's data. The app refuses external providers for it.
 - If consent is declined, the session can only have manual notes.
-- Once recording starts, the record is locked. Later changes are added as dated amendments, never overwrites.
+- Once recording starts, or a transcript is imported, the record is locked. Later changes are added as dated amendments, never overwrites.
 - A withdrawal is recorded as a dated entry, and the app offers to delete the audio and transcript.
 - Consent records are included in the engagement's export.
 
 Add a note that the wording shown to the client should be reviewed by someone qualified in POPIA before real use. Don't present the form as legal compliance.
 
-### WP6: Spike A, transcription and speakers (`spikes/transcription/`)
+### WP6 and WP7: moved out of Phase 0
+
+The transcription test (old WP6) and the extraction test with the evaluation harness (old WP7) are not part of Phase 0. Don't start them. They now open Phases 3 and 2 of the roadmap. Their original briefs are kept under "Moved out of Phase 0" at the end of this document.
+
+### WP8: Roadmap (`docs/ROADMAP.md`)
+
+Add a "Consulting workspace" part with Phases 1–7. Give each one its scope, acceptance criteria the user can check, and what it depends on:
+
+1. **Workspace spine:** companies, engagements, sessions, the consent form, files, notes, and the structured record entered by hand.
+2. **Extraction:** the AI proposes findings, to accept or reject, from session notes and from imported meeting transcripts (Teams, Zoom and Google Meet exports such as `.vtt` and `.docx`, or pasted text), each linked to the passage or note it came from. It opens with the extraction test and evaluation harness (old WP7), using typed role-play transcripts; the evaluation set runs in CI where feasible.
+   - Straight after extraction (before or within Phase 3; WP8 places it): **promote an accepted finding to company knowledge**, so what is learned about a company carries into its next engagement (vision §3; MVP Q3).
+3. **Capture:** recording and local transcription with speakers. It opens with the transcription test (old WP6).
+4. **Canvas in context:** the StyleCode editor in each engagement, informed by the record.
+5. **Technology catalogue and rules engine.**
+6. **Cost engine,** with sourced, dated pricing.
+7. **Specification export and live follow-up questions.**
+
+### WP9: Review and hand-back
+
+1. Run an independent review: a subagent that hasn't seen your reasoning checks every Phase 0 document and type against the vision for contradictions, gaps, and anything decided that the user didn't decide.
+2. Fix what it finds.
+3. Write `docs/phase-0/HANDOVER.md`: what was produced, the decisions made (with ADR numbers), the open questions, and what Phase 1 starts with.
+4. Open the PR.
+
+## Definition of done
+
+- [ ] ADR-0001 to ADR-0004, plus the WP4 ADRs, written and accepted by the user
+- [ ] MVP spec, domain model and consent spec approved by the user
+- [ ] Domain types in `src/workspace/model/` with passing unit tests; existing tests still green
+- [ ] Roadmap Phases 1–7 with acceptance criteria
+- [ ] Handover written; PR open, not merged
+
+## Moved out of Phase 0
+
+Kept for the phases they now open. Not part of Phase 0.
+
+### Old WP6, opens Phase 3: transcription and speakers (`spikes/transcription/`)
 
 **Question:** can the user's machine transcribe a consultation locally, at no cost, accurately enough, and tell who is speaking, live or soon after?
 
@@ -173,9 +208,9 @@ Add a note that the wording shown to the client should be reviewed by someone qu
 4. **Try one live mode,** transcribing chunks while recording, and report the latency.
 5. **Write `docs/research/TRANSCRIPTION.md`:** a results table, a recommendation, what "live" can realistically mean on this hardware, and the risks.
 
-⏸ **Check-in.**
+⏸ **Check-in** (in that phase).
 
-### WP7: Spike B, extraction quality and the evaluation harness (`eval/`, `spikes/extraction/`)
+### Old WP7, opens Phase 2: extraction quality and the evaluation harness (`eval/`, `spikes/extraction/`)
 
 **Question:** how well does a local model extract findings from a transcript, and how do we measure that from now on?
 
@@ -184,7 +219,7 @@ Add a note that the wording shown to the client should be reviewed by someone qu
    - `answer-key.json` (the expected findings, with kind, status and supporting segment ids);
    - `README.md` (the scenario and a consent note).
    - Audio is git-ignored.
-2. **Answer keys.** Draft them from the corrected transcripts, then the user reviews and corrects them. They are the ground truth, so a draft is never final.
+2. **Answer keys.** Draft them from typed role-play transcripts (written as Teams, Zoom or Google Meet exports would be), then the user reviews and corrects them. They are the ground truth, so a draft is never final.
 3. **Extraction prompt and JSON schema,** built from the domain model types (as StyleCode builds its AI schema from the property registry). Run them through the existing local AI server and providers where possible.
 4. **Scorer.** A script that:
    1. checks automatically that every cited segment exists and that the quoted words appear in it (invented evidence counts as a failure);
@@ -194,33 +229,4 @@ Add a note that the wording shown to the client should be reviewed by someone qu
 5. **Run 2–3 local models** that fit the machine, through Ollama. Optionally add one hosted model, if the user supplies a key, to see the gap.
 6. **Write `docs/research/EXTRACTION.md`:** results, a recommendation (model, chunking, prompt), what accuracy the product can promise, and how the interface should present uncertain findings.
 
-⏸ **Check-in.**
-
-### WP8: Roadmap (`docs/ROADMAP.md`)
-
-Add a "Consulting workspace" part with Phases 1–7. Give each one its scope, acceptance criteria the user can check, and what it depends on, adjusted by the spike results:
-
-1. **Workspace spine:** companies, engagements, sessions, the consent form, files, notes, and the structured record entered by hand.
-2. **Capture:** recording or import, transcription and speakers, with findings linked to transcript passages.
-3. **Extraction:** the AI proposes findings to accept or reject; the evaluation set runs in CI where feasible.
-4. **Canvas in context:** the StyleCode editor in each engagement, informed by the record.
-5. **Technology catalogue and rules engine.**
-6. **Cost engine,** with sourced, dated pricing.
-7. **Specification export and live follow-up questions.**
-
-### WP9: Review and hand-back
-
-1. Run an independent review: a subagent that hasn't seen your reasoning checks every Phase 0 document and type against the vision for contradictions, gaps, and anything decided that the user didn't decide.
-2. Fix what it finds.
-3. Write `docs/phase-0/HANDOVER.md`: what was produced, the decisions made (with ADR numbers), a paragraph on each spike's results, the open questions, and what Phase 1 starts with.
-4. Open the PR.
-
-## Definition of done
-
-- [ ] ADR-0001 to ADR-0004, plus the WP4 ADRs, written and accepted by the user
-- [ ] MVP spec, domain model and consent spec approved by the user
-- [ ] Domain types in `src/workspace/model/` with passing unit tests; existing tests still green
-- [ ] Both spike reports, with results measured on the user's machine
-- [ ] Evaluation harness with at least two consultations and reviewed answer keys
-- [ ] Roadmap Phases 1–7 with acceptance criteria
-- [ ] Handover written; PR open, not merged
+⏸ **Check-in** (in that phase).

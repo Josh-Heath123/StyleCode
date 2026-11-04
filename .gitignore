@@ -9,3 +9,15 @@ coverage/
 test-results/
 playwright-report/
 site/
+
+# Audio is never committed (consultations, role-played or real)
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.flac
+*.webm
+*.mp4
+
+# Claude Code's per-user settings
+.claude/settings.local.json

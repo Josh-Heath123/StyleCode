@@ -1,0 +1,4 @@
+# Markdown is written by hand and not reformatted.
+*.md
+package-lock.json
+**/__snapshots__/

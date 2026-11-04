@@ -5,7 +5,8 @@ import { dirname, join } from 'node:path';
 
 /**
  * AI settings, kept in a file on this computer (by default
- * `~/.stylecode/ai.json`, readable only by the user). API keys live here or
+ * `~/.stylecode/ai.json`, readable only by the user on macOS and Linux; on Windows
+ * mode bits are ignored, so it relies on the home folder's permissions). API keys live here or
  * in environment variables and never leave the local server: the browser only
  * learns whether a key is set.
  */
