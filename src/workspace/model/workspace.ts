@@ -64,35 +64,79 @@ export function isCompanyNameFree(name: string, existing: readonly string[]): bo
   return !existing.some((other) => other.trim().toLocaleLowerCase() === key);
 }
 
-export type ParseWorkspaceResult = { ok: true; workspace: CompanyWorkspace } | { ok: false; error: string; problems: Problem[] };
+/**
+ * The result of reading a workspace.
+ * - `editable`: valid, and can be changed and saved.
+ * - `read-only`: it has problems. It opens so the consultant can still see the
+ *   client's data, with the problems listed, but it can't be saved until they
+ *   are fixed. Entries that aren't readable at all are left out of the view
+ *   and listed as problems; the file itself is untouched.
+ * - refused (`ok: false`): not a workspace, from a newer version, or missing
+ *   its company or a whole section, so there is nothing safe to show.
+ */
+export type ParseWorkspaceResult =
+  | { ok: true; access: 'editable'; workspace: CompanyWorkspace; problems: [] }
+  | { ok: true; access: 'read-only'; workspace: CompanyWorkspace; problems: Problem[] }
+  | { ok: false; error: string };
 
 /**
- * Reads untrusted workspace data (from disk, or an import). Rejects data from a
- * newer version, and data with any problem; nothing is silently repaired.
- * Version 1 is the first, so there are no migrations yet.
+ * Reads untrusted workspace data (from disk, or an import). Nothing is
+ * repaired: a workspace with problems opens read-only, and is never saved as
+ * it is. Version 1 is the first, so there are no migrations yet.
  */
 export function parseWorkspace(input: unknown): ParseWorkspaceResult {
-  const fail = (error: string, problems: Problem[] = []): ParseWorkspaceResult => ({ ok: false, error, problems });
-  if (!input || typeof input !== 'object') return fail('This is not a StyleCode workspace.');
+  const refuse = (error: string): ParseWorkspaceResult => ({ ok: false, error });
+  if (!input || typeof input !== 'object') return refuse('This is not a StyleCode workspace.');
   const raw = input as Record<string, unknown>;
-  if (raw.format !== WORKSPACE_FORMAT) return fail('This is not a StyleCode workspace.');
-  if (typeof raw.version !== 'number') return fail('The workspace has no version.');
+  if (raw.format !== WORKSPACE_FORMAT) return refuse('This is not a StyleCode workspace.');
+  if (typeof raw.version !== 'number') return refuse('The workspace has no version.');
   if (raw.version > WORKSPACE_VERSION)
-    return fail(
+    return refuse(
       `This workspace was saved by a newer version of StyleCode (version ${raw.version}). Update StyleCode to open it.`,
     );
-  if (raw.version < 1) return fail(`Unsupported workspace version ${raw.version}.`);
-  if (!raw.company || typeof raw.company !== 'object') return fail('The workspace has no company.');
+  if (raw.version < 1) return refuse(`Unsupported workspace version ${raw.version}.`);
+  if (!raw.company || typeof raw.company !== 'object' || Array.isArray(raw.company))
+    return refuse('The workspace has no company.');
+
+  const unreadable: Problem[] = [];
+  const view: Record<string, unknown> = { ...raw };
   for (const map of ENTITY_MAPS) {
     const value = raw[map];
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return fail(`The workspace's ${map} are missing.`);
-    if (Object.values(value).some((entry) => !entry || typeof entry !== 'object' || Array.isArray(entry))) {
-      return fail(`The workspace's ${map} are invalid.`);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return refuse(`The workspace's ${map} are missing.`);
+    const entries = Object.entries(value as Record<string, unknown>);
+    const readable = entries.filter(([, entry]) => entry && typeof entry === 'object' && !Array.isArray(entry));
+    for (const [key] of entries.filter((e) => !readable.includes(e))) {
+      unreadable.push({
+        code: 'entry.unreadable',
+        message: `An entry can't be read, so it isn't shown.`,
+        where: { map, id: key },
+      });
     }
+    view[map] = Object.fromEntries(readable);
   }
-  const workspace = input as CompanyWorkspace;
-  const problems = validateWorkspace(workspace);
-  if (problems.length)
-    return fail(`The workspace has ${problems.length === 1 ? 'a problem' : `${problems.length} problems`}.`, problems);
-  return { ok: true, workspace };
+
+  const workspace = view as unknown as CompanyWorkspace;
+  let problems: Problem[];
+  try {
+    problems = [...unreadable, ...validateWorkspace(workspace)];
+  } catch {
+    // The validator is written for any object shape; this is a last line of defence.
+    return refuse('The workspace could not be read.');
+  }
+  if (problems.length) return { ok: true, access: 'read-only', workspace, problems };
+  return { ok: true, access: 'editable', workspace: input as CompanyWorkspace, problems: [] };
+}
+
+/**
+ * Checks a workspace before it is saved. A workspace with any problem is never
+ * written, so a problem can't be saved over the last good copy.
+ */
+export function checkBeforeSave(ws: CompanyWorkspace): { ok: true } | { ok: false; error: string; problems: Problem[] } {
+  const problems = validateWorkspace(ws);
+  if (!problems.length) return { ok: true };
+  return {
+    ok: false,
+    error: `The workspace can't be saved: it has ${problems.length === 1 ? 'a problem' : `${problems.length} problems`}.`,
+    problems,
+  };
 }

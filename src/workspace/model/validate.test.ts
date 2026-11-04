@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { consentRecord, sampleWorkspace, T0, T1, T2, T3 } from './fixtures';
+import { consentRecord, sampleWorkspace, T0, T1, T3 } from './fixtures';
 import type { CompanyWorkspace } from './types';
+import { promoteToKnowledge } from './findings';
 import { quoteAppearsIn } from './util';
 import { sharedIds, validateWorkspace } from './validate';
-import { createWorkspace, isCompanyNameFree, parseWorkspace } from './workspace';
+import { ENTITY_MAPS } from './types';
+import { checkBeforeSave, createWorkspace, isCompanyNameFree, parseWorkspace } from './workspace';
 
 const codes = (ws: CompanyWorkspace) => validateWorkspace(ws).map((p) => p.code);
 
@@ -15,7 +17,7 @@ describe('a valid workspace', () => {
   it('round-trips through JSON', () => {
     const ws = sampleWorkspace();
     const parsed = parseWorkspace(JSON.parse(JSON.stringify(ws)));
-    expect(parsed).toEqual({ ok: true, workspace: ws });
+    expect(parsed).toEqual({ ok: true, access: 'editable', workspace: ws, problems: [] });
   });
 
   it('starts empty and valid for a new company', () => {
@@ -26,6 +28,23 @@ describe('a valid workspace', () => {
   });
 });
 
+/** The sample, plus a company fact and a file, so every map has an entry. */
+function withFactAndFile(): CompanyWorkspace {
+  const ws = sampleWorkspace();
+  const fact = promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3);
+  if (fact.ok) ws.knowledge.kf_1 = fact.value;
+  ws.files.fi_1 = {
+    id: 'fi_1',
+    owner: { kind: 'company' },
+    name: 'brief.pdf',
+    mediaType: 'application/pdf',
+    sizeBytes: 10,
+    addedBy: 'Sam',
+    addedAt: T0,
+  };
+  return ws;
+}
+
 describe('loading', () => {
   it('refuses data that is not a workspace, or from a newer version', () => {
     expect(parseWorkspace(null).ok).toBe(false);
@@ -35,18 +54,54 @@ describe('loading', () => {
     if (!newer.ok) expect(newer.error).toMatch(/newer version/);
   });
 
-  it('refuses missing maps and entries that are not objects', () => {
+  it('refuses data with a whole section missing', () => {
     const { notes: _notes, ...withoutNotes } = sampleWorkspace();
     expect(parseWorkspace(withoutNotes).ok).toBe(false);
-    expect(parseWorkspace({ ...sampleWorkspace(), notes: { no_1: null } }).ok).toBe(false);
+    expect(parseWorkspace({ ...sampleWorkspace(), company: null }).ok).toBe(false);
   });
 
-  it('reports problems instead of repairing them', () => {
+  it('opens a workspace with problems read-only, listing them, instead of repairing it', () => {
     const ws = sampleWorkspace();
     ws.findings.fd_peak.evidence[0] = { kind: 'segment', segmentId: 'sg_1', quote: 'ten times as many orders' };
     const parsed = parseWorkspace(ws);
-    expect(parsed.ok).toBe(false);
-    if (!parsed.ok) expect(parsed.problems.map((p) => p.code)).toEqual(['evidence.invented', 'finding.saidNeedsSegment']);
+    expect(parsed.ok && parsed.access).toBe('read-only');
+    if (!parsed.ok) return;
+    expect(parsed.problems.map((p) => p.code)).toEqual(['evidence.invented', 'finding.saidNeedsSegment']);
+    expect(parsed.workspace.findings.fd_peak.evidence[0].quote).toBe('ten times as many orders');
+  });
+
+  it('opens a workspace with an unreadable entry read-only, leaving that entry out of the view', () => {
+    const raw = { ...sampleWorkspace(), notes: { no_1: null } };
+    const parsed = parseWorkspace(raw);
+    expect(parsed.ok && parsed.access).toBe('read-only');
+    if (!parsed.ok) return;
+    expect(parsed.problems[0]).toMatchObject({ code: 'entry.unreadable', where: { map: 'notes', id: 'no_1' } });
+    expect(parsed.workspace.notes).toEqual({});
+    expect(parsed.workspace.company.name).toBe('Harbour Bakery');
+    expect(raw.notes).toEqual({ no_1: null });
+  });
+
+  it('never saves a workspace that has problems', () => {
+    expect(checkBeforeSave(sampleWorkspace())).toEqual({ ok: true });
+    const ws = sampleWorkspace();
+    ws.company.name = ' ';
+    const check = checkBeforeSave(ws);
+    expect(check.ok).toBe(false);
+    if (!check.ok) expect(check.problems.map((p) => p.code)).toEqual(['company.name']);
+  });
+
+  it('reads damaged entries of any shape without failing', () => {
+    // Every entry replaced by something that only carries its id: the validator must report, not throw.
+    for (const map of ENTITY_MAPS) {
+      const ws = withFactAndFile();
+      const entries = ws[map] as Record<string, unknown>;
+      for (const id of Object.keys(entries)) entries[id] = { id };
+      const parsed = parseWorkspace(ws);
+      expect(parsed.ok && parsed.access).toBe('read-only');
+    }
+    const ws = sampleWorkspace() as unknown as Record<string, unknown>;
+    ws.company = { id: 'co_bakery' };
+    expect(parseWorkspace(ws).ok && 'read-only').toBe('read-only');
   });
 
   it('never resolves ids to inherited properties', () => {
@@ -59,7 +114,7 @@ describe('loading', () => {
 describe('rule: a finding said in a session cites a segment from its engagement', () => {
   it('needs at least one transcript segment', () => {
     const ws = sampleWorkspace();
-    ws.findings.fd_peak.evidence = [{ kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts' }];
+    ws.findings.fd_peak.evidence = [{ kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts at month end' }];
     expect(codes(ws)).toEqual(['finding.saidNeedsSegment']);
   });
 
@@ -106,18 +161,13 @@ describe('rule: only the consultant confirms a finding', () => {
   it('refuses a confirmed status set by the AI', () => {
     const ws = sampleWorkspace();
     ws.findings.fd_risk.status = 'confirmed';
-    expect(codes(ws)).toEqual(['finding.confirmedByAi']);
+    expect(codes(ws)).toEqual(['finding.confirmedByAi', 'finding.history']);
   });
 
   it('refuses an AI proposal accepted without who and when', () => {
     const ws = sampleWorkspace();
-    ws.findings.fd_stock.origin = {
-      kind: 'ai',
-      provider: 'ollama',
-      model: 'qwen2.5:7b',
-      at: T2,
-      review: { state: 'accepted', by: '', at: T3 },
-    };
+    const origin = ws.findings.fd_stock.origin;
+    if (origin.kind === 'ai') origin.review = { state: 'accepted', by: '', at: T3 };
     expect(codes(ws)).toContain('finding.review');
   });
 
@@ -179,9 +229,10 @@ describe('consent in the workspace', () => {
   it('refuses a transcript without a confirmed consent record', () => {
     const ws = sampleWorkspace();
     ws.consents = {};
-    expect(codes(ws)).toEqual(['consent.required']);
+    // The AI proposals from this session are invalid too: nothing allowed AI processing.
+    expect(codes(ws)).toEqual(['consent.required', 'finding.aiConsent', 'finding.aiConsent']);
     ws.consents.cr_1 = consentRecord({ confirmed: null, lockedAt: null });
-    expect(codes(ws)).toEqual(['consent.required']);
+    expect(codes(ws)).toEqual(['consent.required', 'finding.aiConsent', 'finding.aiConsent']);
   });
 
   it('refuses a transcript the client did not agree to', () => {

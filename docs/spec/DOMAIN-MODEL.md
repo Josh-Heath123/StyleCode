@@ -1,6 +1,6 @@
 # Domain model of the consulting workspace
 
-- **Status:** Draft, for the user's approval (Phase 0, WP3)
+- **Status:** Approved by the user on 2026-11-04, with the changes from their review (see "Changes after review")
 - **Date:** 2026-11-04
 - **Code:** `src/workspace/model/` (types, validation and rules; no interface, no storage)
 - **Sources:** `docs/vision/PRODUCT-VISION.md` §2, §3 and §7; `docs/spec/MVP.md`; ADR-0002 to ADR-0004
@@ -39,9 +39,9 @@ CompanyWorkspace (format "stylecode-workspace", version 1)
 | Entity | Fields | Notes |
 | --- | --- | --- |
 | Company | name, industry, description (what they do), existing systems, notes | Free text, as in MVP story 1.1. The name is required, and must differ from other companies' names, ignoring case (MVP Q4; `isCompanyNameFree`). |
-| CompanyFact | statement, kind, provenance, promoted from (a finding, or none), who and when | Company knowledge (vision §3). Modelled now; the interface comes after extraction (MVP Q3). Only a finding in the record can be promoted. |
+| CompanyFact | statement, kind, provenance, source (or none), who and when | Company knowledge (vision §3). Modelled now; the interface comes after extraction (MVP Q3). Only a finding in the record can be promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
 | Engagement | company, name, goal, status (active, or ended on a date) | The end date is what "keep until the engagement ends" in the consent form refers to (MVP Q5). |
-| DesignLink | engagement, name, StyleCode document id | Where the design document is stored is decided in WP4. |
+| DesignLink | engagement, name, StyleCode document id | A design belongs to one company: `sharedIds` also reports a document linked from two companies' workspaces. WP4 stores each design inside its company's data. |
 | Session | engagement, title, start time, audio files (Phase 3) | |
 | Participant | session, name, role, organisation, side (client or consultant), speaker labels | A speaker label belongs to at most one participant in a session. A person can have several labels ("Alex", "Alex (Guest)"). |
 | ConsentRecord | see "Consent" below | One per session, with amendments. |
@@ -66,16 +66,18 @@ A finding has two separate dimensions, and the model never merges them:
 
 **Kinds** come from vision §2: business requirement, functional requirement, non-functional requirement, expectation, objective, operational challenge, existing system, budget, performance, scalability, security, design preference, constraint, open question, risk, decision.
 
-**Evidence** is a list of passages, each a transcript segment or a note, with the words quoted from it. A quote must appear in its passage. Differences in white space, letter case and the style of quotation marks are ignored; anything else counts as invented evidence.
+**Evidence** is a list of passages, each a transcript segment or a note, with the words quoted from it. A quote must appear in its passage. Differences in white space, letter case and the style of quotation marks are ignored; anything else counts as invented evidence. A quote is at least three words, unless it is the whole segment or note, so a single word such as "a" can't count as evidence.
 
 **Origin** records how the finding entered the workspace, separately from provenance (MVP Q14):
 
 - entered by the consultant (who, when); or
-- proposed by the AI (provider, model, when), with the consultant's review: pending, accepted (who, when) or rejected (who, when).
+- proposed by the AI (provider, model, when), with what the AI proposed (kind, statement, status and evidence, kept unchanged) and the consultant's review: pending, accepted (who, when) or rejected (who, when).
 
-So a client's statement extracted by the AI has provenance `said-in-session`, with origin "proposed by the AI, accepted by Sam at 11:00". A risk the AI spotted that nobody mentioned has provenance `ai-suggested`.
+So a client's statement extracted by the AI has provenance `said-in-session`, with origin "proposed by the AI, accepted by Sam at 11:00". A risk the AI spotted that nobody mentioned has provenance `ai-suggested`. The AI never proposes the status confirmed.
 
-**The record** is every finding entered by the consultant, plus every AI proposal the consultant accepted. Pending and rejected proposals are kept but aren't part of the record (MVP Q11). `recordGroups` groups the record as MVP Q12 says: confirmed, assumptions, and open (status unresolved, or kind open question whatever its status).
+**History.** Every change to a finding's kind, statement, status or evidence is recorded with the old and new value, who made it and when (MVP 6.2 and 7.1), including edits made while accepting a proposal (`acceptProposal` with edits, `editFinding`, `setStatus`). Replaying the history from what the AI proposed gives the current values, so it's always visible what the consultant changed (Phase 2's evaluation uses this). A proposal that is pending or rejected has no history and reads exactly as proposed. For the consultant's own findings, the history must lead to the current values; their first values aren't kept separately.
+
+**The record** is every finding entered by the consultant, plus every AI proposal the consultant accepted. Pending and rejected proposals are kept but aren't part of the record (MVP Q11). `recordGroups` groups the record as MVP Q12 says, plus a fourth group: confirmed, assumptions, open (status unresolved, or kind open question whatever its status), and suggested.
 
 ## Consent
 
@@ -90,40 +92,68 @@ Fields as listed in the Phase 0 brief (WP5 refines them in `docs/spec/CONSENT.md
 
 `consentState(record, at)` gives what a record allows at a point in time, after its amendments up to then. A draft, declined or withdrawn record allows nothing.
 
+**Amendments** are checked like the record itself: answers are yes or no, only fields of the form can change, limits are described and retention is valid. The terms left after each amendment are checked too (`termsIssues`), so external AI always has a named provider and declined consent agrees to nothing. Turning external AI off drops the provider. `amendConsent` refuses an amendment that fails any of these.
+
+**Withdrawal is final.** Nothing can follow it; if the client agrees again, that is a new session with its own consent record.
+
 ## Rules
 
-Each rule is checked in code and covered by a unit test. `validateWorkspace` returns every problem, each with a stable code. `parseWorkspace` refuses data from a newer version and data with any problem.
+Each rule is checked in code and covered by a unit test. `validateWorkspace` returns every problem, each with a stable code.
 
 | Rule | Code | Where |
 | --- | --- | --- |
 | A finding said in a session cites at least one transcript segment, from its own engagement | `finding.saidNeedsSegment`, `evidence.engagement` | `validate.ts` |
 | Every cited segment or note exists, and the quoted words appear in it | `evidence.missing`, `evidence.invented` | `validate.ts`, `quoteAppearsIn` |
+| A quote is at least three words, unless it is the whole passage | `evidence.short` | `validate.ts`, `isQuoteLongEnough` |
 | An AI proposal becomes confirmed only through the consultant's action, recording who and when | `finding.confirmedByAi`, `finding.review`, `finding.statusSet` | `validate.ts`, `acceptProposal`, `setStatus` |
+| An AI proposal keeps what the AI proposed, and its evidence is checked like any other | `finding.proposed`, `evidence.*` | `validate.ts` |
+| Every change to kind, statement, status or evidence is in the history, with who and when | `finding.history` | `validate.ts`, `editFinding` |
+| An AI proposal is invalid if, when it was made, a session it cites allowed no AI processing (local and external both no) | `finding.aiConsent` | `validate.ts`, `aiPermission` |
+| Company knowledge keeps a copy of its source; a deleted source is marked as deleted, with the date | `fact.source`, `ref.missing` | `validate.ts`, `removeFindings` |
 | The AI never supplies verified or calculated information | `finding.aiProvenance` | `validate.ts` |
-| One company's data never references another company's ids | `ref.company`, `ref.missing` | `validate.ts`, `sharedIds` (ids found in two workspaces) |
+| One company's data never references another company's ids, and a design is linked from one company only | `ref.company`, `ref.missing` | `validate.ts`, `sharedIds` (ids and design documents found in two workspaces) |
 | Links stay within one engagement, between findings in the record, without duplicates or self-links | `relation.*` | `validate.ts` |
 | No transcript without a confirmed consent record that allowed transcription when it was imported | `consent.required` | `validate.ts`, `canCapture` |
 | Importing a transcript locks the consent record | `consent.lock` | `validate.ts`, `lockConsent` |
-| A locked record changes only by dated amendments, in order, each with who and why | `consent.amendment` | `validate.ts`, `editConsent`, `amendConsent` |
+| A locked record changes only by dated amendments, in order, each with who and why; nothing follows a withdrawal | `consent.amendment` | `validate.ts`, `editConsent`, `amendConsent` |
+| Each amendment, and the terms after it, pass the same checks as the record | `consent.provider`, `consent.limits`, `consent.declined`, `consent.retention`, `field.*` | `validate.ts`, `amendmentIssues`, `termsIssues` |
 | Recording needs consent to recording; declined consent allows only notes | | `canCapture` |
 | External AI only if the client agreed, with the provider named; AI processing covers the session's notes too (MVP Q15) | `consent.provider` | `aiPermission`, `validate.ts` |
 | One consent record and one transcript per session; a speaker label belongs to one participant | `consent.duplicate`, `transcript.duplicate`, `participant.label` | `validate.ts` |
 
-**Nothing is repaired on load.** The editor's project loader repairs what it safely can. The workspace loader doesn't, because dropping a piece of evidence or a consent amendment would quietly change what the record says. Problems are reported, and the caller decides.
+**Nothing is repaired, and one bad entry doesn't lock a client out.** The editor's project loader repairs what it safely can. The workspace loader doesn't, because dropping a piece of evidence or a consent amendment would quietly change what the record says. Instead:
 
-**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `setStatus`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
+- **Saving:** a workspace with any problem is never saved (`checkBeforeSave`), so a problem can't be written over the last good copy.
+- **Loading:** `parseWorkspace` opens a valid workspace as editable. One with problems opens **read-only**, with the problems listed, so the consultant can still see the client's data. An entry that can't be read at all is left out of the view and listed as a problem; the file itself is untouched.
+- **Refused:** only data that isn't a workspace, comes from a newer version, or is missing its company or a whole section.
+
+The validator reads entries of any shape without failing, which the tests check by damaging every map and the nested values in turn.
+
+**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
 
 ## Versioning
 
 The workspace carries `format: "stylecode-workspace"` and `version: 1`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do.
 
-## Decisions in this draft that need the user
+## Decisions
 
-Each has the choice made in the code, which is easy to change.
+The user's decisions on the six points raised in the draft (2026-11-04):
 
-1. **Withdrawal is final.** After a withdrawal, no further amendments are accepted, so consent can't be quietly given back on the same session. *Alternative:* allow a later "consent given again" amendment.
-2. **"Suggested" findings in the record.** MVP Q12 groups the record into confirmed, assumptions and open, which leaves no place for a finding with status `suggested` (for example something the client suggested, accepted as such). `recordGroups` returns them as a fourth group, "suggested". *Recommendation:* show it as a fourth group in the record.
-3. **Transcript import needs consent to transcription.** This is provisional until WP5 settles the exact rule.
-4. **Deleting a session** (MVP 2.3) removes its consent record, transcript, segments and notes, and the findings whose only evidence is in it. A finding with evidence from other sessions too keeps that evidence and loses the rest. Not coded yet (deletion is Phase 1); recorded here so the model supports it.
-5. **AI proposals and consent.** The validator doesn't yet check that an AI proposal came from a provider the session's consent allowed, because whether a provider counts as local or external (MVP Q16) is settled in WP5. `aiPermission` gives the caller what is allowed.
-6. **The consultant's name** comes from the app (asked once, in settings) in Phase 1. The model only requires it to be present.
+1. **Withdrawal is final.** *Agreed.* After a withdrawal no further amendments are accepted. Renewed consent means a new session.
+2. **"Suggested" findings** are shown as a fourth group in the record. *Agreed.*
+3. **Transcript import needs consent to transcription.** *Agreed,* provisional until WP5 settles the exact rule.
+4. **Deleting a session** (MVP 2.3) removes its consent record, transcript, segments and notes, and the findings whose only evidence is in it. A finding with evidence from other sessions too keeps that evidence and loses the rest. Company knowledge promoted from a removed finding stays, with its source marked as deleted (point 5 of the review). *Agreed.* `removeFindings` does the findings part; deleting sessions and engagements comes in Phase 1.
+5. **AI proposals and consent.** *Partly now:* an AI proposal is invalid if a session it cites allowed no AI processing when it was made (`finding.aiConsent`). Whether the provider used was local or external, as the consent allowed, is checked once WP5 settles which providers count as local (MVP Q16).
+6. **The consultant's name** comes from the app (asked once, in settings) in Phase 1. The model only requires it to be present. *Agreed.*
+
+## Changes after review
+
+The user's review of the draft asked for seven changes, all made, each with tests in `src/workspace/model/review.test.ts`:
+
+1. Consent amendments are validated like the record, and the terms after every amendment are checked: external AI always needs a named provider.
+2. The validator checks AI consent now (decision 5).
+3. Every change to a finding's statement, kind, status or evidence records who and when, and AI proposals keep what the AI proposed.
+4. A workspace with problems is never saved, and opens read-only with its problems listed, instead of being refused.
+5. Company knowledge keeps a copy of its source, and survives the source's deletion as "source deleted".
+6. `sharedIds` includes design document ids. WP4 stores each design inside its company's data.
+7. A quote is at least three words, unless it is the whole segment or note.

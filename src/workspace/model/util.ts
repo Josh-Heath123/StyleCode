@@ -56,6 +56,18 @@ export function quoteAppearsIn(text: string, quote: string): boolean {
   return q.length > 0 && normaliseForQuote(text).includes(q);
 }
 
+/** The fewest words a quote may have, unless it is the whole passage (so "a" can't count as evidence). */
+export const MIN_QUOTE_WORDS = 3;
+
+/** Whether a quote is long enough to be evidence: at least three words, or the whole passage. */
+export function isQuoteLongEnough(text: string, quote: string): boolean {
+  const q = normaliseForQuote(quote);
+  if (!q) return false;
+  if (q.split(' ').length >= MIN_QUOTE_WORDS) return true;
+  const bare = (v: string) => v.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+  return bare(q) === bare(normaliseForQuote(text));
+}
+
 function normaliseForQuote(value: string): string {
   return value
     .replace(/[‘’‚′]/g, "'")

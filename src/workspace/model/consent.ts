@@ -14,7 +14,107 @@ import type {
   Retention,
   Timestamp,
 } from './types';
-import { fail, get, ok, time, type Result } from './util';
+import { fail, get, isNonEmptyText, ok, time, type Result } from './util';
+
+/** What a consent record agrees to: the terms an amendment can change. */
+export interface ConsentTerms {
+  given: ConsentGiven;
+  retention: Retention;
+  outcome: ConsentOutcome;
+}
+
+/** A problem with consent terms or an amendment, with the validator's code. */
+export interface ConsentIssue {
+  code: string;
+  message: string;
+}
+
+const GIVEN_FLAGS = ['audioRecording', 'transcription', 'aiLocal', 'aiExternal'] as const;
+const GIVEN_KEYS: readonly string[] = [...GIVEN_FLAGS, 'externalProvider'];
+
+function retentionIssues(r: unknown): ConsentIssue[] {
+  const kind = (r as { kind?: unknown } | null | undefined)?.kind;
+  if (kind === 'days') {
+    const days = (r as { days?: unknown }).days;
+    if (!Number.isInteger(days) || (days as number) < 1)
+      return [{ code: 'consent.retention', message: 'Retention in days must be a whole number of at least 1.' }];
+    return [];
+  }
+  if (kind === 'until-engagement-ends' || kind === 'delete-after-transcription') return [];
+  return [{ code: 'field.value', message: 'The consent record has an unknown retention.' }];
+}
+
+function outcomeIssues(o: unknown): ConsentIssue[] {
+  const outcome = o as { kind?: unknown; limits?: unknown } | null | undefined;
+  if (!outcome || !['given', 'limited', 'declined'].includes(outcome.kind as string))
+    return [{ code: 'field.value', message: 'The consent record has an unknown outcome.' }];
+  if (outcome.kind === 'limited' && !isNonEmptyText(outcome.limits))
+    return [{ code: 'consent.limits', message: 'Describe the limits the client set.' }];
+  return [];
+}
+
+/**
+ * Problems with a set of terms, whether the record's own or the terms after an
+ * amendment: yes-or-no answers, a named provider whenever external AI is
+ * agreed, limits described, and nothing agreed when consent is declined.
+ */
+export function termsIssues(terms: ConsentTerms): ConsentIssue[] {
+  const issues: ConsentIssue[] = [];
+  const g = terms.given as unknown as Record<string, unknown> | null;
+  if (!g || typeof g !== 'object' || !GIVEN_FLAGS.every((k) => typeof g[k] === 'boolean')) {
+    issues.push({ code: 'field.type', message: 'What the client agreed to must be yes or no.' });
+  } else {
+    if (g.aiExternal && !isNonEmptyText(g.externalProvider))
+      issues.push({ code: 'consent.provider', message: 'Name the external AI provider the client agreed to.' });
+    if (!g.aiExternal && g.externalProvider !== null)
+      issues.push({ code: 'consent.provider', message: 'An external provider is named only when the client agreed to one.' });
+  }
+  issues.push(...retentionIssues(terms.retention), ...outcomeIssues(terms.outcome));
+  if (
+    (terms.outcome as { kind?: unknown } | null)?.kind === 'declined' &&
+    g &&
+    typeof g === 'object' &&
+    GIVEN_FLAGS.some((k) => g[k] === true)
+  ) {
+    issues.push({ code: 'consent.declined', message: 'Declined consent cannot agree to anything.' });
+  }
+  return issues;
+}
+
+/** Problems with the fields an amendment sets, before it is applied. */
+export function amendmentIssues(a: ConsentAmendment): ConsentIssue[] {
+  if (a.kind === 'withdrawal') return [];
+  const issues: ConsentIssue[] = [];
+  if (a.given !== undefined) {
+    const g = a.given as Record<string, unknown> | null;
+    if (!g || typeof g !== 'object' || Object.keys(g).some((k) => !GIVEN_KEYS.includes(k))) {
+      issues.push({ code: 'field.value', message: 'An amendment changes something the consent form does not have.' });
+    } else {
+      if (GIVEN_FLAGS.some((k) => k in g && typeof g[k] !== 'boolean'))
+        issues.push({ code: 'field.type', message: 'What the client agreed to must be yes or no.' });
+      if ('externalProvider' in g && g.externalProvider !== null && !isNonEmptyText(g.externalProvider))
+        issues.push({ code: 'consent.provider', message: 'Name the external AI provider the client agreed to.' });
+    }
+  }
+  if (a.retention !== undefined) issues.push(...retentionIssues(a.retention));
+  if (a.outcome !== undefined) issues.push(...outcomeIssues(a.outcome));
+  return issues;
+}
+
+/**
+ * The terms after one amendment. Turning external AI off also drops the named
+ * provider, unless the amendment names one itself (which `termsIssues` then refuses).
+ */
+export function applyAmendment(terms: ConsentTerms, a: ConsentAmendment): ConsentTerms {
+  if (a.kind !== 'change') return terms;
+  let given: ConsentGiven = { ...terms.given, ...a.given };
+  if (!given.aiExternal && !(a.given && 'externalProvider' in a.given)) given = { ...given, externalProvider: null };
+  return { given, retention: a.retention ?? terms.retention, outcome: a.outcome ?? terms.outcome };
+}
+
+function termsOf(record: ConsentRecord): ConsentTerms {
+  return { given: record.given, retention: record.retention, outcome: record.outcome };
+}
 
 /** What a consent record allows at a point in time, after its amendments up to then. */
 export interface ConsentState {
@@ -38,23 +138,19 @@ const NOTHING: ConsentGiven = {
  * withdrawn one.
  */
 export function consentState(record: ConsentRecord, at?: Timestamp): ConsentState {
-  let given: ConsentGiven = { ...record.given };
-  let retention = record.retention;
-  let outcome = record.outcome;
+  let terms = termsOf(record);
   let withdrawn = false;
   const until = at === undefined ? Infinity : time(at);
-  for (const amendment of record.amendments) {
+  for (const amendment of Array.isArray(record.amendments) ? record.amendments : []) {
+    if (!amendment || typeof amendment !== 'object') continue;
     if (time(amendment.at) > until) break;
-    if (amendment.kind === 'withdrawal') {
-      withdrawn = true;
-      continue;
-    }
-    if (amendment.given) given = { ...given, ...amendment.given };
-    if (amendment.retention) retention = amendment.retention;
-    if (amendment.outcome) outcome = amendment.outcome;
+    if (amendment.kind === 'withdrawal') withdrawn = true;
+    else terms = applyAmendment(terms, amendment);
   }
-  const confirmed = record.confirmed !== null && (at === undefined || time(record.confirmed.at) <= until);
-  if (!confirmed || withdrawn || outcome.kind === 'declined') given = { ...NOTHING };
+  let given: ConsentGiven = { ...terms.given };
+  const { retention, outcome } = terms;
+  const confirmed = !!record.confirmed && (at === undefined || time(record.confirmed.at) <= until);
+  if (!confirmed || withdrawn || outcome?.kind === 'declined') given = { ...NOTHING };
   if (!given.aiExternal) given = { ...given, externalProvider: null };
   return { given, retention, outcome, withdrawn };
 }
@@ -134,5 +230,8 @@ export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment)
   if (time(amendment.at) < time(last?.at ?? record.lockedAt)) return fail('An amendment cannot be dated before the last change.');
   if (!amendment.reason.trim()) return fail('Say why consent changed.');
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
+  const before = record.amendments.reduce(applyAmendment, termsOf(record));
+  const issue = amendmentIssues(amendment)[0] ?? termsIssues(applyAmendment(before, amendment))[0];
+  if (issue) return fail(issue.message);
   return ok({ ...record, amendments: [...record.amendments, amendment], updatedAt: amendment.at });
 }

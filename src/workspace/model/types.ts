@@ -92,10 +92,31 @@ export type Evidence = { kind: 'segment'; segmentId: string; quote: string } | {
 export type Review =
   { state: 'pending' } | { state: 'accepted'; by: string; at: Timestamp } | { state: 'rejected'; by: string; at: Timestamp };
 
+/** What the AI proposed, kept unchanged so it stays visible what the consultant edited (Phase 2 evaluation). */
+export interface ProposedFinding {
+  kind: FindingKind;
+  statement: string;
+  status: FindingStatus;
+  evidence: Evidence[];
+}
+
 /** How a finding entered the workspace. */
 export type FindingOrigin =
   | { kind: 'consultant'; by: string; at: Timestamp }
-  | { kind: 'ai'; provider: string; model: string; at: Timestamp; review: Review };
+  | { kind: 'ai'; provider: string; model: string; at: Timestamp; proposed: ProposedFinding; review: Review };
+
+/** The fields of a finding whose changes are recorded (MVP 6.2 and 7.1). */
+export const TRACKED_FIELDS = ['kind', 'statement', 'status', 'evidence'] as const;
+export type TrackedField = (typeof TRACKED_FIELDS)[number];
+
+/**
+ * One change to a finding, by the consultant (the AI never changes a finding
+ * after proposing it). Replaying the history from the AI's proposal, or from
+ * the first value for the consultant's own findings, gives the current values.
+ */
+export type FindingChange = {
+  [F in TrackedField]: { field: F; from: Finding[F]; to: Finding[F]; by: string; at: Timestamp };
+}[TrackedField];
 
 export interface Finding {
   id: string;
@@ -108,6 +129,8 @@ export interface Finding {
   provenance: Provenance;
   evidence: Evidence[];
   origin: FindingOrigin;
+  /** Every change to kind, statement, status or evidence, oldest first. Empty while a proposal is under review. */
+  history: FindingChange[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -150,10 +173,34 @@ export interface CompanyFact {
   statement: string;
   kind: FindingKind;
   provenance: Provenance;
-  /** The accepted finding it was promoted from, if any. */
-  promotedFromFindingId: string | null;
+  /** Where it was promoted from, or null if the consultant entered it directly. */
+  source: FactSource | null;
   createdBy: string;
   createdAt: Timestamp;
+}
+
+/**
+ * A copy of the finding a fact was promoted from, so the fact outlives it:
+ * deleting the finding, its session or its engagement only turns the link
+ * into "source deleted".
+ */
+export interface FactSource {
+  /** The finding, or null once it has been deleted. */
+  findingId: string | null;
+  /** When the finding was deleted; set exactly when `findingId` is null. */
+  deletedAt: Timestamp | null;
+  engagementName: string;
+  /** The finding's statement when it was promoted. */
+  statement: string;
+  /** Its evidence when it was promoted. */
+  quotes: FactQuote[];
+}
+
+export interface FactQuote {
+  text: string;
+  sessionTitle: string;
+  /** The speaker label of a transcript segment; null for a note. */
+  speakerLabel: string | null;
 }
 
 export type EngagementStatus = { state: 'active' } | { state: 'ended'; endedOn: CalendarDate };

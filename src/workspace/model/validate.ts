@@ -6,7 +6,7 @@
  * evidence or a consent amendment would quietly change what the record says,
  * so a problem is reported and the caller decides.
  */
-import { consentState } from './consent';
+import { aiPermission, amendmentIssues, applyAmendment, consentState, termsIssues, type ConsentTerms } from './consent';
 import { isInRecord } from './findings';
 import {
   AI_PROVENANCES,
@@ -14,6 +14,7 @@ import {
   FINDING_KINDS,
   FINDING_STATUSES,
   RELATION_TYPES,
+  TRACKED_FIELDS,
   TRANSCRIPT_PLATFORMS,
   WORKSPACE_FORMAT,
   WORKSPACE_VERSION,
@@ -22,11 +23,24 @@ import {
   type ConsentRecord,
   type EntityMap,
   type Evidence,
+  type FactSource,
   type Finding,
+  type FindingChange,
   type Provenance,
-  type Retention,
+  type TrackedField,
 } from './types';
-import { get, isCalendarDate, isId, isNonEmptyText, isText, isTimestamp, quoteAppearsIn, time } from './util';
+import {
+  get,
+  isCalendarDate,
+  isId,
+  isNonEmptyText,
+  isQuoteLongEnough,
+  MIN_QUOTE_WORDS,
+  isText,
+  isTimestamp,
+  quoteAppearsIn,
+  time,
+} from './util';
 
 export interface Problem {
   /** Stable identifier of the rule, for tests and for the interface to look up its own wording. */
@@ -93,15 +107,33 @@ function checkKnowledge(ws: CompanyWorkspace, report: Report) {
     if (!isNonEmptyText(fact.statement)) report('fact.statement', 'A company fact needs a statement.', 'knowledge', fact.id);
     if (!oneOf(FINDING_KINDS, fact.kind)) report('field.value', 'A company fact has an unknown kind.', 'knowledge', fact.id);
     checkProvenance(fact.provenance, 'knowledge', fact.id, report);
-    if (fact.promotedFromFindingId !== null) {
-      const finding = get(ws.findings, fact.promotedFromFindingId);
-      if (!finding)
-        report('ref.missing', 'A company fact was promoted from a finding that is not in this workspace.', 'knowledge', fact.id);
-      else if (!isInRecord(finding))
-        report('fact.source', 'Only findings in the record can become company knowledge.', 'knowledge', fact.id);
-    }
+    if (fact.source !== null) checkFactSource(ws, fact.id, fact.source, report);
+    if (!isNonEmptyText(fact.createdBy)) report('field.value', 'A company fact says who added it.', 'knowledge', fact.id);
     if (!isTimestamp(fact.createdAt)) report('field.time', 'A company fact has an invalid time.', 'knowledge', fact.id);
   }
+}
+
+function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, report: Report) {
+  const s = source as unknown as Record<string, unknown> | undefined;
+  if (!s || typeof s !== 'object') return report('field.value', 'A company fact has an invalid source.', 'knowledge', id);
+  const quotesOk =
+    Array.isArray(s.quotes) &&
+    s.quotes.every(
+      (q: { text?: unknown; sessionTitle?: unknown; speakerLabel?: unknown } | null) =>
+        !!q && isNonEmptyText(q.text) && isText(q.sessionTitle) && (q.speakerLabel === null || isNonEmptyText(q.speakerLabel)),
+    );
+  if (!isNonEmptyText(s.statement) || !isText(s.engagementName) || !quotesOk)
+    report('fact.source', "A company fact keeps a copy of its source's statement and quotes.", 'knowledge', id);
+  if (s.findingId === null) {
+    if (!isTimestamp(s.deletedAt)) report('fact.source', 'A deleted source says when it was deleted.', 'knowledge', id);
+    return;
+  }
+  if (s.deletedAt !== null) report('fact.source', 'A source that still exists has no deletion time.', 'knowledge', id);
+  const finding = get(ws.findings, s.findingId);
+  if (!finding)
+    report('ref.missing', 'A company fact was promoted from a finding that is not in this workspace.', 'knowledge', id);
+  else if (!isInRecord(finding))
+    report('fact.source', 'Only findings in the record can become company knowledge.', 'knowledge', id);
 }
 
 function checkEngagements(ws: CompanyWorkspace, report: Report) {
@@ -197,20 +229,8 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
       report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
     if (!c.told || !Object.values(c.told).every((v) => typeof v === 'boolean'))
       report('field.type', 'What the client was told must be yes or no.', 'consents', c.id);
-    checkGiven(c, report);
-    checkRetention(c.retention, c.id, report);
-    const outcome = c.outcome as { kind?: unknown; limits?: unknown } | undefined;
-    if (!outcome || !['given', 'limited', 'declined'].includes(outcome.kind as string)) {
-      report('field.value', 'The consent record has an unknown outcome.', 'consents', c.id);
-    } else if (outcome.kind === 'limited' && !isNonEmptyText(outcome.limits)) {
-      report('consent.limits', 'Describe the limits the client set.', 'consents', c.id);
-    } else if (
-      outcome.kind === 'declined' &&
-      c.given &&
-      Object.entries(c.given).some(([k, v]) => k !== 'externalProvider' && v === true)
-    ) {
-      report('consent.declined', 'Declined consent cannot agree to anything.', 'consents', c.id);
-    }
+    const terms: ConsentTerms = { given: c.given, retention: c.retention, outcome: c.outcome };
+    for (const issue of termsIssues(terms)) report(issue.code, issue.message, 'consents', c.id);
     if (c.confirmed !== null && (!c.confirmed || !isNonEmptyText(c.confirmed.by) || !isTimestamp(c.confirmed.at))) {
       report('consent.confirmed', "The consultant's confirmation needs a name and a time.", 'consents', c.id);
     }
@@ -223,39 +243,12 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
       if (!ownedHere)
         report('ref.missing', "The consent record's attachment is not a file of its session or engagement.", 'consents', c.id);
     }
-    checkLockAndAmendments(c, report);
+    checkLockAndAmendments(c, terms, report);
     checkTimes(c, 'consents', report);
   }
 }
 
-function checkGiven(c: ConsentRecord, report: Report) {
-  const g = c.given;
-  if (
-    !g ||
-    !['audioRecording', 'transcription', 'aiLocal', 'aiExternal'].every(
-      (k) => typeof (g as unknown as Record<string, unknown>)[k] === 'boolean',
-    )
-  ) {
-    return report('field.type', 'What the client agreed to must be yes or no.', 'consents', c.id);
-  }
-  if (g.aiExternal && !isNonEmptyText(g.externalProvider))
-    report('consent.provider', 'Name the external AI provider the client agreed to.', 'consents', c.id);
-  if (!g.aiExternal && g.externalProvider !== null)
-    report('consent.provider', 'An external provider is named only when the client agreed to one.', 'consents', c.id);
-}
-
-function checkRetention(r: Retention | undefined, id: string, report: Report) {
-  const kind = (r as { kind?: unknown } | undefined)?.kind;
-  if (kind === 'days') {
-    const days = (r as { days?: unknown }).days;
-    if (!Number.isInteger(days) || (days as number) < 1)
-      report('consent.retention', 'Retention in days must be a whole number of at least 1.', 'consents', id);
-  } else if (kind !== 'until-engagement-ends' && kind !== 'delete-after-transcription') {
-    report('field.value', 'The consent record has an unknown retention.', 'consents', id);
-  }
-}
-
-function checkLockAndAmendments(c: ConsentRecord, report: Report) {
+function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report: Report) {
   if (c.lockedAt !== null) {
     if (!isTimestamp(c.lockedAt)) return report('field.time', 'The consent record has an invalid lock time.', 'consents', c.id);
     if (!c.confirmed) report('consent.lock', 'Only a confirmed consent record can be locked.', 'consents', c.id);
@@ -268,8 +261,13 @@ function checkLockAndAmendments(c: ConsentRecord, report: Report) {
     report('consent.amendment', 'Only a locked consent record has amendments.', 'consents', c.id);
   let previous = c.lockedAt && isTimestamp(c.lockedAt) ? time(c.lockedAt) : -Infinity;
   let withdrawn = false;
+  let terms = original;
   const ids = new Set<string>();
   for (const a of c.amendments) {
+    if (!a || typeof a !== 'object') {
+      report('field.value', 'An amendment is not readable.', 'consents', c.id);
+      continue;
+    }
     if (!isId(a.id) || ids.has(a.id)) report('id.invalid', 'An amendment has a missing or repeated id.', 'consents', c.id);
     ids.add(a.id);
     if (!isTimestamp(a.at)) {
@@ -284,10 +282,20 @@ function checkLockAndAmendments(c: ConsentRecord, report: Report) {
     if (withdrawn) report('consent.amendment', 'Nothing can follow a withdrawal of consent.', 'consents', c.id);
     if (a.kind === 'withdrawal') withdrawn = true;
     else if (a.kind === 'change') {
-      if (a.retention) checkRetention(a.retention, c.id, report);
+      // Each amendment is checked like the record itself, and so are the terms it leaves behind.
+      const own = amendmentIssues(a);
+      for (const issue of own) report(issue.code, issue.message, 'consents', c.id);
+      if (own.length) continue;
+      // Report only what the amendment introduced, so a problem in the record isn't repeated for each amendment.
+      const known = new Set(termsIssues(terms).map((i) => i.message));
+      terms = applyAmendment(terms, a);
+      for (const issue of termsIssues(terms).filter((i) => !known.has(i.message)))
+        report(issue.code, `After an amendment: ${lowerFirst(issue.message)}`, 'consents', c.id);
     } else report('field.value', 'An amendment has an unknown kind.', 'consents', c.id);
   }
 }
+
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
 function checkTranscripts(ws: CompanyWorkspace, report: Report) {
   const perSession = new Set<string>();
@@ -423,6 +431,7 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
       if (!AI_PROVENANCES.includes(f.provenance?.kind)) {
         report('finding.aiProvenance', 'The AI cannot supply verified or calculated information.', 'findings', f.id);
       }
+      checkProposed(ws, f, origin, report);
     } else report('field.value', 'A finding has an unknown origin.', 'findings', f.id);
 
     // Status: only the consultant confirms (vision §7; ADR-0004).
@@ -440,6 +449,8 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
       }
     }
 
+    checkHistory(f, report);
+
     // Evidence.
     if (!Array.isArray(f.evidence)) {
       report('field.type', "A finding's evidence must be a list.", 'findings', f.id);
@@ -448,8 +459,8 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
     let citesSegment = false;
     for (const e of f.evidence) {
       const result = checkEvidence(ws, f.engagementId, e);
-      if (result === 'segment') citesSegment = true;
-      else if (result !== 'note') report(result.code, result.message, 'findings', f.id);
+      if (!result.ok) report(result.code, result.message, 'findings', f.id);
+      else if (result.kind === 'segment') citesSegment = true;
     }
     if (f.provenance?.kind === 'said-in-session' && !citesSegment) {
       report(
@@ -462,36 +473,129 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
   }
 }
 
+/**
+ * An AI proposal keeps what the AI proposed. Its evidence is checked like any
+ * other, and every session it cites must have allowed some AI processing when
+ * the proposal was made. Whether that processing was local or external is
+ * checked once WP5 settles which providers count as local (MVP Q16).
+ */
+function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding['origin'], { kind: 'ai' }>, report: Report) {
+  const p = origin.proposed as unknown as Partial<Record<string, unknown>> | undefined;
+  if (
+    !p ||
+    typeof p !== 'object' ||
+    !oneOf(FINDING_KINDS, p.kind) ||
+    !oneOf(FINDING_STATUSES, p.status) ||
+    !isNonEmptyText(p.statement) ||
+    !Array.isArray(p.evidence)
+  ) {
+    return report(
+      'finding.proposed',
+      'An AI proposal keeps the kind, statement, status and evidence the AI proposed.',
+      'findings',
+      f.id,
+    );
+  }
+  if (p.status === 'confirmed') report('finding.confirmedByAi', 'Only the consultant can confirm a finding.', 'findings', f.id);
+  const sessions = new Set<string>();
+  for (const e of p.evidence as Evidence[]) {
+    const result = checkEvidence(ws, f.engagementId, e);
+    if (!result.ok) report(result.code, `In the AI's proposal: ${lowerFirst(result.message)}`, 'findings', f.id);
+    else sessions.add(result.sessionId);
+  }
+  if (!isTimestamp(origin.at)) return;
+  for (const sessionId of sessions) {
+    const allowed = aiPermission(ws, sessionId, origin.at);
+    if (!allowed.local && !allowed.external) {
+      report(
+        'finding.aiConsent',
+        "The AI proposed this from a session whose consent didn't allow AI processing at the time.",
+        'findings',
+        f.id,
+      );
+      break;
+    }
+  }
+}
+
+const sameValue = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * Who changed a finding, and when (MVP 6.2 and 7.1). Replaying the history
+ * from the AI's proposal (or, for the consultant's own findings, from the first
+ * recorded value) must give the current kind, statement, status and evidence.
+ */
+function checkHistory(f: Finding, report: Report) {
+  if (!Array.isArray(f.history)) return report('field.type', "A finding's history must be a list.", 'findings', f.id);
+  const bad = (message: string) => report('finding.history', message, 'findings', f.id);
+  const origin = f.origin as Finding['origin'] | undefined;
+  const proposed =
+    origin?.kind === 'ai' ? (origin.proposed as unknown as Partial<Record<string, unknown>> | undefined) : undefined;
+
+  if (origin?.kind === 'ai' && origin.review?.state !== 'accepted') {
+    if (f.history.length) bad('A proposal that is under review or rejected has no changes.');
+    if (proposed && TRACKED_FIELDS.some((field) => !sameValue(f[field], proposed[field])))
+      bad('A proposal that is under review or rejected still reads as the AI proposed it.');
+    return;
+  }
+
+  const current: Partial<Record<TrackedField, unknown>> = {};
+  if (proposed) for (const field of TRACKED_FIELDS) current[field] = proposed[field];
+  let previous = -Infinity;
+  for (const change of f.history as FindingChange[]) {
+    if (!change || !oneOf(TRACKED_FIELDS, change.field) || !isNonEmptyText(change.by) || !isTimestamp(change.at)) {
+      bad('Each change to a finding says what changed, who changed it and when.');
+      continue;
+    }
+    if (time(change.at) < previous) bad('Changes to a finding are in date order.');
+    previous = time(change.at);
+    if (sameValue(change.from, change.to)) bad('A recorded change changes something.');
+    if (change.field in current && !sameValue(current[change.field], change.from))
+      bad(`The history of the finding's ${change.field} doesn't follow on from its previous value.`);
+    current[change.field] = change.to;
+  }
+  for (const field of TRACKED_FIELDS) {
+    if (field in current && !sameValue(current[field], f[field])) bad(`The finding's ${field} doesn't match its history.`);
+  }
+
+  const lastStatus = (f.history as FindingChange[]).filter((c) => c?.field === 'status').at(-1);
+  const set = f.statusSet as Finding['statusSet'] | undefined;
+  if (lastStatus && set && (set.by?.kind !== 'consultant' || set.by.name !== lastStatus.by || set.at !== lastStatus.at)) {
+    bad('Who set the status, and when, matches the last change to it.');
+  }
+}
+
+type EvidenceCheck = { ok: true; kind: 'segment' | 'note'; sessionId: string } | { ok: false; code: string; message: string };
+
 /** Checks one piece of evidence against the engagement it must belong to. */
-function checkEvidence(
-  ws: CompanyWorkspace,
-  engagementId: string,
-  e: Evidence,
-): 'segment' | 'note' | { code: string; message: string } {
-  if (!e || !isNonEmptyText(e.quote)) return { code: 'evidence.quote', message: 'Evidence quotes the words it rests on.' };
+function checkEvidence(ws: CompanyWorkspace, engagementId: string, e: Evidence): EvidenceCheck {
+  const problem = (code: string, message: string): EvidenceCheck => ({ ok: false, code, message });
+  if (!e || !isNonEmptyText(e.quote)) return problem('evidence.quote', 'Evidence quotes the words it rests on.');
+  let text: string;
+  let sessionId: string;
   if (e.kind === 'segment') {
     const segment = get(ws.segments, e.segmentId);
     const transcript = segment && get(ws.transcripts, segment.transcriptId);
     const session = transcript && get(ws.sessions, transcript.sessionId);
-    if (!segment || !session)
-      return { code: 'evidence.missing', message: 'Evidence cites a transcript segment that does not exist.' };
+    if (!segment || !session) return problem('evidence.missing', 'Evidence cites a transcript segment that does not exist.');
     if (session.engagementId !== engagementId)
-      return { code: 'evidence.engagement', message: 'Evidence cites a segment from another engagement.' };
-    if (!quoteAppearsIn(segment.text, e.quote))
-      return { code: 'evidence.invented', message: 'The quoted words do not appear in the cited segment.' };
-    return 'segment';
-  }
-  if (e.kind === 'note') {
+      return problem('evidence.engagement', 'Evidence cites a segment from another engagement.');
+    ({ text } = segment);
+    sessionId = session.id;
+  } else if (e.kind === 'note') {
     const note = get(ws.notes, e.noteId);
     const session = note && get(ws.sessions, note.sessionId);
-    if (!note || !session) return { code: 'evidence.missing', message: 'Evidence cites a note that does not exist.' };
+    if (!note || !session) return problem('evidence.missing', 'Evidence cites a note that does not exist.');
     if (session.engagementId !== engagementId)
-      return { code: 'evidence.engagement', message: 'Evidence cites a note from another engagement.' };
-    if (!quoteAppearsIn(note.text, e.quote))
-      return { code: 'evidence.invented', message: 'The quoted words do not appear in the cited note.' };
-    return 'note';
-  }
-  return { code: 'field.value', message: 'Evidence of an unknown kind.' };
+      return problem('evidence.engagement', 'Evidence cites a note from another engagement.');
+    ({ text } = note);
+    sessionId = session.id;
+  } else return problem('field.value', 'Evidence of an unknown kind.');
+  if (!isText(text) || !quoteAppearsIn(text, e.quote))
+    return problem('evidence.invented', `The quoted words do not appear in the cited ${e.kind}.`);
+  if (!isQuoteLongEnough(text, e.quote))
+    return problem('evidence.short', `A quote is at least ${MIN_QUOTE_WORDS} words, unless it is the whole ${e.kind}.`);
+  return { ok: true, kind: e.kind, sessionId };
 }
 
 function checkRelations(ws: CompanyWorkspace, report: Report) {
@@ -527,15 +631,20 @@ function checkTimes(
 }
 
 /**
- * Ids that appear in more than one company's workspace. Ids are random, so a
- * shared id means data was copied between companies (CLAUDE.md: companies'
- * data never mix).
+ * Ids that appear in more than one company's workspace, including the
+ * StyleCode documents that designs link to. Ids are random, so a shared id
+ * means data was copied between companies, or one design is linked from two
+ * (CLAUDE.md: companies' data never mix).
  */
 export function sharedIds(workspaces: CompanyWorkspace[]): string[] {
   const owner = new Map<string, string>();
   const shared = new Set<string>();
   for (const ws of workspaces) {
-    const ids = [ws.company.id, ...ENTITY_MAPS.flatMap((m) => Object.keys(ws[m]))];
+    const ids = [
+      ws.company.id,
+      ...ENTITY_MAPS.flatMap((m) => Object.keys(ws[m])),
+      ...Object.values(ws.designs).map((d) => d.documentId),
+    ];
     for (const id of ids) {
       const seenIn = owner.get(id);
       if (seenIn !== undefined && seenIn !== ws.company.id) shared.add(id);

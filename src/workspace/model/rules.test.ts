@@ -125,7 +125,7 @@ describe('consent: locking and amendments', () => {
 describe('findings: review', () => {
   it('becomes confirmed only through the consultant, recording who and when', () => {
     const ws = sampleWorkspace();
-    const accepted = acceptProposal(ws.findings.fd_risk, 'Sam Consultant', T3, 'confirmed');
+    const accepted = acceptProposal(ws.findings.fd_risk, 'Sam Consultant', T3, { status: 'confirmed' });
     expect(accepted.ok).toBe(true);
     if (!accepted.ok) return;
     expect(accepted.value.statusSet).toEqual({ by: { kind: 'consultant', name: 'Sam Consultant' }, at: T3 });

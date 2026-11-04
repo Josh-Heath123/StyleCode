@@ -48,6 +48,7 @@ const consultantFinding: Finding = {
   provenance: { kind: 'said-in-session' },
   evidence: [{ kind: 'segment', segmentId: 'sg_1', quote: 'about five times as many orders in December' }],
   origin: { kind: 'consultant', by: 'Sam Consultant', at: T3 },
+  history: [],
   createdAt: T3,
   updatedAt: T3,
 };
@@ -66,8 +67,16 @@ const acceptedAiFinding: Finding = {
     provider: 'ollama',
     model: 'qwen2.5:7b',
     at: T2,
+    proposed: {
+      kind: 'existing-system',
+      statement: 'Stock is tracked in a spreadsheet that two people edit.',
+      status: 'suggested',
+      evidence: [{ kind: 'segment', segmentId: 'sg_2', quote: 'we keep stock in a spreadsheet' }],
+    },
     review: { state: 'accepted', by: 'Sam Consultant', at: T3 },
   },
+  // The consultant accepted it as an assumption rather than the AI's "suggested".
+  history: [{ field: 'status', from: 'suggested', to: 'assumption', by: 'Sam Consultant', at: T3 }],
   createdAt: T2,
   updatedAt: T3,
 };
@@ -80,8 +89,21 @@ const pendingAiFinding: Finding = {
   status: 'suggested',
   statusSet: { by: { kind: 'ai', provider: 'ollama', model: 'qwen2.5:7b' }, at: T2 },
   provenance: { kind: 'ai-suggested' },
-  evidence: [{ kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts' }],
-  origin: { kind: 'ai', provider: 'ollama', model: 'qwen2.5:7b', at: T2, review: { state: 'pending' } },
+  evidence: [{ kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts at month end' }],
+  origin: {
+    kind: 'ai',
+    provider: 'ollama',
+    model: 'qwen2.5:7b',
+    at: T2,
+    proposed: {
+      kind: 'risk',
+      statement: 'Two people editing one spreadsheet may lose stock changes.',
+      status: 'suggested',
+      evidence: [{ kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts at month end' }],
+    },
+    review: { state: 'pending' },
+  },
+  history: [],
   createdAt: T2,
   updatedAt: T2,
 };
