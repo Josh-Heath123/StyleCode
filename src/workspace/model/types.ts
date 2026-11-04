@@ -100,10 +100,25 @@ export interface ProposedFinding {
   evidence: Evidence[];
 }
 
+/**
+ * Where the AI processing ran (docs/spec/CONSENT.md, rule C6). Local means a
+ * model on this computer; anything else is external, named as on the consent
+ * form, for example "Anthropic (api.anthropic.com)".
+ */
+export type AiProcessing = { kind: 'local' } | { kind: 'external'; provider: string };
+
 /** How a finding entered the workspace. */
 export type FindingOrigin =
   | { kind: 'consultant'; by: string; at: Timestamp }
-  | { kind: 'ai'; provider: string; model: string; at: Timestamp; proposed: ProposedFinding; review: Review };
+  | {
+      kind: 'ai';
+      provider: string;
+      model: string;
+      processing: AiProcessing;
+      at: Timestamp;
+      proposed: ProposedFinding;
+      review: Review;
+    };
 
 /** The fields of a finding whose changes are recorded (MVP 6.2 and 7.1). */
 export const TRACKED_FIELDS = ['kind', 'statement', 'status', 'evidence'] as const;

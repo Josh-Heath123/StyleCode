@@ -6,7 +6,15 @@
  * evidence or a consent amendment would quietly change what the record says,
  * so a problem is reported and the caller decides.
  */
-import { aiPermission, amendmentIssues, applyAmendment, consentState, termsIssues, type ConsentTerms } from './consent';
+import {
+  amendmentIssues,
+  applyAmendment,
+  canUseAi,
+  consentState,
+  missingStatements,
+  termsIssues,
+  type ConsentTerms,
+} from './consent';
 import { isInRecord } from './findings';
 import {
   AI_PROVENANCES,
@@ -224,6 +232,17 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
       report('field.value', 'The consent record has an unknown method.', 'consents', c.id);
     } else if (method.kind === 'other' && !isNonEmptyText(method.description)) {
       report('consent.method', 'Describe how consent was asked.', 'consents', c.id);
+    }
+    // CONSENT.md rule C2: the client was told about everything they agreed to.
+    if (c.confirmed && c.told && typeof c.told === 'object') {
+      const missing = missingStatements(c);
+      if (missing.length)
+        report(
+          'consent.told',
+          `The client agreed to something they weren't told about (${missing.join(', ')}).`,
+          'consents',
+          c.id,
+        );
     }
     if (!isNonEmptyText(c.wordingVersion))
       report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
@@ -507,13 +526,23 @@ function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding
     if (!result.ok) report(result.code, `In the AI's proposal: ${lowerFirst(result.message)}`, 'findings', f.id);
     else sessions.add(result.sessionId);
   }
+  const processing = origin.processing as Record<string, unknown> | undefined;
+  if (!processing || !(processing.kind === 'local' || (processing.kind === 'external' && isNonEmptyText(processing.provider)))) {
+    return report(
+      'finding.origin',
+      'An AI proposal says whether it ran on this computer or which provider ran it.',
+      'findings',
+      f.id,
+    );
+  }
   if (!isTimestamp(origin.at)) return;
+  // CONSENT.md rules C5 and C6: the consent of every session it cites allowed this processing when it ran.
   for (const sessionId of sessions) {
-    const allowed = aiPermission(ws, sessionId, origin.at);
-    if (!allowed.local && !allowed.external) {
+    const allowed = canUseAi(ws, sessionId, origin.processing, origin.at);
+    if (!allowed.ok) {
       report(
         'finding.aiConsent',
-        "The AI proposed this from a session whose consent didn't allow AI processing at the time.",
+        `The AI proposed this when consent didn't allow it: ${lowerFirst(allowed.error)}`,
         'findings',
         f.id,
       );

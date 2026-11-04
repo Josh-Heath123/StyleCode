@@ -66,6 +66,7 @@ const acceptedAiFinding: Finding = {
     kind: 'ai',
     provider: 'ollama',
     model: 'qwen2.5:7b',
+    processing: { kind: 'local' },
     at: T2,
     proposed: {
       kind: 'existing-system',
@@ -94,6 +95,7 @@ const pendingAiFinding: Finding = {
     kind: 'ai',
     provider: 'ollama',
     model: 'qwen2.5:7b',
+    processing: { kind: 'local' },
     at: T2,
     proposed: {
       kind: 'risk',

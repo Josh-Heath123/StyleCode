@@ -71,7 +71,7 @@ A finding has two separate dimensions, and the model never merges them:
 **Origin** records how the finding entered the workspace, separately from provenance (MVP Q14):
 
 - entered by the consultant (who, when); or
-- proposed by the AI (provider, model, when), with what the AI proposed (kind, statement, status and evidence, kept unchanged) and the consultant's review: pending, accepted (who, when) or rejected (who, when).
+- proposed by the AI (provider, model, where it ran: on this computer or by a named external provider, when), with what the AI proposed (kind, statement, status and evidence, kept unchanged) and the consultant's review: pending, accepted (who, when) or rejected (who, when).
 
 So a client's statement extracted by the AI has provenance `said-in-session`, with origin "proposed by the AI, accepted by Sam at 11:00". A risk the AI spotted that nobody mentioned has provenance `ai-suggested`. The AI never proposes the status confirmed.
 
@@ -108,7 +108,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 | An AI proposal becomes confirmed only through the consultant's action, recording who and when | `finding.confirmedByAi`, `finding.review`, `finding.statusSet` | `validate.ts`, `acceptProposal`, `setStatus` |
 | An AI proposal keeps what the AI proposed, and its evidence is checked like any other | `finding.proposed`, `evidence.*` | `validate.ts` |
 | Every change to kind, statement, status or evidence is in the history, with who and when | `finding.history` | `validate.ts`, `editFinding` |
-| An AI proposal is invalid if, when it was made, a session it cites allowed no AI processing (local and external both no) | `finding.aiConsent` | `validate.ts`, `aiPermission` |
+| An AI proposal is invalid if, when it was made, a session it cites didn't allow AI processing where it ran (local, or the named external provider; CONSENT.md C5 and C6, added in WP5) | `finding.aiConsent` | `validate.ts`, `canUseAi` |
 | Company knowledge keeps a copy of its source; a deleted source is marked as deleted, with the date | `fact.source`, `ref.missing` | `validate.ts`, `removeFindings` |
 | The AI never supplies verified or calculated information | `finding.aiProvenance` | `validate.ts` |
 | One company's data never references another company's ids, and a design is linked from one company only | `ref.company`, `ref.missing` | `validate.ts`, `sharedIds` (ids and design documents found in two workspaces) |
@@ -141,9 +141,9 @@ The user's decisions on the six points raised in the draft (2026-11-04):
 
 1. **Withdrawal is final.** *Agreed.* After a withdrawal no further amendments are accepted. Renewed consent means a new session.
 2. **"Suggested" findings** are shown as a fourth group in the record. *Agreed.*
-3. **Transcript import needs consent to transcription.** *Agreed,* provisional until WP5 settles the exact rule.
+3. **Transcript import needs consent to transcription.** *Agreed,* provisional until WP5 settles the exact rule. WP5: rule C1 of `docs/spec/CONSENT.md`.
 4. **Deleting a session** (MVP 2.3) removes its consent record, transcript, segments and notes, and the findings whose only evidence is in it. A finding with evidence from other sessions too keeps that evidence and loses the rest. Company knowledge promoted from a removed finding stays, with its source marked as deleted (point 5 of the review). *Agreed.* `removeFindings` does the findings part; deleting sessions and engagements comes in Phase 1.
-5. **AI proposals and consent.** *Partly now:* an AI proposal is invalid if a session it cites allowed no AI processing when it was made (`finding.aiConsent`). Whether the provider used was local or external, as the consent allowed, is checked once WP5 settles which providers count as local (MVP Q16).
+5. **AI proposals and consent.** *Partly now:* an AI proposal is invalid if a session it cites allowed no AI processing when it was made (`finding.aiConsent`). Whether the provider used was local or external, as the consent allowed, is checked once WP5 settles which providers count as local (MVP Q16). WP5: done, rules C5 and C6 of `docs/spec/CONSENT.md`; AI proposals now record where they ran (`origin.processing`).
 6. **The consultant's name** comes from the app (asked once, in settings) in Phase 1. The model only requires it to be present. *Agreed.*
 
 ## Changes after review

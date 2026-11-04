@@ -101,10 +101,10 @@ describe('2: AI proposals need consent to AI processing', () => {
     expect(codes(ws)).toEqual(['finding.aiConsent']);
   });
 
-  it('accepts consent to external AI only, for now (local or external is settled in WP5)', () => {
+  it('refuses local processing when only an external provider was agreed (WP5, rule C6)', () => {
     const ws = sampleWorkspace();
     ws.consents.cr_1.given = { ...ws.consents.cr_1.given, aiLocal: false, aiExternal: true, externalProvider: 'Anthropic' };
-    expect(codes(ws)).toEqual([]);
+    expect(codes(ws)).toEqual(['finding.aiConsent', 'finding.aiConsent']);
   });
 });
 

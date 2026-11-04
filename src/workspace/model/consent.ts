@@ -1,11 +1,10 @@
 /**
- * Consent rules (ADR-0003). The full form is specified in docs/spec/CONSENT.md
- * (WP5); these are the rules the Phase 0 brief already fixes, so the domain
- * model can't represent a captured session without consent.
- *
- * Provisional until WP5: importing a transcript requires transcription = yes.
+ * Consent rules (ADR-0003), as specified in docs/spec/CONSENT.md (rules C1 to
+ * C10), so the domain model can't represent a captured or AI-processed session
+ * without consent.
  */
 import type {
+  AiProcessing,
   CompanyWorkspace,
   ConsentAmendment,
   ConsentGiven,
@@ -206,6 +205,79 @@ export function aiPermission(ws: CompanyWorkspace, sessionId: string, at?: Times
   return { local: given.aiLocal, external: given.aiExternal, externalProvider: given.externalProvider };
 }
 
+/** What the client must have been told before agreeing to each item (CONSENT.md, rule C2). */
+export const TOLD_FOR: Record<'audioRecording' | 'transcription' | 'aiLocal' | 'aiExternal', (keyof ConsentRecord['told'])[]> = {
+  audioRecording: ['recorded', 'retention'],
+  transcription: ['transcribed'],
+  aiLocal: ['aiExtraction', 'processingLocation'],
+  aiExternal: ['aiExtraction', 'processingLocation'],
+};
+
+/** Statements the client wasn't told but agreed to, plus "can stop or delete", needed whenever anything is agreed. */
+export function missingStatements(record: ConsentRecord): (keyof ConsentRecord['told'])[] {
+  const told = (record.told ?? {}) as Partial<ConsentRecord['told']>;
+  const given = (record.given ?? {}) as Partial<ConsentGiven>;
+  const needed = new Set<keyof ConsentRecord['told']>();
+  for (const [item, statements] of Object.entries(TOLD_FOR)) {
+    if (given[item as keyof typeof TOLD_FOR] === true) for (const s of statements) needed.add(s);
+  }
+  if (needed.size) needed.add('canStopOrDelete');
+  return [...needed].filter((s) => told[s] !== true);
+}
+
+/**
+ * Whether the AI may process a session's transcript and notes, where it would
+ * run, at a point in time (default: now), and if not, a reason to show.
+ */
+export function canUseAi(ws: CompanyWorkspace, sessionId: string, processing: AiProcessing, at?: Timestamp): Result<true> {
+  const record = consentFor(ws, sessionId);
+  if (!record || !record.confirmed) return fail('Fill in and confirm the consent form for this session first.');
+  const state = consentState(record, at);
+  if (state.withdrawn) return fail('The client withdrew consent for this session.');
+  if (state.outcome?.kind === 'declined') return fail('The client declined consent, so the AI does not process this session.');
+  if (processing.kind === 'local') {
+    return state.given.aiLocal ? ok(true) : fail('The client did not agree to AI processing on this computer.');
+  }
+  if (!state.given.aiExternal) return fail('The client did not agree to an external AI provider. Use a model on this computer.');
+  if (!sameProvider(state.given.externalProvider, processing.provider)) {
+    return fail(`The client agreed to ${state.given.externalProvider}, not ${processing.provider}.`);
+  }
+  return ok(true);
+}
+
+/** Provider names are compared ignoring case and surrounding spaces. */
+export function sameProvider(a: string | null | undefined, b: string | null | undefined): boolean {
+  return typeof a === 'string' && typeof b === 'string' && a.trim().toLowerCase() === b.trim().toLowerCase() && a.trim() !== '';
+}
+
+const LOOPBACK = /^(localhost|127(\.\d{1,3}){3}|\[::1\]|::1)$/i;
+
+/**
+ * Where a configured AI provider runs, for the consent rules (MVP Q16,
+ * CONSENT.md rule C6). Local only if it is Ollama or an OpenAI-compatible
+ * server at a loopback address; Ollama on another computer counts as
+ * external. External providers are named by company and host, for example
+ * "Anthropic (api.anthropic.com)", and the consent form offers that name.
+ */
+export function classifyProvider(settings: { provider: 'ollama' | 'openai' | 'anthropic'; baseUrl: string }): AiProcessing {
+  let host: string;
+  try {
+    host = new URL(settings.baseUrl).hostname.toLowerCase();
+  } catch {
+    host = settings.baseUrl.trim().toLowerCase() || 'unknown address';
+  }
+  if (settings.provider !== 'anthropic' && LOOPBACK.test(host)) return { kind: 'local' };
+  const company =
+    settings.provider === 'anthropic'
+      ? 'Anthropic'
+      : settings.provider === 'ollama'
+        ? 'Ollama'
+        : host === 'api.openai.com'
+          ? 'OpenAI'
+          : 'OpenAI-compatible service';
+  return { kind: 'external', provider: `${company} (${host})` };
+}
+
 /** Changes to a record that is still unlocked. A locked record only takes amendments. */
 export function editConsent(
   record: ConsentRecord,
@@ -213,7 +285,10 @@ export function editConsent(
   at: Timestamp,
 ): Result<ConsentRecord> {
   if (record.lockedAt) return fail('The consent record is locked. Add an amendment instead.');
-  return ok({ ...record, ...changes, updatedAt: at });
+  // Changing what was recorded means confirming it again (CONSENT.md, rule C3). Attaching a file doesn't.
+  const reconfirm = Object.keys(changes).some((key) => key !== 'attachmentFileId' && key !== 'confirmed');
+  const confirmed = 'confirmed' in changes ? (changes.confirmed ?? null) : reconfirm ? null : record.confirmed;
+  return ok({ ...record, ...changes, confirmed, updatedAt: at });
 }
 
 /** Locks the record, when recording starts or a transcript is imported. Locking twice keeps the first time. */
