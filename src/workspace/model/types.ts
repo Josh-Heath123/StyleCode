@@ -123,6 +123,8 @@ export type FindingOrigin =
       provider: string;
       model: string;
       processing: AiProcessing;
+      /** Every session whose transcript or notes the AI was given, cited or not (CONSENT.md, rule C5). */
+      inputSessionIds: string[];
       at: Timestamp;
       proposed: ProposedFinding;
       review: Review;
@@ -240,7 +242,7 @@ export interface Engagement {
   updatedAt: Timestamp;
 }
 
-/** A StyleCode design attached to an engagement. Where the design document itself is stored is decided in WP4. */
+/** A StyleCode design attached to an engagement, stored in its company's folder (ADR-0007). */
 export interface DesignLink {
   id: string;
   engagementId: string;
@@ -330,14 +332,22 @@ export interface Note {
 // Files
 // ---------------------------------------------------------------------------
 
-/** What a file is attached to. Session files are recordings (Phase 3). */
+/** What a file is attached to. */
 export type FileOwner =
   { kind: 'company' } | { kind: 'engagement'; engagementId: string } | { kind: 'session'; sessionId: string };
 
-/** A file kept in the workspace. Where its bytes are stored is decided in WP4. */
+/**
+ * What a file is for: a document the consultant added, a session's audio
+ * recording (Phase 3), or a signed form or email attached to a consent record.
+ */
+export const FILE_PURPOSES = ['document', 'audio', 'consent-attachment'] as const;
+export type FilePurpose = (typeof FILE_PURPOSES)[number];
+
+/** A file kept in the workspace, stored in its company's folder by id (ADR-0006). */
 export interface FileRef {
   id: string;
   owner: FileOwner;
+  purpose: FilePurpose;
   name: string;
   mediaType: string;
   sizeBytes: number;

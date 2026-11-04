@@ -15,7 +15,7 @@ import {
   type FindingStatus,
   type Timestamp,
 } from './types';
-import { fail, get, isNonEmptyText, ok, type Result } from './util';
+import { fail, get, isNonEmptyText, ok, time, type Result } from './util';
 
 /** Whether a finding is part of the record: entered by the consultant, or proposed by the AI and accepted. */
 export function isInRecord(finding: Finding): boolean {
@@ -106,7 +106,7 @@ export function recordGroups(ws: CompanyWorkspace, engagementId: string): Record
   const groups: RecordGroups = { confirmed: [], assumptions: [], open: [], suggested: [] };
   const findings = Object.values(ws.findings)
     .filter((f) => f.engagementId === engagementId && isInRecord(f))
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+    .sort((a, b) => time(a.createdAt) - time(b.createdAt) || a.id.localeCompare(b.id));
   for (const f of findings) {
     if (f.kind === 'open-question' || f.status === 'unresolved') groups.open.push(f);
     else if (f.status === 'confirmed') groups.confirmed.push(f);

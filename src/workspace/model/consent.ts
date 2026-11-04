@@ -1,6 +1,6 @@
 /**
  * Consent rules (ADR-0003), as specified in docs/spec/CONSENT.md (rules C1 to
- * C10), so the domain model can't represent a captured or AI-processed session
+ * C11), so the domain model can't represent a captured or AI-processed session
  * without consent.
  */
 import type {
@@ -13,7 +13,7 @@ import type {
   Retention,
   Timestamp,
 } from './types';
-import { fail, get, isNonEmptyText, ok, time, type Result } from './util';
+import { fail, get, isNonEmptyText, isTimestamp, ok, time, type Result } from './util';
 
 /** What a consent record agrees to: the terms an amendment can change. */
 export interface ConsentTerms {
@@ -141,7 +141,8 @@ export function consentState(record: ConsentRecord, at?: Timestamp): ConsentStat
   let withdrawn = false;
   const until = at === undefined ? Infinity : time(at);
   for (const amendment of Array.isArray(record.amendments) ? record.amendments : []) {
-    if (!amendment || typeof amendment !== 'object') continue;
+    // An amendment whose date can't be read is never treated as in force (the validator reports it).
+    if (!amendment || typeof amendment !== 'object' || !isTimestamp(amendment.at)) continue;
     if (time(amendment.at) > until) break;
     if (amendment.kind === 'withdrawal') withdrawn = true;
     else terms = applyAmendment(terms, amendment);
@@ -215,8 +216,13 @@ export const TOLD_FOR: Record<'audioRecording' | 'transcription' | 'aiLocal' | '
 
 /** Statements the client wasn't told but agreed to, plus "can stop or delete", needed whenever anything is agreed. */
 export function missingStatements(record: ConsentRecord): (keyof ConsentRecord['told'])[] {
-  const told = (record.told ?? {}) as Partial<ConsentRecord['told']>;
-  const given = (record.given ?? {}) as Partial<ConsentGiven>;
+  return missingFor(record.told, record.given);
+}
+
+/** The same check for any set of answers, such as the terms after an amendment. */
+export function missingFor(toldIn: ConsentRecord['told'] | null | undefined, givenIn: ConsentGiven | null | undefined) {
+  const told = (toldIn ?? {}) as Partial<ConsentRecord['told']>;
+  const given = (givenIn ?? {}) as Partial<ConsentGiven>;
   const needed = new Set<keyof ConsentRecord['told']>();
   for (const [item, statements] of Object.entries(TOLD_FOR)) {
     if (given[item as keyof typeof TOLD_FOR] === true) for (const s of statements) needed.add(s);
@@ -332,7 +338,11 @@ export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment)
   if (!amendment.reason.trim()) return fail('Say why consent changed.');
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
   const before = record.amendments.reduce(applyAmendment, termsOf(record));
-  const issue = amendmentIssues(amendment)[0] ?? termsIssues(applyAmendment(before, amendment))[0];
+  const after = applyAmendment(before, amendment);
+  const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0];
   if (issue) return fail(issue.message);
+  // Rule C2 holds for amendments too: the client can't agree to something they weren't told.
+  const missing = missingFor(record.told, after.given).filter((s) => !missingFor(record.told, before.given).includes(s));
+  if (missing.length) return fail(`The client wasn't told about this (${missing.join(', ')}), so they can't agree to it.`);
   return ok({ ...record, amendments: [...record.amendments, amendment], updatedAt: amendment.at });
 }

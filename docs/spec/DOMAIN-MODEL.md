@@ -48,7 +48,7 @@ CompanyWorkspace (format "stylecode-workspace", version 1)
 | Transcript | session, source (file: name, `vtt` or `docx`, platform; or pasted), who imported it and when | One per session (MVP Q10). Recording (Phase 3) adds a third source. |
 | TranscriptSegment | transcript, position, speaker label, start and end (ms), text, confidence | Kept exactly as imported (MVP Q9). Times and confidence only where the source has them; an end needs a start. Positions run from 0 without gaps. |
 | Note | session, text, when written, when changed | Shown as a time of day and as time since the session started (MVP 5.1). |
-| FileRef | owner (company, engagement or session), name, media type, size, who added it and when | Session files are recordings (Phase 3). Where the bytes are stored is decided in WP4. |
+| FileRef | owner (company, engagement or session), purpose (document, audio, or consent attachment), name, media type, size, who added it and when | Audio belongs to a session and needs consent to recording (CONSENT.md, C1); a consent record's attachment must be a consent attachment. Stored in the company's folder by id (ADR-0006). |
 | Finding | engagement, kind, statement, status, who set the status and when, provenance, evidence, origin | See "Findings". |
 | FindingRelation | type, from, to, who and when | influences · depends on · conflicts with · refines. Directed: "from influences to". |
 
@@ -129,7 +129,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 
 The validator reads entries of any shape without failing, which the tests check by damaging every map and the nested values in turn.
 
-**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
+**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
 
 ## Versioning
 
@@ -166,3 +166,15 @@ Made to support the approved consent rules (`docs/spec/CONSENT.md`):
 - Evidence can be `deleted`: no words, only the session and the date, after a transcript is deleted following a withdrawal (C8, `removeTranscript`).
 - Each quote copied into a company fact records its session, so it can be removed with that session's transcript (C8).
 - A transcript keeps the speakers who weren't asked for consent when it was imported (`unaskedSpeakers`, `unnamedSpeakers`, rule C11).
+
+## Changes from the Phase 0 review (WP9)
+
+Fixes from the independent review, each with a test in `src/workspace/model/wp9.test.ts`:
+
+- Amendments obey rule C2 too: an amendment can't agree to something the client wasn't told (`consent.told`).
+- A damaged file entry opens the workspace read-only instead of refusing it.
+- An AI proposal lists every session the AI was given (`origin.inputSessionIds`), and all of them must have allowed the processing (rule C5), not only those it cites.
+- Files have a purpose (document, audio, consent attachment); audio needs consent to recording.
+- A finding the consultant entered can't be AI-suggested; "conflicts with" counts once in either direction; the same person can't be asked twice; an amendment with an unreadable date is never in force; `sharedIds` also checks ids kept after their entity is deleted.
+
+**For Phase 1:** deleting a session (decision 4) must reuse `removeTranscript`'s clean-up, so that what the AI proposed and the history lose that session's words too, and a finding said in the session with no segment left is removed rather than left invalid.

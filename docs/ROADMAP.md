@@ -138,7 +138,7 @@ Decisions and specs, with no interface: ADR-0001 to ADR-0009, the first-version 
 - The Markdown export contains the findings, links and consent records.
 - Starting StyleCode with the workspace folder inside a git repository is refused, with the reason; a folder inside OneDrive shows a warning.
 - A workspace file with a problem opens read-only and lists the problem; it is never saved over.
-- Everything works from the keyboard and passes the accessibility check; typecheck, unit and browser tests are green on Linux and Windows.
+- Everything works from the keyboard and passes the accessibility check; typecheck and unit tests are green on Linux and Windows, and browser tests on Linux (as CI runs them).
 
 **Depends on:** Workspace Phase 0.
 

@@ -36,6 +36,7 @@ function withFactAndFile(): CompanyWorkspace {
   ws.files.fi_1 = {
     id: 'fi_1',
     owner: { kind: 'company' },
+    purpose: 'document',
     name: 'brief.pdf',
     mediaType: 'application/pdf',
     sizeBytes: 10,
@@ -196,6 +197,7 @@ describe("rule: one company's data never references another's", () => {
     ws.files.fi_1 = {
       id: 'fi_1',
       owner: { kind: 'engagement', engagementId: 'en_elsewhere' },
+      purpose: 'document',
       name: 'brief.pdf',
       mediaType: 'application/pdf',
       sizeBytes: 10,

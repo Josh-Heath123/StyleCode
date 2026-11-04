@@ -289,7 +289,7 @@ Requests go through a small local server, not from the browser to the provider. 
 | `POST /api/ai/models` | list a provider's models; also the connection check (unsaved settings may be tried) |
 | `POST /api/ai/chat` | stream a reply as lines of JSON: `{"delta"}`… then `{"done"}`, or `{"error"}` in plain words |
 
-Settings live in `~/.stylecode/ai.json` (or the file named by `STYLECODE_AI_CONFIG`). On macOS and Linux it is readable only by the user (mode 0600, in a folder created 0700). On Windows, Node can't set that: mode bits are ignored and `chmod` only changes the read-only flag, so the file relies on the default permissions of the user's home folder, which by default only the user, administrators and the system can open. Saves happen one at a time, each written to a new temporary file and renamed into place, so the file is never half-written. On Windows the rename is retried a few times if antivirus or indexing briefly holds the file (`EPERM`, `EBUSY`; `server/shared/rename.ts`). Keys can instead come from `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Keys are never sent to the browser, stored in browser storage, written into frontend code or kept in the repository.
+Settings live in `~/.stylecode/ai.json` (or the file named by `STYLECODE_AI_CONFIG`). On macOS and Linux it is readable only by the user (mode 0600, in a folder created 0700). On Windows, Node can't set that: mode bits are ignored and `chmod` only changes the read-only flag, so the file relies on the home folder's default Windows permissions. Saves happen one at a time, each written to a new temporary file and renamed into place, so the file is never half-written. On Windows the rename is retried up to six times over about three seconds if antivirus or indexing briefly holds the file (`EPERM`, `EBUSY`; `server/shared/rename.ts`). Keys can instead come from `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Keys are never sent to the browser, stored in browser storage, written into frontend code or kept in the repository.
 
 A key saved in the settings only ever goes to the address it was saved with, and a key from an environment variable only to the saved address. Trying another address in the settings dialog uses only a key typed for it; saving a new address without a new key forgets the old key; and provider requests never follow redirects, which would otherwise carry `x-api-key` to wherever the redirect points.
 
@@ -453,8 +453,8 @@ The workspace's data is described in `docs/spec/DOMAIN-MODEL.md`: one `CompanyWo
 
 | Check | Result |
 | --- | --- |
-| `node:sqlite` loads without a flag | Yes, with an `ExperimentalWarning`. It became a release candidate only in Node 25.7 ([Node.js docs, SQLite](https://nodejs.org/api/sqlite.html), checked 2026-11-04). |
-| Full-text search (FTS5, FTS4, FTS3) in `node:sqlite` | **No:** `no such module: fts5`. The Windows build of SQLite 3.49.1 bundled with Node lacks it; others report the same on Windows ([skilld #64](https://github.com/skilld-dev/skilld/issues/64)). |
+| `node:sqlite` loads without a flag | Yes on 22.15, with an `ExperimentalWarning`. It needs `--experimental-sqlite` before Node 22.13, so on 22.12, the oldest version StyleCode supports, it is behind a flag. It became a release candidate only in Node 25.7 ([Node.js docs, SQLite](https://nodejs.org/api/sqlite.html), checked 2026-11-04). |
+| Full-text search (FTS5, FTS4, FTS3) in `node:sqlite` | **No:** `no such module: fts5`. The Windows build of Node 22.15, with SQLite 3.49.1, lacks it (measured on that version only); others report the same on Windows ([skilld #64](https://github.com/skilld-dev/skilld/issues/64)). |
 | JSON functions in `node:sqlite` | Yes. |
 | JSON workspace, 60 one-hour meetings (54,000 segments, 2,400 findings, 12.7 MB) | Save (stringify, write, rename) 57 ms; load (parse and validate) 186 ms; substring search of every segment 22 ms. |
 | The same, 200 meetings (180,000 segments, 42.8 MB) | Save 226 ms; load 1.06 s; search 143 ms. |
@@ -465,7 +465,7 @@ The domain model is already one validated value per company, and at the sizes a 
 
 **Files** (documents now, audio in Phase 3) are stored under `files/` by their id, never by a name the browser sent, and listed in the workspace as `FileRef`s. Audio stays out of `workspace.json`.
 
-**The workspace folder** is `StyleCode Data` in the user's home folder by default (visible, so it's easy to back up, and not to be confused with a checkout of the StyleCode repo), or wherever `STYLECODE_WORKSPACE` points. On macOS and Linux it is created readable only by the user. On Windows Node can't set that, so it relies on the home folder's default permissions (by default, only the user, administrators and the system can open it).
+**The workspace folder** is `StyleCode Data` in the user's home folder by default (visible, so it's easy to back up, and not to be confused with a checkout of the StyleCode repo), or wherever `STYLECODE_WORKSPACE` points. On macOS and Linux it is created readable only by the user. On Windows Node can't set that, so it relies on the home folder's default Windows permissions.
 
 **Where it may not be.** The server refuses to start if the workspace folder is inside this repo or any git repository, so client data can never be committed. It warns in the app if the folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive), because syncing sends client data off the computer, which ADR-0002 rules out. Real client work uses the built app (`npm start`), not `npm run dev`; the guide says so.
 

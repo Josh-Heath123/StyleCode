@@ -21,7 +21,8 @@ export interface RetryOptions {
  * so the caller can report a failed save.
  */
 export async function renameWithRetry(from: string, to: string, options: RetryOptions = {}): Promise<void> {
-  const { attempts = 5, delayMs = 50, renameFile = rename } = options;
+  // Six tries over about three seconds (0.1, 0.2, 0.4, 0.8 and 1.6 s between them).
+  const { attempts = 6, delayMs = 100, renameFile = rename } = options;
   for (let attempt = 1; ; attempt++) {
     try {
       return await renameFile(from, to);
