@@ -11,6 +11,7 @@ import {
   applyAmendment,
   canUseAi,
   consentState,
+  missingFor,
   missingStatements,
   termsIssues,
   type ConsentTerms,
@@ -19,6 +20,7 @@ import { isInRecord } from './findings';
 import {
   AI_PROVENANCES,
   ENTITY_MAPS,
+  FILE_PURPOSES,
   FINDING_KINDS,
   FINDING_STATUSES,
   RELATION_TYPES,
@@ -127,8 +129,12 @@ function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, r
   const quotesOk =
     Array.isArray(s.quotes) &&
     s.quotes.every(
-      (q: { text?: unknown; sessionTitle?: unknown; speakerLabel?: unknown } | null) =>
-        !!q && isNonEmptyText(q.text) && isText(q.sessionTitle) && (q.speakerLabel === null || isNonEmptyText(q.speakerLabel)),
+      (q: { text?: unknown; sessionId?: unknown; sessionTitle?: unknown; speakerLabel?: unknown } | null) =>
+        !!q &&
+        isNonEmptyText(q.text) &&
+        isId(q.sessionId) &&
+        isText(q.sessionTitle) &&
+        (q.speakerLabel === null || isNonEmptyText(q.speakerLabel)),
     );
   if (!isNonEmptyText(s.statement) || !isText(s.engagementName) || !quotesOk)
     report('fact.source', "A company fact keeps a copy of its source's statement and quotes.", 'knowledge', id);
@@ -175,8 +181,8 @@ function checkSessions(ws: CompanyWorkspace, report: Report) {
     else {
       for (const fileId of s.audioFileIds) {
         const file = get(ws.files, fileId);
-        if (!file || file.owner.kind !== 'session' || file.owner.sessionId !== s.id) {
-          report('ref.missing', 'A session lists audio that is not one of its files.', 'sessions', s.id);
+        if (!file || file.owner?.kind !== 'session' || file.owner.sessionId !== s.id || file.purpose !== 'audio') {
+          report('ref.missing', 'A session lists audio that is not one of its audio files.', 'sessions', s.id);
         }
       }
     }
@@ -222,6 +228,8 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
           report('ref.missing', 'The consent record names someone who is not in the session.', 'consents', c.id);
         else if (p.side !== 'client') report('consent.asked', 'Consent is asked of client participants only.', 'consents', c.id);
       }
+      if (new Set(c.askedParticipantIds).size !== c.askedParticipantIds.length)
+        report('consent.asked', 'The consent record names someone twice.', 'consents', c.id);
       if (c.confirmed && c.askedParticipantIds.length === 0)
         report('consent.asked', 'A confirmed consent record names who was asked.', 'consents', c.id);
     }
@@ -257,8 +265,9 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
       const file = get(ws.files, c.attachmentFileId);
       const ownedHere =
         file &&
-        ((file.owner.kind === 'session' && file.owner.sessionId === c.sessionId) ||
-          (file.owner.kind === 'engagement' && file.owner.engagementId === session?.engagementId));
+        file.purpose === 'consent-attachment' &&
+        ((file.owner?.kind === 'session' && file.owner.sessionId === c.sessionId) ||
+          (file.owner?.kind === 'engagement' && file.owner.engagementId === session?.engagementId));
       if (!ownedHere)
         report('ref.missing', "The consent record's attachment is not a file of its session or engagement.", 'consents', c.id);
     }
@@ -307,7 +316,17 @@ function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report
       if (own.length) continue;
       // Report only what the amendment introduced, so a problem in the record isn't repeated for each amendment.
       const known = new Set(termsIssues(terms).map((i) => i.message));
+      const toldBefore = missingFor(c.told, terms.given);
       terms = applyAmendment(terms, a);
+      // Rule C2 holds for amendments too.
+      const untold = missingFor(c.told, terms.given).filter((s) => !toldBefore.includes(s));
+      if (untold.length)
+        report(
+          'consent.told',
+          `An amendment agrees to something the client wasn't told about (${untold.join(', ')}).`,
+          'consents',
+          c.id,
+        );
       for (const issue of termsIssues(terms).filter((i) => !known.has(i.message)))
         report(issue.code, `After an amendment: ${lowerFirst(issue.message)}`, 'consents', c.id);
     } else report('field.value', 'An amendment has an unknown kind.', 'consents', c.id);
@@ -332,6 +351,8 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
         (src.format === 'vtt' || src.format === 'docx') &&
         oneOf(TRANSCRIPT_PLATFORMS, src.platform));
     if (!sourceOk) report('field.value', 'A transcript has an invalid source.', 'transcripts', t.id);
+    if (!Array.isArray(t.unaskedSpeakers) || !t.unaskedSpeakers.every(isNonEmptyText) || typeof t.unnamedSpeakers !== 'boolean')
+      report('field.type', 'A transcript keeps its speaker warning as a list of names and a yes or no.', 'transcripts', t.id);
     if (!isNonEmptyText(t.importedBy) || !isTimestamp(t.importedAt)) {
       report('field.value', 'A transcript says who imported it and when.', 'transcripts', t.id);
       continue;
@@ -396,6 +417,20 @@ function checkFiles(ws: CompanyWorkspace, report: Report) {
       (owner?.kind === 'engagement' && !!get(ws.engagements, owner.engagementId)) ||
       (owner?.kind === 'session' && !!get(ws.sessions, owner.sessionId));
     if (!ownerOk) report('ref.missing', 'A file is attached to something that is not in this workspace.', 'files', f.id);
+    if (!oneOf(FILE_PURPOSES, f.purpose)) report('field.value', 'A file has an unknown purpose.', 'files', f.id);
+    else if (f.purpose === 'audio') {
+      // Rule C1: audio needs consent to recording, given when the audio was added (Phase 3).
+      const sessionId = owner?.kind === 'session' ? (owner.sessionId as string) : null;
+      const consent = sessionId ? Object.values(ws.consents).find((c) => c.sessionId === sessionId) : undefined;
+      if (!sessionId) report('field.value', 'Audio belongs to a session.', 'files', f.id);
+      else if (
+        !consent ||
+        !consent.confirmed ||
+        !isTimestamp(f.addedAt) ||
+        !consentState(consent, f.addedAt).given.audioRecording
+      )
+        report('consent.required', 'Audio was added without consent to recording.', 'files', f.id);
+    }
     if (!isNonEmptyText(f.name) || !isNonEmptyText(f.mediaType))
       report('field.value', 'A file needs a name and a media type.', 'files', f.id);
     if (!Number.isInteger(f.sizeBytes) || f.sizeBytes < 0) report('field.value', 'A file has an invalid size.', 'files', f.id);
@@ -441,6 +476,8 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
     if (origin?.kind === 'consultant') {
       if (!isNonEmptyText(origin.by) || !isTimestamp(origin.at))
         report('finding.origin', 'A finding says who entered it and when.', 'findings', f.id);
+      if (f.provenance?.kind === 'ai-suggested')
+        report('finding.provenance', 'A finding the consultant entered is not AI-suggested.', 'findings', f.id);
     } else if (origin?.kind === 'ai') {
       if (!isNonEmptyText(origin.provider) || !isNonEmptyText(origin.model) || !isTimestamp(origin.at)) {
         report('finding.origin', 'An AI proposal names its provider and model, and when it was made.', 'findings', f.id);
@@ -498,9 +535,9 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
 
 /**
  * An AI proposal keeps what the AI proposed. Its evidence is checked like any
- * other, and every session it cites must have allowed some AI processing when
- * the proposal was made. Whether that processing was local or external is
- * checked once WP5 settles which providers count as local (MVP Q16).
+ * other. Every session the AI was given, which includes every session it
+ * cites, must have allowed that processing, local or by the named external
+ * provider, when the proposal was made (CONSENT.md, rules C5 and C6).
  */
 function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding['origin'], { kind: 'ai' }>, report: Report) {
   const p = origin.proposed as unknown as Partial<Record<string, unknown>> | undefined;
@@ -524,7 +561,7 @@ function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding
   for (const e of p.evidence as Evidence[]) {
     const result = checkEvidence(ws, f.engagementId, e);
     if (!result.ok) report(result.code, `In the AI's proposal: ${lowerFirst(result.message)}`, 'findings', f.id);
-    else sessions.add(result.sessionId);
+    else if (result.kind !== 'deleted') sessions.add(result.sessionId);
   }
   const processing = origin.processing as Record<string, unknown> | undefined;
   if (!processing || !(processing.kind === 'local' || (processing.kind === 'external' && isNonEmptyText(processing.provider)))) {
@@ -535,9 +572,16 @@ function checkProposed(ws: CompanyWorkspace, f: Finding, origin: Extract<Finding
       f.id,
     );
   }
+  const inputs = origin.inputSessionIds as unknown;
+  if (!Array.isArray(inputs) || !inputs.every(isId)) {
+    return report('finding.origin', 'An AI proposal lists the sessions the AI was given.', 'findings', f.id);
+  }
+  if ([...sessions].some((id) => !inputs.includes(id)))
+    report('finding.origin', 'An AI proposal cites a session the AI was not given.', 'findings', f.id);
   if (!isTimestamp(origin.at)) return;
-  // CONSENT.md rules C5 and C6: the consent of every session it cites allowed this processing when it ran.
-  for (const sessionId of sessions) {
+  // Sessions deleted since are skipped: their consent record went with them.
+  const given = new Set<string>([...sessions, ...inputs.filter((id: string) => get(ws.sessions, id))]);
+  for (const sessionId of given) {
     const allowed = canUseAi(ws, sessionId, origin.processing, origin.at);
     if (!allowed.ok) {
       report(
@@ -598,11 +642,17 @@ function checkHistory(f: Finding, report: Report) {
   }
 }
 
-type EvidenceCheck = { ok: true; kind: 'segment' | 'note'; sessionId: string } | { ok: false; code: string; message: string };
+type EvidenceCheck = { ok: true; kind: Evidence['kind']; sessionId: string } | { ok: false; code: string; message: string };
 
 /** Checks one piece of evidence against the engagement it must belong to. */
 function checkEvidence(ws: CompanyWorkspace, engagementId: string, e: Evidence): EvidenceCheck {
   const problem = (code: string, message: string): EvidenceCheck => ({ ok: false, code, message });
+  if (e && e.kind === 'deleted') {
+    // Words removed after a withdrawal (CONSENT.md, rule C8); the session may be gone too.
+    if (!isId(e.sessionId) || !isTimestamp(e.deletedAt))
+      return problem('field.value', 'Deleted evidence names its session and when it was deleted.');
+    return { ok: true, kind: 'deleted', sessionId: e.sessionId };
+  }
   if (!e || !isNonEmptyText(e.quote)) return problem('evidence.quote', 'Evidence quotes the words it rests on.');
   let text: string;
   let sessionId: string;
@@ -646,7 +696,9 @@ function checkRelations(ws: CompanyWorkspace, report: Report) {
       report('relation.engagement', 'Links stay within one engagement.', 'relations', r.id);
     if (!isInRecord(from) || !isInRecord(to))
       report('relation.record', 'Only findings in the record can be linked.', 'relations', r.id);
-    const key = `${r.type}\u0000${r.fromId}\u0000${r.toId}`;
+    // "Conflicts with" goes both ways, so the reverse link counts as the same one.
+    const [a, b] = r.type === 'conflicts-with' && r.toId < r.fromId ? [r.toId, r.fromId] : [r.fromId, r.toId];
+    const key = `${r.type}\u0000${a}\u0000${b}`;
     if (seen.has(key)) report('relation.duplicate', 'The same link exists twice.', 'relations', r.id);
     seen.add(key);
     if (!isNonEmptyText(r.createdBy) || !isTimestamp(r.createdAt))
@@ -673,11 +725,20 @@ export function sharedIds(workspaces: CompanyWorkspace[]): string[] {
   const owner = new Map<string, string>();
   const shared = new Set<string>();
   for (const ws of workspaces) {
-    const ids = [
+    // Ids kept after their entity is deleted (copied quotes, deleted evidence, AI inputs) count too.
+    const kept = [
+      ...Object.values(ws.knowledge).flatMap((k) => k.source?.quotes.map((q) => q.sessionId) ?? []),
+      ...Object.values(ws.findings).flatMap((f) => [
+        ...f.evidence.flatMap((e) => (e.kind === 'deleted' ? [e.sessionId] : [])),
+        ...(f.origin.kind === 'ai' ? f.origin.inputSessionIds : []),
+      ]),
+    ];
+    const ids = new Set([
       ws.company.id,
       ...ENTITY_MAPS.flatMap((m) => Object.keys(ws[m])),
       ...Object.values(ws.designs).map((d) => d.documentId),
-    ];
+      ...kept,
+    ]);
     for (const id of ids) {
       const seenIn = owner.get(id);
       if (seenIn !== undefined && seenIn !== ws.company.id) shared.add(id);

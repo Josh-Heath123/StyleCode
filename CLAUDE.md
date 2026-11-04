@@ -53,6 +53,7 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
 | `src/ai` | Assistant: context, prompt, schema from the registry, interpreting replies as proposals. |
 | `src/persistence` | IndexedDB storage, images, project files. |
 | `server/ai` | Local AI server (Vite plugin): settings, keys, providers. Node only. |
+| `server/shared` | Node helpers shared by the local servers. |
 | `src/workspace` | (new) The consulting workspace: domain model first. |
 | `e2e`, `e2e/demos` | Browser tests; demo recordings. |
 | `scripts` | The documentation site builder and its Markdown renderer. |

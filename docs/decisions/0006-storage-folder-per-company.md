@@ -9,8 +9,8 @@ ADR-0002 requires that client data stays on the computer and that each company's
 
 Measured on the user's laptop (Windows 11 Home, Node 22.15.0, 2026-11-04):
 
-- `node:sqlite` loads without a flag but prints an `ExperimentalWarning`; it became a release candidate only in Node 25.7 ([Node.js docs, SQLite](https://nodejs.org/api/sqlite.html), checked 2026-11-04).
-- Its bundled SQLite (3.49.1) has **no full-text search**: FTS5, FTS4 and FTS3 all fail with "no such module". Others report the same for Node's Windows build ([skilld #64](https://github.com/skilld-dev/skilld/issues/64), checked 2026-11-04).
+- `node:sqlite` loads without a flag on 22.15 but prints an `ExperimentalWarning` (before Node 22.13 it needs `--experimental-sqlite`, so on 22.12, the oldest version StyleCode supports, it is behind a flag); it became a release candidate only in Node 25.7 ([Node.js docs, SQLite](https://nodejs.org/api/sqlite.html), checked 2026-11-04).
+- Its bundled SQLite (3.49.1, on the Windows build of Node 22.15; other versions weren't measured) has **no full-text search**: FTS5, FTS4 and FTS3 all fail with "no such module". Others report the same for Node's Windows build ([skilld #64](https://github.com/skilld-dev/skilld/issues/64), checked 2026-11-04).
 - A JSON workspace of 60 one-hour meetings (54,000 segments, 2,400 findings, 12.7 MB): save 57 ms, load and validate 186 ms, substring search over every segment 22 ms. At 200 meetings (42.8 MB): save 226 ms, load 1.06 s, search 143 ms.
 
 ## Decision
@@ -18,7 +18,7 @@ Measured on the user's laptop (Windows 11 Home, Node 22.15.0, 2026-11-04):
 - A workspace folder, `StyleCode Data` in the user's home folder by default (so it can't be confused with a checkout of the StyleCode repo), or `STYLECODE_WORKSPACE`.
 - On macOS and Linux the folder is created readable only by the user. On Windows, Node can't do that (mode bits are ignored and `chmod` only changes the read-only flag), so the folder relies on the default permissions of the user's home folder. StyleCode doesn't claim to set them.
 - `companies/<company id>/` per company, holding `workspace.json` (the `CompanyWorkspace`), `workspace.previous.json` (the last good copy), `files/<file id>` and `designs/<document id>.stylecode.json`.
-- Saves are one at a time, written to a temporary file and renamed into place. On Windows the rename can fail with `EPERM` or `EBUSY` while antivirus or search indexing has the file open, so it is retried a few times with a short wait before the save is reported as failed. A workspace with problems is refused (`checkBeforeSave`). Each save names the revision it is based on and is refused if the file has moved on.
+- Saves are one at a time, written to a temporary file and renamed into place. On Windows the rename can fail with `EPERM` or `EBUSY` while antivirus or search indexing has the file open, so it is retried up to six times over about three seconds before the save is reported as failed (`server/shared/rename.ts`). A workspace with problems is refused (`checkBeforeSave`). Each save names the revision it is based on and is refused if the file has moved on.
 - Files are stored by id, never by a name from the browser. Audio is never inside `workspace.json`.
 - Search is in memory over the open workspace, by substring, until a measured need says otherwise.
 - No SQLite for now. A new ADR revisits it when a real workspace takes over a second to load, search needs ranking, or `node:sqlite` is stable with FTS5 on Windows.

@@ -108,3 +108,124 @@ Ideas that fit the core loop, not commitments:
 - Several screens linked into a clickable prototype in the preview
 - Breakpoints beyond phones (a tablet override), and per-breakpoint spacing
 - Importing an existing page's HTML and CSS as a starting design
+
+## Consulting workspace
+
+The editor phases above are complete (v0.5.0). StyleCode is now growing into a workspace for software consultants (`docs/vision/PRODUCT-VISION.md`). Its phases are numbered on their own, as **Workspace Phase 0 to 7**. Each one leaves the app working, keeps every non-negotiable in `CLAUDE.md`, and ends with a review, a handover and a pull request. The acceptance criteria are things the user can check in the app. Those for Phases 4 to 7 are first drafts, refined in each phase's brief.
+
+### Workspace Phase 0: Foundations ✅
+
+Decisions and specs, with no interface: ADR-0001 to ADR-0009, the first-version spec (`docs/spec/MVP.md`), the domain model with its rules and tests (`docs/spec/DOMAIN-MODEL.md`, `src/workspace/model/`), the consent form (`docs/spec/CONSENT.md`), and this roadmap. See `docs/phase-0/HANDOVER.md`.
+
+### Workspace Phase 1: Workspace spine
+
+**Scope:** MVP steps 1 to 3 and 5, plus the hand-entered record and its export (stories 1, 2, 3, 5, 6.4, 7 and 8 of `docs/spec/MVP.md`).
+
+- The workspace server (`server/workspace/`, ADR-0005, ADR-0006, ADR-0008): the `StyleCode Data` folder, one folder per company, atomic saves with retry, the revision check, files stored by id; the request checks shared with `/api/ai`; refusing to start inside a git repository; a warning for cloud-synced folders; `npm start`.
+- Companies, engagements, sessions and participants: create, edit, delete (a company by typing its name).
+- The consent form (rules C1 to C4, C7; the interface in `CONSENT.md`), amendments and withdrawal, with deletion of the transcript once Phase 2 imports one.
+- Notes, time-stamped, during a session.
+- Findings entered by hand, the engagement's record in four groups, links between findings, every change undoable with who and when.
+- Specification export as Markdown, including every consent record (C9).
+- The consultant's name, asked once in settings; the guide's "Protecting client data" section (ADR-0009).
+
+**Acceptance criteria:**
+
+- I can create a company, an engagement and a session, close StyleCode, start it with `npm start`, and find them again; the company is one folder under `StyleCode Data`.
+- I can fill in, confirm and amend a consent form; a yes I didn't tell the client about can't be confirmed (C2).
+- I can add notes during a session, see their time and the time since the start, and add findings by hand with a kind and status; the record shows them in four groups, and undo reverts each change.
+- Deleting a company asks me to type its name and removes its folder.
+- The Markdown export contains the findings, links and consent records.
+- Starting StyleCode with the workspace folder inside a git repository is refused, with the reason; a folder inside OneDrive shows a warning.
+- A workspace file with a problem opens read-only and lists the problem; it is never saved over.
+- Everything works from the keyboard and passes the accessibility check; typecheck and unit tests are green on Linux and Windows, and browser tests on Linux (as CI runs them).
+
+**Depends on:** Workspace Phase 0.
+
+### Workspace Phase 2: Extraction
+
+**Scope:** MVP steps 4 and 6 (stories 4 and 6). Opens with the extraction test and evaluation harness (old WP7, in the appendix of `docs/phase-0/PHASE-0-BRIEF.md`), on typed role-play transcripts; the user provides sample exports from Teams, Zoom and Google Meet at the start (MVP Q7).
+
+- Transcript import from `.vtt` and `.docx` exports, and pasted text; blocked without consent (C1); the speaker check and its warning (C11); matching speaker labels to participants.
+- AI extraction from the transcript and notes, only where consent allows it, locally or by the named external provider (C5, C6); every quote checked against its passage before a proposal is shown; review by keyboard: accept, edit or reject, keeping what the AI proposed.
+- The evaluation set runs in CI where feasible, measuring what consultants edit and reject.
+
+**Then, in the same phase: company knowledge.** Promote an accepted finding to company knowledge, so what is learned about a company carries into its next engagement (vision §3, MVP Q3). The model already supports it (`promoteToKnowledge`, copies that outlive their source). Placed here, straight after extraction and before capture, because it needs accepted findings and nothing in Phase 3.
+
+**Acceptance criteria:**
+
+- Importing a transcript without confirmed consent to transcription is unavailable, and says why.
+- I can import a Teams `.vtt` export from the user's samples and see it by speaker; speakers who weren't asked are listed and the warning stays on the transcript.
+- With a local model, I can ask for findings and review each proposal with its quoted passage highlighted; a proposal with an invented quote is never shown, and the count dropped is reported.
+- A session whose consent allows only local AI refuses an external provider, saying why.
+- After a withdrawal, deleting the transcript removes its words everywhere and lists the findings and company facts that keep a statement from it.
+- I can promote a finding to company knowledge and see it in the company's next engagement, with its source, or "source deleted".
+- The evaluation report shows, per role-play transcript, the proposals accepted, edited and rejected.
+
+**Depends on:** Workspace Phase 1.
+
+### Workspace Phase 3: Capture
+
+**Scope:** recording and local transcription with speakers. Opens with the transcription test (old WP6, in the appendix of the Phase 0 brief), measured on the user's computer.
+
+- Recording in the browser (`getUserMedia` on `localhost`), blocked without consent to recording (C1); stopping on request; audio stored as session files.
+- Local transcription with speaker labels and confidence, as a third transcript source.
+- Audio retention (C10): "deleted after transcription" is a promise to the client, so the audio is deleted as part of finishing the transcription, not left to a reminder. For "N days" and "until the engagement ends", overdue audio is listed when StyleCode opens, with one action to delete it (CONSENT.md decision 4).
+
+**Acceptance criteria:**
+
+- Recording is unavailable without consent to recording, and says why.
+- A recorded role-play meeting is transcribed on this computer with speakers, and nothing is sent elsewhere.
+- With "deleted after transcription", the audio file is gone when the transcript is ready.
+- Overdue audio is listed on start-up until it is deleted.
+
+**Depends on:** Workspace Phase 2 (the transcript model, review and extraction are reused).
+
+### Workspace Phase 4: Canvas in context
+
+**Scope:** the StyleCode editor in each engagement, informed by the record (ADR-0007).
+
+- Engagement designs stored in the company's folder; attach a new design or a copy of an existing project.
+- The editor saves through the workspace API as well as IndexedDB.
+- The record available to the design: findings shown beside the canvas, linked to layers, and offered to the AI as context.
+
+**Acceptance criteria:**
+
+- I can attach a copy of an existing project to an engagement; the original is unchanged, and the copy is in the company's folder.
+- I can link a layer to a finding and see the link from both sides.
+- The AI's suggestions for a screen can draw on the engagement's confirmed findings, and say which.
+
+**Depends on:** Workspace Phase 1; better after Phase 2, when the record has extracted findings.
+
+### Workspace Phase 5: Technology catalogue and rules engine
+
+**Scope:** a catalogue of technologies with sourced, dated facts, and a deterministic engine that checks compatibility and constraints against the record (ADR-0004).
+
+**Acceptance criteria:**
+
+- Every catalogue fact shows its source and the date it was checked; the AI can't mark anything as verified.
+- Given the record's constraints, the engine lists compatible and incompatible options, with the rule behind each, and gives the same result every time.
+
+**Depends on:** Workspace Phase 2 (a record worth checking).
+
+### Workspace Phase 6: Cost engine
+
+**Scope:** cost estimates computed by code from sourced, dated pricing (ADR-0004). The AI never supplies a price.
+
+**Acceptance criteria:**
+
+- Every price shows its source and date; an estimate shows how it was calculated, and the same inputs give the same total.
+- Prices older than a set age are flagged.
+
+**Depends on:** Workspace Phase 5.
+
+### Workspace Phase 7: Specification export and live follow-up questions
+
+**Scope:** a full specification export from the record, designs and analyses; and follow-up questions suggested during a meeting from what is still open.
+
+**Acceptance criteria:**
+
+- The export includes the record, designs, technology and cost analysis, each with status and provenance.
+- During a session, open questions and gaps in the record are suggested as follow-ups, only with consent to AI processing.
+
+**Depends on:** Workspace Phases 3 to 6.

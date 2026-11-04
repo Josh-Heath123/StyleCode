@@ -85,8 +85,16 @@ export const PROVENANCE_KINDS: readonly ProvenanceKind[] = [
 /** Provenances the AI may give a finding it proposes. It never supplies verified or calculated information. */
 export const AI_PROVENANCES: readonly ProvenanceKind[] = ['said-in-session', 'ai-suggested'];
 
-/** A passage a finding rests on: words quoted from a transcript segment or a note. */
-export type Evidence = { kind: 'segment'; segmentId: string; quote: string } | { kind: 'note'; noteId: string; quote: string };
+/**
+ * A passage a finding rests on: words quoted from a transcript segment or a
+ * note. A passage deleted after the client withdrew consent (CONSENT.md, rule
+ * C8) becomes `deleted`: its words are gone, and only the fact that the
+ * finding rested on something from that session is kept.
+ */
+export type Evidence =
+  | { kind: 'segment'; segmentId: string; quote: string }
+  | { kind: 'note'; noteId: string; quote: string }
+  | { kind: 'deleted'; sessionId: string; deletedAt: Timestamp };
 
 /** The consultant's decision on an AI proposal. Only accepted proposals are part of the record. */
 export type Review =
@@ -115,6 +123,8 @@ export type FindingOrigin =
       provider: string;
       model: string;
       processing: AiProcessing;
+      /** Every session whose transcript or notes the AI was given, cited or not (CONSENT.md, rule C5). */
+      inputSessionIds: string[];
       at: Timestamp;
       proposed: ProposedFinding;
       review: Review;
@@ -213,6 +223,8 @@ export interface FactSource {
 
 export interface FactQuote {
   text: string;
+  /** The session it was said or written in, so it can be removed if that session's transcript is deleted. */
+  sessionId: string;
   sessionTitle: string;
   /** The speaker label of a transcript segment; null for a note. */
   speakerLabel: string | null;
@@ -230,7 +242,7 @@ export interface Engagement {
   updatedAt: Timestamp;
 }
 
-/** A StyleCode design attached to an engagement. Where the design document itself is stored is decided in WP4. */
+/** A StyleCode design attached to an engagement, stored in its company's folder (ADR-0007). */
 export interface DesignLink {
   id: string;
   engagementId: string;
@@ -282,6 +294,14 @@ export interface Transcript {
   source: TranscriptSource;
   importedBy: string;
   importedAt: Timestamp;
+  /**
+   * Speaker labels that, when the transcript was imported, matched neither a
+   * client participant who was asked for consent nor someone on the
+   * consultant's side (CONSENT.md, rule C11). Kept as a warning.
+   */
+  unaskedSpeakers: string[];
+  /** Whether some segments had no speaker label, so they couldn't be checked. */
+  unnamedSpeakers: boolean;
 }
 
 export interface TranscriptSegment {
@@ -312,14 +332,22 @@ export interface Note {
 // Files
 // ---------------------------------------------------------------------------
 
-/** What a file is attached to. Session files are recordings (Phase 3). */
+/** What a file is attached to. */
 export type FileOwner =
   { kind: 'company' } | { kind: 'engagement'; engagementId: string } | { kind: 'session'; sessionId: string };
 
-/** A file kept in the workspace. Where its bytes are stored is decided in WP4. */
+/**
+ * What a file is for: a document the consultant added, a session's audio
+ * recording (Phase 3), or a signed form or email attached to a consent record.
+ */
+export const FILE_PURPOSES = ['document', 'audio', 'consent-attachment'] as const;
+export type FilePurpose = (typeof FILE_PURPOSES)[number];
+
+/** A file kept in the workspace, stored in its company's folder by id (ADR-0006). */
 export interface FileRef {
   id: string;
   owner: FileOwner;
+  purpose: FilePurpose;
   name: string;
   mediaType: string;
   sizeBytes: number;

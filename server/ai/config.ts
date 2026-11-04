@@ -1,7 +1,8 @@
 import { randomBytes } from 'node:crypto';
-import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { renameWithRetry } from '../shared/rename.ts';
 
 /**
  * AI settings, kept in a file on this computer (by default
@@ -126,7 +127,8 @@ async function writeConfig(config: AiConfig, path: string): Promise<void> {
     // 'wx' fails rather than reuse a file someone else created, which would keep its permissions.
     await writeFile(temp, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
     await chmod(temp, 0o600).catch(() => {});
-    await rename(temp, path);
+    // On Windows, antivirus or indexing can briefly hold the old file (EPERM, EBUSY).
+    await renameWithRetry(temp, path);
   } catch (error) {
     await rm(temp, { force: true }).catch(() => {});
     throw error;

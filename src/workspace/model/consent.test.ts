@@ -3,8 +3,9 @@
  * C4 are also covered in rules.test.ts and review.test.ts.
  */
 import { describe, expect, it } from 'vitest';
-import { canUseAi, classifyProvider, editConsent, missingStatements } from './consent';
-import { consentRecord, sampleWorkspace, T1, T2 } from './fixtures';
+import { canUseAi, checkSpeakers, classifyProvider, editConsent, missingStatements } from './consent';
+import { promoteToKnowledge, removeTranscript } from './findings';
+import { consentRecord, sampleWorkspace, T1, T2, T3 } from './fixtures';
 import type { CompanyWorkspace } from './types';
 import { validateWorkspace } from './validate';
 
@@ -121,5 +122,82 @@ describe('C5 and C6: AI processing, local or external', () => {
     expect(codes(ws)).toEqual(['finding.aiConsent']);
     if (origin.kind === 'ai') (origin as unknown as Record<string, unknown>).processing = undefined;
     expect(codes(ws)).toEqual(['finding.origin']);
+  });
+});
+
+describe('C11: speakers who were not asked for consent', () => {
+  it('lists labels matched to neither an asked client nor the consultant side', () => {
+    const ws = sampleWorkspace();
+    ws.participants.pa_jo = { ...ws.participants.pa_client, id: 'pa_jo', name: 'Jo Baker', speakerLabels: ['Jo'] };
+    const check = checkSpeakers(ws, 'se_1', ['Alex Owner', 'Sam', 'Jo', 'Guest 1', 'Guest 1', null]);
+    expect(check).toEqual({ unaskedSpeakers: ['Jo', 'Guest 1'], unnamedSpeakers: true });
+    expect(checkSpeakers(ws, 'se_1', ['Alex Owner', 'Sam'])).toEqual({ unaskedSpeakers: [], unnamedSpeakers: false });
+  });
+
+  it('keeps the warning on the transcript', () => {
+    const ws = sampleWorkspace();
+    ws.transcripts.tr_1.unaskedSpeakers = ['Guest 1'];
+    expect(codes(ws)).toEqual([]);
+    (ws.transcripts.tr_1 as unknown as Record<string, unknown>).unaskedSpeakers = undefined;
+    expect(codes(ws)).toEqual(['field.type']);
+  });
+});
+
+describe('C8: deleting the transcript after a withdrawal', () => {
+  const withdrawn = () => {
+    const ws = sampleWorkspace();
+    ws.consents.cr_1.amendments = [
+      { id: 'am_1', kind: 'withdrawal', by: 'Sam', at: T3, reason: 'Client asked us to delete it.' },
+    ];
+    const fact = promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3);
+    if (fact.ok) ws.knowledge.kf_1 = fact.value;
+    // A finding resting on the transcript and on a note: it keeps its statement.
+    ws.findings.fd_mixed = {
+      ...ws.findings.fd_peak,
+      id: 'fd_mixed',
+      provenance: { kind: 'consultant' },
+      evidence: [
+        { kind: 'segment', segmentId: 'sg_2', quote: 'we keep stock in a spreadsheet' },
+        { kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts at month end' },
+      ],
+    };
+    return ws;
+  };
+  const LATER = '2026-11-05T09:00:00.000Z';
+
+  it('removes the transcript and every copy of its words, leaving a valid workspace', () => {
+    const removal = removeTranscript(withdrawn(), 'se_1', LATER);
+    expect(removal.ok).toBe(true);
+    if (!removal.ok) return;
+    const { workspace } = removal.value;
+    expect(workspace.transcripts).toEqual({});
+    expect(workspace.segments).toEqual({});
+    expect(JSON.stringify(workspace)).not.toContain('five times as many orders');
+    expect(JSON.stringify(workspace)).not.toContain('keep stock in a spreadsheet');
+    expect(validateWorkspace(workspace)).toEqual([]);
+    expect(workspace.consents.cr_1.amendments).toHaveLength(1);
+  });
+
+  it('removes findings left without a basis, and lists what keeps a statement from the session', () => {
+    const result = removeTranscript(withdrawn(), 'se_1', LATER);
+    if (!result.ok) throw new Error(result.error);
+    const removal = result.value;
+    // fd_peak and fd_stock were said in the session and cited only the transcript.
+    expect(removal.removedFindingIds.sort()).toEqual(['fd_peak', 'fd_stock']);
+    expect(removal.keptFindingIds).toEqual(['fd_mixed']);
+    expect(removal.workspace.findings.fd_mixed.evidence).toEqual([
+      { kind: 'deleted', sessionId: 'se_1', deletedAt: LATER },
+      { kind: 'note', noteId: 'no_1', quote: 'spreadsheet conflicts at month end' },
+    ]);
+    // The fact keeps its statement, loses its quotes, and its source is marked deleted.
+    expect(removal.factIds).toEqual(['kf_1']);
+    expect(removal.workspace.knowledge.kf_1.source).toMatchObject({ findingId: null, quotes: [], deletedAt: LATER });
+    expect(removal.workspace.knowledge.kf_1.statement).toBe('Orders peak in December, at about five times the usual volume.');
+  });
+
+  it('refuses a session without a transcript', () => {
+    const ws = sampleWorkspace();
+    ws.transcripts = {};
+    expect(removeTranscript(ws, 'se_1', LATER).ok).toBe(false);
   });
 });
