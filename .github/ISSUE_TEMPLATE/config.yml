@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Guide
+    url: https://github.com/Josh-Heath123/StyleCode/blob/main/docs/GUIDE.md
+    about: How to do things in StyleCode, from layout to the AI and recovering work.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Icon, type IconName } from '../ui/Icon';
-import { STEPS, type Onboarding } from './onboarding';
+import { STEPS, type Onboarding } from './onboardingState';
 import { useDialogFocus } from '../ui/useDialogFocus';
 
 export function useOnboardingState(onboarding: Onboarding) {
