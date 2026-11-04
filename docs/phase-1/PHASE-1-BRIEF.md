@@ -34,6 +34,15 @@ Don't reopen these.
 3. **Amendments can record what the client was newly told.** An amendment can add `told` statements and the wording version shown, for example when the client agrees to external AI by email after the meeting. C2 then checks each "yes" against everything the client has been told up to that point. This settles open question 8.
 4. **Workspace first.** StyleCode opens on the consultant's list of clients, with the design editor one click away. Where the workspace server isn't running (the GitHub Pages demo, or any static build), the app opens on the editor and says, in one line, that the workspace needs StyleCode running on your computer. It never shows workspace controls that can't work.
 
+**By the user at the WP0 check-in (2026-11-04):**
+
+5. **Permanent deletions leave no previous copy.** When a save makes a permanent deletion (a company, engagement, session, transcript or file), `workspace.previous.json` is overwritten with the new state too. Undoable steps, such as deleting a note, keep the normal previous copy. The guide says that deleting removes data from StyleCode's folder, not from backups or exports already made, and that disk encryption protects what the disk itself may still hold.
+6. **Editing or deleting a note that findings quote.** One behaviour for both: list the findings whose evidence quotes the note, and let the consultant cancel or go ahead. Going ahead removes that evidence from those findings in the same step, recorded in each finding's history, so one undo restores the note and the evidence together.
+7. **Removing a file is permanent:** a confirmation names the file, and it clears the undo history. Deleting a note stays an ordinary undoable step.
+8. **All four statuses when adding a finding by hand.** "Suggested" is a real status (vision §2): an idea, the consultant's or the client's, that isn't agreed yet. It is labelled "Suggested (not agreed yet)". The record shows only the groups that have findings; when the record is empty, it explains the four groups.
+9. **Settings live in `settings.json` in the data folder,** next to `companies/` (the consultant's name, for a start).
+10. **iCloud Drive** is added to the cloud-folder warning, recorded as an extension of ADR-0009 in `docs/ARCHITECTURE.md` §12 and the guide.
+
 **Already decided in Phase 0:** ADR-0001 to ADR-0009, `MVP.md` (Q1 to Q16), `DOMAIN-MODEL.md` and `CONSENT.md` (C1 to C11), as approved.
 
 ## Clarifications this brief makes
