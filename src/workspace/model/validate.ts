@@ -1,0 +1,546 @@
+/**
+ * Validation of a company's workspace: the shape of every entity, and the
+ * rules that keep the record trustworthy (docs/spec/DOMAIN-MODEL.md, "Rules").
+ *
+ * Unlike the editor's project loader, nothing is repaired. Dropping a piece of
+ * evidence or a consent amendment would quietly change what the record says,
+ * so a problem is reported and the caller decides.
+ */
+import { consentState } from './consent';
+import { isInRecord } from './findings';
+import {
+  AI_PROVENANCES,
+  ENTITY_MAPS,
+  FINDING_KINDS,
+  FINDING_STATUSES,
+  RELATION_TYPES,
+  TRANSCRIPT_PLATFORMS,
+  WORKSPACE_FORMAT,
+  WORKSPACE_VERSION,
+  type Actor,
+  type CompanyWorkspace,
+  type ConsentRecord,
+  type EntityMap,
+  type Evidence,
+  type Finding,
+  type Provenance,
+  type Retention,
+} from './types';
+import { get, isCalendarDate, isId, isNonEmptyText, isText, isTimestamp, quoteAppearsIn, time } from './util';
+
+export interface Problem {
+  /** Stable identifier of the rule, for tests and for the interface to look up its own wording. */
+  code: string;
+  message: string;
+  /** Where the problem is: the entity map (or "company"/"workspace") and the entity's id. */
+  where: { map: EntityMap | 'company' | 'workspace'; id?: string };
+}
+
+type Report = (code: string, message: string, map: Problem['where']['map'], id?: string) => void;
+
+const oneOf = <T extends string>(list: readonly T[], value: unknown): value is T => list.includes(value as T);
+
+/**
+ * Every problem in a workspace. An empty list means the workspace is valid.
+ * The input is assumed to have the workspace's top-level shape (see `parseWorkspace`).
+ */
+export function validateWorkspace(ws: CompanyWorkspace): Problem[] {
+  const problems: Problem[] = [];
+  const report: Report = (code, message, map, id) => problems.push({ code, message, where: id ? { map, id } : { map } });
+
+  if (ws.format !== WORKSPACE_FORMAT) report('workspace.format', 'Not a StyleCode workspace.', 'workspace');
+  if (ws.version !== WORKSPACE_VERSION)
+    report('workspace.version', `Unsupported workspace version ${String(ws.version)}.`, 'workspace');
+
+  checkKeys(ws, report);
+  checkCompany(ws, report);
+  checkKnowledge(ws, report);
+  checkEngagements(ws, report);
+  checkSessions(ws, report);
+  checkConsents(ws, report);
+  checkTranscripts(ws, report);
+  checkNotes(ws, report);
+  checkFiles(ws, report);
+  checkFindings(ws, report);
+  checkRelations(ws, report);
+  return problems;
+}
+
+/** Map keys are valid ids and equal the entity's own id. */
+function checkKeys(ws: CompanyWorkspace, report: Report) {
+  for (const map of ENTITY_MAPS) {
+    for (const [key, entity] of Object.entries(ws[map] as Record<string, { id?: unknown }>)) {
+      if (!isId(key)) report('id.invalid', `An entry has an invalid id.`, map);
+      else if (!entity || typeof entity !== 'object' || entity.id !== key)
+        report('id.mismatch', `Entry ${key} doesn't carry its own id.`, map, key);
+    }
+  }
+}
+
+function checkCompany(ws: CompanyWorkspace, report: Report) {
+  const c = ws.company;
+  if (!c || typeof c !== 'object') return report('company.missing', 'The workspace has no company.', 'company');
+  if (!isId(c.id)) report('id.invalid', 'The company has an invalid id.', 'company');
+  if (!isNonEmptyText(c.name)) report('company.name', 'The company needs a name.', 'company', c.id);
+  for (const field of ['industry', 'description', 'existingSystems', 'notes'] as const) {
+    if (!isText(c[field])) report('field.type', `The company's ${field} must be text.`, 'company', c.id);
+  }
+  checkTimes(c, 'company', report);
+}
+
+function checkKnowledge(ws: CompanyWorkspace, report: Report) {
+  for (const fact of Object.values(ws.knowledge)) {
+    if (!isNonEmptyText(fact.statement)) report('fact.statement', 'A company fact needs a statement.', 'knowledge', fact.id);
+    if (!oneOf(FINDING_KINDS, fact.kind)) report('field.value', 'A company fact has an unknown kind.', 'knowledge', fact.id);
+    checkProvenance(fact.provenance, 'knowledge', fact.id, report);
+    if (fact.promotedFromFindingId !== null) {
+      const finding = get(ws.findings, fact.promotedFromFindingId);
+      if (!finding)
+        report('ref.missing', 'A company fact was promoted from a finding that is not in this workspace.', 'knowledge', fact.id);
+      else if (!isInRecord(finding))
+        report('fact.source', 'Only findings in the record can become company knowledge.', 'knowledge', fact.id);
+    }
+    if (!isTimestamp(fact.createdAt)) report('field.time', 'A company fact has an invalid time.', 'knowledge', fact.id);
+  }
+}
+
+function checkEngagements(ws: CompanyWorkspace, report: Report) {
+  for (const e of Object.values(ws.engagements)) {
+    if (e.companyId !== ws.company?.id)
+      report('ref.company', 'An engagement belongs to a different company.', 'engagements', e.id);
+    if (!isNonEmptyText(e.name)) report('engagement.name', 'An engagement needs a name.', 'engagements', e.id);
+    if (!isText(e.goal)) report('field.type', "An engagement's goal must be text.", 'engagements', e.id);
+    const status = e.status as { state?: unknown; endedOn?: unknown } | undefined;
+    if (!status || (status.state !== 'active' && !(status.state === 'ended' && isCalendarDate(status.endedOn)))) {
+      report('field.value', 'An engagement has an invalid status.', 'engagements', e.id);
+    }
+    checkTimes(e, 'engagements', report);
+  }
+  for (const d of Object.values(ws.designs)) {
+    if (!get(ws.engagements, d.engagementId))
+      report('ref.missing', 'A design belongs to an engagement that is not in this workspace.', 'designs', d.id);
+    if (!isNonEmptyText(d.name)) report('design.name', 'A design needs a name.', 'designs', d.id);
+    if (!isId(d.documentId)) report('id.invalid', 'A design has an invalid document id.', 'designs', d.id);
+    if (!isTimestamp(d.createdAt)) report('field.time', 'A design has an invalid time.', 'designs', d.id);
+  }
+}
+
+function checkSessions(ws: CompanyWorkspace, report: Report) {
+  for (const s of Object.values(ws.sessions)) {
+    if (!get(ws.engagements, s.engagementId))
+      report('ref.missing', 'A session belongs to an engagement that is not in this workspace.', 'sessions', s.id);
+    if (!isNonEmptyText(s.title)) report('session.title', 'A session needs a title.', 'sessions', s.id);
+    if (!isTimestamp(s.startsAt)) report('field.time', 'A session has an invalid start time.', 'sessions', s.id);
+    if (!Array.isArray(s.audioFileIds)) report('field.type', "A session's audio must be a list.", 'sessions', s.id);
+    else {
+      for (const fileId of s.audioFileIds) {
+        const file = get(ws.files, fileId);
+        if (!file || file.owner.kind !== 'session' || file.owner.sessionId !== s.id) {
+          report('ref.missing', 'A session lists audio that is not one of its files.', 'sessions', s.id);
+        }
+      }
+    }
+    checkTimes(s, 'sessions', report);
+  }
+
+  const labelOwner = new Map<string, string>();
+  for (const p of Object.values(ws.participants)) {
+    if (!get(ws.sessions, p.sessionId))
+      report('ref.missing', 'A participant belongs to a session that is not in this workspace.', 'participants', p.id);
+    if (!isNonEmptyText(p.name)) report('participant.name', 'A participant needs a name.', 'participants', p.id);
+    if (!isText(p.role) || !isText(p.organisation))
+      report('field.type', "A participant's role and organisation must be text.", 'participants', p.id);
+    if (p.side !== 'client' && p.side !== 'consultant')
+      report('field.value', 'A participant must be on the client or consultant side.', 'participants', p.id);
+    if (!Array.isArray(p.speakerLabels) || !p.speakerLabels.every(isNonEmptyText)) {
+      report('field.type', "A participant's speaker labels must be a list of text.", 'participants', p.id);
+      continue;
+    }
+    for (const label of p.speakerLabels) {
+      const key = `${p.sessionId}\u0000${label}`;
+      const other = labelOwner.get(key);
+      if (other && other !== p.id)
+        report('participant.label', `The speaker label "${label}" belongs to two participants.`, 'participants', p.id);
+      labelOwner.set(key, p.id);
+    }
+  }
+}
+
+function checkConsents(ws: CompanyWorkspace, report: Report) {
+  const perSession = new Set<string>();
+  for (const c of Object.values(ws.consents)) {
+    const session = get(ws.sessions, c.sessionId);
+    if (!session) report('ref.missing', 'A consent record belongs to a session that is not in this workspace.', 'consents', c.id);
+    if (perSession.has(c.sessionId)) report('consent.duplicate', 'A session has more than one consent record.', 'consents', c.id);
+    perSession.add(c.sessionId);
+
+    if (!Array.isArray(c.askedParticipantIds)) report('field.type', 'The people asked must be a list.', 'consents', c.id);
+    else {
+      for (const pid of c.askedParticipantIds) {
+        const p = get(ws.participants, pid);
+        if (!p || p.sessionId !== c.sessionId)
+          report('ref.missing', 'The consent record names someone who is not in the session.', 'consents', c.id);
+        else if (p.side !== 'client') report('consent.asked', 'Consent is asked of client participants only.', 'consents', c.id);
+      }
+      if (c.confirmed && c.askedParticipantIds.length === 0)
+        report('consent.asked', 'A confirmed consent record names who was asked.', 'consents', c.id);
+    }
+    if (!isText(c.askedBy) || (c.confirmed && !isNonEmptyText(c.askedBy)))
+      report('consent.askedBy', 'A confirmed consent record names who asked.', 'consents', c.id);
+    const method = c.method as { kind?: unknown; description?: unknown } | undefined;
+    if (!method || !['verbal-at-start', 'written-before', 'other'].includes(method.kind as string)) {
+      report('field.value', 'The consent record has an unknown method.', 'consents', c.id);
+    } else if (method.kind === 'other' && !isNonEmptyText(method.description)) {
+      report('consent.method', 'Describe how consent was asked.', 'consents', c.id);
+    }
+    if (!isNonEmptyText(c.wordingVersion))
+      report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
+    if (!c.told || !Object.values(c.told).every((v) => typeof v === 'boolean'))
+      report('field.type', 'What the client was told must be yes or no.', 'consents', c.id);
+    checkGiven(c, report);
+    checkRetention(c.retention, c.id, report);
+    const outcome = c.outcome as { kind?: unknown; limits?: unknown } | undefined;
+    if (!outcome || !['given', 'limited', 'declined'].includes(outcome.kind as string)) {
+      report('field.value', 'The consent record has an unknown outcome.', 'consents', c.id);
+    } else if (outcome.kind === 'limited' && !isNonEmptyText(outcome.limits)) {
+      report('consent.limits', 'Describe the limits the client set.', 'consents', c.id);
+    } else if (
+      outcome.kind === 'declined' &&
+      c.given &&
+      Object.entries(c.given).some(([k, v]) => k !== 'externalProvider' && v === true)
+    ) {
+      report('consent.declined', 'Declined consent cannot agree to anything.', 'consents', c.id);
+    }
+    if (c.confirmed !== null && (!c.confirmed || !isNonEmptyText(c.confirmed.by) || !isTimestamp(c.confirmed.at))) {
+      report('consent.confirmed', "The consultant's confirmation needs a name and a time.", 'consents', c.id);
+    }
+    if (c.attachmentFileId !== null) {
+      const file = get(ws.files, c.attachmentFileId);
+      const ownedHere =
+        file &&
+        ((file.owner.kind === 'session' && file.owner.sessionId === c.sessionId) ||
+          (file.owner.kind === 'engagement' && file.owner.engagementId === session?.engagementId));
+      if (!ownedHere)
+        report('ref.missing', "The consent record's attachment is not a file of its session or engagement.", 'consents', c.id);
+    }
+    checkLockAndAmendments(c, report);
+    checkTimes(c, 'consents', report);
+  }
+}
+
+function checkGiven(c: ConsentRecord, report: Report) {
+  const g = c.given;
+  if (
+    !g ||
+    !['audioRecording', 'transcription', 'aiLocal', 'aiExternal'].every(
+      (k) => typeof (g as unknown as Record<string, unknown>)[k] === 'boolean',
+    )
+  ) {
+    return report('field.type', 'What the client agreed to must be yes or no.', 'consents', c.id);
+  }
+  if (g.aiExternal && !isNonEmptyText(g.externalProvider))
+    report('consent.provider', 'Name the external AI provider the client agreed to.', 'consents', c.id);
+  if (!g.aiExternal && g.externalProvider !== null)
+    report('consent.provider', 'An external provider is named only when the client agreed to one.', 'consents', c.id);
+}
+
+function checkRetention(r: Retention | undefined, id: string, report: Report) {
+  const kind = (r as { kind?: unknown } | undefined)?.kind;
+  if (kind === 'days') {
+    const days = (r as { days?: unknown }).days;
+    if (!Number.isInteger(days) || (days as number) < 1)
+      report('consent.retention', 'Retention in days must be a whole number of at least 1.', 'consents', id);
+  } else if (kind !== 'until-engagement-ends' && kind !== 'delete-after-transcription') {
+    report('field.value', 'The consent record has an unknown retention.', 'consents', id);
+  }
+}
+
+function checkLockAndAmendments(c: ConsentRecord, report: Report) {
+  if (c.lockedAt !== null) {
+    if (!isTimestamp(c.lockedAt)) return report('field.time', 'The consent record has an invalid lock time.', 'consents', c.id);
+    if (!c.confirmed) report('consent.lock', 'Only a confirmed consent record can be locked.', 'consents', c.id);
+    else if (isTimestamp(c.confirmed.at) && time(c.lockedAt) < time(c.confirmed.at)) {
+      report('consent.lock', 'The consent record was locked before it was confirmed.', 'consents', c.id);
+    }
+  }
+  if (!Array.isArray(c.amendments)) return report('field.type', 'Amendments must be a list.', 'consents', c.id);
+  if (c.amendments.length && c.lockedAt === null)
+    report('consent.amendment', 'Only a locked consent record has amendments.', 'consents', c.id);
+  let previous = c.lockedAt && isTimestamp(c.lockedAt) ? time(c.lockedAt) : -Infinity;
+  let withdrawn = false;
+  const ids = new Set<string>();
+  for (const a of c.amendments) {
+    if (!isId(a.id) || ids.has(a.id)) report('id.invalid', 'An amendment has a missing or repeated id.', 'consents', c.id);
+    ids.add(a.id);
+    if (!isTimestamp(a.at)) {
+      report('field.time', 'An amendment has an invalid time.', 'consents', c.id);
+      continue;
+    }
+    if (time(a.at) < previous)
+      report('consent.amendment', 'Amendments are in date order, after the record was locked.', 'consents', c.id);
+    previous = time(a.at);
+    if (!isNonEmptyText(a.by) || !isNonEmptyText(a.reason))
+      report('consent.amendment', 'An amendment says who made it and why.', 'consents', c.id);
+    if (withdrawn) report('consent.amendment', 'Nothing can follow a withdrawal of consent.', 'consents', c.id);
+    if (a.kind === 'withdrawal') withdrawn = true;
+    else if (a.kind === 'change') {
+      if (a.retention) checkRetention(a.retention, c.id, report);
+    } else report('field.value', 'An amendment has an unknown kind.', 'consents', c.id);
+  }
+}
+
+function checkTranscripts(ws: CompanyWorkspace, report: Report) {
+  const perSession = new Set<string>();
+  for (const t of Object.values(ws.transcripts)) {
+    if (!get(ws.sessions, t.sessionId))
+      report('ref.missing', 'A transcript belongs to a session that is not in this workspace.', 'transcripts', t.id);
+    if (perSession.has(t.sessionId))
+      report('transcript.duplicate', 'A session has more than one transcript.', 'transcripts', t.id);
+    perSession.add(t.sessionId);
+    const src = t.source as { kind?: unknown; fileName?: unknown; format?: unknown; platform?: unknown } | undefined;
+    const sourceOk =
+      src?.kind === 'pasted' ||
+      (src?.kind === 'file' &&
+        isNonEmptyText(src.fileName) &&
+        (src.format === 'vtt' || src.format === 'docx') &&
+        oneOf(TRANSCRIPT_PLATFORMS, src.platform));
+    if (!sourceOk) report('field.value', 'A transcript has an invalid source.', 'transcripts', t.id);
+    if (!isNonEmptyText(t.importedBy) || !isTimestamp(t.importedAt)) {
+      report('field.value', 'A transcript says who imported it and when.', 'transcripts', t.id);
+      continue;
+    }
+    // No transcript without consent (ADR-0003): a confirmed record that allowed transcription when it was imported, locked by then.
+    const consent = Object.values(ws.consents).find((c) => c.sessionId === t.sessionId);
+    if (!consent || !consent.confirmed) {
+      report('consent.required', 'A transcript was imported without a confirmed consent record.', 'transcripts', t.id);
+    } else {
+      const state = consentState(consent, t.importedAt);
+      if (!state.given.transcription)
+        report('consent.required', 'A transcript was imported without consent to transcription.', 'transcripts', t.id);
+      if (consent.lockedAt === null || (isTimestamp(consent.lockedAt) && time(consent.lockedAt) > time(t.importedAt))) {
+        report('consent.lock', 'Importing a transcript locks the consent record.', 'transcripts', t.id);
+      }
+    }
+  }
+
+  const indexes = new Map<string, number[]>();
+  for (const s of Object.values(ws.segments)) {
+    if (!get(ws.transcripts, s.transcriptId))
+      report('ref.missing', 'A segment belongs to a transcript that is not in this workspace.', 'segments', s.id);
+    if (!Number.isInteger(s.index) || s.index < 0) report('field.value', 'A segment has an invalid position.', 'segments', s.id);
+    else indexes.set(s.transcriptId, [...(indexes.get(s.transcriptId) ?? []), s.index]);
+    if (s.speakerLabel !== null && !isNonEmptyText(s.speakerLabel))
+      report('field.type', "A segment's speaker label must be text.", 'segments', s.id);
+    if (!isText(s.text)) report('field.type', "A segment's text must be text.", 'segments', s.id);
+    const timeOk = (v: unknown) => v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0);
+    if (!timeOk(s.startMs) || !timeOk(s.endMs)) report('field.value', 'A segment has an invalid time.', 'segments', s.id);
+    else if (s.endMs !== null && (s.startMs === null || s.endMs < s.startMs))
+      report('segment.time', 'A segment ends before it starts.', 'segments', s.id);
+    if (s.confidence !== null && !(typeof s.confidence === 'number' && s.confidence >= 0 && s.confidence <= 1)) {
+      report('field.value', "A segment's confidence must be between 0 and 1.", 'segments', s.id);
+    }
+  }
+  for (const [transcriptId, list] of indexes) {
+    const sorted = [...list].sort((a, b) => a - b);
+    if (sorted.some((v, i) => v !== i))
+      report('segment.order', 'A transcript has missing or repeated segment positions.', 'transcripts', transcriptId);
+  }
+}
+
+function checkNotes(ws: CompanyWorkspace, report: Report) {
+  for (const n of Object.values(ws.notes)) {
+    if (!get(ws.sessions, n.sessionId))
+      report('ref.missing', 'A note belongs to a session that is not in this workspace.', 'notes', n.id);
+    if (!isText(n.text)) report('field.type', "A note's text must be text.", 'notes', n.id);
+    if (!isTimestamp(n.writtenAt) || !isTimestamp(n.updatedAt))
+      report('field.time', 'A note has an invalid time.', 'notes', n.id);
+  }
+}
+
+function checkFiles(ws: CompanyWorkspace, report: Report) {
+  for (const f of Object.values(ws.files)) {
+    const owner = f.owner as { kind?: unknown; engagementId?: unknown; sessionId?: unknown } | undefined;
+    const ownerOk =
+      owner?.kind === 'company' ||
+      (owner?.kind === 'engagement' && !!get(ws.engagements, owner.engagementId)) ||
+      (owner?.kind === 'session' && !!get(ws.sessions, owner.sessionId));
+    if (!ownerOk) report('ref.missing', 'A file is attached to something that is not in this workspace.', 'files', f.id);
+    if (!isNonEmptyText(f.name) || !isNonEmptyText(f.mediaType))
+      report('field.value', 'A file needs a name and a media type.', 'files', f.id);
+    if (!Number.isInteger(f.sizeBytes) || f.sizeBytes < 0) report('field.value', 'A file has an invalid size.', 'files', f.id);
+    if (!isNonEmptyText(f.addedBy) || !isTimestamp(f.addedAt))
+      report('field.value', 'A file says who added it and when.', 'files', f.id);
+  }
+}
+
+function checkProvenance(p: Provenance | undefined, map: EntityMap, id: string, report: Report) {
+  const kind = (p as { kind?: unknown } | undefined)?.kind;
+  if (kind === 'verified') {
+    const v = p as Extract<Provenance, { kind: 'verified' }>;
+    if (!isNonEmptyText(v.source) || !isCalendarDate(v.checkedOn) || (v.url !== null && !isNonEmptyText(v.url))) {
+      report('provenance.verified', 'Verified information names its source and the date it was checked.', map, id);
+    }
+  } else if (kind === 'calculated') {
+    const c = p as Extract<Provenance, { kind: 'calculated' }>;
+    if (!isNonEmptyText(c.engine) || !isNonEmptyText(c.engineVersion))
+      report('provenance.calculated', 'A calculated result names its engine and version.', map, id);
+  } else if (kind !== 'said-in-session' && kind !== 'consultant' && kind !== 'ai-suggested') {
+    report('field.value', 'Unknown provenance.', map, id);
+  }
+}
+
+function isActor(a: Actor | undefined): boolean {
+  if (!a) return false;
+  if (a.kind === 'consultant') return isNonEmptyText(a.name);
+  return a.kind === 'ai' && isNonEmptyText(a.provider) && isNonEmptyText(a.model);
+}
+
+function checkFindings(ws: CompanyWorkspace, report: Report) {
+  for (const f of Object.values(ws.findings)) {
+    const engagement = get(ws.engagements, f.engagementId);
+    if (!engagement) report('ref.missing', 'A finding belongs to an engagement that is not in this workspace.', 'findings', f.id);
+    if (!oneOf(FINDING_KINDS, f.kind)) report('field.value', 'A finding has an unknown kind.', 'findings', f.id);
+    if (!oneOf(FINDING_STATUSES, f.status)) report('field.value', 'A finding has an unknown status.', 'findings', f.id);
+    if (!isNonEmptyText(f.statement)) report('finding.statement', 'A finding needs a statement.', 'findings', f.id);
+    checkProvenance(f.provenance, 'findings', f.id, report);
+    checkTimes(f, 'findings', report);
+
+    // Origin and review.
+    const origin = f.origin as Finding['origin'] | undefined;
+    if (origin?.kind === 'consultant') {
+      if (!isNonEmptyText(origin.by) || !isTimestamp(origin.at))
+        report('finding.origin', 'A finding says who entered it and when.', 'findings', f.id);
+    } else if (origin?.kind === 'ai') {
+      if (!isNonEmptyText(origin.provider) || !isNonEmptyText(origin.model) || !isTimestamp(origin.at)) {
+        report('finding.origin', 'An AI proposal names its provider and model, and when it was made.', 'findings', f.id);
+      }
+      const review = origin.review as { state?: unknown; by?: unknown; at?: unknown } | undefined;
+      if (!review || !['pending', 'accepted', 'rejected'].includes(review.state as string)) {
+        report('field.value', 'An AI proposal has an invalid review.', 'findings', f.id);
+      } else if (review.state !== 'pending' && (!isNonEmptyText(review.by) || !isTimestamp(review.at))) {
+        report('finding.review', 'Accepting or rejecting a proposal records who and when.', 'findings', f.id);
+      }
+      if (!AI_PROVENANCES.includes(f.provenance?.kind)) {
+        report('finding.aiProvenance', 'The AI cannot supply verified or calculated information.', 'findings', f.id);
+      }
+    } else report('field.value', 'A finding has an unknown origin.', 'findings', f.id);
+
+    // Status: only the consultant confirms (vision §7; ADR-0004).
+    if (!f.statusSet || !isActor(f.statusSet.by) || !isTimestamp(f.statusSet.at)) {
+      report('finding.statusSet', 'A finding records who set its status and when.', 'findings', f.id);
+    } else {
+      if (f.status === 'confirmed' && f.statusSet.by.kind !== 'consultant') {
+        report('finding.confirmedByAi', 'Only the consultant can confirm a finding.', 'findings', f.id);
+      }
+      if (origin?.kind === 'ai' && origin.review?.state !== 'accepted' && f.statusSet.by.kind !== 'ai') {
+        report('finding.statusSet', 'A proposal still under review keeps the status the AI proposed.', 'findings', f.id);
+      }
+      if (origin?.kind === 'consultant' && f.statusSet.by.kind !== 'consultant') {
+        report('finding.statusSet', "The AI cannot set the status of the consultant's finding.", 'findings', f.id);
+      }
+    }
+
+    // Evidence.
+    if (!Array.isArray(f.evidence)) {
+      report('field.type', "A finding's evidence must be a list.", 'findings', f.id);
+      continue;
+    }
+    let citesSegment = false;
+    for (const e of f.evidence) {
+      const result = checkEvidence(ws, f.engagementId, e);
+      if (result === 'segment') citesSegment = true;
+      else if (result !== 'note') report(result.code, result.message, 'findings', f.id);
+    }
+    if (f.provenance?.kind === 'said-in-session' && !citesSegment) {
+      report(
+        'finding.saidNeedsSegment',
+        'A finding said in a session cites at least one transcript segment from its engagement.',
+        'findings',
+        f.id,
+      );
+    }
+  }
+}
+
+/** Checks one piece of evidence against the engagement it must belong to. */
+function checkEvidence(
+  ws: CompanyWorkspace,
+  engagementId: string,
+  e: Evidence,
+): 'segment' | 'note' | { code: string; message: string } {
+  if (!e || !isNonEmptyText(e.quote)) return { code: 'evidence.quote', message: 'Evidence quotes the words it rests on.' };
+  if (e.kind === 'segment') {
+    const segment = get(ws.segments, e.segmentId);
+    const transcript = segment && get(ws.transcripts, segment.transcriptId);
+    const session = transcript && get(ws.sessions, transcript.sessionId);
+    if (!segment || !session)
+      return { code: 'evidence.missing', message: 'Evidence cites a transcript segment that does not exist.' };
+    if (session.engagementId !== engagementId)
+      return { code: 'evidence.engagement', message: 'Evidence cites a segment from another engagement.' };
+    if (!quoteAppearsIn(segment.text, e.quote))
+      return { code: 'evidence.invented', message: 'The quoted words do not appear in the cited segment.' };
+    return 'segment';
+  }
+  if (e.kind === 'note') {
+    const note = get(ws.notes, e.noteId);
+    const session = note && get(ws.sessions, note.sessionId);
+    if (!note || !session) return { code: 'evidence.missing', message: 'Evidence cites a note that does not exist.' };
+    if (session.engagementId !== engagementId)
+      return { code: 'evidence.engagement', message: 'Evidence cites a note from another engagement.' };
+    if (!quoteAppearsIn(note.text, e.quote))
+      return { code: 'evidence.invented', message: 'The quoted words do not appear in the cited note.' };
+    return 'note';
+  }
+  return { code: 'field.value', message: 'Evidence of an unknown kind.' };
+}
+
+function checkRelations(ws: CompanyWorkspace, report: Report) {
+  const seen = new Set<string>();
+  for (const r of Object.values(ws.relations)) {
+    if (!oneOf(RELATION_TYPES, r.type)) report('field.value', 'A link has an unknown type.', 'relations', r.id);
+    const from = get(ws.findings, r.fromId);
+    const to = get(ws.findings, r.toId);
+    if (!from || !to) {
+      report('ref.missing', 'A link points at a finding that is not in this workspace.', 'relations', r.id);
+      continue;
+    }
+    if (r.fromId === r.toId) report('relation.self', 'A finding cannot be linked to itself.', 'relations', r.id);
+    if (from.engagementId !== to.engagementId)
+      report('relation.engagement', 'Links stay within one engagement.', 'relations', r.id);
+    if (!isInRecord(from) || !isInRecord(to))
+      report('relation.record', 'Only findings in the record can be linked.', 'relations', r.id);
+    const key = `${r.type}\u0000${r.fromId}\u0000${r.toId}`;
+    if (seen.has(key)) report('relation.duplicate', 'The same link exists twice.', 'relations', r.id);
+    seen.add(key);
+    if (!isNonEmptyText(r.createdBy) || !isTimestamp(r.createdAt))
+      report('field.value', 'A link says who made it and when.', 'relations', r.id);
+  }
+}
+
+function checkTimes(
+  entity: { id: string; createdAt?: unknown; updatedAt?: unknown },
+  map: Problem['where']['map'],
+  report: Report,
+) {
+  if (!isTimestamp(entity.createdAt) || !isTimestamp(entity.updatedAt))
+    report('field.time', 'An entry has an invalid time.', map, entity.id);
+}
+
+/**
+ * Ids that appear in more than one company's workspace. Ids are random, so a
+ * shared id means data was copied between companies (CLAUDE.md: companies'
+ * data never mix).
+ */
+export function sharedIds(workspaces: CompanyWorkspace[]): string[] {
+  const owner = new Map<string, string>();
+  const shared = new Set<string>();
+  for (const ws of workspaces) {
+    const ids = [ws.company.id, ...ENTITY_MAPS.flatMap((m) => Object.keys(ws[m]))];
+    for (const id of ids) {
+      const seenIn = owner.get(id);
+      if (seenIn !== undefined && seenIn !== ws.company.id) shared.add(id);
+      owner.set(id, ws.company.id);
+    }
+  }
+  return [...shared].sort();
+}
