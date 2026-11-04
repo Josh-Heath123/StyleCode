@@ -79,7 +79,7 @@ A few rules that keep the layers clean: `model` and `codegen` don't depend on Re
 
 ## Style
 
-- Formatting is Prettier with the project's settings (`.prettierrc.json`): run `npx prettier --write` on the files you touched.
+- Formatting is Prettier with the project's settings (`.prettierrc.json`): run `npm run format` before committing (CI runs `npm run format:check`; Markdown is excluded).
 - TypeScript is strict. Prefer clear names over comments; write a comment when it explains *why*, or something a reader couldn't work out from the code.
 - Interface text is plain English: short, specific, no jargon, no exclamation marks. Say what happened and what the user can do about it.
 - Colours, spacing and type come from the tokens at the top of `src/styles/app.css`. Text must meet WCAG AA contrast (4.5:1) on the surfaces it sits on.

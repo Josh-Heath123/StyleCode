@@ -13,8 +13,8 @@ The project is now becoming an **AI-assisted consulting workspace** for software
 - **Local-first.** Client data, recordings and files stay on the user's computer. There are no accounts, no hosted services and nothing that costs money to run.
 - **AI is optional.** Everything works with AI off. Local models (Ollama) are the default; the user's own API key is an option.
 - **API keys never reach** the browser, the repo, project files or logs. Keys live with the local server only (see `server/ai/`).
-- **No recording without consent.** A session's consent record must exist before recording or audio import (`docs/spec/CONSENT.md` once written).
-- **Never commit real client data** or recordings of real people. Test data is role-played. Audio files are git-ignored.
+- **No recording without consent.** A session's consent record must exist before recording, audio import or transcript import (importing or pasting one), and must allow it (`docs/spec/CONSENT.md` once written).
+- **Never commit real client data** or recordings of real people. Test data is role-played. Audio files are git-ignored (`.gitignore`).
 - **Companies' data never mix.** Nothing in one company's workspace may reference another's.
 - **Deterministic where it matters.** Costs, compatibility and constraint checks are code over sourced, dated data. The AI never supplies a price, and never marks something as verified.
 - **Status and provenance on every finding.** Never blur "AI-suggested" with "confirmed", or "assumption" with "said by the client".
@@ -30,9 +30,13 @@ npm run dev                      # http://localhost:5173 (includes the local AI 
 npm run typecheck                # app + browser tests
 npm test                         # unit tests (Vitest)
 npm run test:e2e                 # browser tests (Playwright, own dev server on 5174)
+npm run test:all                 # unit tests, then browser tests
 npm run build                    # type-check + production build
+npm run format                   # Prettier on everything except Markdown
+npm run format:check             # what CI checks
 npm run demos                    # re-record docs/media GIFs (needs ffmpeg)
 npm run site                     # documentation site into site/
+npm run build:pages              # app at site/app/ plus the site, as GitHub Pages publishes it
 ```
 
 Node 22.12 or newer is required. The user works on **Windows**, so keep npm scripts and tooling cross-platform (no bash-only scripts).
@@ -51,13 +55,15 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
 | `server/ai` | Local AI server (Vite plugin): settings, keys, providers. Node only. |
 | `src/workspace` | (new) The consulting workspace: domain model first. |
 | `e2e`, `e2e/demos` | Browser tests; demo recordings. |
+| `scripts` | The documentation site builder and its Markdown renderer. |
+| `.github` | CI (Linux: format, typecheck, unit, build, browser tests; Windows: typecheck, unit, build), the Pages deploy, issue and PR templates. |
 | `docs` | Vision, guide, architecture, roadmap, decisions (`docs/decisions/`), specs (`docs/spec/`), research (`docs/research/`), phase briefs and handovers. |
 
 `docs/ARCHITECTURE.md` explains the editor's design and the reasons behind it. Read the relevant section before changing an area.
 
 ## Conventions
 
-- TypeScript is strict. Run Prettier (`.prettierrc.json`) on the files you touch.
+- TypeScript is strict. Run `npm run format` (Prettier, `.prettierrc.json`) before committing; CI runs `npm run format:check`. Markdown is excluded (`.prettierignore`).
 - `model` and `codegen` stay pure: no React, no DOM.
   - Every design-document change goes through `applyOps`.
   - New layer properties go through the registry in `src/model/properties.ts`.
