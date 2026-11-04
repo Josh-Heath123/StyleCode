@@ -18,7 +18,7 @@ import { DockArea } from './AssistantBar';
 import { Notice } from './Notice';
 import { Announcer } from './Announcer';
 import { PanelBoundary } from '../ui/ErrorBoundary';
-import { Onboarding } from './onboarding';
+import { Onboarding } from './onboardingState';
 import { Checklist, useOnboardingState, WelcomeDialog } from './Onboarding';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { isTypingTarget } from '../canvas/Canvas';

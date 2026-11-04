@@ -1,0 +1,57 @@
+name: Bug report
+description: Something in StyleCode doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please don't include API keys or anything private: projects stay on your computer, so only share what you are happy to make public.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: |
+        1. Opened the example project
+        2. Selected the cards row and chose Grid
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: If StyleCode showed an error (a notice, or the recovery screen), paste it here.
+      render: text
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Canvas and drawing
+        - Layout (auto layout, grid, tidy)
+        - Layers or Design panel
+        - Code, preview or export
+        - AI assistant
+        - Saving, projects or files
+        - Keyboard or screen reader
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      placeholder: Chrome 142 on Windows 11
+    validations:
+      required: true
+  - type: input
+    id: ai
+    attributes:
+      label: AI provider and model (if the AI was involved)
+      placeholder: Ollama, qwen2.5:7b
+  - type: textarea
+    id: file
+    attributes:
+      label: A project file that shows it (optional)
+      description: Projects → Save to file…, then attach the file here. Only if it contains nothing private.

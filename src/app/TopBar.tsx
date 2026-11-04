@@ -8,7 +8,7 @@ import { SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from
 import { useAssistantState } from '../ai/react';
 import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
-import type { Onboarding } from './onboarding';
+import type { Onboarding } from './onboardingState';
 
 interface TopBarProps {
   session: ProjectSession;

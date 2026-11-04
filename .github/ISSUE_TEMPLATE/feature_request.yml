@@ -1,0 +1,24 @@
+name: Idea or feature request
+description: Suggest something StyleCode could do.
+labels: [idea]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the situation and what gets in the way today, rather than a particular solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: How you imagine it working, if you have an idea.
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: StyleCode's principles
+      description: Ideas that fit these are much easier to take on (see CONTRIBUTING.md).
+      options:
+        - label: It works without an account, a server or paid services, and keeps projects on the user's device.
+        - label: It works with AI turned off (AI can make it better, but isn't required).
