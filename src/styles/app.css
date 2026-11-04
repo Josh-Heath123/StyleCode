@@ -19,12 +19,16 @@
   /* Text */
   --text: #f3f5fa;
   --text-2: #a7afbf;
-  --text-3: #6c7486;
+  /* Readable on every surface (WCAG AA, 4.5:1 or better) */
+  --text-3: #868fa5;
   --text-4: #474e5e;
 
   /* Accents */
   --blue: #2f7bff;
   --blue-hi: #5c98ff;
+  /* Filled buttons: the same electric blue, a shade deeper so white text on it reads at 4.5:1 */
+  --blue-fill: #2167e6;
+  --blue-fill-hi: #296dee;
   --blue-soft: rgba(47, 123, 255, 0.16);
   --blue-faint: rgba(47, 123, 255, 0.08);
   --melon: #ffa05c;
@@ -194,7 +198,13 @@ kbd {
   white-space: nowrap;
 }
 
-.save-status::before {
+.save-status-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-status-text::before {
   content: '';
   width: 6px;
   height: 6px;
@@ -202,22 +212,22 @@ kbd {
   background: var(--text-4);
 }
 
-.save-status[data-status='saved']::before {
+.save-status-text[data-status='saved']::before {
   background: #3ecf8e;
 }
 
-.save-status[data-status='saving']::before,
-.save-status[data-status='pending']::before {
+.save-status-text[data-status='saving']::before,
+.save-status-text[data-status='pending']::before {
   background: var(--blue);
 }
 
-.save-status[data-status='error']::before,
-.save-status[data-status='unavailable']::before {
+.save-status-text[data-status='error']::before,
+.save-status-text[data-status='unavailable']::before {
   background: var(--danger);
 }
 
-.save-status[data-status='error'],
-.save-status[data-status='unavailable'] {
+.save-status-text[data-status='error'],
+.save-status-text[data-status='unavailable'] {
   color: var(--danger);
 }
 
@@ -346,13 +356,13 @@ kbd {
 }
 
 .button.primary {
-  background: var(--blue);
-  border-color: var(--blue);
+  background: var(--blue-fill);
+  border-color: var(--blue-fill);
   color: #fff;
 }
 
 .button.primary:hover {
-  background: var(--blue-hi);
+  background: var(--blue-fill-hi);
 }
 
 .button.danger {
@@ -431,12 +441,12 @@ kbd {
 }
 
 .menu-item.is-active:not(:disabled) {
-  background: var(--blue);
+  background: var(--blue-fill);
   color: #fff;
 }
 
 .menu-item.is-active kbd {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .menu-item:disabled {
@@ -489,11 +499,25 @@ kbd {
   transform-origin: 0 0;
 }
 
+/* Panning and zooming: composite instead of repainting (set briefly by the canvas). */
+.canvas-content.is-moving {
+  will-change: transform;
+}
+
 /* Design layers: plain CSS so the canvas renders exactly what export will. */
 .sc-node {
   box-sizing: border-box;
   pointer-events: auto;
   user-select: none;
+}
+
+/*
+ * Pages scrolled out of view aren't drawn at all, which keeps big documents
+ * quick. Only for frames that clip their content anyway, so nothing that
+ * would show outside them is cut off.
+ */
+.canvas-content > .sc-frame[data-clips] {
+  content-visibility: auto;
 }
 
 .sc-node[data-locked],
@@ -510,7 +534,8 @@ kbd {
   caret-color: currentColor;
 }
 
-.sc-text:has(.sc-text-editor) {
+.sc-text:has(.sc-text-editor),
+.sc-note:has(.sc-text-editor) {
   outline: 1px solid var(--blue);
   outline-offset: 0;
 }
@@ -551,6 +576,8 @@ kbd {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  /* Its own layer, so selection boxes and guides redraw without repainting the design under them. */
+  will-change: transform;
 }
 
 .overlay-svg {
@@ -660,7 +687,7 @@ kbd {
   top: 0;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--blue);
+  background: var(--blue-fill);
   color: #fff;
   font-size: 11px;
   font-weight: 500;
@@ -726,6 +753,24 @@ kbd {
 .layer-row.is-selected {
   background: var(--blue-soft);
   color: var(--text);
+}
+
+/* The tree takes focus as a whole; the row the arrow keys are on gets the ring. */
+.layers:focus-visible {
+  outline: none;
+}
+
+.layers:focus-visible .layer-row.is-active {
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+.canvas:focus-visible {
+  outline: none;
+}
+
+.canvas.is-tabbed-in:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
 }
 
 .layer-row.is-child-of-selected {
@@ -1126,14 +1171,18 @@ kbd {
    Notices and dialogs
    -------------------------------------------------------------------------- */
 
+/* Top centre of the canvas: clear of the tool dock, the assistant and the checklist. */
 .notice {
   position: fixed;
-  left: calc(var(--left-w) + 16px);
-  bottom: 20px;
-  max-width: 420px;
+  left: calc(var(--left-w) + (100vw - var(--left-w) - var(--right-w)) / 2);
+  top: calc(var(--topbar-h) + 12px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(480px, calc(100vw - var(--left-w) - var(--right-w) - 32px));
   padding: 9px 12px;
   border-radius: var(--r-menu);
-  z-index: 60;
+  /* Above dialogs, so what an action in a dialog reports is seen. */
+  z-index: 96;
   color: var(--text);
   display: flex;
   gap: 10px;
@@ -1158,7 +1207,7 @@ kbd {
 @keyframes notice-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translate(-50%, -6px);
   }
 }
 
@@ -1178,6 +1227,11 @@ kbd {
   flex-direction: column;
   border-radius: 14px;
   overflow: hidden;
+}
+
+/* Dialogs sit over whatever is on the canvas (often a white page), so their glass is nearly opaque. */
+.dialog.glass {
+  background: rgba(14, 18, 27, 0.95);
 }
 
 .dialog-head {
@@ -1628,6 +1682,14 @@ kbd {
   padding: 6px 6px 0 8px;
   border-bottom: 1px solid var(--line);
   flex: none;
+}
+
+.code-tab-list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1698,7 +1760,8 @@ kbd {
   width: 40px;
   padding-right: 12px;
   text-align: right;
-  color: var(--text-4);
+  /* Dim, but still readable (4.5:1 on the code background) */
+  color: #737c8f;
   user-select: none;
 }
 
@@ -1793,7 +1856,6 @@ kbd {
 
 .text-button.is-on .preview-width {
   color: inherit;
-  opacity: 0.75;
 }
 
 .preview-scale {
@@ -1861,7 +1923,14 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: notice-in 140ms ease-out;
+  animation: assistant-in 140ms ease-out;
+}
+
+@keyframes assistant-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 .assistant[data-status='review'] {
@@ -1944,13 +2013,13 @@ kbd {
   height: 28px;
   border: 0;
   border-radius: 8px;
-  background: var(--blue);
+  background: var(--blue-fill);
   color: #fff;
   position: relative;
 }
 
 .assistant-send:hover:not(:disabled) {
-  background: var(--blue-hi);
+  background: var(--blue-fill-hi);
 }
 
 .assistant-send:disabled {
@@ -2343,4 +2412,540 @@ kbd {
   flex: 1;
   color: var(--danger);
   font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 5: notes, spacing and distances, new property controls
+   -------------------------------------------------------------------------- */
+
+.sc-note {
+  cursor: default;
+}
+
+.sc-note:empty::before {
+  content: 'Write a note for yourself or the AI…';
+  color: rgba(43, 29, 14, 0.45);
+}
+
+.ov-note-arrow {
+  stroke: var(--melon);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.ov-arrowhead {
+  fill: var(--melon);
+}
+
+.ov-connector .ov-hit {
+  cursor: crosshair;
+}
+
+.ov-connector-dot {
+  fill: var(--melon);
+  stroke: var(--midnight);
+  stroke-width: 2;
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+.ov-connector-line {
+  stroke: var(--melon);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.ov-gap line {
+  stroke: #ff5c8a;
+  stroke-width: 1;
+}
+
+.ov-measure line {
+  stroke: #ff5c8a;
+  stroke-width: 1;
+}
+
+.ov-gap text,
+.ov-measure text {
+  fill: var(--midnight);
+  font-size: 10px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #ff5c8a;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+.add-row {
+  align-self: flex-start;
+  height: 24px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.field-with-button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.corners {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: start;
+}
+
+.mobile-section > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.mobile-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--melon);
+  background: var(--melon-soft);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.note-colors {
+  display: flex;
+  gap: 8px;
+}
+
+.note-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  padding: 0;
+}
+
+.note-swatch[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 2px var(--surface-1),
+    0 0 0 4px var(--blue);
+}
+
+.note-target {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 10px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+.note-target .text-button {
+  margin-left: -10px;
+}
+
+.note-target strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.panel-pad {
+  padding: 12px 14px;
+}
+
+/* Onboarding */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.welcome-backdrop {
+  background: rgba(2, 3, 6, 0.7);
+}
+
+.dialog.welcome {
+  width: min(560px, calc(100vw - 32px));
+  max-height: none;
+}
+
+.welcome-body {
+  padding: 28px 28px 8px;
+}
+
+.welcome-mark {
+  width: 40px;
+  height: 40px;
+}
+
+.welcome h1 {
+  margin: 14px 0 6px;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.welcome-lead {
+  margin: 0 0 18px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.welcome-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.welcome-points li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.welcome-points strong {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.welcome-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--blue-faint);
+  color: var(--blue-hi);
+}
+
+.welcome-points li:nth-child(3) .welcome-icon {
+  background: var(--melon-soft);
+  color: var(--melon);
+}
+
+/* The checklist floats in the top-left corner of the canvas. */
+.canvas-corner {
+  grid-area: canvas;
+  position: relative;
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* The checklist already says how to start, so the canvas hint steps aside for it. */
+.app:has(.checklist) .empty-hint {
+  display: none;
+}
+
+/* Bottom left, above the tool dock: out of the way of where people start drawing. */
+.checklist {
+  position: absolute;
+  bottom: 78px;
+  left: 14px;
+  width: 272px;
+  padding: 12px 12px 14px;
+  border-radius: var(--r-dock);
+  pointer-events: auto;
+}
+
+.checklist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.checklist-head .icon-button {
+  width: 24px;
+  height: 24px;
+}
+
+.checklist-count {
+  margin-left: 6px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.checklist-bar {
+  height: 3px;
+  margin: 10px 0 12px;
+  border-radius: 2px;
+  background: var(--surface-4);
+  overflow: hidden;
+}
+
+.checklist-bar span {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  transition: width 240ms ease;
+}
+
+.checklist-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.checklist-steps li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--text-3);
+}
+
+.checklist-steps li.is-next {
+  color: var(--text);
+}
+
+.checklist-steps li.is-done .checklist-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--text-4);
+}
+
+.checklist-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-4);
+}
+
+.is-next .checklist-check {
+  border-color: var(--blue);
+}
+
+.is-done .checklist-check {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.checklist-hint {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.checklist-done {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* Shortcut reference */
+.dialog.shortcuts {
+  width: min(620px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 48px));
+}
+
+.shortcuts-filter {
+  padding: 10px 14px 0;
+}
+
+.shortcuts-filter input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.shortcuts-filter input:focus {
+  border-color: var(--blue);
+}
+
+.shortcuts-body {
+  padding: 6px 18px 18px;
+  columns: 2 260px;
+  column-gap: 28px;
+}
+
+.shortcuts-body section {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+.shortcuts-body h2 {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+
+.shortcuts-body dl {
+  margin: 0;
+}
+
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.shortcut-row dt {
+  color: var(--text-2);
+}
+
+.shortcut-row dd {
+  margin: 0;
+  text-align: right;
+}
+
+.shortcut-row kbd {
+  color: var(--text);
+  font-size: 11.5px;
+}
+
+.help-button {
+  margin-right: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Recovery: damaged projects, storage space, crash screens
+   -------------------------------------------------------------------------- */
+
+.project-item-problem {
+  color: var(--danger);
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+
+.projects-space {
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.projects-space-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-4);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.projects-space-bar span {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+}
+
+.projects-space.is-full .projects-space-bar span {
+  background: var(--danger);
+}
+
+.panel-crash {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 16px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.panel-crash strong {
+  color: var(--text);
+}
+
+.panel-crash p {
+  margin: 0;
+}
+
+.crash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--midnight);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+}
+
+.crash-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.crash h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  outline: none;
+}
+
+.crash p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.crash-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--danger);
+  font-family: var(--font-code);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.crash-message {
+  color: var(--text);
+}
+
+.crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.crash-actions .text-button {
+  color: var(--text-2);
+  text-decoration: underline;
 }

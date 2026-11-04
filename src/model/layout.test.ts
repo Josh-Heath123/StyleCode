@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createNode } from './defaults';
 import { createDocument } from './document';
-import { layoutOps, layoutRoots, type TextMeasure } from './layout';
+import { flexSizes, layoutOps, layoutRoots, type TextMeasure } from './layout';
 import { applyOps, type Op } from './ops';
 import type { DesignDocument, DesignNode, NodeProps } from './types';
 
@@ -322,5 +322,86 @@ describe('auto-layout engine', () => {
     doc = laidOut(applyOps(doc, [{ type: 'update', id: 'tall', props: { height: 60 } }]).doc);
     expect(box(doc, 'card')[3]).toBe(60);
     expect(box(doc, 'bar')[3]).toBe(60);
+  });
+
+  it('keeps filling layers within their limits, sharing what is left with the others', () => {
+    // 400 wide: three fillers would get 400/3 each, but one may not exceed 60 and one needs 200.
+    const doc = laidOut(
+      build({ layout: 'row', width: 400, height: 50 }, [
+        { id: 'a', props: { widthMode: 'fill', height: 10, maxWidth: 60 } },
+        { id: 'b', props: { widthMode: 'fill', height: 10, minWidth: 200 } },
+        { id: 'c', props: { widthMode: 'fill', height: 10 } },
+      ]),
+    );
+    expect([doc.nodes.a.width, doc.nodes.b.width, doc.nodes.c.width]).toEqual([60, 200, 140]);
+    expect(flexSizes([{ base: 0, min: 0, max: Infinity }], 100)).toEqual([100]);
+    // Too little room even for the minimums: they overflow rather than shrink.
+    expect(
+      flexSizes(
+        [
+          { base: 0, min: 80, max: Infinity },
+          { base: 0, min: 80, max: Infinity },
+        ],
+        100,
+      ),
+    ).toEqual([80, 80]);
+  });
+
+  it('wraps filling layers onto new lines once their minimum no longer fits (a responsive grid)', () => {
+    const cards = ['a', 'b', 'c'].map((id) => ({ id, props: { widthMode: 'fill' as const, minWidth: 150, height: 40 } }));
+    const doc = laidOut(build({ layout: 'row', wrap: true, gap: 10, width: 400, heightMode: 'hug' }, cards));
+    // Two fit on the first line (150 + 10 + 150 <= 400) and share it; the third has a line to itself.
+    expect(box(doc, 'a')).toEqual([0, 0, 195, 40]);
+    expect(box(doc, 'b')).toEqual([205, 0, 195, 40]);
+    expect(box(doc, 'c')).toEqual([0, 50, 400, 40]);
+    expect(doc.nodes.f.height).toBe(90);
+  });
+
+  it('breaks a hugging row at its maximum width', () => {
+    const items = ['a', 'b', 'c'].map((id) => ({ id, props: { width: 100, height: 20 } }));
+    const doc = laidOut(build({ layout: 'row', wrap: true, gap: 10, widthMode: 'hug', heightMode: 'hug', maxWidth: 250 }, items));
+    expect(doc.nodes.f.width).toBe(250);
+    expect(box(doc, 'c')).toEqual([0, 30, 100, 20]);
+  });
+
+  it('places a grid row by row, with spans, filling cells and aligning the rest', () => {
+    const doc = laidOut(
+      build(
+        { layout: 'grid', columns: 3, gap: 10, paddingLeft: 5, paddingTop: 5, width: 330, heightMode: 'hug', justify: 'center' },
+        [
+          { id: 'a', props: { widthMode: 'fill', height: 40 } },
+          { id: 'b', props: { widthMode: 'fill', height: 60, columnSpan: 2 } },
+          { id: 'c', props: { width: 50, height: 20 } },
+          { id: 'd', props: { widthMode: 'fill', heightMode: 'fill', columnSpan: 3, height: 10 } },
+          { id: 'e', props: { widthMode: 'fill', height: 30, columnSpan: 2 } },
+          { id: 'g', props: { widthMode: 'fill', heightMode: 'fill', height: 5 } },
+        ],
+      ),
+    );
+    // Columns: (330 - 5 - 20) / 3 = 101.67 wide.
+    expect(box(doc, 'a')).toEqual([5, 5, 101.67, 40]);
+    expect(box(doc, 'b')).toEqual([116.67, 5, 213.33, 60]);
+    // c doesn't fit beside them: it starts the next row, centred in its cell.
+    expect(box(doc, 'c')).toEqual([30.83, 75, 50, 20]);
+    // d spans all three columns, so it can't join c's row. Stretched with nothing in its row to
+    // stretch to, an empty box is as tall as its content: nothing, as in CSS.
+    expect(box(doc, 'd')).toEqual([5, 105, 325, 0]);
+    // g stretches to the height e gives their row.
+    expect(box(doc, 'e')).toEqual([5, 115, 213.33, 30]);
+    expect(box(doc, 'g')).toEqual([228.33, 115, 101.67, 30]);
+    expect(doc.nodes.f.height).toBe(145);
+  });
+
+  it('sizes a hugging grid from its widest content', () => {
+    const doc = laidOut(
+      build({ layout: 'grid', columns: 2, gap: 4, widthMode: 'hug', heightMode: 'hug' }, [
+        { id: 't', type: 'text', props: { text: 'Twelve chars', textResize: 'auto-height', widthMode: 'fill', width: 10 } },
+        { id: 'r', props: { width: 40, height: 50 } },
+      ]),
+    );
+    // The text's natural width (96) sets both columns.
+    expect(box(doc, 'f').slice(2)).toEqual([196, 50]);
+    expect(box(doc, 't')).toEqual([0, 0, 96, 20]);
+    expect(box(doc, 'r')).toEqual([100, 0, 40, 50]);
   });
 });

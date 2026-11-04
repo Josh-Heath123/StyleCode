@@ -133,7 +133,7 @@ test.describe('code panel', () => {
     // CSS StyleCode can't represent is reported, and nothing changes.
     await css.fill('filter: blur(4px);');
     await css.press('Control+Enter');
-    await expect(page.getByRole('alert')).toContainText('filter isn’t supported yet');
+    await expect(page.locator('.layer-css-errors')).toContainText('filter isn’t supported yet');
     expect((await node(page, card.id)).radius).toBe(16);
   });
 

@@ -41,6 +41,17 @@ export function Dock({ aiOpen, onToggleAi }: { aiOpen: boolean; onToggleAi: () =
       {SHAPES.map(button)}
       <button
         type="button"
+        className={`icon-button${active === 'note' ? ' is-active' : ''}`}
+        aria-label="Note (N)"
+        aria-pressed={active === 'note'}
+        data-tip={'Note  N\nClick a layer to pin a note to it; the AI reads notes as instructions'}
+        data-tip-side="top"
+        onClick={() => editor.setTool('note')}
+      >
+        <Icon name="note" size={18} />
+      </button>
+      <button
+        type="button"
         className="icon-button"
         aria-label={`Add image (${K.insertImage})`}
         data-tip={`Image  ${K.insertImage}`}

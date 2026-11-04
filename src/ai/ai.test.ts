@@ -3,7 +3,9 @@ import { buildDoc } from '../codegen/fixtures';
 import { applyOps } from '../model/ops';
 import { PROPERTY_DEFS } from '../model/properties';
 import type { DesignDocument } from '../model/types';
-import { buildContext, type AiContext } from './context';
+import { buildContext, resolveTarget, type AiContext } from './context';
+import { suggestionsFor } from './suggestions';
+import { createNode } from '../model/defaults';
 import { systemPrompt, userMessage } from './prompt';
 import { interpret, streamedExplanation } from './proposal';
 import { AI_PROPERTIES, responseSchema } from './schema';
@@ -82,6 +84,61 @@ describe('context', () => {
     const tight = buildContext(doc, ['title'], { maxChars: 10 }) as AiContext;
     expect(tight.text).toContain('more layers not shown');
     expect(tight.text).toContain(`* ${tight.alias.get('title')} text`);
+  });
+});
+
+describe('notes', () => {
+  it('keeps notes inside the context budget', () => {
+    const doc = page();
+    const ops = Array.from({ length: 30 }, (_, i) => ({
+      type: 'create' as const,
+      parentId: doc.rootId,
+      index: 99,
+      nodes: [createNode('note', { text: `Note ${i}: ${'make it better '.repeat(40)}`, noteTarget: 'pro' }, `n_${i}`)],
+    }));
+    const withNotes = applyOps(doc, ops).doc;
+    const ctx = buildContext(withNotes, ['basic'], { maxChars: 8000 }) as AiContext;
+    expect(ctx.text.length).toBeLessThan(8000 + 400);
+    expect(ctx.text).toContain('more notes not shown');
+    expect(ctx.text).toContain('Note 0:');
+  });
+
+  it('tells the model about the designer’s notes on the screen, never as something it may change', () => {
+    const doc = page();
+    const note = (id: string, props: Record<string, unknown>) =>
+      applyOps(doc, [{ type: 'create', parentId: doc.rootId, index: 99, nodes: [{ ...createNode('note', props as never, id) }] }])
+        .doc;
+    let withNotes = note('n_pointing', { text: 'Make this the hero plan', noteTarget: 'pro', x: 2000, y: 2000 });
+    withNotes = applyOps(withNotes, [
+      {
+        type: 'create',
+        parentId: doc.rootId,
+        index: 99,
+        nodes: [createNode('note', { text: 'Use our brand blue', x: 10, y: 10 }, 'n_over')],
+      },
+      {
+        type: 'create',
+        parentId: doc.rootId,
+        index: 99,
+        nodes: [createNode('note', { text: 'Somewhere else', x: 5000, y: 5000 }, 'n_far')],
+      },
+    ]).doc;
+    const ctx = buildContext(withNotes, ['basic']) as AiContext;
+    expect(ctx.notes).toBe(2);
+    expect(ctx.text).toContain('Notes from the designer:');
+    expect(ctx.text).toContain(`- "Make this the hero plan" (on ${ctx.alias.get('pro')} "Pro")`);
+    expect(ctx.text).toContain('- "Use our brand blue"');
+    expect(ctx.text).not.toContain('Somewhere else');
+    expect([...ctx.alias.keys()]).not.toContain('n_over');
+    expect(systemPrompt()).toContain('notes on the canvas');
+    const target = resolveTarget(withNotes, ['basic']);
+    expect('error' in target ? [] : suggestionsFor(withNotes, ['basic'], target)[0]).toBe('Do what the notes say');
+    // A note can't be created or changed by the AI.
+    const reply = JSON.stringify({
+      explanation: '',
+      operations: [{ op: 'create', ref: 'n1', parent: ctx.alias.get('basic'), type: 'note', set: {} }],
+    });
+    expect(interpret(reply, withNotes, ctx).ok).toBe(false);
   });
 });
 

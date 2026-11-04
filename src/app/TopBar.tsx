@@ -8,6 +8,7 @@ import { SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from
 import { useAssistantState } from '../ai/react';
 import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
+import type { Onboarding } from './onboarding';
 
 interface TopBarProps {
   session: ProjectSession;
@@ -15,7 +16,11 @@ interface TopBarProps {
   onCameraRestore: (camera: Camera | null) => void;
   onPreview: () => void;
   onOpenAiSettings: () => void;
+  onboarding: Onboarding;
+  onOpenShortcuts: () => void;
 }
+
+const REPO = 'https://github.com/Josh-Heath123/StyleCode';
 
 const STATUS_TEXT = {
   saved: 'Saved on this device',
@@ -25,7 +30,15 @@ const STATUS_TEXT = {
   unavailable: 'Storage unavailable',
 } as const;
 
-export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, onOpenAiSettings }: TopBarProps) {
+export function TopBar({
+  session,
+  onOpenProjects,
+  onCameraRestore,
+  onPreview,
+  onOpenAiSettings,
+  onboarding,
+  onOpenShortcuts,
+}: TopBarProps) {
   const editor = useEditor();
   const ai = useAssistantState();
   const name = useEditorState((s) => s.doc.name);
@@ -66,13 +79,19 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, on
           );
         }),
     },
-    {
-      label: 'Save to file…',
-      onSelect: () =>
-        run(async () => {
-          if (await session.exportToFile()) editor.notify('Project saved to file.');
-        }),
-    },
+    { label: 'Save to file…', onSelect: saveToFile },
+  ];
+
+  const saveToFile = () =>
+    run(async () => {
+      if (await session.exportToFile()) editor.notify('Project saved to file.');
+    });
+
+  const saveProblemEntries = (canRetry: boolean): MenuEntry[] => [
+    { kind: 'header', label: canRetry ? 'Your latest changes aren’t saved yet' : 'This browser isn’t letting StyleCode save' },
+    ...(canRetry ? [{ label: 'Try saving again', onSelect: () => void session.retry() }] : []),
+    { label: 'Save to file…', onSelect: saveToFile },
+    ...(canRetry ? [{ label: 'Free up space in Projects…', onSelect: onOpenProjects }] : []),
   ];
 
   const exportEntries = (): MenuEntry[] => [
@@ -90,6 +109,19 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, on
           if (await exportZip(editor, 'react')) editor.notify('React app exported.');
         }),
     },
+  ];
+
+  const helpEntries = (): MenuEntry[] => [
+    { label: 'Keyboard shortcuts', shortcut: '?', onSelect: onOpenShortcuts },
+    {
+      label: onboarding.getState().checklistOpen ? 'Hide getting started' : 'Getting started',
+      onSelect: () => onboarding.setChecklistOpen(!onboarding.getState().checklistOpen),
+    },
+    { label: 'Start the checklist again', onSelect: () => onboarding.restart() },
+    { label: 'Welcome screen', onSelect: () => onboarding.showWelcome() },
+    { kind: 'separator' },
+    { label: 'Documentation', onSelect: () => window.open(`${REPO}#readme`, '_blank', 'noopener') },
+    { label: 'Report a problem', onSelect: () => window.open(`${REPO}/issues`, '_blank', 'noopener') },
   ];
 
   const zoomEntries = (): MenuEntry[] => [
@@ -156,9 +188,27 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, on
         }}
       />
       <div className="topbar-spacer" />
-      <span className="save-status" data-status={sessionState.status} title={sessionState.error ?? undefined}>
-        {STATUS_TEXT[sessionState.status]}
-      </span>
+      {sessionState.status === 'error' || sessionState.status === 'unavailable' ? (
+        // When saving fails, the status is a menu of ways to keep the work.
+        <MenuButton
+          label={`${STATUS_TEXT[sessionState.status]}: ${sessionState.error ?? ''}`.trim()}
+          entries={() => saveProblemEntries(sessionState.status === 'error')}
+          className="text-button save-status"
+          minWidth={240}
+          tip={sessionState.error ?? undefined}
+        >
+          <span data-status={sessionState.status} className="save-status-text">
+            {STATUS_TEXT[sessionState.status]}
+          </span>
+          <Icon name="chevronDown" size={12} />
+        </MenuButton>
+      ) : (
+        <span className="save-status">
+          <span data-status={sessionState.status} className="save-status-text">
+            {STATUS_TEXT[sessionState.status]}
+          </span>
+        </span>
+      )}
       <button
         type="button"
         className="icon-button"
@@ -189,11 +239,19 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, on
         <Icon name="redo" />
       </button>
       <span className="topbar-divider" />
-      <MenuButton label="Zoom" entries={zoomEntries} className="text-button zoom-button" minWidth={210}>
+      <MenuButton
+        label={`Zoom ${Math.round(zoom * 100)}%`}
+        entries={zoomEntries}
+        className="text-button zoom-button"
+        minWidth={210}
+      >
         {Math.round(zoom * 100)}%
         <Icon name="chevronDown" size={12} />
       </MenuButton>
       <span className="topbar-divider" />
+      <MenuButton label="Help" entries={helpEntries} className="icon-button help-button" minWidth={230}>
+        <Icon name="help" size={16} />
+      </MenuButton>
       <button
         type="button"
         className="text-button ai-button"

@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { Canvas } from '../canvas/Canvas';
 import type { Camera } from '../editor/camera';
 import type { Editor } from '../editor/editor';
@@ -16,6 +16,12 @@ import { AssistantContext } from '../ai/react';
 import { AiSettingsDialog } from './AiSettingsDialog';
 import { DockArea } from './AssistantBar';
 import { Notice } from './Notice';
+import { Announcer } from './Announcer';
+import { PanelBoundary } from '../ui/ErrorBoundary';
+import { Onboarding } from './onboarding';
+import { Checklist, useOnboardingState, WelcomeDialog } from './Onboarding';
+import { ShortcutsDialog } from './ShortcutsDialog';
+import { isTypingTarget } from '../canvas/Canvas';
 import { ProjectsDialog } from './ProjectsDialog';
 import { useShortcuts } from './shortcuts';
 import { TopBar } from './TopBar';
@@ -32,7 +38,36 @@ export function App({ editor, assistant, session, initialCamera }: AppProps) {
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'design' | 'code'>('design');
   const [preview, setPreview] = useState<string | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [onboarding] = useState(() => new Onboarding());
+  const { welcomed } = useOnboardingState(onboarding);
   useShortcuts(editor);
+
+  // The checklist ticks itself off as things are done.
+  useEffect(() => onboarding.watch(editor), [onboarding, editor]);
+  useEffect(() => {
+    if (rightTab === 'code') onboarding.complete('code');
+  }, [rightTab, onboarding]);
+  useEffect(
+    () =>
+      assistant.subscribe(() => {
+        // Done once the AI has come back with a change to review.
+        if (assistant.getState().status === 'review') onboarding.complete('ai');
+      }),
+    [assistant, onboarding],
+  );
+
+  // ? opens the keyboard shortcuts.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '?' || e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
+      if ((e.target as Element | null)?.closest?.('[role="dialog"], .menu')) return;
+      e.preventDefault();
+      setShortcutsOpen(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   /** Previews the screen of the current selection, or the first screen. */
   const openPreview = useCallback(
@@ -61,9 +96,13 @@ export function App({ editor, assistant, session, initialCamera }: AppProps) {
             onCameraRestore={restoreCamera}
             onPreview={() => openPreview()}
             onOpenAiSettings={() => setAiSettingsOpen(true)}
+            onboarding={onboarding}
+            onOpenShortcuts={() => setShortcutsOpen(true)}
           />
           <aside className="panel panel-left" aria-label="Layers and insert panel">
-            <LeftPanel />
+            <PanelBoundary name="Layers">
+              <LeftPanel />
+            </PanelBoundary>
           </aside>
           <main className="canvas-area" style={{ display: 'contents' }}>
             <Canvas />
@@ -79,16 +118,49 @@ export function App({ editor, assistant, session, initialCamera }: AppProps) {
               onChange={setRightTab}
             />
             <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${rightTab}`} aria-labelledby={`tab-${rightTab}`}>
-              {rightTab === 'design' ? <PropertiesPanel /> : <CodePanel onPreview={openPreview} />}
+              {rightTab === 'design' ? (
+                <PanelBoundary key="design" name="Design">
+                  <PropertiesPanel />
+                </PanelBoundary>
+              ) : (
+                <PanelBoundary key="code" name="Code">
+                  <CodePanel onPreview={openPreview} />
+                </PanelBoundary>
+              )}
             </div>
           </aside>
-          <DockArea onOpenSettings={() => setAiSettingsOpen(true)} />
+          <PanelBoundary name="Tools">
+            <DockArea onOpenSettings={() => setAiSettingsOpen(true)} />
+          </PanelBoundary>
           <Notice />
-          {preview && <PreviewDialog screenId={preview} onClose={() => setPreview(null)} />}
+          <Announcer />
+          {preview && (
+            <PreviewDialog
+              screenId={preview}
+              onClose={() => setPreview(null)}
+              onDevice={(device) => device === 'mobile' && onboarding.complete('preview')}
+            />
+          )}
           {projectsOpen && (
             <ProjectsDialog session={session} onClose={() => setProjectsOpen(false)} onCameraRestore={restoreCamera} />
           )}
           {aiSettingsOpen && <AiSettingsDialog onClose={() => setAiSettingsOpen(false)} />}
+          {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+          <div className="canvas-corner">
+            <Checklist onboarding={onboarding} />
+          </div>
+          {!welcomed && (
+            <WelcomeDialog
+              onboarding={onboarding}
+              onOpenExample={async () => {
+                try {
+                  restoreCamera(await session.newExampleProject());
+                } catch (error) {
+                  editor.notify((error as Error).message, 'error');
+                }
+              }}
+            />
+          )}
         </div>
       </AssistantContext.Provider>
     </EditorContext.Provider>

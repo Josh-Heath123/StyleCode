@@ -59,13 +59,13 @@ function placementIn(doc: DesignDocument, id: string, containerId: string): { x:
 /** Moves a node into another container without changing where it appears on the page. */
 export function reparentKeepingPosition(builder: OpBuilder, id: string, parentId: string, index: number): void {
   const placement = placementIn(builder.doc, id, parentId);
-  builder.push({ type: 'move', id, parentId, index });
-  builder.push({ type: 'update', id, props: placement });
+  builder.push({ type: 'move', id, parentId, index }, { type: 'update', id, props: placement });
 }
 
 /** Wraps layers that share a parent in a new transparent, non-clipping frame. */
 export function groupOps(doc: DesignDocument, ids: readonly string[]): { ops: Op[]; groupId: string } | null {
-  const top = sortByDocumentOrder(doc, topLevelIds(doc, ids)).filter((id) => id !== doc.rootId);
+  // Notes stay on the canvas, so they are left out of a group.
+  const top = sortByDocumentOrder(doc, topLevelIds(doc, ids)).filter((id) => id !== doc.rootId && doc.nodes[id]?.type !== 'note');
   if (top.length === 0) return null;
 
   // Group into the parent of the top-most layer; others are re-parented in place.
@@ -328,7 +328,11 @@ export function pasteOps(doc: DesignDocument, data: ClipboardData, targetId: str
   }
 
   for (const item of items) {
-    const parentId = target ?? (doc.nodes[item.sourceParentId] ? item.sourceParentId : doc.rootId);
+    // A note always goes on the canvas itself, never into a frame.
+    const parentId =
+      item.nodes[0].type === 'note'
+        ? doc.rootId
+        : (target ?? (doc.nodes[item.sourceParentId] ? item.sourceParentId : doc.rootId));
     const copy = cloneNodes(item.nodes);
     const root = copy[0];
     const toParent = invert(childSpaceMatrix(builder.doc, parentId));

@@ -1,14 +1,15 @@
 import { isDefaultName, baseClassName, kebab, NameSet } from './names';
-import { isAutoLayout, isWrapping } from '../model/layout';
+import { isAutoLayout, isGrid, isWrapping } from '../model/layout';
 import {
   appearanceDeclarations,
   flexContainerDeclarations,
   flexItemDeclarations,
   fontStack,
+  gridColumns,
   px,
   type CssDeclarations,
 } from '../render/css';
-import type { DesignDocument, DesignNode } from '../model/types';
+import { MOBILE_BREAKPOINT, type DesignDocument, type DesignNode } from '../model/types';
 
 /**
  * The first stage of code generation: a screen (a top-level frame) turned
@@ -19,7 +20,9 @@ import type { DesignDocument, DesignNode } from '../model/types';
  * (`render/css.ts`), so at the design width the exported page lays out
  * exactly like the canvas. Below the design width a second set of rules
  * (`responsive`) lets rows wrap, fixed widths shrink and large type and
- * spacing scale down, instead of overflowing a phone screen.
+ * spacing scale down, instead of overflowing a phone screen. A third set
+ * (`mobile`) applies on phones: the "On phones" settings, and grids that
+ * drop to fewer columns.
  */
 
 export interface Decl {
@@ -66,6 +69,10 @@ export interface Screen {
   rules: Rule[];
   /** Rules that apply below the design width. */
   responsive: Rule[];
+  /** Rules that apply on phones, below `phoneWidth`. */
+  mobile: Rule[];
+  /** Phones are narrower than this: the mobile breakpoint, or the design width if that is narrower. */
+  phoneWidth: number;
   /** Image assets used, in order of first use. */
   assets: string[];
   /** Font families used, in order of first use. */
@@ -97,22 +104,28 @@ const ORDER = [
   'left',
   'top',
   'display',
+  'grid-template-columns',
+  'grid-auto-rows',
+  'grid-column',
   'flex-direction',
   'flex-wrap',
   'align-content',
   'justify-content',
   'align-items',
+  'justify-items',
   'gap',
   'padding',
   'padding-left',
   'padding-right',
   'flex',
   'align-self',
+  'justify-self',
   'width',
   'min-width',
   'max-width',
   'height',
   'min-height',
+  'max-height',
   'aspect-ratio',
   'margin',
   'transform',
@@ -197,6 +210,8 @@ export function buildScreen(doc: DesignDocument, frameId: string, options: Build
   const names = new NameSet(['display-contents']);
   const rules: Rule[] = [];
   const responsive: Rule[] = [];
+  const mobile: Rule[] = [];
+  const phoneWidth = Math.min(MOBILE_BREAKPOINT, Math.round(frame.width));
   const assets: string[] = [];
   const fonts: string[] = [];
   const freeFrames: string[] = [];
@@ -314,6 +329,8 @@ export function buildScreen(doc: DesignDocument, frameId: string, options: Build
     const flowCount = visibleChildren(node).filter((c) => !isAbsolute(c, node)).length;
     const adapt = responsiveDeclarations(node, parent, isRoot, decls, designWidth, element.tag, flowCount);
     if (adapt.length) responsive.push({ nodeId: node.id, className, decls: adapt });
+    const phone = mobileDeclarations(node, parent, isRoot, decls, element.tag);
+    if (phone.length) mobile.push({ nodeId: node.id, className, decls: phone });
 
     // Children.
     if (tag !== 'input') {
@@ -408,6 +425,8 @@ export function buildScreen(doc: DesignDocument, frameId: string, options: Build
     root,
     rules,
     responsive,
+    mobile,
+    phoneWidth,
     assets,
     fonts,
     warnings,
@@ -437,7 +456,19 @@ function isInputLike(doc: DesignDocument, node: DesignNode): boolean {
 
 /** An `<input>` takes its box from the frame and its type style from the placeholder text. */
 function inputDeclarations(node: DesignNode, text: DesignNode, decls: Decl[]): Decl[] {
-  const out = without(decls, 'display', 'flex-direction', 'flex-wrap', 'align-content', 'justify-content', 'align-items', 'gap');
+  const out = without(
+    decls,
+    'display',
+    'flex-direction',
+    'flex-wrap',
+    'align-content',
+    'justify-content',
+    'align-items',
+    'gap',
+    'grid-template-columns',
+    'grid-auto-rows',
+    'justify-items',
+  );
   // Inputs have a size of their own; pin the designed size unless the layout stretches it.
   const fills = (prop: 'width' | 'height') =>
     get(out, 'flex') === '1 1 0' && get(out, prop === 'width' ? 'min-width' : 'min-height') === '0';
@@ -493,7 +524,9 @@ function responsiveDeclarations(
         else if (isRoot && value < 16) add(`padding-${side}`, '16px');
       }
     }
-    if (node.layout === 'row' && node.gap >= 24 && flowCount > 1) add('gap', `clamp(12px, ${vw(node.gap)}, ${px(node.gap)})`);
+    if ((node.layout === 'row' || isGrid(node)) && node.gap >= 24 && flowCount > 1) {
+      add('gap', `clamp(12px, ${vw(node.gap)}, ${px(node.gap)})`);
+    }
   }
   if (inFlow) {
     // Only boxes wide enough to overflow a phone need a maximum.
@@ -525,6 +558,64 @@ function responsiveDeclarations(
   if (node.type === 'text' && node.fontSize >= 28 && !absolute) {
     const min = Math.max(20, Math.round(node.fontSize * 0.6));
     add('font-size', `clamp(${px(min)}, ${vw(node.fontSize)}, ${px(node.fontSize)})`);
+  }
+  return toDeclsKeepOrder(out);
+}
+
+/**
+ * Declarations for phones: the layer's "On phones" settings (hide it, stack
+ * a row, take the full width, other text size or alignment), and grids
+ * dropping to their phone column count (one, unless set), with spanning
+ * layers limited to what is there.
+ */
+function mobileDeclarations(
+  node: DesignNode,
+  parent: DesignNode | undefined,
+  isRoot: boolean,
+  base: Decl[],
+  tag: string,
+): Decl[] {
+  const out: Decl[] = [];
+  const add = (prop: string, value: string) => out.push({ prop, value });
+  if (node.hideOnMobile && !isRoot) {
+    add('display', 'none');
+    return out;
+  }
+  const inFlow = !isRoot && get(base, 'position') !== 'absolute' && !!parent && isAutoLayout(parent);
+  const phoneLayout = (n: DesignNode) =>
+    (n.layout === 'row' || n.layout === 'column') && n.mobileLayout !== 'same' ? n.mobileLayout : n.layout;
+
+  if (tag !== 'input') {
+    if (isGrid(node)) {
+      const columns = node.mobileColumns || 1;
+      if (columns !== node.columns) add('grid-template-columns', gridColumns(columns));
+    } else if (isAutoLayout(node) && phoneLayout(node) !== node.layout) {
+      add('flex-direction', phoneLayout(node));
+      if (phoneLayout(node) === 'column') add('flex-wrap', 'nowrap');
+    }
+  }
+  if (inFlow && parent) {
+    if (isGrid(parent)) {
+      const columns = parent.mobileColumns || 1;
+      const span = Math.min(parent.columns, Math.max(1, node.columnSpan));
+      if (span > columns) add('grid-column', columns === 1 ? 'auto' : `span ${columns}`);
+    } else if (phoneLayout(parent) !== parent.layout && get(base, 'flex') === '1 1 0') {
+      // What shared the row's width takes the full width once stacked, and the other way round.
+      add('flex', 'none');
+      if (phoneLayout(parent) === 'column') {
+        add('align-self', 'stretch');
+        add('min-width', '0');
+      }
+    }
+    if (node.mobileFill) {
+      add('width', '100%');
+      add('max-width', '100%');
+      if (!isGrid(parent) && phoneLayout(parent) === 'row') add('flex', 'none');
+    }
+  }
+  if (node.type === 'text') {
+    if (node.mobileFontSize > 0) add('font-size', px(node.mobileFontSize));
+    if (node.mobileTextAlign !== 'same') add('text-align', node.mobileTextAlign);
   }
   return toDeclsKeepOrder(out);
 }

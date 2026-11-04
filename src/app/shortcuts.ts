@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { isTypingTarget } from '../canvas/Canvas';
+import { isKeyboardFocusedControl, isTypingTarget } from '../canvas/Canvas';
 import type { Editor, Tool } from '../editor/editor';
 import { CLIPBOARD_FORMAT } from '../model/commands';
 import { insertImageFiles, insertImagesFromPicker } from './insert';
@@ -37,6 +37,7 @@ const TOOL_KEYS: Record<string, Tool> = {
   e: 'ellipse',
   t: 'text',
   h: 'hand',
+  n: 'note',
 };
 
 /**
@@ -53,6 +54,11 @@ export function useShortcuts(editor: Editor): void {
       const mod = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
       const state = editor.getState();
+      if (!mod && isKeyboardFocusedControl(e.target)) {
+        const role = (e.target as HTMLElement).getAttribute('role');
+        if (key === 'enter' || key === ' ') return;
+        if (key.startsWith('arrow') && (role === 'tab' || role === 'radio' || role === 'option')) return;
+      }
 
       const run = (fn: () => void) => {
         e.preventDefault();
@@ -101,7 +107,7 @@ export function useShortcuts(editor: Editor): void {
         return run(() => {
           const only = state.selection.length === 1 ? state.doc.nodes[state.selection[0]] : null;
           if (e.shiftKey) selectParent(editor);
-          else if (only?.type === 'text') editor.setEditingText(only.id);
+          else if (only?.type === 'text' || only?.type === 'note') editor.setEditingText(only.id);
           else selectChildren(editor);
         });
       }

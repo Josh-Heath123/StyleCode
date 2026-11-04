@@ -48,6 +48,7 @@ const TYPE_WORDS: Record<DesignNode['type'], string> = {
   ellipse: 'circle',
   text: 'text',
   image: 'image',
+  note: 'note',
 };
 
 /**

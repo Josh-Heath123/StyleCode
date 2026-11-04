@@ -12,7 +12,8 @@ export function Notice() {
   }, [editor, notice]);
   if (!notice) return null;
   return (
-    <div className="notice glass" role={notice.tone === 'error' ? 'alert' : 'status'} data-tone={notice.tone}>
+    // Screen readers hear notices through the Announcer, so this one is only for the eyes.
+    <div className="notice glass" aria-hidden="true" data-tone={notice.tone}>
       {notice.text}
     </div>
   );

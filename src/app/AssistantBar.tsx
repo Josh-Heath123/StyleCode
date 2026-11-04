@@ -386,7 +386,7 @@ function AssistantPanel({
         ) : (
           !draft.trim() &&
           suggestions.length > 0 && (
-            <div className="assistant-suggestions" aria-label="Suggestions">
+            <div className="assistant-suggestions" role="group" aria-label="Suggestions">
               {suggestions.map((text) => (
                 <button key={text} type="button" className="assistant-chip" onClick={() => onSend(text)}>
                   {text}

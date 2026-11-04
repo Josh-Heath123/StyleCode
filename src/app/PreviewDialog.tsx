@@ -3,6 +3,7 @@ import { listScreens } from '../codegen/screen';
 import { useEditor } from '../editor/react';
 import { Icon, type IconName } from '../ui/Icon';
 import { previewDocument } from './codeExport';
+import { useDialogFocus } from '../ui/useDialogFocus';
 
 type Device = 'design' | 'tablet' | 'mobile';
 
@@ -17,7 +18,16 @@ const DEVICES: { id: Device; label: string; icon: IconName; width?: number }[] =
  * the app) at the design width, a tablet width or a phone width. It shows
  * exactly the HTML and CSS that export writes.
  */
-export function PreviewDialog({ screenId, onClose }: { screenId: string; onClose: () => void }) {
+export function PreviewDialog({
+  screenId,
+  onClose,
+  onDevice,
+}: {
+  screenId: string;
+  onClose: () => void;
+  /** Told which width is being previewed (the getting-started checklist listens for phones). */
+  onDevice?: (device: Device) => void;
+}) {
   const editor = useEditor();
   const doc = editor.getState().doc;
   const screens = listScreens(doc);
@@ -28,6 +38,7 @@ export function PreviewDialog({ screenId, onClose }: { screenId: string; onClose
   const stageRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState({ width: 0, height: 0 });
   const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef);
 
   useEffect(() => {
     if (!current) return;
@@ -93,7 +104,10 @@ export function PreviewDialog({ screenId, onClose }: { screenId: string; onClose
                 role="radio"
                 aria-checked={device === d.id}
                 className={`text-button${device === d.id ? ' is-on' : ''}`}
-                onClick={() => setDevice(d.id)}
+                onClick={() => {
+                  setDevice(d.id);
+                  onDevice?.(d.id);
+                }}
               >
                 <Icon name={d.icon} size={14} />
                 {d.label}
@@ -124,6 +138,9 @@ export function PreviewDialog({ screenId, onClose }: { screenId: string; onClose
             <div className="preview-device" style={{ width: width * scale, height: height * scale }}>
               <iframe
                 title="Exported page"
+                // Out of the Tab order, so Tab and Escape stay with the dialog (keys pressed inside the
+                // sandboxed page never reach it). Clicking into the page still lets you type and scroll there.
+                tabIndex={-1}
                 sandbox=""
                 srcDoc={page.html}
                 style={{ width, height, transform: `scale(${scale})` }}

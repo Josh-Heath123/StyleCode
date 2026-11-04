@@ -132,6 +132,22 @@ describe('tidy into auto-layout', () => {
     expect(tidyFrameOps(doc, 'f').ok).toBe(false);
   });
 
+  it('leaves notes out of a wrapped selection', () => {
+    const base = frameWith({ a: r(100, 100, 80, 40), b: r(200, 100, 80, 40) });
+    const doc = applyOps(base, [
+      { type: 'create', parentId: base.rootId, index: 1, nodes: [createNode('note', { x: 900, y: 0, text: 'Tidy this' }, 'n')] },
+    ]).doc;
+    const result = wrapInAutoLayoutOps(doc, ['a', 'b', 'n']);
+    if (!result.ok) throw new Error(result.error);
+    const out = applyOps(doc, result.ops).doc;
+    expect(out.nodes.n.parentId).toBe(doc.rootId);
+    expect(out.nodes[result.frameId].children).toEqual(['a', 'b']);
+    expect(wrapInAutoLayoutOps(doc, ['n'])).toEqual({
+      ok: false,
+      error: 'Notes stay outside layouts. Select the layers to arrange.',
+    });
+  });
+
   it('wraps a selection in a hugging auto-layout frame without moving it', () => {
     const doc = frameWith({ a: r(100, 100, 80, 40), b: r(200, 100, 80, 40), other: r(500, 400, 10, 10) });
     const result = wrapInAutoLayoutOps(doc, ['a', 'b']);

@@ -15,6 +15,7 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
   if (!node || !node.visible) return null;
 
   const style = nodeDeclarations(node) as CSSProperties;
+  if (editing && node.type === 'note') style.height = 'auto';
   if (editing && node.type === 'text') {
     // Let the box follow the text while typing; the real size is measured on commit.
     if (node.textResize === 'auto-width' && node.widthMode !== 'fill') {
@@ -25,12 +26,18 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
   }
 
   let content: React.ReactNode;
-  if (node.type === 'text') content = editing ? <TextEditor node={node} /> : node.text;
+  if (node.type === 'text' || node.type === 'note') content = editing ? <TextEditor node={node} /> : node.text;
   else if (node.type === 'image') content = <ImageContent node={node} />;
   else content = node.children.map((childId) => <NodeView key={childId} id={childId} />);
 
   return (
-    <div className={`sc-node sc-${node.type}`} data-node-id={id} data-locked={node.locked || undefined} style={style}>
+    <div
+      className={`sc-node sc-${node.type}`}
+      data-node-id={id}
+      data-locked={node.locked || undefined}
+      data-clips={(node.type === 'frame' && node.clip) || undefined}
+      style={style}
+    >
       {content}
     </div>
   );

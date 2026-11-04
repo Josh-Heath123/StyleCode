@@ -86,11 +86,76 @@ function landingPage(): DesignDocument {
         {
           type: 'frame',
           id: 'features',
-          props: { name: 'Features', layout: 'row', gap: 24, widthMode: 'fill', heightMode: 'hug', fill: null, clip: false },
+          props: {
+            name: 'Features',
+            layout: 'row',
+            gap: 24,
+            widthMode: 'fill',
+            heightMode: 'hug',
+            fill: null,
+            clip: false,
+            mobileLayout: 'column',
+          },
           children: [
             card(1, '#2f7bff', 'Tag as you go'),
             card(2, '#ff9f5a', 'Shared by default'),
             card(3, '#34c77b', 'Answers, not "folders"'),
+          ],
+        },
+        {
+          type: 'frame',
+          id: 'gallery',
+          props: {
+            name: 'Gallery',
+            layout: 'grid',
+            columns: 3,
+            gap: 16,
+            widthMode: 'fill',
+            heightMode: 'hug',
+            fill: null,
+            clip: false,
+            mobileColumns: 2,
+          },
+          children: [
+            {
+              type: 'rect',
+              id: 'tile1',
+              props: {
+                name: 'Tile',
+                widthMode: 'fill',
+                height: 120,
+                columnSpan: 2,
+                independentCorners: true,
+                radiusTopLeft: 24,
+                radiusTopRight: 4,
+                radiusBottomRight: 24,
+                radiusBottomLeft: 4,
+                fill: '#dde3ff',
+              },
+            },
+            {
+              type: 'rect',
+              id: 'tile2',
+              props: { name: 'Tile', widthMode: 'fill', heightMode: 'fill', height: 40, maxHeight: 100, fill: '#ffe3cc' },
+            },
+            {
+              type: 'text',
+              id: 'caption',
+              props: {
+                name: 'Caption',
+                text: 'Every note links back',
+                textResize: 'auto-height',
+                widthMode: 'fill',
+                minWidth: 120,
+                mobileFontSize: 14,
+                mobileTextAlign: 'center',
+              },
+            },
+            {
+              type: 'rect',
+              id: 'tile3',
+              props: { name: 'Tile', width: 80, height: 80, columnSpan: 3, hideOnMobile: true, fill: '#c8f0dc' },
+            },
           ],
         },
         {
@@ -172,8 +237,9 @@ describe('HTML and CSS', () => {
     expect(lines[to - 1]).toContain('</div>');
     const css = screenCss(screen);
     const ranges = css.lines.get('features')!;
-    expect(ranges).toHaveLength(2); // base rule and responsive rule
+    expect(ranges).toHaveLength(3); // base rule, responsive rule, phone rule
     expect(css.content.split('\n')[ranges[0][0] - 1]).toBe('.features {');
+    expect(css.content.split('\n')[ranges[2][0] - 1]).toBe('  .features {');
   });
 
   it('exports a missing image as a placeholder', () => {
@@ -242,8 +308,9 @@ describe('editing CSS', () => {
         const parsed = parseDeclarationText(text);
         expect(parsed.errors).toEqual([]);
         const inFlow = !rule.decls.some((d) => d.prop === 'position' && d.value === 'absolute') && node.id !== frame;
+        const inGrid = inFlow && doc.nodes[node.parentId!]?.layout === 'grid';
         // Nothing shown as before counts as a change, so apply everything to test the parser.
-        const result = declarationsToProps(node, parsed.decls, [], { inFlow });
+        const result = declarationsToProps(node, parsed.decls, [], { inFlow, inGrid });
         expect(result, `${node.name}`).toMatchObject({ ok: true });
         if (!result.ok) continue;
         const updated = settle(applyOps(doc, [{ type: 'update', id: node.id, props: result.props }]).doc);
@@ -277,6 +344,7 @@ describe('editing CSS', () => {
         strokeWidth: 2,
         shadowColor: null,
         radius: 0,
+        independentCorners: false,
       },
     });
     const bad = declarationsToProps(

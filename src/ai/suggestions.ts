@@ -1,6 +1,6 @@
 import { topLevelIds } from '../model/document';
 import type { DesignDocument } from '../model/types';
-import type { AiTarget } from './context';
+import { notesFor, type AiTarget } from './context';
 
 /**
  * A few requests that fit what is selected, shown as one-click prompts under
@@ -8,6 +8,13 @@ import type { AiTarget } from './context';
  * proposal to review.
  */
 export function suggestionsFor(doc: DesignDocument, selection: readonly string[], target: AiTarget): string[] {
+  // Notes on the screen come first: they are what the designer already asked for.
+  const notes = notesFor(doc, target.screenId).length;
+  const list = suggestionsForSelection(doc, selection, target);
+  return notes ? [notes === 1 ? 'Do what the note says' : 'Do what the notes say', ...list].slice(0, 3) : list;
+}
+
+function suggestionsForSelection(doc: DesignDocument, selection: readonly string[], target: AiTarget): string[] {
   if (target.scope.kind === 'screen') {
     const screen = doc.nodes[target.screenId];
     if (screen.children.length === 0) {

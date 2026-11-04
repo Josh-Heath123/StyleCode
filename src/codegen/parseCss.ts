@@ -12,14 +12,21 @@ import type { Decl } from './screen';
 export const EDITABLE = new Set([
   'left',
   'top',
+  'grid-template-columns',
+  'grid-column',
   'flex-direction',
   'flex-wrap',
   'justify-content',
   'align-items',
+  'justify-items',
   'gap',
   'padding',
   'width',
+  'min-width',
+  'max-width',
   'height',
+  'min-height',
+  'max-height',
   'transform',
   'opacity',
   'background',
@@ -41,12 +48,11 @@ export const EDITABLE = new Set([
 /** Declarations StyleCode writes itself from the layout; editing them has no direct equivalent. */
 const MANAGED: Record<string, string> = {
   position: 'Positioning comes from the layout: turn auto layout on or off, or tick "Ignore auto layout".',
-  display: 'Use flex-direction to turn auto layout on.',
+  display: 'Use flex-direction (row or column) or grid-template-columns to choose the layout.',
   flex: 'Use the Fill / Fixed / Hug sizing in the Design tab.',
   'align-self': 'Use the Fill / Fixed / Hug sizing in the Design tab.',
-  'min-width': 'Sizes are set with width and height.',
-  'min-height': 'Sizes are set with width and height.',
-  'max-width': 'Sizes are set with width and height.',
+  'justify-self': 'Use the Fill / Fixed / Hug sizing in the Design tab.',
+  'grid-auto-rows': 'Grid rows are as tall as their content.',
   margin: 'Spacing comes from the parent’s gap and padding.',
   'white-space': 'Text wrapping follows the text layer’s width setting.',
   'overflow-wrap': 'Text wrapping follows the text layer’s width setting.',
@@ -152,7 +158,7 @@ export function declarationsToProps(
   node: DesignNode,
   decls: readonly Decl[],
   previous: readonly Decl[],
-  options: { parseColor?: ColorParser; inFlow?: boolean } = {},
+  options: { parseColor?: ColorParser; inFlow?: boolean; inGrid?: boolean } = {},
 ): PropsResult {
   const parseColor = options.parseColor ?? hexColorParser;
   const props: Partial<NodeProps> = {};
@@ -221,6 +227,54 @@ export function declarationsToProps(
           if (axis === 'width' && node.textResize === 'auto-width') props.textResize = 'auto-height';
           if (axis === 'height') props.textResize = 'fixed';
         }
+        break;
+      }
+      case 'min-width':
+      case 'max-width':
+      case 'min-height':
+      case 'max-height': {
+        const key = (
+          { 'min-width': 'minWidth', 'max-width': 'maxWidth', 'min-height': 'minHeight', 'max-height': 'maxHeight' } as const
+        )[prop];
+        if (lower === 'none' || lower === 'auto') {
+          props[key] = 0;
+          break;
+        }
+        const n = len(prop, v, 0);
+        if (n !== undefined) props[key] = n;
+        break;
+      }
+      case 'grid-template-columns': {
+        if (!only(prop, isFrame, 'frames')) break;
+        const m = /^repeat\(\s*(\d+)\s*,\s*(minmax\(\s*0(px)?\s*,\s*1fr\s*\)|1fr)\s*\)$/i.exec(v);
+        const n = m ? Number(m[1]) : NaN;
+        if (Number.isInteger(n) && n >= 1 && n <= 24) {
+          props.layout = 'grid';
+          props.columns = n;
+        } else {
+          fail('grid-template-columns: equal columns, like repeat(3, minmax(0, 1fr)), from 1 to 24.');
+        }
+        break;
+      }
+      case 'grid-column': {
+        if (!only(prop, !!options.inGrid, 'layers in a grid')) break;
+        const m = /^span\s+(\d+)$/i.exec(v);
+        if (m && Number(m[1]) >= 1 && Number(m[1]) <= 24) props.columnSpan = Number(m[1]);
+        else if (lower === 'auto') props.columnSpan = 1;
+        else fail('grid-column: span a number of columns, like span 2.');
+        break;
+      }
+      case 'justify-items': {
+        if (!only(prop, isFrame, 'frames')) break;
+        const map: Record<string, NodeProps['justify']> = {
+          start: 'start',
+          'flex-start': 'start',
+          center: 'center',
+          end: 'end',
+          'flex-end': 'end',
+        };
+        if (map[lower]) props.justify = map[lower];
+        else fail('justify-items should be start, center or end.');
         break;
       }
       case 'transform': {
@@ -313,12 +367,22 @@ export function declarationsToProps(
         }
         if (!only(prop, node.type === 'frame' || node.type === 'rect' || node.type === 'image', 'frames, rectangles and images'))
           break;
-        if (tokens(v).length > 1) {
-          fail('border-radius: one radius for all corners (per-corner radius isn’t supported yet).');
+        const values = tokens(v).map((t) => length(t));
+        if (values.length < 1 || values.length > 4 || values.some((n) => n === undefined || n < 0)) {
+          fail('border-radius should be one to four lengths in px (top-left, top-right, bottom-right, bottom-left).');
           break;
         }
-        const n = len(prop, v, 0);
-        if (n !== undefined) props.radius = n;
+        const [tl, tr = tl, br = tl, bl = tr] = values as number[];
+        if (tl === tr && tr === br && br === bl) {
+          props.radius = tl;
+          props.independentCorners = false;
+        } else {
+          props.independentCorners = true;
+          props.radiusTopLeft = tl;
+          props.radiusTopRight = tr;
+          props.radiusBottomRight = br;
+          props.radiusBottomLeft = bl;
+        }
         break;
       }
       case 'overflow': {
@@ -511,7 +575,28 @@ export function declarationsToProps(
         props.stroke = null;
         break;
       case 'border-radius':
-        if (node.type !== 'ellipse') props.radius = 0;
+        if (node.type !== 'ellipse') {
+          props.radius = 0;
+          props.independentCorners = false;
+        }
+        break;
+      case 'min-width':
+        props.minWidth = 0;
+        break;
+      case 'max-width':
+        props.maxWidth = 0;
+        break;
+      case 'min-height':
+        props.minHeight = 0;
+        break;
+      case 'max-height':
+        props.maxHeight = 0;
+        break;
+      case 'grid-column':
+        props.columnSpan = 1;
+        break;
+      case 'justify-items':
+        props.justify = 'start';
         break;
       case 'overflow':
         if (isFrame) props.clip = false;

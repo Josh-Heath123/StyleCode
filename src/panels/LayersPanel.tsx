@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '../editor/editor';
 import { shallowArrayEqual, useEditor, useEditorState } from '../editor/react';
 import { reparentKeepingPosition } from '../model/commands';
@@ -47,34 +47,64 @@ function flatten(doc: DesignDocument, expanded: ReadonlySet<string>): FlatRow[] 
 function layerIcon(node: DesignNode): IconName {
   if (node.type === 'frame' && node.layout === 'row') return 'arrowRight';
   if (node.type === 'frame' && node.layout === 'column') return 'arrowDown';
+  if (node.type === 'frame' && node.layout === 'grid') return 'grid';
   return TYPE_ICONS[node.type];
 }
 
 /** Text layers that still have their default name are shown by their content. */
 export function displayName(node: DesignNode): string {
   if (node.type === 'text' && node.name === 'Text' && node.text.trim()) return node.text.trim().split('\n')[0].slice(0, 60);
+  // Notes are shown by what they say.
+  if (node.type === 'note' && /^Note \d+$/.test(node.name) && node.text.trim())
+    return node.text.trim().split('\n')[0].slice(0, 60);
   return node.name || 'Untitled';
 }
 
 type Drop = { kind: 'inside'; targetId: string } | { kind: 'line'; parentId: string; index: number; y: number; depth: number };
 
+/**
+ * The tree's shape: one children array per container, plus which containers
+ * list in flow order. Property edits keep these, so rows are only rebuilt when
+ * layers are added, removed or reordered, or auto layout is turned on or off.
+ * Worked out once per document, not on every hover or camera change.
+ */
+const shapes = new WeakMap<DesignDocument, (readonly string[] | string)[]>();
+function treeShape(doc: DesignDocument): (readonly string[] | string)[] {
+  let shape = shapes.get(doc);
+  if (shape) return shape;
+  const out: (readonly string[] | string)[] = [];
+  const walk = (id: string) => {
+    const n = doc.nodes[id];
+    if (n.children.length === 0) return;
+    out.push(n.children);
+    if (!listedFrontFirst(n)) out.push(`flow:${id}`);
+    n.children.forEach(walk);
+  };
+  walk(doc.rootId);
+  shape = out;
+  shapes.set(doc, shape);
+  return shape;
+}
+
+/** What a row shows. A layer moving or resizing doesn't change it, so rows don't redraw during drags. */
+function sameRow(a: DesignNode | undefined, b: DesignNode | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.name === b.name &&
+    a.type === b.type &&
+    a.visible === b.visible &&
+    a.locked === b.locked &&
+    a.role === b.role &&
+    a.layout === b.layout &&
+    a.children.length === b.children.length &&
+    (a.type !== 'text' && a.type !== 'note' ? true : a.text === b.text)
+  );
+}
+
 export function LayersPanel() {
   const editor = useEditor();
-  // The tree's shape: one children array per container, plus which containers list in
-  // flow order. Property edits keep these, so rows are only rebuilt when layers are
-  // added, removed or reordered, or auto layout is turned on or off.
-  const structure = useEditorState((s) => {
-    const shape: (readonly string[] | string)[] = [];
-    const walk = (id: string) => {
-      const n = s.doc.nodes[id];
-      if (n.children.length === 0) return;
-      shape.push(n.children);
-      if (!listedFrontFirst(n)) shape.push(`flow:${id}`);
-      n.children.forEach(walk);
-    };
-    walk(s.doc.rootId);
-    return shape;
-  }, shallowArrayEqual);
+  const structure = useEditorState((s) => treeShape(s.doc), shallowArrayEqual);
   const selection = useEditorState((s) => s.selection);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [drop, setDrop] = useState<Drop | null>(null);
@@ -84,6 +114,10 @@ export function LayersPanel() {
   const listRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 800 });
+  // Keyboard: the row the arrow keys are on, and a row to start renaming.
+  const [active, setActive] = useState<string | null>(null);
+  const [treeFocused, setTreeFocused] = useState(false);
+  const [renameRequest, setRenameRequest] = useState<string | null>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -160,6 +194,7 @@ export function LayersPanel() {
     const onRowClick = (e: React.MouseEvent, id: string) => {
       const rows = rowsRef.current;
       if (suppressClick.current) return;
+      setActive(id);
       const { selection: current } = editor.getState();
       if (e.shiftKey && anchor.current) {
         const a = rows.findIndex((r) => r.id === anchor.current);
@@ -190,7 +225,10 @@ export function LayersPanel() {
       const row = rows[i];
       const node = doc.nodes[row.id];
       const within = pos / ROW_HEIGHT - i; // 0..1 inside the row
-      const invalid = (parentId: string) => dragged.some((d) => d === parentId || isAncestorOf(doc, d, parentId));
+      const invalid = (parentId: string) =>
+        dragged.some(
+          (d) => d === parentId || isAncestorOf(doc, d, parentId) || (doc.nodes[d]?.type === 'note' && parentId !== doc.rootId),
+        );
 
       if (node.type === 'frame' && within > 0.25 && within < 0.75 && !invalid(row.id)) {
         return { kind: 'inside', targetId: row.id };
@@ -269,6 +307,92 @@ export function LayersPanel() {
     return { toggle, onRowClick, onRowPointerDown };
   }, [editor]);
 
+  // Stable, so the memoised rows don't redraw whenever the list does.
+  const onRenameDone = useCallback(() => {
+    setRenameRequest(null);
+    listRef.current?.focus();
+  }, []);
+
+  const activeId =
+    active && rows.some((r) => r.id === active)
+      ? active
+      : (selection.find((id) => rows.some((r) => r.id === id)) ?? rows[0]?.id ?? null);
+
+  const scrollToRow = (index: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const y = LIST_PAD + index * ROW_HEIGHT;
+    if (y < el.scrollTop) el.scrollTop = y - LIST_PAD;
+    else if (y + ROW_HEIGHT > el.scrollTop + el.clientHeight) el.scrollTop = y + ROW_HEIGHT - el.clientHeight + LIST_PAD;
+  };
+
+  /**
+   * The layer tree from the keyboard (selection follows the arrow keys):
+   * Up and Down move, Shift extends the selection, Right opens a layer or goes
+   * into it, Left closes it or goes to its parent, Home and End jump, Enter or
+   * F2 renames, Space adds or removes the layer from the selection.
+   */
+  const onTreeKeyDown = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget || rows.length === 0) return;
+    const { doc } = editor.getState();
+    const i = Math.max(
+      0,
+      rows.findIndex((r) => r.id === activeId),
+    );
+    const go = (index: number, extend = false) => {
+      const to = Math.max(0, Math.min(rows.length - 1, index));
+      const id = rows[to].id;
+      setActive(id);
+      if (extend && anchor.current) {
+        const a = rows.findIndex((r) => r.id === anchor.current);
+        const [from, until] = a < to ? [a, to] : [to, a];
+        editor.select(rows.slice(from, until + 1).map((r) => r.id));
+      } else {
+        editor.select([id]);
+        anchor.current = id;
+      }
+      scrollToRow(to);
+    };
+    const row = rows[i];
+    const node = doc.nodes[row.id];
+    switch (e.key) {
+      case 'ArrowDown':
+        go(i + 1, e.shiftKey);
+        break;
+      case 'ArrowUp':
+        go(i - 1, e.shiftKey);
+        break;
+      case 'Home':
+        go(0, e.shiftKey);
+        break;
+      case 'End':
+        go(rows.length - 1, e.shiftKey);
+        break;
+      case 'ArrowRight':
+        if (node.children.length && !expanded.has(row.id)) handlers.toggle(row.id);
+        else if (node.children.length) go(i + 1);
+        break;
+      case 'ArrowLeft':
+        if (node.children.length && expanded.has(row.id)) handlers.toggle(row.id);
+        else if (node.parentId && node.parentId !== doc.rootId) go(rows.findIndex((r) => r.id === node.parentId));
+        break;
+      case 'Enter':
+      case 'F2':
+        setRenameRequest(row.id);
+        break;
+      case ' ': {
+        const current = editor.getState().selection;
+        editor.select(current.includes(row.id) ? current.filter((id) => id !== row.id) : [...current, row.id]);
+        break;
+      }
+      default:
+        return;
+    }
+    // Arrow keys here move through the list; they don't also nudge the selection on the canvas.
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   // Only the rows in view are rendered, so very large documents stay responsive.
   const first = Math.max(0, Math.floor((view.top - LIST_PAD) / ROW_HEIGHT) - OVERSCAN);
   const last = Math.min(rows.length, Math.ceil((view.top + view.height) / ROW_HEIGHT) + OVERSCAN);
@@ -289,6 +413,11 @@ export function LayersPanel() {
             role="tree"
             aria-label="Layers"
             aria-multiselectable="true"
+            tabIndex={0}
+            aria-activedescendant={activeId ? `layer-${activeId}` : undefined}
+            onKeyDown={onTreeKeyDown}
+            onFocus={(e) => e.target === e.currentTarget && setTreeFocused(true)}
+            onBlur={(e) => e.target === e.currentTarget && setTreeFocused(false)}
             style={{ height: rows.length * ROW_HEIGHT + LIST_PAD + 24 }}
           >
             {rows.slice(first, last).map((row, i) => (
@@ -300,6 +429,9 @@ export function LayersPanel() {
                 expanded={expanded.has(row.id)}
                 insideSelection={insideSelection.has(row.id)}
                 dropInside={drop?.kind === 'inside' && drop.targetId === row.id}
+                active={treeFocused && row.id === activeId}
+                renameRequested={renameRequest === row.id}
+                onRenameDone={onRenameDone}
                 onToggle={handlers.toggle}
                 onClick={handlers.onRowClick}
                 onPointerDown={handlers.onRowPointerDown}
@@ -321,6 +453,9 @@ interface LayerRowProps {
   expanded: boolean;
   insideSelection: boolean;
   dropInside: boolean;
+  active: boolean;
+  renameRequested: boolean;
+  onRenameDone: () => void;
   editor: Editor;
   onToggle: (id: string) => void;
   onClick: (e: React.MouseEvent, id: string) => void;
@@ -334,15 +469,21 @@ const LayerRow = memo(function LayerRow({
   expanded,
   insideSelection,
   dropInside,
+  active,
+  renameRequested,
+  onRenameDone,
   editor,
   onToggle,
   onClick,
   onPointerDown,
 }: LayerRowProps) {
-  const node = useEditorState((s) => s.doc.nodes[id]);
+  const node = useEditorState((s) => s.doc.nodes[id], sameRow);
   const selected = useEditorState((s) => s.selection.includes(id));
   const parentSelected = insideSelection && !selected;
   const [renaming, setRenaming] = useState(false);
+  useEffect(() => {
+    if (renameRequested) setRenaming(true);
+  }, [renameRequested]);
   if (!node) return null;
 
   const hasChildren = node.children.length > 0;
@@ -354,8 +495,10 @@ const LayerRow = memo(function LayerRow({
 
   return (
     <div
-      className={`layer-row${selected ? ' is-selected' : ''}${parentSelected ? ' is-child-of-selected' : ''}${!node.visible ? ' is-hidden' : ''}${dropInside ? ' is-drop-inside' : ''}`}
+      className={`layer-row${selected ? ' is-selected' : ''}${parentSelected ? ' is-child-of-selected' : ''}${!node.visible ? ' is-hidden' : ''}${dropInside ? ' is-drop-inside' : ''}${active ? ' is-active' : ''}`}
       data-type={node.type}
+      id={`layer-${id}`}
+      aria-label={`${displayName(node)}, ${node.type}${node.locked ? ', locked' : ''}${!node.visible ? ', hidden' : ''}`}
       role="treeitem"
       aria-selected={selected}
       aria-expanded={hasChildren ? expanded : undefined}
@@ -368,9 +511,12 @@ const LayerRow = memo(function LayerRow({
       onPointerLeave={() => editor.setHover(null)}
     >
       {hasChildren ? (
+        // The row's buttons are for the pointer: from the keyboard the tree is one tab stop,
+        // with arrows to open and close, and Ctrl+Shift+L / H to lock and hide.
         <button
           type="button"
           className="layer-chevron"
+          tabIndex={-1}
           aria-label={expanded ? 'Collapse' : 'Expand'}
           onClick={(e) => (e.stopPropagation(), onToggle(id))}
         >
@@ -386,6 +532,7 @@ const LayerRow = memo(function LayerRow({
           onDone={(name) => {
             setRenaming(false);
             if (name && name !== node.name) editor.apply([{ type: 'update', id, props: { name } }], { label: 'Rename' });
+            if (renameRequested) onRenameDone();
           }}
         />
       ) : (
@@ -398,6 +545,7 @@ const LayerRow = memo(function LayerRow({
         <button
           type="button"
           className={`icon-button${node.locked ? ' is-on' : ''}`}
+          tabIndex={-1}
           aria-label={node.locked ? 'Unlock' : 'Lock'}
           aria-pressed={node.locked}
           onClick={(e) => (e.stopPropagation(), toggleProp('locked'))}
@@ -407,6 +555,7 @@ const LayerRow = memo(function LayerRow({
         <button
           type="button"
           className={`icon-button${!node.visible ? ' is-on' : ''}`}
+          tabIndex={-1}
           aria-label={node.visible ? 'Hide' : 'Show'}
           aria-pressed={!node.visible}
           onClick={(e) => (e.stopPropagation(), toggleProp('visible'))}

@@ -19,7 +19,8 @@ import { getAncestors, sortByDocumentOrder, topLevelIds } from '../model/documen
 import { unionWorldBounds } from '../model/geometry';
 import { isAutoLayout, isInFlow } from '../model/layout';
 import { removeAutoLayoutOps, tidyFrameOps, wrapInAutoLayoutOps } from '../model/autolayout';
-import { OpBuilder } from '../model/ops';
+import { OpBuilder, type Op } from '../model/ops';
+import { sizingProps } from '../model/sizing';
 import { isSelectable } from '../model/hit';
 
 /**
@@ -92,8 +93,12 @@ export function duplicateSelection(editor: Editor): void {
 }
 
 export function groupSelection(editor: Editor): void {
-  const result = groupOps(editor.getState().doc, selectedIds(editor));
+  const { doc } = editor.getState();
+  const ids = selectedIds(editor);
+  const result = groupOps(doc, ids);
   if (result) editor.apply(result.ops, { label: 'Group', selection: [result.groupId] });
+  else if (ids.length && ids.every((id) => doc.nodes[id]?.type === 'note'))
+    editor.notify('Notes stay on the canvas, so they aren’t grouped.');
 }
 
 export function ungroupSelection(editor: Editor): void {
@@ -109,12 +114,38 @@ export function ungroupSelection(editor: Editor): void {
  */
 export function addAutoLayout(editor: Editor): void {
   const { doc } = editor.getState();
-  const ids = selectedIds(editor);
-  if (ids.length === 0) return editor.notify('Select a frame, or the layers to arrange, first.');
+  const selected = selectedIds(editor);
+  if (selected.length === 0) return editor.notify('Select a frame, or the layers to arrange, first.');
+  // Notes stay on the canvas: a frame selected with a note is tidied as if selected alone.
+  const designs = selected.filter((id) => doc.nodes[id]?.type !== 'note');
+  const ids = designs.length ? designs : selected;
   const only = ids.length === 1 ? doc.nodes[ids[0]] : null;
   const result = only?.type === 'frame' && only.layout === 'none' ? tidyFrameOps(doc, only.id) : wrapInAutoLayoutOps(doc, ids);
   if (!result.ok) return editor.notify(result.error, 'error');
   editor.apply(result.ops, { label: 'Add auto layout', selection: [result.frameId] });
+}
+
+/**
+ * Changes how the selected frames arrange their children. Turning a frame
+ * into a grid makes its children fill their cells and starts with as many
+ * columns as a row had children (or three).
+ */
+export function setFrameLayout(editor: Editor, ids: readonly string[], layout: 'row' | 'column' | 'grid'): void {
+  const { doc } = editor.getState();
+  const ops: Op[] = [];
+  for (const id of ids) {
+    const node = doc.nodes[id];
+    if (node?.type !== 'frame' || node.layout === layout) continue;
+    const flow = node.children.filter((c) => doc.nodes[c].visible && doc.nodes[c].positioning !== 'absolute');
+    if (layout === 'grid') {
+      const columns = node.layout === 'row' ? Math.min(6, Math.max(1, flow.length)) : node.columns;
+      ops.push({ type: 'update', id, props: { layout, columns } });
+      for (const child of flow) ops.push({ type: 'update', id: child, props: sizingProps(doc.nodes[child], 'width', 'fill') });
+    } else {
+      ops.push({ type: 'update', id, props: { layout } });
+    }
+  }
+  if (ops.length) editor.apply(ops, { label: layout === 'grid' ? 'Grid layout' : 'Layout direction' });
 }
 
 export function removeAutoLayout(editor: Editor): void {
@@ -178,11 +209,18 @@ export function nudgeSelection(editor: Editor, dx: number, dy: number): void {
   const ordered = sortByDocumentOrder(doc, inFlow);
   for (const id of dx + dy > 0 ? ordered.reverse() : ordered) {
     const parent = builder.doc.nodes[doc.nodes[id].parentId!];
-    const along = parent.layout === 'row' ? dx : dy;
-    if (along === 0) continue;
+    // In a grid, left and right move one place; up and down move a whole row.
+    const step =
+      parent.layout === 'grid'
+        ? dx !== 0
+          ? Math.sign(dx)
+          : Math.sign(dy) * parent.columns
+        : Math.sign(parent.layout === 'row' ? dx : dy);
+    if (step === 0) continue;
     const siblings = parent.children.filter((c) => isInFlow(builder.doc, builder.doc.nodes[c]));
     const at = siblings.indexOf(id);
-    const swapWith = siblings[at + Math.sign(along)];
+    const swapWith = siblings[Math.max(0, Math.min(siblings.length - 1, at + step))];
+    if (swapWith === id) continue;
     if (!swapWith || selected.has(swapWith)) continue;
     builder.push({ type: 'move', id, parentId: parent.id, index: parent.children.indexOf(swapWith) });
   }
@@ -225,6 +263,32 @@ export function selectParent(editor: Editor): void {
     ...new Set(selection.map((id) => doc.nodes[id]?.parentId).filter((p): p is string => !!p && p !== doc.rootId)),
   ];
   editor.select(parents);
+}
+
+/**
+ * Tab on the canvas: selects the next (or previous) layer beside the selected
+ * one, or the first top-level layer when nothing is selected. Returns false at
+ * the end of the list, so focus can leave the canvas instead of being trapped.
+ */
+export function selectSibling(editor: Editor, backwards: boolean): boolean {
+  const { doc, selection } = editor.getState();
+  const current = sortByDocumentOrder(doc, selection);
+  if (current.length === 0) {
+    if (backwards) return false;
+    const first = doc.nodes[doc.rootId].children.find((id) => isSelectable(doc, id));
+    if (!first) return false;
+    editor.select([first]);
+    revealSelection(editor);
+    return true;
+  }
+  const from = backwards ? current[0] : current[current.length - 1];
+  const parentId = doc.nodes[from]?.parentId ?? doc.rootId;
+  const siblings = doc.nodes[parentId].children.filter((id) => id === from || isSelectable(doc, id));
+  const next = siblings[siblings.indexOf(from) + (backwards ? -1 : 1)];
+  if (!next) return false;
+  editor.select([next]);
+  revealSelection(editor);
+  return true;
 }
 
 export function selectChildren(editor: Editor): void {
@@ -334,6 +398,29 @@ export function zoomToSelection(editor: Editor): void {
   const bounds = unionWorldBounds(doc, selectedIds(editor));
   if (!bounds) return zoomToFit(editor);
   editor.setCamera(fitRect(bounds, editor.viewport, 80, 8));
+}
+
+/** Pans just enough to bring the selection into view, if it is outside it. */
+export function revealSelection(editor: Editor): void {
+  const { doc, camera } = editor.getState();
+  const b = unionWorldBounds(doc, selectedIds(editor));
+  if (!b) return;
+  const { width, height } = editor.viewport;
+  if (width <= 0 || height <= 0) return;
+  const margin = 48;
+  const left = b.x * camera.zoom + camera.x;
+  const top = b.y * camera.zoom + camera.y;
+  const right = left + b.width * camera.zoom;
+  const bottom = top + b.height * camera.zoom;
+  const shift = (start: number, end: number, size: number) => {
+    if (end - start > size - margin * 2) return start < margin || start > size - margin ? margin - start : 0;
+    if (start < margin) return margin - start;
+    if (end > size - margin) return size - margin - end;
+    return 0;
+  };
+  const dx = shift(left, right, width);
+  const dy = shift(top, bottom, height);
+  if (dx || dy) editor.setCamera({ ...camera, x: camera.x + dx, y: camera.y + dy });
 }
 
 /** Ensures every ancestor of the given layers is expanded in the layer tree; returns them. */

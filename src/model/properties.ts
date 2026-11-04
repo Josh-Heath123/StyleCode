@@ -25,23 +25,28 @@ export interface PropDef {
 }
 
 const SHAPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image'];
+/** Everything on the canvas, notes included. */
+const PLACED: readonly NodeType[] = [...SHAPES, 'note'];
+const ROUNDED: readonly NodeType[] = ['frame', 'rect', 'image'];
 const BOXES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'image'];
 const PAINTED: readonly NodeType[] = ['frame', 'rect', 'ellipse'];
 const TEXT: readonly NodeType[] = ['text'];
 const FRAME: readonly NodeType[] = ['frame'];
 const PADDING = { kind: 'number', min: 0, max: 10_000 } as const;
+const LIMIT = { kind: 'number', min: 0, max: 1e5 } as const;
+const CORNER = { kind: 'number', min: 0, max: 1e5 } as const;
 const OFFSET = { kind: 'number', min: -10_000, max: 10_000 } as const;
 
 export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
   name: { spec: { kind: 'string', maxLength: 200 }, appliesTo: 'all', description: 'Layer name' },
-  visible: { spec: { kind: 'boolean' }, appliesTo: SHAPES, description: 'Whether the layer is shown' },
-  locked: { spec: { kind: 'boolean' }, appliesTo: SHAPES, description: 'Locked layers cannot be selected on the canvas' },
+  visible: { spec: { kind: 'boolean' }, appliesTo: PLACED, description: 'Whether the layer is shown' },
+  locked: { spec: { kind: 'boolean' }, appliesTo: PLACED, description: 'Locked layers cannot be selected on the canvas' },
 
-  x: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: SHAPES, description: 'Left offset from the parent, in px' },
-  y: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: SHAPES, description: 'Top offset from the parent, in px' },
+  x: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: PLACED, description: 'Left offset from the parent, in px' },
+  y: { spec: { kind: 'number', min: -1e6, max: 1e6 }, appliesTo: PLACED, description: 'Top offset from the parent, in px' },
   // Zero is allowed: auto-layout can squeeze a filling layer to nothing, as CSS does.
-  width: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: SHAPES, description: 'Width in px' },
-  height: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: SHAPES, description: 'Height in px' },
+  width: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: PLACED, description: 'Width in px' },
+  height: { spec: { kind: 'number', min: 0, max: 1e5 }, appliesTo: PLACED, description: 'Height in px' },
   rotation: {
     spec: { kind: 'number', wrapDegrees: true },
     appliesTo: SHAPES,
@@ -57,13 +62,34 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
   stroke: { spec: { kind: 'color', nullable: true }, appliesTo: BOXES, description: 'Border colour, hex, or null for none' },
   strokeWidth: { spec: { kind: 'number', min: 0, max: 1000 }, appliesTo: BOXES, description: 'Border width in px' },
   radius: {
-    spec: { kind: 'number', min: 0, max: 1e5 },
-    appliesTo: ['frame', 'rect', 'image'],
-    description: 'Corner radius in px',
+    spec: CORNER,
+    appliesTo: ROUNDED,
+    description: 'Corner radius in px, for all four corners',
+  },
+  independentCorners: {
+    spec: { kind: 'boolean' },
+    appliesTo: ROUNDED,
+    description: 'Use a different radius for each corner (radiusTopLeft…) instead of radius',
+  },
+  radiusTopLeft: { spec: CORNER, appliesTo: ROUNDED, description: 'Top-left corner radius in px, when independentCorners is on' },
+  radiusTopRight: {
+    spec: CORNER,
+    appliesTo: ROUNDED,
+    description: 'Top-right corner radius in px, when independentCorners is on',
+  },
+  radiusBottomRight: {
+    spec: CORNER,
+    appliesTo: ROUNDED,
+    description: 'Bottom-right corner radius in px, when independentCorners is on',
+  },
+  radiusBottomLeft: {
+    spec: CORNER,
+    appliesTo: ROUNDED,
+    description: 'Bottom-left corner radius in px, when independentCorners is on',
   },
   clip: { spec: { kind: 'boolean' }, appliesTo: ['frame'], description: 'Clip children to the frame bounds' },
 
-  text: { spec: { kind: 'string', maxLength: 100_000 }, appliesTo: TEXT, description: 'Text content' },
+  text: { spec: { kind: 'string', maxLength: 100_000 }, appliesTo: ['text', 'note'], description: 'Text content' },
   fontFamily: { spec: { kind: 'string', maxLength: 200 }, appliesTo: TEXT, description: 'CSS font family name' },
   fontSize: { spec: { kind: 'number', min: 1, max: 1000 }, appliesTo: TEXT, description: 'Font size in px' },
   fontWeight: {
@@ -89,9 +115,10 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
   },
 
   layout: {
-    spec: { kind: 'enum', values: ['none', 'row', 'column'] },
+    spec: { kind: 'enum', values: ['none', 'row', 'column', 'grid'] },
     appliesTo: FRAME,
-    description: 'Auto-layout direction: row or column arranges children automatically (flexbox); none positions them freely',
+    description:
+      'How children are arranged: row or column (auto layout, like flexbox), grid (equal columns, filled row by row), or none (placed freely by x and y)',
   },
   gap: { spec: PADDING, appliesTo: FRAME, description: 'Space between auto-layout children in px' },
   paddingTop: { spec: PADDING, appliesTo: FRAME, description: 'Auto-layout padding at the top in px' },
@@ -113,6 +140,16 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     appliesTo: FRAME,
     description: 'Rows only: children that do not fit move onto a new line, with the same gap between lines',
   },
+  columns: {
+    spec: { kind: 'number', min: 1, max: 24, integer: true },
+    appliesTo: FRAME,
+    description: 'Grids only: the number of equal columns',
+  },
+  columnSpan: {
+    spec: { kind: 'number', min: 1, max: 24, integer: true },
+    appliesTo: SHAPES,
+    description: 'Inside a grid: how many columns the layer spans',
+  },
   widthMode: {
     spec: { kind: 'enum', values: ['fixed', 'hug', 'fill'] },
     appliesTo: SHAPES,
@@ -130,6 +167,10 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     appliesTo: SHAPES,
     description: 'Inside an auto-layout frame, absolute keeps the layer at its x/y instead of in the flow',
   },
+  minWidth: { spec: LIMIT, appliesTo: SHAPES, description: 'Smallest width auto layout may give the layer, in px; 0 for none' },
+  maxWidth: { spec: LIMIT, appliesTo: SHAPES, description: 'Largest width auto layout may give the layer, in px; 0 for none' },
+  minHeight: { spec: LIMIT, appliesTo: SHAPES, description: 'Smallest height auto layout may give the layer, in px; 0 for none' },
+  maxHeight: { spec: LIMIT, appliesTo: SHAPES, description: 'Largest height auto layout may give the layer, in px; 0 for none' },
   role: {
     spec: { kind: 'enum', values: ROLES },
     appliesTo: SHAPES,
@@ -166,6 +207,35 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     spec: { kind: 'enum', values: ['cover', 'contain', 'fill'] },
     appliesTo: ['image'],
     description: 'How the image fills its box',
+  },
+
+  hideOnMobile: { spec: { kind: 'boolean' }, appliesTo: SHAPES, description: 'Hide the layer on phones in exported code' },
+  mobileLayout: {
+    spec: { kind: 'enum', values: ['same', 'row', 'column'] },
+    appliesTo: FRAME,
+    description: 'On phones: arrange the children as a column (stacked) or a row instead; same keeps the layout',
+  },
+  mobileColumns: {
+    spec: { kind: 'number', min: 0, max: 24, integer: true },
+    appliesTo: FRAME,
+    description: 'Grids on phones: the number of columns; 0 for one column',
+  },
+  mobileFill: { spec: { kind: 'boolean' }, appliesTo: SHAPES, description: 'On phones: take the full width of the parent' },
+  mobileFontSize: {
+    spec: { kind: 'number', min: 0, max: 1000 },
+    appliesTo: TEXT,
+    description: 'Font size on phones in px; 0 keeps the design size (large type still scales down)',
+  },
+  mobileTextAlign: {
+    spec: { kind: 'enum', values: ['same', 'left', 'center', 'right'] },
+    appliesTo: TEXT,
+    description: 'Text alignment on phones; same keeps the design alignment',
+  },
+
+  noteTarget: {
+    spec: { kind: 'string', maxLength: 64, pattern: /^([A-Za-z0-9_-]{1,64})?$/ },
+    appliesTo: ['note'],
+    description: 'The layer a note points at, or empty',
   },
 };
 

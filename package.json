@@ -1,8 +1,14 @@
 {
   "name": "stylecode",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "A local-first visual UI editor where the canvas is the prompt: draw interfaces, collaborate with an AI through structured edits, and export real frontend code.",
+  "license": "MIT",
+  "homepage": "https://josh-heath123.github.io/StyleCode/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Josh-Heath123/StyleCode.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
@@ -15,7 +21,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "npm test && npm run test:e2e"
+    "test:all": "npm test && npm run test:e2e",
+    "demos": "playwright test -c e2e/demos/demos.config.ts",
+    "site": "node --experimental-strip-types scripts/build-site.ts",
+    "build:pages": "vite build --base=/StyleCode/app/ --outDir site/app --emptyOutDir && npm run site"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -23,6 +32,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "1.63.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",

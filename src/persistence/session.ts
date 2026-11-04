@@ -8,7 +8,7 @@ import { parseProject, referencedAssets, toProjectFile, type ProjectFile } from 
 import { exportAssets, importAssets } from './assets';
 import type { DesignDocument } from '../model/types';
 import { createExampleDocument } from './examples';
-import { exportProjectFile, pickProjectFile } from './files';
+import { exportProjectFile, pickProjectFile, saveFile } from './files';
 import { idbDelete, idbGet, idbGetAll, idbPut, PROJECTS } from './idb';
 
 /**
@@ -29,6 +29,13 @@ export interface ProjectSummary {
   id: string;
   name: string;
   updatedAt: number;
+  /** Why the project can't be opened, when its stored data is damaged or from a newer StyleCode. */
+  problem?: string;
+}
+
+export interface StorageUsage {
+  usage: number;
+  quota: number;
 }
 
 export type SaveStatus = 'saved' | 'saving' | 'pending' | 'error' | 'unavailable';
@@ -40,6 +47,10 @@ export interface SessionState {
 
 const LAST_PROJECT_KEY = 'stylecode:last-project';
 const SAVE_DELAY_MS = 500;
+/** After a failed save, try again after these delays (the last one repeats). */
+const RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000];
+/** Warn once a session when the browser's storage for StyleCode is this full. */
+const NEARLY_FULL = 0.9;
 
 function readLastProjectId(): string | null {
   try {
@@ -74,6 +85,27 @@ export class ProjectSession {
   private unsubscribe: (() => void) | null = null;
   private readonly channel: BroadcastChannel | null;
   private readonly tabId = createId('tab');
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private retries = 0;
+  private warnedNearlyFull = false;
+  /** The document as it was opened, to tell whether there is unsaved work when storage is unavailable. */
+  private openedDoc: DesignDocument | null = null;
+  /** The last save failed and retries are under way. */
+  private failing = false;
+  /** The save being written, if one is. */
+  private inFlight: Promise<void> | null = null;
+  /** Autosave is paused (while the recovery screen shows a design that may be broken). */
+  private paused = false;
+  /** The document and camera the autosave last looked at, so only real changes trigger a save. */
+  private seen: { doc: DesignDocument | null; camera: Camera | null } = { doc: null, camera: null };
+
+  /**
+   * Asked before replacing a design whose latest changes couldn't be saved.
+   * Returns true to go ahead and lose them.
+   */
+  confirmDiscard: (name: string) => boolean = (name) =>
+    typeof window !== 'undefined' &&
+    window.confirm(`The latest changes to “${name}” couldn’t be saved. Continue anyway and lose them?`);
 
   constructor(private readonly editor: Editor) {
     this.channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('stylecode') : null;
@@ -96,56 +128,111 @@ export class ProjectSession {
     this.listeners.forEach((l) => l());
   }
 
-  /** Opens the most recent project, or creates a starter project. Returns its saved camera, if any. */
+  /**
+   * Opens the most recent project that can be opened, or creates a starter
+   * project. A project whose stored data is damaged is left untouched (its data
+   * can still be downloaded from Projects) and the next one is opened instead.
+   * Returns the opened project's saved camera, if any.
+   */
   async init(): Promise<Camera | null> {
     let camera: Camera | null = null;
+    let records: ProjectRecord[];
     try {
-      const lastId = readLastProjectId();
-      const record = lastId ? await idbGet<ProjectRecord>(PROJECTS, lastId) : undefined;
-      const parsed = record ? parseProject(record.file) : null;
-      if (record && parsed?.ok) {
-        this.editor.loadDocument(parsed.doc);
-        camera = record.camera ?? null;
-        this.lastSavedDoc = parsed.doc;
-      } else {
-        const projects = await this.listProjects();
-        const latest = projects[0] ? await idbGet<ProjectRecord>(PROJECTS, projects[0].id) : undefined;
-        const latestParsed = latest ? parseProject(latest.file) : null;
-        if (latest && latestParsed?.ok) {
-          this.editor.loadDocument(latestParsed.doc);
-          camera = latest.camera ?? null;
-          this.lastSavedDoc = latestParsed.doc;
-        } else {
-          this.editor.loadDocument(createStarterDocument());
-          await this.saveNow();
-        }
-      }
-      writeLastProjectId(this.editor.getState().doc.id);
+      records = await idbGetAll<ProjectRecord>(PROJECTS);
     } catch (error) {
+      // No storage at all (blocked, private mode in some browsers): work in memory and say so.
       this.storageAvailable = false;
       this.editor.loadDocument(createStarterDocument());
       this.set({ status: 'unavailable', error: (error as Error).message });
+      this.start();
+      return null;
+    }
+
+    const lastId = readLastProjectId();
+    const ordered = [...records].sort(
+      (a, b) => Number(b.id === lastId) - Number(a.id === lastId) || (b.updatedAt ?? 0) - (a.updatedAt ?? 0),
+    );
+    const skipped: string[] = [];
+    for (const record of ordered) {
+      const doc = this.tryLoad(record);
+      if (doc) {
+        camera = record.camera ?? null;
+        this.lastSavedDoc = doc;
+        break;
+      }
+      skipped.push(record.name || 'Untitled');
+    }
+    if (!this.lastSavedDoc) {
+      this.editor.loadDocument(createStarterDocument());
+      await this.saveNow();
+    }
+    writeLastProjectId(this.editor.getState().doc.id);
+    if (skipped.length) {
+      this.editor.notify(
+        skipped.length === 1
+          ? `“${skipped[0]}” couldn’t be opened. It’s still in Projects, where you can download its data.`
+          : `${skipped.length} projects couldn’t be opened. They’re still in Projects, where you can download their data.`,
+        'error',
+      );
     }
     this.start();
     return camera;
   }
 
+  /** Loads a stored project into the editor, or returns null if its data can't be read. */
+  private tryLoad(record: ProjectRecord): DesignDocument | null {
+    try {
+      const parsed = parseProject(record.file);
+      if (!parsed.ok) return null;
+      this.editor.loadDocument(parsed.doc);
+      return this.editor.committedDoc;
+    } catch (error) {
+      console.error('StyleCode: could not load a stored project', error);
+      return null;
+    }
+  }
+
   private start(): void {
     this.unsubscribe?.();
+    this.openedDoc = this.editor.committedDoc;
     this.lastCamera = this.editor.getState().camera;
+    this.seen = { doc: this.editor.getState().doc, camera: this.lastCamera };
     this.unsubscribe = this.editor.subscribe(() => {
       const { doc, camera, gesturing, proposal } = this.editor.getState();
       // Drags and AI proposals under review aren't saved until they are done.
-      if (gesturing || proposal) return;
+      if (gesturing || proposal || this.paused) return;
+      // Only an edit or a camera move schedules a save; hovering, notices and the like don't,
+      // so they can't keep postponing a save or cut short the wait between retries.
+      if (doc === this.seen.doc && camera === this.seen.camera) return;
+      this.seen = { doc, camera };
       const docChanged = doc !== this.lastSavedDoc;
       const cameraChanged = camera !== this.lastCamera;
       if (!docChanged && !cameraChanged) return;
-      if (docChanged && this.storageAvailable) this.set({ status: 'pending' });
+      if (docChanged && this.storageAvailable && !this.failing) this.set({ status: 'pending' });
       this.schedule();
     });
     window.addEventListener('pagehide', this.flush);
+    window.addEventListener('beforeunload', this.onBeforeUnload);
     document.addEventListener('visibilitychange', this.onVisibility);
   }
+
+  /** Whether closing the page now would lose work. */
+  hasUnsavedWork(): boolean {
+    if (this.paused) return false;
+    if (!this.storageAvailable) return this.editor.committedDoc !== this.openedDoc;
+    return (
+      this.timer !== null || this.state.status === 'saving' || this.state.status === 'pending' || this.state.status === 'error'
+    );
+  }
+
+  /** Asks the browser to confirm leaving while a save is pending or has failed. */
+  private onBeforeUnload = (e: BeforeUnloadEvent) => {
+    this.flush();
+    if (!this.hasUnsavedWork()) return;
+    e.preventDefault();
+    // Older browsers need returnValue set as well.
+    e.returnValue = '';
+  };
 
   private onVisibility = () => {
     if (document.visibilityState === 'hidden') this.flush();
@@ -161,44 +248,164 @@ export class ProjectSession {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
-      void this.saveNow();
+      if (!this.paused) void this.saveNow();
     }
   };
 
-  async saveNow(): Promise<void> {
-    if (!this.storageAvailable) return;
+  /**
+   * Stops autosaving, so a design the editor failed to draw doesn't replace
+   * the last good save. Saving to a file still works.
+   */
+  pause(): void {
+    this.paused = true;
+    if (this.timer) clearTimeout(this.timer);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
     this.timer = null;
+    this.retryTimer = null;
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    this.seen = { doc: null, camera: null };
+    this.schedule();
+  }
+
+  async saveNow(): Promise<void> {
+    const write = this.write();
+    this.inFlight = write;
+    try {
+      await write;
+    } finally {
+      if (this.inFlight === write) this.inFlight = null;
+    }
+  }
+
+  private async write(): Promise<void> {
+    if (!this.storageAvailable || this.paused) return;
+    // This save covers any that was waiting.
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = null;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
     const { camera } = this.editor.getState();
     const doc = this.editor.committedDoc;
     const record: ProjectRecord = { id: doc.id, name: doc.name, updatedAt: Date.now(), camera, file: toProjectFile(doc) };
     const docChanged = doc !== this.lastSavedDoc;
-    if (docChanged) this.set({ status: 'saving' });
+    // While retrying, the status stays "Not saved" rather than flickering through "Saving…".
+    if (docChanged && !this.failing) this.set({ status: 'saving' });
     try {
       await idbPut(PROJECTS, record);
       this.lastSavedDoc = doc;
       this.lastCamera = camera;
       if (docChanged) this.channel?.postMessage({ id: doc.id, tab: this.tabId });
+      this.failing = false;
+      this.retries = 0;
       // A newer change may have arrived while saving.
       if (this.editor.committedDoc === doc) this.set({ status: 'saved', error: null });
+      else this.set({ status: 'pending', error: null });
+      if (docChanged) void this.checkSpace();
     } catch (error) {
-      const message =
-        (error as DOMException)?.name === 'QuotaExceededError'
-          ? 'Browser storage is full. Save the project to a file to keep your work.'
-          : `Could not save: ${(error as Error).message}`;
+      const message = isQuotaError(error)
+        ? 'Browser storage is full. Save the project to a file, or delete old projects to make room.'
+        : `Couldn’t save: ${(error as Error)?.message ?? 'unknown error'}.`;
+      // Said once when saving starts failing; the save status keeps showing it while retries carry on quietly.
+      if (!this.failing) this.editor.notify(message, 'error');
+      this.failing = true;
       this.set({ status: 'error', error: message });
-      this.editor.notify(message, 'error');
+      if (this.paused) return;
+      const delay = RETRY_DELAYS_MS[Math.min(this.retries, RETRY_DELAYS_MS.length - 1)];
+      this.retries++;
+      this.retryTimer = setTimeout(() => void this.saveNow(), delay);
     }
+  }
+
+  /** Tries a failed save again straight away. */
+  retry(): Promise<void> {
+    this.retries = 0;
+    return this.saveNow();
+  }
+
+  /**
+   * Before another design replaces this one: true if nothing would be lost,
+   * or the user agreed to lose the changes that couldn't be saved.
+   */
+  private async mayReplace(): Promise<boolean> {
+    // Finish a save that is waiting first: whether it works decides whether anything would be lost.
+    if (this.timer && !this.paused) await this.saveNow();
+    else if (this.inFlight) await this.inFlight;
+    const unsaved = this.storageAvailable ? this.failing : this.editor.committedDoc !== this.openedDoc;
+    if (unsaved && !this.confirmDiscard(this.editor.committedDoc.name)) return false;
+    // Whatever was failing belonged to the design being replaced.
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.retryTimer = null;
+    this.failing = false;
+    this.retries = 0;
+    return true;
+  }
+
+  /** After another design is loaded: it is the baseline for what counts as unsaved. */
+  private replaced(): void {
+    this.openedDoc = this.editor.committedDoc;
+    this.seen = { doc: this.editor.getState().doc, camera: this.editor.getState().camera };
+  }
+
+  /** How much of the browser's storage StyleCode is using, where the browser says. */
+  async storageUsage(): Promise<StorageUsage | null> {
+    try {
+      const estimate = await navigator.storage?.estimate?.();
+      if (!estimate?.quota) return null;
+      return { usage: estimate.usage ?? 0, quota: estimate.quota };
+    } catch {
+      return null;
+    }
+  }
+
+  private async checkSpace(): Promise<void> {
+    if (this.warnedNearlyFull) return;
+    const space = await this.storageUsage();
+    if (!space || space.usage / space.quota < NEARLY_FULL) return;
+    this.warnedNearlyFull = true;
+    this.editor.notify('Browser storage is nearly full. Save projects to files, or delete old ones in Projects.', 'error');
   }
 
   async listProjects(): Promise<ProjectSummary[]> {
     const records = await idbGetAll<ProjectRecord>(PROJECTS);
-    return records.map(({ id, name, updatedAt }) => ({ id, name, updatedAt })).sort((a, b) => b.updatedAt - a.updatedAt);
+    return records
+      .map((record) => {
+        const parsed = parseProject(record.file);
+        return {
+          id: record.id,
+          name: typeof record.name === 'string' && record.name ? record.name : 'Untitled',
+          updatedAt: typeof record.updatedAt === 'number' ? record.updatedAt : 0,
+          ...(parsed.ok ? {} : { problem: parsed.error }),
+        };
+      })
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  }
+
+  /**
+   * Downloads a stored project's data exactly as it is kept, including one
+   * that can't be opened, so it can be recovered or reported.
+   */
+  async downloadStoredProject(id: string): Promise<boolean> {
+    const record = await idbGet<ProjectRecord>(PROJECTS, id);
+    if (!record) throw new Error('That project no longer exists.');
+    return saveFile(
+      `${(record.name || 'untitled').replace(/[^\w-]+/g, '-').slice(0, 60)}-data.json`,
+      { description: 'StyleCode project data', mime: 'application/json', extension: '.json' },
+      async () => new Blob([JSON.stringify(record.file, null, 2)], { type: 'application/json' }),
+    );
   }
 
   private async switchTo(doc: DesignDocument, camera: Camera | null): Promise<Camera | null> {
-    this.flush();
+    if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
     if (this.timer) clearTimeout(this.timer);
+    this.timer = null;
     this.editor.loadDocument(doc);
+    this.replaced();
     this.lastSavedDoc = null;
     writeLastProjectId(doc.id);
     await this.saveNow();
@@ -218,9 +425,12 @@ export class ProjectSession {
     if (!record) throw new Error('That project no longer exists.');
     const parsed = parseProject(record.file);
     if (!parsed.ok) throw new Error(parsed.error);
-    this.flush();
+    if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = null;
     this.editor.loadDocument(parsed.doc);
-    this.lastSavedDoc = parsed.doc;
+    this.replaced();
+    this.lastSavedDoc = this.editor.committedDoc;
     writeLastProjectId(id);
     this.set({ status: 'saved', error: null });
     return record.camera ?? null;
@@ -251,8 +461,27 @@ export class ProjectSession {
   dispose(): void {
     this.flush();
     this.unsubscribe?.();
+    if (this.retryTimer) clearTimeout(this.retryTimer);
     window.removeEventListener('pagehide', this.flush);
+    window.removeEventListener('beforeunload', this.onBeforeUnload);
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.channel?.close();
   }
+}
+
+/** Opening another project was called off, to keep changes that couldn't be saved. */
+export class KeptOpenError extends Error {
+  constructor(canRetry = true) {
+    super(
+      canRetry
+        ? 'Kept this project open. Its latest changes still aren’t saved: try saving again, or save it to a file.'
+        : 'Kept this project open. This browser isn’t letting StyleCode save, so save it to a file first.',
+    );
+    this.name = 'KeptOpenError';
+  }
+}
+
+function isQuotaError(error: unknown): boolean {
+  const name = (error as DOMException | null)?.name;
+  return name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED';
 }

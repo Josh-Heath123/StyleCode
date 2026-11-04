@@ -19,6 +19,23 @@ describe('project files', () => {
     }
   });
 
+  it('moves a note found inside a frame onto the canvas, keeping its place', () => {
+    const base = createDocument();
+    const doc = applyOps(base, [
+      { type: 'create', parentId: base.rootId, index: 0, nodes: [createNode('frame', { x: 100, y: 50 }, 'f')] },
+    ]).doc;
+    const file = JSON.parse(JSON.stringify(toProjectFile(doc)));
+    // As a hand-edited or older file might have it.
+    file.document.nodes.n = { ...createNode('note', { x: 10, y: 20, text: 'Hi' }, 'n'), parentId: 'f', children: [] };
+    file.document.nodes.f.children = ['n'];
+    const parsed = parseProject(file);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(parsed.doc.nodes.n).toMatchObject({ parentId: base.rootId, x: 110, y: 70, text: 'Hi' });
+    expect(parsed.doc.nodes.f.children).toEqual([]);
+    expect(checkIntegrity(parsed.doc)).toEqual([]);
+    expect(parsed.warnings).toEqual(['Moved note n out of a frame, onto the canvas.']);
+  });
+
   it('rejects files that are not projects or are from a newer version', () => {
     expect(parseProject({ hello: 'world' }).ok).toBe(false);
     expect(parseProject({ format: 'stylecode', version: 99, document: {} }).ok).toBe(false);

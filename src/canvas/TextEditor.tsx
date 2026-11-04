@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { useEditor } from '../editor/react';
 import type { DesignNode } from '../model/types';
 
-/** In-place text editing for a text layer. Commits on blur, Escape or Ctrl/⌘+Enter. */
+/** In-place text editing for a text layer or a note. Commits on blur, Escape or Ctrl/⌘+Enter. */
 export function TextEditor({ node }: { node: DesignNode }) {
   const editor = useEditor();
   const ref = useRef<HTMLDivElement>(null);
@@ -30,15 +30,16 @@ export function TextEditor({ node }: { node: DesignNode }) {
     editor.setEditingText(null);
 
     if (!editor.getState().doc.nodes[node.id]) return;
+    const what = node.type === 'note' ? 'note' : 'text';
     if (text.trim() === '') {
       if (pending === undefined || !editor.discardTransaction(pending)) {
-        editor.apply([{ type: 'delete', id: node.id }], { label: 'Delete text', selection: [] });
+        editor.apply([{ type: 'delete', id: node.id }], { label: `Delete ${what}`, selection: [] });
       }
       return;
     }
     if (text !== node.text) {
       editor.apply([{ type: 'update', id: node.id, props: { text } }], {
-        label: pending !== undefined ? 'Add text' : 'Edit text',
+        label: pending !== undefined ? `Add ${what}` : `Edit ${what}`,
         selection: [node.id],
         mergeInto: pending,
       });
