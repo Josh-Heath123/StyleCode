@@ -1,7 +1,7 @@
-import { isValidId } from '../../model/ids';
-import type { Timestamp } from './types';
+import { isValidId } from '../../model/ids.ts';
+import type { Timestamp } from './types.ts';
 
-export { createId, isValidId } from '../../model/ids';
+export { createId, isValidId } from '../../model/ids.ts';
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 

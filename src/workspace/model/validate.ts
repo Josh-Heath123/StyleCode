@@ -15,8 +15,8 @@ import {
   missingStatements,
   termsIssues,
   type ConsentTerms,
-} from './consent';
-import { isInRecord } from './findings';
+} from './consent.ts';
+import { isInRecord } from './findings.ts';
 import {
   AI_PROVENANCES,
   ENTITY_MAPS,
@@ -38,7 +38,7 @@ import {
   type FindingChange,
   type Provenance,
   type TrackedField,
-} from './types';
+} from './types.ts';
 import {
   get,
   isCalendarDate,
@@ -50,7 +50,7 @@ import {
   isTimestamp,
   quoteAppearsIn,
   time,
-} from './util';
+} from './util.ts';
 
 export interface Problem {
   /** Stable identifier of the rule, for tests and for the interface to look up its own wording. */

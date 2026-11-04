@@ -12,8 +12,8 @@ import type {
   ConsentRecord,
   Retention,
   Timestamp,
-} from './types';
-import { fail, get, isNonEmptyText, isTimestamp, ok, time, type Result } from './util';
+} from './types.ts';
+import { fail, get, isNonEmptyText, isTimestamp, ok, time, type Result } from './util.ts';
 
 /** What a consent record agrees to: the terms an amendment can change. */
 export interface ConsentTerms {

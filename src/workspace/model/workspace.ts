@@ -1,6 +1,13 @@
-import { ENTITY_MAPS, WORKSPACE_FORMAT, WORKSPACE_VERSION, type Company, type CompanyWorkspace, type Timestamp } from './types';
-import { createId, isNonEmptyText } from './util';
-import { validateWorkspace, type Problem } from './validate';
+import {
+  ENTITY_MAPS,
+  WORKSPACE_FORMAT,
+  WORKSPACE_VERSION,
+  type Company,
+  type CompanyWorkspace,
+  type Timestamp,
+} from './types.ts';
+import { createId, isNonEmptyText } from './util.ts';
+import { validateWorkspace, type Problem } from './validate.ts';
 
 /** Prefixes for new ids, so an id says what it is when it turns up in a log or a test. */
 export const ID_PREFIX = {
