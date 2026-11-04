@@ -469,7 +469,7 @@ The domain model is already one validated value per company, and at the sizes a 
 
 **The workspace folder** is `StyleCode Data` in the user's home folder by default (visible, so it's easy to back up, and not to be confused with a checkout of the StyleCode repo), or wherever `STYLECODE_WORKSPACE` points. On macOS and Linux it is created readable only by the user. On Windows Node can't set that, so it relies on the home folder's default Windows permissions.
 
-**Where it may not be.** The server refuses to start if the workspace folder is inside this repo or any git repository, so client data can never be committed. It warns in the app if the folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive), because syncing sends client data off the computer, which ADR-0002 rules out. Real client work uses the built app (`npm start`), not `npm run dev`; the guide says so.
+**Where it may not be.** The server refuses to start if the workspace folder is inside this repo or any git repository, so client data can never be committed. It warns in the app if the folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive, and, as an extension of ADR-0009 decided in Phase 1, iCloud Drive), because syncing sends client data off the computer, which ADR-0002 rules out. The services are recognised by OneDrive's environment variables on Windows and by their usual folder names (`server/workspace/folder.ts`), so a service syncing a folder with another name isn't detected. Real client work uses the built app (`npm start`), not `npm run dev`; the guide says so.
 
 ### Existing StyleCode projects (ADR-0007)
 

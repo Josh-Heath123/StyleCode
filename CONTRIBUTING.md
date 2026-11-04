@@ -23,7 +23,7 @@ git clone https://github.com/Josh-Heath123/StyleCode.git
 cd StyleCode
 npm install
 npx playwright install chromium   # once per machine, for the browser tests
-npm run dev                        # http://localhost:5173
+npm run dev                        # http://localhost:5173 (workspace data in ~/StyleCode Data (development))
 ```
 
 To try the AI flow without installing a model, run the fake Ollama the tests use and point **AI settings** at the address it prints:
