@@ -407,3 +407,82 @@ Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, 
 | Large images bloating storage and files | Content-addressed storage (each picture stored once), a 15 MB limit per image, and only images in use are embedded in saved files. |
 | API key exposure | Keys live in a file readable only by the user (or in environment variables) and are used by the local server; the browser only learns whether one is set. A key only goes to the address it was saved with, redirects aren't followed, and the AI routes only answer StyleCode's own page, from this computer. |
 | Scope creep | Each phase must leave the app working; no feature without a place in the core loop. |
+
+## 12. The consulting workspace: runtime and storage
+
+*Status: proposed in Phase 0 (WP4), for the user's decision. Each question has its own ADR (0005 to 0009), all Proposed. Nothing here is built yet; Phase 1 builds what is decided.*
+
+The workspace's data is described in `docs/spec/DOMAIN-MODEL.md`: one `CompanyWorkspace` value per company, validated, versioned, never saved with problems, and opened read-only when it has them. This section is about where that value lives and what runs it.
+
+```
+            ┌──────────── browser, http://localhost ────────────┐
+            │  editor (as today)       workspace UI (Phase 1)    │
+            │  IndexedDB: standalone   microphone (Phase 3,      │
+            │  editor projects         getUserMedia)             │
+            └──────────────┬───────────────────────┬────────────┘
+                 /api/ai   │                       │  /api/workspace
+            ┌──────────────▼───────────────────────▼────────────┐
+            │  local Node server (Vite plugins, one command)     │
+            │  same request checks for both: loopback, Host,      │
+            │  Origin, Sec-Fetch-Site, StyleCode header           │
+            └──────────────────────────┬────────────────────────┘
+                                       ▼
+            <workspace folder>/companies/<company id>/
+                workspace.json          the CompanyWorkspace
+                workspace.previous.json the last good copy
+                files/<file id>         documents, later audio
+                designs/<document id>.stylecode.json
+```
+
+### Runtime (ADR-0005)
+
+**Proposed:** keep today's shape, a browser page plus a local Node server, started with one command. The workspace API is a second Vite plugin next to `server/ai`, mounted on the dev and preview servers as the AI routes are.
+
+- **Microphone (Phase 3):** `http://localhost` and `127.0.0.1` are secure contexts, so `getUserMedia` works without HTTPS ([MDN, Secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), checked 2026-11-04).
+- **Files:** the server reads and writes the workspace folder, so the browser doesn't need the File System Access API (which only Chromium browsers have).
+- **Windows and cost:** Node 22.12 or newer is already required. Nothing is signed, hosted or paid for.
+- **Reuse:** all of the editor and `server/ai` carry over unchanged.
+- **Against:** the consultant needs Node and a terminal command, and a closed tab isn't a closed app. Packaging as a desktop app later stays possible, because the server is plain Node: Electron bundles Chromium and Node ([Electron, Security](https://www.electronjs.org/docs/latest/tutorial/security), checked 2026-11-04); Tauri would need Rust and the MSVC build tools to develop, and a rewrite or a Node sidecar for the server ([Tauri, Prerequisites](https://v2.tauri.app/start/prerequisites/), checked 2026-11-04).
+
+### Storage (ADR-0006)
+
+**Proposed:** a workspace folder on disk, managed by the local server, with **one folder per company** holding its own `workspace.json`, its files and its designs. A client's data can be backed up, exported or deleted as a unit, and the server only ever opens one company's folder for a request, so data can't leak between companies.
+
+**Records: one JSON file per company, not SQLite (for now).** The brief asked to evaluate SQLite with `node:sqlite` against a library. Measured on the user's laptop (Windows 11, Node 22.15.0, 2026-11-04):
+
+| Check | Result |
+| --- | --- |
+| `node:sqlite` loads without a flag | Yes, with an `ExperimentalWarning`. It became a release candidate only in Node 25.7 ([Node.js docs, SQLite](https://nodejs.org/api/sqlite.html), checked 2026-11-04). |
+| Full-text search (FTS5, FTS4, FTS3) in `node:sqlite` | **No:** `no such module: fts5`. The Windows build of SQLite 3.49.1 bundled with Node lacks it; others report the same on Windows ([skilld #64](https://github.com/skilld-dev/skilld/issues/64)). |
+| JSON functions in `node:sqlite` | Yes. |
+| JSON workspace, 60 one-hour meetings (54,000 segments, 2,400 findings, 12.7 MB) | Save (stringify, write, rename) 57 ms; load (parse and validate) 186 ms; substring search of every segment 22 ms. |
+| The same, 200 meetings (180,000 segments, 42.8 MB) | Save 226 ms; load 1.06 s; search 143 ms. |
+
+The domain model is already one validated value per company, and at the sizes a consultant reaches with one client, a JSON file is fast enough, needs no dependency, and is readable with any text editor if StyleCode is ever gone. The budgets in `src/workspace/model/performance.test.ts` keep it that way. SQLite would add a second representation to keep in step, and on the user's Windows Node it brings neither stability nor search. The choice is revisited (a new ADR) when one of these holds: a real workspace takes over a second to load, search needs ranking that substring search can't give, or `node:sqlite` is stable with FTS5 on Windows. `better-sqlite3` (a native runtime dependency, with FTS5) is the fallback if that happens before Node catches up.
+
+**Writes** follow `~/.stylecode/ai.json`: one at a time, to a temporary file renamed into place, so a file is never half-written. Before replacing `workspace.json` the server keeps the last good copy as `workspace.previous.json`. The server refuses to save a workspace with problems (`checkBeforeSave`). Each save carries the revision it was based on; if the file has moved on (a second tab), the save is refused and the page says so, instead of "last tab wins".
+
+**Files** (documents now, audio in Phase 3) are stored under `files/` by their id, never by a name the browser sent, and listed in the workspace as `FileRef`s. Audio stays out of `workspace.json`.
+
+**The workspace folder** is `StyleCode` in the user's home folder by default (visible, so it's easy to back up), or wherever `STYLECODE_WORKSPACE` points. It is created readable only by the user, as `~/.stylecode` is.
+
+### Existing StyleCode projects (ADR-0007)
+
+**Proposed:** coexistence, with designs copied into the company. Standalone editor projects stay in IndexedDB as today. Attaching a design to an engagement either creates a new one or copies an existing project into the company's `designs/` folder with a new document id, so a design belongs to exactly one company (review point 6) and the original is untouched. Opening an engagement's design loads and saves it through the workspace API instead of IndexedDB, which needs a second persistence adapter for the editor (Phase 1, or later if the canvas link waits). Nothing is migrated automatically.
+
+### Local API security (ADR-0008)
+
+**Proposed:** the workspace routes get the same checks as `/api/ai` (§8): the connection comes from a loopback address; `Host` is `localhost`, `127.0.0.1` or `[::1]`; any `Origin` is exactly this server; `Sec-Fetch-Site` is `same-origin` or `none`; and every request carries a StyleCode header. Phase 1 moves these checks from `server/ai/handler.ts` into one shared module, so both APIs use the same code and tests. On top of that, because these routes touch the disk:
+
+- every id in a path is checked with `isValidId` before it becomes part of a file path, and file names from the browser are never used as paths;
+- request bodies have a size limit, and JSON is the only body type except file uploads;
+- files are sent back with `X-Content-Type-Options: nosniff` and as downloads, so a stored file can't run as a page;
+- responses carry no CORS headers.
+
+### Data protection (ADR-0009)
+
+**Proposed:** rely on the operating system's disk encryption now, and don't add app-level encryption yet.
+
+- **Guidance in the app and the guide:** turn on Device encryption (Windows 11 Home, where the hardware supports it) or BitLocker (Pro, Enterprise, Education) ([Microsoft, Device encryption in Windows](https://support.microsoft.com/en-us/windows/device-encryption-in-windows-cf7e2b6f-3e70-4882-9532-18633605b7df), checked 2026-11-04), FileVault on macOS, or LUKS on Linux.
+- **Why not app-level encryption now:** with everything on one computer behind the user's login and disk encryption, it adds a passphrase that, if forgotten, loses every client's data, and it complicates search and backups. It becomes worth it when data leaves the computer: export to share, sync (out of scope), or backups to a cloud folder. A new ADR decides it then.
+- **Also:** the workspace folder is readable only by the user; deleting a company deletes its folder (MVP 1.4); logs never contain client data.
