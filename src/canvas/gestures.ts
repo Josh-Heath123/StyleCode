@@ -13,7 +13,7 @@ import {
   worldBounds,
   worldMatrix,
 } from '../model/geometry';
-import { childrenInRect, containerAtPoint } from '../model/hit';
+import { childrenInRect, containerAtPoint, isSelectable } from '../model/hit';
 import { createId } from '../model/ids';
 import { isAutoLayout, isInFlow } from '../model/layout';
 import { OpBuilder, type Op } from '../model/ops';
@@ -237,6 +237,9 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
   let anchor: string | null = null;
   let lastDelta: Point = { x: 0, y: 0 };
 
+  // Notes stay on the canvas: a selection with notes in it moves without changing any parents.
+  const keepParents = top.some((id) => base.nodes[id].type === 'note');
+
   // Layers the user deliberately positioned absolutely inside an auto-layout frame move freely there.
   const freeIn = (frameId: string) =>
     top.every((id) => base.nodes[id].parentId === frameId && base.nodes[id].positioning === 'absolute');
@@ -275,11 +278,18 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
       builder.push(...duplicate.ops);
       moving = duplicate.newIds;
     }
-    builder.push(...moveByOps(builder.doc, moving, delta));
+    // Each push copies the whole document, which adds up on large ones, so operations that
+    // don't change what is read in between (positions, positioning) are pushed together.
+    let pending: Op[] = moveByOps(builder.doc, moving, delta);
+    const flush = () => {
+      if (pending.length) builder.push(...pending);
+      pending = [];
+    };
     let reparented = false;
     if (target) {
       for (const id of moving) {
         if (builder.doc.nodes[id].parentId !== target) {
+          flush();
           reparentKeepingPosition(builder, id, target, builder.doc.nodes[target].children.length);
           reparented = true;
         }
@@ -288,15 +298,16 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
         // Outside auto-layout, "absolute" has no meaning; clear it so the layer joins any flow it enters later.
         for (const id of moving) {
           if (builder.doc.nodes[id].positioning === 'absolute')
-            builder.push({ type: 'update', id, props: { positioning: 'auto' } });
+            pending.push({ type: 'update', id, props: { positioning: 'auto' } });
         }
       }
       if (reorders(target)) {
         if (!final) {
           // While dragging, lift the layers out of the flow so they follow the pointer and the
           // rest of the row or column closes up around the gap.
-          for (const id of moving) builder.push({ type: 'update', id, props: { positioning: 'absolute' } });
+          for (const id of moving) pending.push({ type: 'update', id, props: { positioning: 'absolute' } });
         } else {
+          flush();
           for (const id of moving) {
             const siblings = builder.doc.nodes[target].children.filter((c) => c !== id);
             const index = anchor && siblings.includes(anchor) ? siblings.indexOf(anchor) : siblings.length;
@@ -306,7 +317,8 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
         }
       }
     }
-    return { ops: builder.ops, moving, reparented };
+    flush();
+    return { ops: builder.ops, moving, reparented, doc: builder.doc };
   };
 
   return {
@@ -323,12 +335,12 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
       const p = ctx.toWorld(ev.clientX, ev.clientY);
       let delta = { x: p.x - start.x, y: p.y - start.y };
       if (ev.shiftKey) delta = Math.abs(delta.x) >= Math.abs(delta.y) ? { x: delta.x, y: 0 } : { x: 0, y: delta.y };
-      target = resolveTarget(containerAtPoint(base, p, exclude));
+      target = keepParents ? null : resolveTarget(containerAtPoint(base, p, exclude));
 
       let guides: Guide[] = [];
       if (!reorders(target) && startBounds && snapping(ev)) {
         const moved = { ...startBounds, x: startBounds.x + delta.x, y: startBounds.y + delta.y };
-        const snap = snapBox(moved, targetsFor(target), snapThreshold(editor));
+        const snap = snapBox(moved, targetsFor(target ?? base.rootId), snapThreshold(editor));
         if (!(ev.shiftKey && delta.y === 0)) delta.y += snap.dy;
         if (!(ev.shiftKey && delta.x === 0)) delta.x += snap.dx;
         guides = snap.guides;
@@ -337,10 +349,10 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
       lastDelta = delta;
 
       // Re-parent live, so a layer dragged out of a clipping frame stays visible.
-      const { ops, moving } = build(delta, false);
+      const { ops, moving, doc: applied } = build(delta, false);
       const changesParent = top.some((id) => base.nodes[id].parentId !== target);
       editor.setDropTarget(changesParent && target !== base.rootId ? target : null);
-      editor.previewGesture(ops, moving);
+      editor.previewGesture(ops, moving, applied);
 
       if (target && reorders(target)) {
         const doc = editor.getState().doc;
@@ -373,6 +385,103 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
 function snap2(n: number): number {
   const r = Math.round(n);
   return Math.abs(r - n) < 0.01 ? r : round2(n);
+}
+
+// ---------------------------------------------------------------------------
+// Notes
+// ---------------------------------------------------------------------------
+
+/**
+ * The Note tool. Dragging draws a note; clicking a layer pins a note to it
+ * (the note points at that layer); clicking empty canvas drops a note there.
+ * Notes always sit on the canvas itself, outside frames. Typing starts at
+ * once, and a note left empty is removed again.
+ */
+export function noteGesture(ctx: GestureContext, e: PointerEvent, pinTo: string | null): Gesture {
+  const { editor } = ctx;
+  const base = editor.getState().doc;
+  const start = ctx.toWorld(e.clientX, e.clientY);
+  const id = createId();
+  const count = Object.values(base.nodes).filter((n) => n.type === 'note').length;
+  const props: Partial<NodeProps> = { name: `Note ${count + 1}` };
+  let dragging = false;
+  const createOp = (extra: Partial<NodeProps>): Op => ({
+    type: 'create',
+    parentId: base.rootId,
+    index: base.nodes[base.rootId].children.length,
+    nodes: [createNode('note', { ...props, ...extra }, id)],
+  });
+  const finish = (transactionId: number | undefined) => {
+    editor.setTool('move');
+    if (transactionId !== undefined) beginTextCreation(editor, id, transactionId);
+  };
+  return {
+    cursor: 'crosshair',
+    move(ev) {
+      if (!dragging) {
+        if (!passedThreshold(e, ev)) return;
+        dragging = true;
+        editor.beginGesture();
+      }
+      if (!editor.inGesture) return;
+      const r = rectFromPoints(start, ctx.toWorld(ev.clientX, ev.clientY));
+      editor.previewGesture([createOp({ x: round(r.x), y: round(r.y), width: Math.max(120, round(r.width)) })], [id]);
+    },
+    up() {
+      if (dragging) {
+        finish(editor.commitGesture('Add note', [id])?.id);
+        return;
+      }
+      // Pinned to a layer: above it, a little to the right of where it was clicked, pointing back at it.
+      const at = pinTo
+        ? { x: round(start.x + 48), y: round(Math.min(start.y, worldBounds(base, pinTo).y) - 136) }
+        : { x: round(start.x), y: round(start.y) };
+      const tx = editor.apply([createOp({ ...at, noteTarget: pinTo ?? '' })], { label: 'Add note', selection: [id] });
+      finish(tx?.id);
+    },
+    cancel() {
+      editor.cancelGesture();
+    },
+  };
+}
+
+/** The layer a point is over that a note may point at: the deepest design layer, never a note. */
+function noteTargetAt(doc: DesignDocument, clientX: number, clientY: number, noteId: string): string | null {
+  for (const el of document.elementsFromPoint(clientX, clientY)) {
+    const id = el.closest('[data-node-id]')?.getAttribute('data-node-id');
+    if (!id || id === noteId || !doc.nodes[id] || doc.nodes[id].type === 'note' || !isSelectable(doc, id)) continue;
+    return id;
+  }
+  return null;
+}
+
+/** Dragging the dot on a note's edge onto a layer makes the note point at it. */
+export function connectGesture(ctx: GestureContext, noteId: string, from: Point): Gesture {
+  const { editor } = ctx;
+  let target: string | null = null;
+  return {
+    cursor: 'crosshair',
+    move(ev) {
+      const doc = editor.getState().doc;
+      const p = ctx.toWorld(ev.clientX, ev.clientY);
+      target = noteTargetAt(doc, ev.clientX, ev.clientY, noteId);
+      editor.setDropTarget(target);
+      editor.setGuides([{ x1: from.x, y1: from.y, x2: p.x, y2: p.y, kind: 'connector' }]);
+    },
+    up() {
+      editor.setDropTarget(null);
+      editor.setGuides([]);
+      if (target)
+        editor.apply([{ type: 'update', id: noteId, props: { noteTarget: target } }], {
+          label: 'Point note',
+          selection: [noteId],
+        });
+    },
+    cancel() {
+      editor.setDropTarget(null);
+      editor.setGuides([]);
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

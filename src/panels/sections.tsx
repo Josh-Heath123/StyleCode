@@ -1,8 +1,11 @@
-import { addAutoLayout, removeAutoLayout } from '../app/actions';
+import { addAutoLayout, removeAutoLayout, setFrameLayout } from '../app/actions';
 import { replaceImage } from '../app/insert';
 import type { Editor } from '../editor/editor';
-import { canFill, effectiveSizing, isAutoLayout } from '../model/layout';
-import { ROLES, type DesignNode, type NodeProps, type Role, type SizingMode } from '../model/types';
+import { canFill, effectiveSizing, isAutoLayout, isGrid } from '../model/layout';
+import { sizingProps } from '../model/sizing';
+export { fixedHeight, fixedWidth, sizingProps } from '../model/sizing';
+import { MOBILE_BREAKPOINT, ROLES, type DesignNode, type NodeProps, type Role, type SizingMode } from '../model/types';
+import { NOTE_COLORS } from '../render/css';
 import { Icon } from '../ui/Icon';
 import { ColorField, MIXED, NumberField, Segmented, SelectField, type Mixed, type Phase } from './controls';
 
@@ -45,39 +48,6 @@ function sizingOptions(node: DesignNode, axis: Axis, parent: DesignNode | undefi
   if (node.type === 'text' || isAutoLayout(node)) options.push('hug');
   if (canFill(node, axis, parent)) options.push('fill');
   return options;
-}
-
-/** The properties that give a layer a sizing mode. Text expresses hug and fixed through its resizing. */
-export function sizingProps(node: DesignNode, axis: Axis, mode: SizingMode): Partial<NodeProps> {
-  const modeKey = axis === 'width' ? 'widthMode' : 'heightMode';
-  if (node.type !== 'text') return { [modeKey]: mode };
-  if (axis === 'width') {
-    if (mode === 'hug') return { widthMode: 'fixed', textResize: 'auto-width' };
-    return { widthMode: mode, textResize: node.textResize === 'auto-width' ? 'auto-height' : node.textResize };
-  }
-  if (mode === 'fixed') return { heightMode: 'fixed', textResize: 'fixed' };
-  // Text that hugs its width keeps doing so; the parent decides its height.
-  if (mode === 'fill') return { heightMode: 'fill', textResize: node.textResize === 'auto-width' ? 'auto-width' : 'fixed' };
-  return { heightMode: 'fixed', textResize: node.textResize === 'fixed' ? 'auto-height' : node.textResize };
-}
-
-/**
- * Typing a width or height gives the layer that size, so that axis stops
- * hugging or filling (as resizing with the handles does). Text that hugged its
- * width wraps at the new width instead.
- */
-export function fixedWidth(node: DesignNode): Partial<NodeProps> {
-  const props: Partial<NodeProps> = {};
-  if (node.widthMode !== 'fixed') props.widthMode = 'fixed';
-  if (node.type === 'text' && node.textResize === 'auto-width') props.textResize = 'auto-height';
-  return props;
-}
-
-export function fixedHeight(node: DesignNode): Partial<NodeProps> {
-  const props: Partial<NodeProps> = {};
-  if (node.heightMode !== 'fixed') props.heightMode = 'fixed';
-  if (node.type === 'text' && node.textResize !== 'fixed') props.textResize = 'fixed';
-  return props;
 }
 
 export function SizingRow({
@@ -135,6 +105,7 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
   const set = (props: Partial<NodeProps>, phase: Phase, label: string) => write(ids, props, phase, label);
   const direction = common(nodes, 'layout');
   const row = direction === 'row';
+  const grid = direction === 'grid';
 
   return (
     <section className="section" aria-label="Auto layout">
@@ -171,12 +142,13 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
           <div className="grid-2">
             <Segmented
               name="Direction"
-              value={direction === MIXED ? MIXED : (direction as 'row' | 'column')}
+              value={direction === MIXED ? MIXED : (direction as 'row' | 'column' | 'grid')}
               options={[
                 { value: 'row', icon: 'arrowRight', label: 'Row' },
                 { value: 'column', icon: 'arrowDown', label: 'Column' },
+                { value: 'grid', icon: 'grid', label: 'Grid' },
               ]}
-              onChange={(layout) => set({ layout }, 'commit', 'Layout direction')}
+              onChange={(layout) => setFrameLayout(editor, ids, layout)}
             />
             <NumberField
               label={<Icon name="gap" size={12} />}
@@ -186,12 +158,25 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
               onChange={(v, p) => set({ gap: v }, p, 'Gap')}
             />
           </div>
+          {grid && (
+            <div className="grid-2">
+              <NumberField
+                label="Cols"
+                name="Columns"
+                value={common(nodes, 'columns')}
+                min={1}
+                max={24}
+                precision={0}
+                onChange={(v, p) => set({ columns: Math.round(v) }, p, 'Columns')}
+              />
+            </div>
+          )}
           <div className="grid-2">
             <Segmented
               name="Align items"
               value={common(nodes, 'align')}
               options={
-                row
+                row || grid
                   ? [
                       { value: 'start', icon: 'alignTop', label: 'Align top' },
                       { value: 'center', icon: 'alignVCenter', label: 'Align middle' },
@@ -205,12 +190,25 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
               }
               onChange={(align) => set({ align }, 'commit', 'Alignment')}
             />
-            <SelectField
-              name="Distribution"
-              value={common(nodes, 'justify')}
-              options={JUSTIFY_OPTIONS.map((o) => ({ ...o }))}
-              onChange={(justify) => set({ justify }, 'commit', 'Distribution')}
-            />
+            {grid ? (
+              <SelectField
+                name="Place in cell"
+                value={common(nodes, 'justify')}
+                options={[
+                  { value: 'start', label: 'Left in cell' },
+                  { value: 'center', label: 'Centre in cell' },
+                  { value: 'end', label: 'Right in cell' },
+                ]}
+                onChange={(justify) => set({ justify }, 'commit', 'Placement')}
+              />
+            ) : (
+              <SelectField
+                name="Distribution"
+                value={common(nodes, 'justify')}
+                options={JUSTIFY_OPTIONS.map((o) => ({ ...o }))}
+                onChange={(justify) => set({ justify }, 'commit', 'Distribution')}
+              />
+            )}
           </div>
           <div className="grid-2">
             <NumberField
@@ -257,6 +255,329 @@ export function AutoLayoutSection({ editor, nodes, write }: { editor: Editor; no
           )}
         </>
       )}
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Grid cells and size limits
+// ---------------------------------------------------------------------------
+
+/** How many columns a layer in a grid spans. */
+export function ColumnSpanRow({
+  nodes,
+  parents,
+  write,
+}: {
+  nodes: DesignNode[];
+  parents: (DesignNode | undefined)[];
+  write: Writer;
+}) {
+  if (!parents.every(isGrid) || nodes.some((n) => n.positioning === 'absolute')) return null;
+  const most = Math.max(...parents.map((p) => p!.columns));
+  return (
+    <div className="grid-2">
+      <NumberField
+        label="Span"
+        name="Column span"
+        value={common(nodes, 'columnSpan')}
+        min={1}
+        max={most}
+        precision={0}
+        onChange={(v, p) =>
+          write(
+            nodes.map((n) => n.id),
+            { columnSpan: Math.round(v) },
+            p,
+            'Column span',
+          )
+        }
+      />
+    </div>
+  );
+}
+
+const LIMITS = [
+  ['minWidth', 'Min W', 'Minimum width'],
+  ['maxWidth', 'Max W', 'Maximum width'],
+  ['minHeight', 'Min H', 'Minimum height'],
+  ['maxHeight', 'Max H', 'Maximum height'],
+] as const;
+
+/**
+ * Minimum and maximum sizes, for layers whose size auto layout decides. Shown
+ * once one is set, or on request; 0 means no limit.
+ */
+export function LimitsRow({
+  nodes,
+  open,
+  onOpen,
+  write,
+}: {
+  nodes: DesignNode[];
+  open: boolean;
+  onOpen: () => void;
+  write: Writer;
+}) {
+  const any = nodes.some((n) => LIMITS.some(([key]) => n[key] > 0));
+  if (!any && !open) {
+    return (
+      <button type="button" className="text-button add-row" onClick={onOpen}>
+        <Icon name="plus" size={12} /> Size limits
+      </button>
+    );
+  }
+  return (
+    <div className="grid-2" role="group" aria-label="Size limits (0 for none)">
+      {LIMITS.map(([key, label, name]) => (
+        <NumberField
+          key={key}
+          label={label}
+          name={`${name} (0 for none)`}
+          value={common(nodes, key)}
+          min={0}
+          precision={0}
+          onChange={(v, p) =>
+            write(
+              nodes.map((n) => n.id),
+              { [key]: Math.max(0, Math.round(v)) },
+              p,
+              'Size limit',
+            )
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Corners
+// ---------------------------------------------------------------------------
+
+const CORNERS = [
+  ['radiusTopLeft', 'TL', 'Top-left radius'],
+  ['radiusTopRight', 'TR', 'Top-right radius'],
+  ['radiusBottomLeft', 'BL', 'Bottom-left radius'],
+  ['radiusBottomRight', 'BR', 'Bottom-right radius'],
+] as const;
+
+/** One radius for all corners, or one per corner. */
+export function CornersRow({ nodes, write }: { nodes: DesignNode[]; write: Writer }) {
+  const ids = nodes.map((n) => n.id);
+  const independent = common(nodes, 'independentCorners') === true;
+  const toggle = (
+    <button
+      type="button"
+      className="icon-button"
+      aria-pressed={independent}
+      aria-label="Independent corners"
+      data-tip="Independent corners"
+      data-tip-side="left"
+      onClick={() =>
+        write(
+          ids,
+          (n) =>
+            independent
+              ? { independentCorners: false, radius: n.radiusTopLeft }
+              : {
+                  independentCorners: true,
+                  radiusTopLeft: n.radius,
+                  radiusTopRight: n.radius,
+                  radiusBottomRight: n.radius,
+                  radiusBottomLeft: n.radius,
+                },
+          'commit',
+          independent ? 'Same corners' : 'Independent corners',
+        )
+      }
+    >
+      <Icon name="corners" size={14} />
+    </button>
+  );
+  if (!independent) {
+    return (
+      <div className="field-with-button">
+        <NumberField
+          label={<Icon name="radius" size={12} />}
+          name="Corner radius"
+          value={common(nodes, 'radius')}
+          min={0}
+          onChange={(v, p) => write(ids, { radius: v }, p, 'Corner radius')}
+        />
+        {toggle}
+      </div>
+    );
+  }
+  return (
+    <div className="corners">
+      <div className="grid-2">
+        {CORNERS.map(([key, label, name]) => (
+          <NumberField
+            key={key}
+            label={label}
+            name={name}
+            value={common(nodes, key)}
+            min={0}
+            onChange={(v, p) => write(ids, { [key]: v }, p, 'Corner radius')}
+          />
+        ))}
+      </div>
+      {toggle}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// On phones
+// ---------------------------------------------------------------------------
+
+/**
+ * Changes that apply to the exported page on phones (below the mobile
+ * breakpoint): hide a layer, stack a row, use fewer grid columns, take the
+ * full width, or set text differently. Preview at phone width shows them.
+ */
+export function MobileSection({
+  nodes,
+  parents,
+  write,
+}: {
+  nodes: DesignNode[];
+  parents: (DesignNode | undefined)[];
+  write: Writer;
+}) {
+  const ids = nodes.map((n) => n.id);
+  const set = (props: Partial<NodeProps>, phase: Phase, label: string) => write(ids, props, phase, label);
+  const frames = nodes.every((n) => n.type === 'frame' && n.layout !== 'none');
+  const grids = nodes.every(isGrid);
+  const texts = nodes.every((n) => n.type === 'text');
+  const inLayout = parents.every((p) => isAutoLayout(p)) && nodes.every((n) => n.positioning !== 'absolute');
+  const changed = nodes.some(
+    (n) =>
+      n.hideOnMobile ||
+      n.mobileFill ||
+      n.mobileLayout !== 'same' ||
+      n.mobileColumns > 0 ||
+      n.mobileFontSize > 0 ||
+      n.mobileTextAlign !== 'same',
+  );
+  const checkbox = (key: 'hideOnMobile' | 'mobileFill', label: string, on: string, off: string) => (
+    <label className="toggle-row">
+      <input
+        type="checkbox"
+        checked={common(nodes, key) === true}
+        ref={(el) => {
+          if (el) el.indeterminate = common(nodes, key) === MIXED;
+        }}
+        onChange={(e) => set({ [key]: e.target.checked }, 'commit', e.target.checked ? on : off)}
+      />
+      {label}
+    </label>
+  );
+  return (
+    <details className="section mobile-section" open={changed || undefined}>
+      <summary className="section-head">
+        <span className="section-title">
+          <Icon name="phone2" size={13} /> On phones
+        </span>
+        {changed && <span className="section-badge">Changed</span>}
+      </summary>
+      <p className="panel-hint">In exported code, below {MOBILE_BREAKPOINT}px wide. Preview at phone width to see it.</p>
+      {checkbox('hideOnMobile', 'Hide on phones', 'Hide on phones', 'Show on phones')}
+      {inLayout && checkbox('mobileFill', 'Full width on phones', 'Full width on phones', 'Keep width on phones')}
+      {frames && !grids && (
+        <SelectField
+          name="Layout on phones"
+          value={common(nodes, 'mobileLayout')}
+          options={[
+            { value: 'same', label: 'Same layout on phones' },
+            { value: 'column', label: 'Stack as a column' },
+            { value: 'row', label: 'Arrange as a row' },
+          ]}
+          onChange={(mobileLayout) => set({ mobileLayout }, 'commit', 'Layout on phones')}
+        />
+      )}
+      {grids && (
+        <div className="grid-2">
+          <NumberField
+            label="Cols"
+            name="Columns on phones"
+            value={common(nodes, 'mobileColumns') === 0 ? 1 : common(nodes, 'mobileColumns')}
+            min={1}
+            max={24}
+            precision={0}
+            onChange={(v, p) => set({ mobileColumns: Math.round(v) }, p, 'Columns on phones')}
+          />
+        </div>
+      )}
+      {texts && (
+        <div className="grid-2">
+          <NumberField
+            label="Size"
+            name="Font size on phones (0 for automatic)"
+            value={common(nodes, 'mobileFontSize')}
+            min={0}
+            onChange={(v, p) => set({ mobileFontSize: v }, p, 'Font size on phones')}
+          />
+          <SelectField
+            name="Text alignment on phones"
+            value={common(nodes, 'mobileTextAlign')}
+            options={[
+              { value: 'same', label: 'Same alignment' },
+              { value: 'left', label: 'Left' },
+              { value: 'center', label: 'Centre' },
+              { value: 'right', label: 'Right' },
+            ]}
+            onChange={(mobileTextAlign) => set({ mobileTextAlign }, 'commit', 'Alignment on phones')}
+          />
+        </div>
+      )}
+    </details>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Notes
+// ---------------------------------------------------------------------------
+
+/** A note's colour and the layer it points at. */
+export function NoteSection({ nodes, targetName, write }: { nodes: DesignNode[]; targetName: string | null; write: Writer }) {
+  const ids = nodes.map((n) => n.id);
+  const fill = common(nodes, 'fill');
+  return (
+    <section className="section" aria-label="Note">
+      <div className="section-head">Note</div>
+      <div className="note-colors" role="group" aria-label="Note colour">
+        {NOTE_COLORS.map((color) => (
+          <button
+            key={color}
+            type="button"
+            aria-pressed={fill === color}
+            aria-label={`Colour ${color}`}
+            className="note-swatch"
+            style={{ background: color }}
+            onClick={() => write(ids, { fill: color }, 'commit', 'Note colour')}
+          />
+        ))}
+      </div>
+      {nodes.length === 1 &&
+        (targetName ? (
+          <div className="note-target">
+            <span>
+              Points at <strong>{targetName}</strong>
+            </span>
+            <button
+              type="button"
+              className="text-button"
+              onClick={() => write(ids, { noteTarget: '' }, 'commit', 'Remove arrow')}
+            >
+              Remove arrow
+            </button>
+          </div>
+        ) : (
+          <p className="panel-hint">Drag the dot on the note's edge onto a layer to point at it.</p>
+        ))}
+      <p className="panel-hint">Notes stay on the canvas, out of the exported code. The AI reads them as instructions.</p>
     </section>
   );
 }

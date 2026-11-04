@@ -1,4 +1,5 @@
 import { defaultProps } from './defaults';
+import { applyToPoint, childSpaceMatrix } from './geometry';
 import { isValidId } from './ids';
 import { coerceProp, PROP_KEYS } from './properties';
 import { CONTAINER_TYPES, type DesignDocument, type DesignNode, type NodeType } from './types';
@@ -11,9 +12,10 @@ export const FILE_FORMAT = 'stylecode';
 /**
  * 2: auto-layout, sizing, roles, effects and image layers.
  * 3: wrapping rows.
+ * 4: grids, min/max sizes, independent corners, phone overrides and notes.
  * Older files load unchanged: every new property defaults to the old behaviour.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const FILE_EXTENSION = '.stylecode.json';
 
 export interface ProjectFile {
@@ -46,7 +48,7 @@ export type ParseResult = { ok: true; doc: DesignDocument; warnings: string[] } 
 
 const has = (map: object, key: string) => Object.prototype.hasOwnProperty.call(map, key);
 
-const KNOWN_TYPES = new Set<NodeType>(['page', 'frame', 'rect', 'ellipse', 'text', 'image']);
+const KNOWN_TYPES = new Set<NodeType>(['page', 'frame', 'rect', 'ellipse', 'text', 'image', 'note']);
 
 /**
  * Validates untrusted project data (a file, or something from storage) and
@@ -112,6 +114,8 @@ export function parseDocument(input: unknown): ParseResult {
 
   // 2. Rebuild the tree from the root so parent/child links are consistent.
   const nodes: Record<string, DesignNode> = {};
+  /** Notes found inside frames, moved onto the canvas afterwards. */
+  const strays: { id: string; frameId: string }[] = [];
   const visit = (id: string, parentId: string | null) => {
     const node = clean[id];
     node.parentId = parentId;
@@ -123,6 +127,10 @@ export function parseDocument(input: unknown): ParseResult {
           warnings.push(`Dropped a broken reference from ${id} to ${childId}.`);
           continue;
         }
+        if (clean[childId].type === 'note' && node.type !== 'page') {
+          strays.push({ id: childId, frameId: id });
+          continue;
+        }
         children.push(childId);
         visit(childId, id);
       }
@@ -132,6 +140,25 @@ export function parseDocument(input: unknown): ParseResult {
     node.children = children;
   };
   visit(raw.rootId, null);
+
+  // 3. Notes belong on the canvas: one found inside a frame moves out, keeping its place on the page.
+  const rootId = raw.rootId;
+  for (const { id, frameId } of strays) {
+    if (has(nodes, id)) continue;
+    const note = clean[id];
+    // Its centre stays where it was on the page (a note isn't rotated, even out of a rotated frame).
+    const centre = applyToPoint(childSpaceMatrix({ id: '', name: '', rootId, nodes }, frameId), {
+      x: note.x + note.width / 2,
+      y: note.y + note.height / 2,
+    });
+    note.x = Math.round((centre.x - note.width / 2) * 100) / 100;
+    note.y = Math.round((centre.y - note.height / 2) * 100) / 100;
+    note.parentId = rootId;
+    note.children = [];
+    nodes[id] = note;
+    nodes[rootId].children.push(id);
+    warnings.push(`Moved note ${id} out of a frame, onto the canvas.`);
+  }
 
   const orphans = Object.keys(clean).filter((id) => !has(nodes, id));
   if (orphans.length) warnings.push(`Removed ${orphans.length} layer(s) that were not attached to the page.`);

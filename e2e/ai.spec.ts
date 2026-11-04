@@ -171,7 +171,7 @@ test('reject puts the design back; during review the design is read-only and und
   // Edits wait until the proposal is accepted or rejected, so they never mix with unrecorded changes.
   const x = (await node(page, cards[1])).x;
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByText('Accept or reject the AI’s changes first: Enter accepts, Esc rejects.')).toBeVisible();
+  await expect(page.locator('.notice')).toHaveText('Accept or reject the AI’s changes first: Enter accepts, Esc rejects.');
   const box = (await page.locator(`[data-node-id="${cards[1]}"]`).boundingBox())!;
   await page.mouse.move(box.x + 10, box.y + 10);
   await page.mouse.down();
@@ -184,7 +184,7 @@ test('reject puts the design back; during review the design is read-only and und
 
   // Undo (here the toolbar button) rejects the proposal, and nothing else.
   await page.getByRole('button', { name: 'Reject the AI’s changes' }).click();
-  await expect(page.getByText('AI changes rejected.')).toBeVisible();
+  await expect(page.locator('.notice')).toHaveText('AI changes rejected.');
   const after = await snapshot(page);
   expect(Object.keys(after.doc.nodes)).toHaveLength(count);
   expect(after.doc.nodes[cards[1]].x).toBe(x);

@@ -178,6 +178,52 @@ body {
   overflow-wrap: break-word;
 }
 
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
+  justify-items: start;
+  gap: 16px;
+  flex: none;
+  align-self: stretch;
+}
+
+.tile {
+  grid-column: span 2;
+  justify-self: stretch;
+  height: 120px;
+  background: #dde3ff;
+  border-radius: 24px 4px 24px 4px;
+}
+
+.tile-2 {
+  align-self: stretch;
+  justify-self: stretch;
+  max-height: 100px;
+  background: #ffe3cc;
+}
+
+.caption {
+  justify-self: stretch;
+  min-width: 120px;
+  color: #11141a;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.tile-3 {
+  grid-column: span 3;
+  width: 80px;
+  height: 80px;
+  background: #c8f0dc;
+}
+
 /* Free layout: the layers inside keep fixed positions at every width. Auto layout (Shift+A) makes this responsive. */
 .sketch {
   position: relative;
@@ -400,6 +446,27 @@ body {
     max-width: 100%;
   }
 }
+
+/* Phones (below 640px): the "On phones" settings, and grids in fewer columns. */
+@media (max-width: 639px) {
+  .features {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .caption {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .tile-3 {
+    display: none;
+  }
+}
 "
 `;
 
@@ -433,6 +500,12 @@ exports[`generated code is pinned > for a landing page > html 1`] = `
           <h2 class="title-3">Answers, not "folders"</h2>
           <p class="body-3">Notes stay linked to their source.</p>
         </article>
+      </div>
+      <div class="gallery">
+        <div class="tile"></div>
+        <div class="tile-2"></div>
+        <p class="caption">Every note links back</p>
+        <div class="tile-3"></div>
       </div>
       <div class="sketch">
         <div class="blob"></div>
@@ -554,6 +627,52 @@ body:has(.landingPage) {
   line-height: 1.4;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
+  justify-items: start;
+  gap: 16px;
+  flex: none;
+  align-self: stretch;
+}
+
+.tile {
+  grid-column: span 2;
+  justify-self: stretch;
+  height: 120px;
+  background: #dde3ff;
+  border-radius: 24px 4px 24px 4px;
+}
+
+.tile2 {
+  align-self: stretch;
+  justify-self: stretch;
+  max-height: 100px;
+  background: #ffe3cc;
+}
+
+.caption {
+  justify-self: stretch;
+  min-width: 120px;
+  color: #11141a;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.tile3 {
+  grid-column: span 3;
+  width: 80px;
+  height: 80px;
+  background: #c8f0dc;
 }
 
 /* Free layout: the layers inside keep fixed positions at every width. Auto layout (Shift+A) makes this responsive. */
@@ -758,6 +877,27 @@ body:has(.landingPage) {
     max-width: 100%;
   }
 }
+
+/* Phones (below 640px): the "On phones" settings, and grids in fewer columns. */
+@media (max-width: 639px) {
+  .features {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .caption {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .tile3 {
+    display: none;
+  }
+}
 "
 `;
 
@@ -790,6 +930,12 @@ export default function LandingPage() {
         <FeatureCard iconBackground="#2f7bff" title="Tag as you go" />
         <FeatureCard iconBackground="#ff9f5a" title="Shared by default" />
         <FeatureCard iconBackground="#34c77b" title={"Answers, not \\"folders\\""} />
+      </div>
+      <div className={s.gallery}>
+        <div className={s.tile} />
+        <div className={s.tile2} />
+        <p className={s.caption}>Every note links back</p>
+        <div className={s.tile3} />
       </div>
       <div className={s.sketch}>
         <div className={s.blob} />

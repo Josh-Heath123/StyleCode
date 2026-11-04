@@ -14,11 +14,16 @@ import { isAutoLayout } from '../model/layout';
 import {
   AutoLayoutSection,
   BlurSection,
+  ColumnSpanRow,
   common,
+  CornersRow,
   fixedHeight,
   fixedWidth,
   GradientRow,
   ImageSection,
+  LimitsRow,
+  MobileSection,
+  NoteSection,
   RoleRow,
   ShadowSection,
   SizingRow,
@@ -31,6 +36,7 @@ export const TYPE_ICONS: Record<NodeType, IconName> = {
   ellipse: 'ellipse',
   text: 'text',
   image: 'image',
+  note: 'note',
 };
 
 const TYPE_LABELS: Record<NodeType, string> = {
@@ -40,6 +46,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   ellipse: 'Ellipse',
   text: 'Text',
   image: 'Image',
+  note: 'Note',
 };
 
 const WEIGHTS = [
@@ -115,8 +122,16 @@ export function PropertiesPanel() {
   const write = usePropertyWriter(editor);
   const parents = useEditorState((s) => nodes.map((n) => (n.parentId ? s.doc.nodes[n.parentId] : undefined)), shallowArrayEqual);
   const parentHasLayout = parents.map((p) => isAutoLayout(p));
+  const noteTarget = useEditorState((s) => {
+    const only = nodes.length === 1 && nodes[0].type === 'note' ? s.doc.nodes[nodes[0].noteTarget] : undefined;
+    return only ? only.name || only.type : null;
+  });
+  const [limitsOpen, setLimitsOpen] = useState(false);
 
   if (nodes.length === 0) return <PagePanel editor={editor} />;
+  if (nodes.some((n) => n.type === 'note')) {
+    return <NotesPanel editor={editor} nodes={nodes} targetName={noteTarget} write={write} />;
+  }
 
   const ids = nodes.map((n) => n.id);
   const types = new Set(nodes.map((n) => n.type));
@@ -267,6 +282,10 @@ export function PropertiesPanel() {
             )}
           </div>
           <SizingRow nodes={nodes} parents={parents} write={write} />
+          <ColumnSpanRow nodes={nodes} parents={parents} write={write} />
+          {(allInFlow || all('frame')) && (allInFlow || nodes.every(isAutoLayout)) && (
+            <LimitsRow nodes={nodes} open={limitsOpen} onOpen={() => setLimitsOpen(true)} write={write} />
+          )}
           {allInLayoutParent && (
             <label className="toggle-row" title="Keep this layer at its own position instead of in the row or column">
               <input
@@ -302,16 +321,8 @@ export function PropertiesPanel() {
               suffix="%"
               onChange={(v, p) => set({ opacity: v }, p, 'Opacity')}
             />
-            {all('frame', 'rect', 'image') && (
-              <NumberField
-                label={<Icon name="radius" size={12} />}
-                name="Corner radius"
-                value={common(nodes, 'radius')}
-                min={0}
-                onChange={(v, p) => set({ radius: v }, p, 'Corner radius')}
-              />
-            )}
           </div>
+          {all('frame', 'rect', 'image') && <CornersRow nodes={nodes} write={write} />}
         </section>
 
         {types.has('text') && all('text') && <TextSection nodes={nodes} write={write} />}
@@ -337,10 +348,86 @@ export function PropertiesPanel() {
         {all('frame', 'rect', 'ellipse', 'image') && <ShadowSection nodes={nodes} write={write} />}
         {all('frame', 'rect', 'ellipse') && <BlurSection nodes={nodes} write={write} />}
 
+        <MobileSection nodes={nodes} parents={parents} write={write} />
+
         {single && (
           <section className="section" aria-label="View">
             <button type="button" className="text-button" onClick={() => zoomToSelection(editor)}>
               <Icon name="fit" size={14} /> Zoom to {TYPE_LABELS[single.type].toLowerCase()}
+              <kbd>{K.zoomSelection}</kbd>
+            </button>
+          </section>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** Notes: where they are, their colour and what they point at. Notes mixed with layers can only be moved. */
+function NotesPanel({
+  editor,
+  nodes,
+  targetName,
+  write,
+}: {
+  editor: Editor;
+  nodes: DesignNode[];
+  targetName: string | null;
+  write: ReturnType<typeof usePropertyWriter>;
+}) {
+  const ids = nodes.map((n) => n.id);
+  const onlyNotes = nodes.every((n) => n.type === 'note');
+  const single = nodes.length === 1 ? nodes[0] : null;
+  return (
+    <>
+      <div className="props-header">
+        {single ? (
+          <>
+            <Icon name="note" className="layer-icon" />
+            <NameInput node={single} onRename={(name) => write(ids, { name }, 'commit', 'Rename')} />
+          </>
+        ) : (
+          <span className="props-header-count">
+            {nodes.length} {onlyNotes ? 'notes' : 'layers'}
+          </span>
+        )}
+      </div>
+      <div className="panel-scroll">
+        <section className="section" aria-label="Position">
+          <div className="section-head">Position</div>
+          <div className="grid-2">
+            <NumberField
+              label="X"
+              name="X position"
+              value={common(nodes, 'x')}
+              onChange={(v, p) => write(ids, { x: v }, p, 'Move')}
+            />
+            <NumberField
+              label="Y"
+              name="Y position"
+              value={common(nodes, 'y')}
+              onChange={(v, p) => write(ids, { y: v }, p, 'Move')}
+            />
+            {onlyNotes && (
+              <NumberField
+                label="W"
+                name="Width"
+                value={common(nodes, 'width')}
+                min={80}
+                onChange={(v, p) => write(ids, { width: v }, p, 'Resize')}
+              />
+            )}
+          </div>
+        </section>
+        {onlyNotes ? (
+          <NoteSection nodes={nodes} targetName={targetName} write={write} />
+        ) : (
+          <p className="panel-hint panel-pad">Select only notes, or only layers, to change more.</p>
+        )}
+        {single && (
+          <section className="section" aria-label="View">
+            <button type="button" className="text-button" onClick={() => zoomToSelection(editor)}>
+              <Icon name="fit" size={14} /> Zoom to note
               <kbd>{K.zoomSelection}</kbd>
             </button>
           </section>

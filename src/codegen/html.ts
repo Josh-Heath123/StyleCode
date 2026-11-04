@@ -186,6 +186,15 @@ export function screenCss(screen: Screen, selector: (rule: Rule) => string = def
     });
     p.push('}');
   }
+  if (screen.mobile.length) {
+    p.push('', `/* Phones (below ${screen.phoneWidth}px): the "On phones" settings, and grids in fewer columns. */`);
+    p.push(`@media (max-width: ${screen.phoneWidth - 1}px) {`);
+    screen.mobile.forEach((rule, i) => {
+      if (i) p.push('');
+      printRule(p, rule, '  ', selector);
+    });
+    p.push('}');
+  }
   return p.done();
 }
 

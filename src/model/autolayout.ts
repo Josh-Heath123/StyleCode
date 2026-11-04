@@ -209,8 +209,15 @@ export function tidyFrameOps(doc: DesignDocument, frameId: string): TidyResult {
 
 /** Wraps layers in a new auto-layout frame that hugs them, arranged as inferred from their positions. */
 export function wrapInAutoLayoutOps(doc: DesignDocument, ids: readonly string[]): TidyResult {
-  const top = sortByDocumentOrder(doc, topLevelIds(doc, ids)).filter((id) => id !== doc.rootId);
-  if (top.length === 0) return { ok: false, error: 'Select some layers first.' };
+  const chosen = sortByDocumentOrder(doc, topLevelIds(doc, ids)).filter((id) => id !== doc.rootId);
+  // Notes stay on the canvas, outside layouts.
+  const top = chosen.filter((id) => doc.nodes[id]?.type !== 'note');
+  if (top.length === 0) {
+    return {
+      ok: false,
+      error: chosen.length ? 'Notes stay outside layouts. Select the layers to arrange.' : 'Select some layers first.',
+    };
+  }
   const parentId = doc.nodes[top[top.length - 1]].parentId!;
 
   const toParent = invert(childSpaceMatrix(doc, parentId));

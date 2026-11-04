@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * The layout engine resolves auto-layout in the model; exported code will
- * express the same layout with CSS flexbox. This test generates random
- * auto-layout frames, lays them out with the engine, renders the same frames
- * with real flexbox in the browser, and checks every box matches.
+ * The layout engine resolves auto-layout in the model; exported code
+ * expresses the same layout with CSS flexbox and grid. This test generates
+ * random auto-layout frames (rows, columns, wrapping rows and grids, with
+ * size limits and column spans), lays them out with the engine, renders the
+ * same frames with real CSS in the browser, and checks every box matches.
  */
-test('the layout engine matches the browser’s flexbox', async ({ page }) => {
+test('the layout engine matches the browser’s flexbox and grid', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('.canvas');
 
@@ -28,10 +29,21 @@ test('the layout engine matches the browser’s flexbox', async ({ page }) => {
     const words = ['Ship', 'faster', 'with', 'layouts', 'that', 'simply', 'work', 'everywhere', 'today'];
 
     const problems: string[] = [];
-    for (let round = 0; round < 150; round++) {
+    // Size limits and column spans on some layers.
+    const limits = () => {
+      const out: Record<string, number> = {};
+      if (random() < 0.3) out.minWidth = int(20, 140);
+      if (random() < 0.3) out.maxWidth = int(30, 200);
+      if (random() < 0.2) out.minHeight = int(10, 80);
+      if (random() < 0.2) out.maxHeight = int(20, 120);
+      if (random() < 0.25) out.columnSpan = int(2, 3);
+      return out;
+    };
+    for (let round = 0; round < 200; round++) {
       const base = createDocument();
       const frameProps = () => ({
-        layout: pick(['row', 'column'] as const),
+        layout: pick(['row', 'column', 'row', 'column', 'grid'] as const),
+        columns: int(1, 4),
         gap: int(0, 24),
         paddingTop: int(0, 24),
         paddingRight: int(0, 24),
@@ -72,6 +84,7 @@ test('the layout engine matches the browser’s flexbox', async ({ page }) => {
             nodes: [
               createNode(kind, {
                 ...sizing,
+                ...limits(),
                 width: tiny ? int(0, 6) : int(10, 120),
                 height: tiny ? int(0, 6) : int(10, 90),
                 stroke: random() < 0.3 ? '#000000' : null,
@@ -101,6 +114,7 @@ test('the layout engine matches the browser’s flexbox', async ({ page }) => {
           const inner = createNode('frame', {
             ...frameProps(),
             ...sizing,
+            ...limits(),
             widthMode: sizing.widthMode === 'fill' ? 'fill' : pick(['hug', 'hug', 'fixed'] as const),
             heightMode: pick(['hug', 'hug', 'fixed'] as const),
             width: int(0, 60),

@@ -17,6 +17,11 @@ const BASE_PROPS: NodeProps = {
   stroke: null,
   strokeWidth: 1,
   radius: 0,
+  independentCorners: false,
+  radiusTopLeft: 0,
+  radiusTopRight: 0,
+  radiusBottomRight: 0,
+  radiusBottomLeft: 0,
   clip: false,
   text: '',
   fontFamily: DEFAULT_FONT_FAMILY,
@@ -35,9 +40,15 @@ const BASE_PROPS: NodeProps = {
   justify: 'start',
   align: 'start',
   wrap: false,
+  columns: 3,
+  columnSpan: 1,
   widthMode: 'fixed',
   heightMode: 'fixed',
   positioning: 'auto',
+  minWidth: 0,
+  maxWidth: 0,
+  minHeight: 0,
+  maxHeight: 0,
   role: 'auto',
   shadowColor: null,
   shadowX: 0,
@@ -49,6 +60,13 @@ const BASE_PROPS: NodeProps = {
   gradientAngle: 180,
   src: '',
   fit: 'cover',
+  hideOnMobile: false,
+  mobileLayout: 'same',
+  mobileColumns: 0,
+  mobileFill: false,
+  mobileFontSize: 0,
+  mobileTextAlign: 'same',
+  noteTarget: '',
 };
 
 const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {
@@ -58,6 +76,7 @@ const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {
   ellipse: { name: 'Ellipse', fill: '#d9dde4' },
   text: { name: 'Text', fill: '#11141a', text: 'Text', width: 40, height: 22 },
   image: { name: 'Image', fill: '#e4e7ec', width: 240, height: 160 },
+  note: { name: 'Note', fill: '#ffd8a8', text: '', fontSize: 14, width: 200, height: 96, lineHeight: 1.45 },
 };
 
 export function defaultProps(type: NodeType): NodeProps {

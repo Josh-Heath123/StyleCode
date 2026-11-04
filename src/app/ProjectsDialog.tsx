@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Camera } from '../editor/camera';
 import { useEditor, useEditorState } from '../editor/react';
-import type { ProjectSession, ProjectSummary } from '../persistence/session';
+import type { ProjectSession, ProjectSummary, StorageUsage } from '../persistence/session';
 import { Icon } from '../ui/Icon';
+import { useDialogFocus } from '../ui/useDialogFocus';
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+function megabytes(bytes: number): string {
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+}
 
 /** Lists projects stored in this browser, with open and delete. */
 export function ProjectsDialog({
@@ -20,16 +26,28 @@ export function ProjectsDialog({
   const currentId = useEditorState((s) => s.doc.id);
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [space, setSpace] = useState<StorageUsage | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef);
 
-  const refresh = () =>
-    session
+  const refresh = () => {
+    void session.storageUsage().then(setSpace);
+    return session
       .listProjects()
       .then(setProjects)
       .catch((e: Error) => {
         editor.notify(e.message, 'error');
         setProjects([]);
       });
+  };
+
+  const download = async (id: string) => {
+    try {
+      if (await session.downloadStoredProject(id)) editor.notify('Project data saved.');
+    } catch (error) {
+      editor.notify((error as Error).message, 'error');
+    }
+  };
 
   useEffect(() => {
     void session.saveNow().then(refresh);
@@ -47,11 +65,12 @@ export function ProjectsDialog({
 
   const remove = async (id: string) => {
     try {
-      await session.deleteProject(id);
       if (id === currentId) {
-        const remaining = (await session.listProjects()).filter((p) => p.id !== id);
-        onCameraRestore(remaining[0] ? await session.openProject(remaining[0].id) : await session.newProject());
+        // Move to another project first (one that opens), so the editor never stays on a deleted one.
+        const next = (await session.listProjects()).find((p) => p.id !== id && !p.problem);
+        onCameraRestore(next ? await session.openProject(next.id) : await session.newProject());
       }
+      await session.deleteProject(id);
       setConfirming(null);
       await refresh();
     } catch (error) {
@@ -86,7 +105,11 @@ export function ProjectsDialog({
             <div key={p.id} className={`project-item${p.id === currentId ? ' is-current' : ''}`}>
               <div className="project-item-main">
                 <div className="project-item-name">{p.name}</div>
-                <div className="project-item-date">Edited {dateFormat.format(p.updatedAt)}</div>
+                {p.problem ? (
+                  <div className="project-item-problem">Can’t be opened: {p.problem}</div>
+                ) : (
+                  <div className="project-item-date">Edited {dateFormat.format(p.updatedAt)}</div>
+                )}
               </div>
               {confirming === p.id ? (
                 <>
@@ -107,14 +130,29 @@ export function ProjectsDialog({
                   >
                     <Icon name="trash" size={14} />
                   </button>
-                  <button type="button" className="button" disabled={p.id === currentId} onClick={() => void open(p.id)}>
-                    Open
-                  </button>
+                  {p.problem ? (
+                    <button type="button" className="button" onClick={() => void download(p.id)}>
+                      Download data
+                    </button>
+                  ) : (
+                    <button type="button" className="button" disabled={p.id === currentId} onClick={() => void open(p.id)}>
+                      Open
+                    </button>
+                  )}
                 </>
               )}
             </div>
           ))}
         </div>
+        {space && (
+          <div className={`projects-space${space.usage / space.quota > 0.9 ? ' is-full' : ''}`}>
+            <div className="projects-space-bar" aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (space.usage / space.quota) * 100)}%` }} />
+            </div>
+            Using {megabytes(space.usage)} of the {megabytes(space.quota)} this browser allows. Projects and images stay on this
+            device.
+          </div>
+        )}
       </div>
     </div>
   );

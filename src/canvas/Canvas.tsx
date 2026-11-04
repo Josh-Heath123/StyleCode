@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { canvasMenuEntries } from '../app/contextMenu';
+import { selectSibling } from '../app/actions';
 import { clampZoom, screenToWorld, zoomAt } from '../editor/camera';
 import { useEditor, useEditorState } from '../editor/react';
 import { isSelectable } from '../model/hit';
@@ -9,8 +10,10 @@ import { BLOCK_MIME } from '../panels/InsertPanel';
 import type { DesignDocument } from '../model/types';
 import { Menu, type MenuEntry } from '../ui/Menu';
 import {
+  connectGesture,
   drawGesture,
   marqueeGesture,
+  noteGesture,
   moveGesture,
   panGesture,
   resizeGesture,
@@ -50,6 +53,30 @@ export function isTypingTarget(target: EventTarget | null): boolean {
   return el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
 }
 
+const CONTROL =
+  'button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="radio"], [role="checkbox"], [role="switch"], [role="option"]';
+
+/**
+ * A button or similar control reached with the keyboard. Enter and Space (and
+ * arrows, for tabs and radio groups) belong to it, not to the editor's
+ * shortcuts. A control focused by a mouse click doesn't count, so pressing
+ * Space to pan after clicking a toolbar button doesn't press it again.
+ */
+export function isKeyboardFocusedControl(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement) || !target.matches(CONTROL)) return false;
+  try {
+    return target.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
+/** When Tab was last pressed: focus that arrives on the canvas right after it came from the keyboard. */
+let lastTabAt = -Infinity;
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', (e) => e.key === 'Tab' && (lastTabAt = performance.now()), true);
+}
+
 export function Canvas() {
   const editor = useEditor();
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -57,9 +84,26 @@ export function Canvas() {
   const spaceDown = useRef(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [gestureCursor, setGestureCursor] = useState<string | null>(null);
+  // The focus ring shows only when the canvas was reached with Tab, not after a click and a shortcut.
+  const [tabbedIn, setTabbedIn] = useState(false);
   const [menu, setMenu] = useState<{ at: { x: number; y: number }; entries: MenuEntry[] } | null>(null);
 
   const camera = useEditorState((s) => s.camera);
+  // While the view is moving, the layers are drawn once and slid around by the compositor
+  // instead of being repainted every frame; once it stops they are redrawn sharp at the new zoom.
+  const contentRef = useRef<HTMLDivElement>(null);
+  const settled = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstCamera = useRef(true);
+  useEffect(() => {
+    if (firstCamera.current) {
+      firstCamera.current = false;
+      return;
+    }
+    contentRef.current?.classList.add('is-moving');
+    if (settled.current) clearTimeout(settled.current);
+    settled.current = setTimeout(() => contentRef.current?.classList.remove('is-moving'), 160);
+  }, [camera]);
+  useEffect(() => () => void (settled.current && clearTimeout(settled.current)), []);
   const tool = useEditorState((s) => s.tool);
   const rootId = useEditorState((s) => s.doc.rootId);
   const rootChildren = useEditorState((s) => s.doc.nodes[s.doc.rootId].children);
@@ -113,7 +157,7 @@ export function Canvas() {
   // Hold Space to pan.
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || isTypingTarget(e.target) || e.repeat) return;
+      if (e.code !== 'Space' || isTypingTarget(e.target) || isKeyboardFocusedControl(e.target) || e.repeat) return;
       e.preventDefault();
       spaceDown.current = true;
       setSpaceHeld(true);
@@ -229,9 +273,20 @@ export function Canvas() {
       start(rotateGesture(ctx, native, state.selection[0], (target as HTMLElement).style.cursor), e);
       return;
     }
+    const connector = target.closest('[data-note-connector]')?.getAttribute('data-note-connector');
+    if (connector) {
+      start(connectGesture(ctx, connector, ctx.toWorld(e.clientX, e.clientY)), e);
+      return;
+    }
 
     if (DRAW_TOOLS.has(state.tool)) {
       start(drawGesture(ctx, native, state.tool as DrawTool), e);
+      return;
+    }
+    if (state.tool === 'note') {
+      // Clicking a layer pins the note to it.
+      const hit = resolveTarget(state.doc, nodeIdFromTarget(target), true);
+      start(noteGesture(ctx, native, hit && state.doc.nodes[hit].type !== 'note' ? hit : null), e);
       return;
     }
 
@@ -304,7 +359,7 @@ export function Canvas() {
     const hit = document.elementsFromPoint(e.clientX, e.clientY).find((el) => el.closest('[data-node-id]'));
     const id = nodeIdFromTarget(hit ?? null);
     const node = id ? state.doc.nodes[id] : null;
-    if (node?.type === 'text' && isSelectable(state.doc, node.id)) {
+    if ((node?.type === 'text' || node?.type === 'note') && isSelectable(state.doc, node.id)) {
       editor.select([node.id]);
       editor.setEditingText(node.id);
     }
@@ -321,15 +376,21 @@ export function Canvas() {
   };
 
   const gridSize = 24 * camera.zoom;
-  const cursor = gestureCursor ?? (spaceHeld || tool === 'hand' ? 'grab' : DRAW_TOOLS.has(tool) ? 'crosshair' : 'default');
+  const cursor =
+    gestureCursor ?? (spaceHeld || tool === 'hand' ? 'grab' : DRAW_TOOLS.has(tool) || tool === 'note' ? 'crosshair' : 'default');
 
   return (
     <div
       ref={viewportRef}
-      className="canvas"
+      className={`canvas${tabbedIn ? ' is-tabbed-in' : ''}`}
       style={{ background: pageFill ?? undefined, cursor }}
+      onFocus={(e) => e.target === e.currentTarget && setTabbedIn(performance.now() - lastTabAt < 500)}
+      onBlur={(e) => e.target === e.currentTarget && setTabbedIn(false)}
       data-tool={tool}
-      onPointerDown={onPointerDown}
+      onPointerDown={(e) => {
+        if (tabbedIn) setTabbedIn(false);
+        onPointerDown(e);
+      }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={(e) => {
@@ -366,8 +427,23 @@ export function Canvas() {
         }
       }}
       aria-label="Design canvas"
+      aria-roledescription="design canvas"
+      aria-describedby="canvas-keys"
       role="application"
+      tabIndex={0}
+      // Where focus goes when a dialog closes and whatever opened it is gone.
+      data-focus-home
+      onKeyDown={(e) => {
+        // Tab walks through the layers beside the selected one; at either end it leaves the canvas.
+        if (e.key !== 'Tab' || e.target !== e.currentTarget || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (editor.inGesture || editor.getState().editingTextId) return;
+        if (selectSibling(editor, e.shiftKey)) e.preventDefault();
+      }}
     >
+      <p id="canvas-keys" className="visually-hidden">
+        Tab and Shift+Tab move between layers. Enter goes into a frame, Escape goes back out. Arrow keys move the selected layers.
+        Press question mark for every shortcut.
+      </p>
       {gridSize >= 8 && (
         <div
           className="canvas-grid"
@@ -375,6 +451,7 @@ export function Canvas() {
         />
       )}
       <div
+        ref={contentRef}
         className="canvas-content"
         style={{ transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})` }}
         data-root-id={rootId}

@@ -4,7 +4,7 @@ import { createNode } from '../model/defaults';
 import { collectSubtree, isAncestorOf, isEffectivelyLocked } from '../model/document';
 import { OpBuilder, OpError, type Op } from '../model/ops';
 import { isPropKey, propAppliesTo } from '../model/properties';
-import { CREATABLE_TYPES, CONTAINER_TYPES, type DesignDocument, type NodeProps, type NodeType } from '../model/types';
+import { CONTAINER_TYPES, DESIGN_TYPES, type DesignDocument, type NodeProps, type NodeType } from '../model/types';
 import type { AiContext } from './context';
 import { AI_PROPERTIES } from './schema';
 
@@ -179,8 +179,8 @@ export function interpret(raw: string, doc: DesignDocument, context: AiContext):
         return;
       }
       case 'create': {
-        if (!CREATABLE_TYPES.includes(raw.type as NodeType)) {
-          return void errors.push(`Operation ${n}: "type" must be one of ${CREATABLE_TYPES.join(', ')}.`);
+        if (!DESIGN_TYPES.includes(raw.type as NodeType)) {
+          return void errors.push(`Operation ${n}: "type" must be one of ${DESIGN_TYPES.join(', ')}.`);
         }
         if (typeof raw.ref !== 'string' || !raw.ref || context.real.has(raw.ref) || refs.has(raw.ref)) {
           return void errors.push(`Operation ${n}: give each new layer a new "ref" such as n1.`);

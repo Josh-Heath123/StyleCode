@@ -9,13 +9,19 @@
  * React or touch the DOM.
  */
 
-export type NodeType = 'page' | 'frame' | 'rect' | 'ellipse' | 'text' | 'image';
+export type NodeType = 'page' | 'frame' | 'rect' | 'ellipse' | 'text' | 'image' | 'note';
 
 /** Node types that can contain children. */
 export const CONTAINER_TYPES: ReadonlySet<NodeType> = new Set<NodeType>(['page', 'frame']);
 
-/** Node types a user (or the AI) may create. The page is created with the document. */
-export const CREATABLE_TYPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image'];
+/** Node types a user may create. The page is created with the document. */
+export const CREATABLE_TYPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image', 'note'];
+
+/** Layers that are part of the design (and its code). Notes are annotations on the canvas. */
+export const DESIGN_TYPES: readonly NodeType[] = ['frame', 'rect', 'ellipse', 'text', 'image'];
+
+/** Below this viewport width, the "on phones" overrides apply in exported code. */
+export const MOBILE_BREAKPOINT = 640;
 
 export type TextAlign = 'left' | 'center' | 'right';
 
@@ -27,8 +33,11 @@ export type TextAlign = 'left' | 'center' | 'right';
  */
 export type TextResize = 'auto-width' | 'auto-height' | 'fixed';
 
-/** Auto-layout direction of a frame; 'none' means children are positioned freely. */
-export type LayoutDirection = 'none' | 'row' | 'column';
+/**
+ * How a frame arranges its children: 'none' places them freely, 'row' and
+ * 'column' are auto layout (flexbox), 'grid' places them in equal columns.
+ */
+export type LayoutDirection = 'none' | 'row' | 'column' | 'grid';
 
 /** Distribution of children along the layout direction (CSS justify-content). */
 export type Justify = 'start' | 'center' | 'end' | 'space-between';
@@ -98,7 +107,13 @@ export interface NodeProps {
   /** `#rrggbb` or `#rrggbbaa`, or null for no stroke. */
   stroke: string | null;
   strokeWidth: number;
+  /** Corner radius of all four corners, unless `independentCorners` is on. */
   radius: number;
+  independentCorners: boolean;
+  radiusTopLeft: number;
+  radiusTopRight: number;
+  radiusBottomRight: number;
+  radiusBottomLeft: number;
   /** Frames only: clip children to the frame's bounds. */
   clip: boolean;
 
@@ -125,11 +140,20 @@ export interface NodeProps {
   align: Align;
   /** Rows only: children that don't fit move onto a new line (CSS flex-wrap). */
   wrap: boolean;
+  /** Grids: the number of equal columns. */
+  columns: number;
+  /** In a grid: how many columns the layer spans. */
+  columnSpan: number;
 
   /** Sizing within auto-layout. */
   widthMode: SizingMode;
   heightMode: SizingMode;
   positioning: Positioning;
+  /** Limits on the size auto layout gives a layer; 0 means no limit. */
+  minWidth: number;
+  maxWidth: number;
+  minHeight: number;
+  maxHeight: number;
 
   role: Role;
 
@@ -149,6 +173,20 @@ export interface NodeProps {
   /** Images only: local asset id, or empty for a placeholder. */
   src: string;
   fit: ImageFit;
+
+  /**
+   * On phones (below MOBILE_BREAKPOINT) in exported code. 'same' and 0 mean
+   * no change from the design.
+   */
+  hideOnMobile: boolean;
+  mobileLayout: 'same' | 'row' | 'column';
+  mobileColumns: number;
+  mobileFill: boolean;
+  mobileFontSize: number;
+  mobileTextAlign: 'same' | TextAlign;
+
+  /** Notes only: the layer the note points at, or empty. */
+  noteTarget: string;
 }
 
 export type PropKey = keyof NodeProps;

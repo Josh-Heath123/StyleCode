@@ -101,6 +101,8 @@ class Draft {
   }
 }
 
+const NOTES_ON_CANVAS = 'Notes stay on the canvas, outside frames.';
+
 function clampIndex(index: number, length: number): number {
   if (!Number.isInteger(index) || index < 0 || index > length) return length;
   return index;
@@ -181,6 +183,9 @@ function applyCreate(draft: Draft, op: Extract<Op, { type: 'create' }>, i: numbe
   count(root);
   if (reachable !== incoming.size) fail('Created layers do not form a single tree', i);
 
+  for (const node of incoming.values()) {
+    if (node.type === 'note' && (node !== root || parent.type !== 'page')) fail(NOTES_ON_CANVAS, i);
+  }
   root.parentId = op.parentId;
   for (const node of incoming.values()) draft.insert(node);
   const siblings = draft.mutableChildren(op.parentId);
@@ -218,6 +223,7 @@ function applyMove(draft: Draft, op: Extract<Op, { type: 'move' }>, i: number): 
   if (!target) fail(`Cannot move into ${op.parentId}: no such layer`, i);
   if (!CONTAINER_TYPES.has(target.type)) fail(`A ${target.type} layer cannot contain other layers`, i);
   if (op.parentId === op.id || draft.isAncestorOf(op.id, op.parentId)) fail('A layer cannot be moved inside itself', i);
+  if (node.type === 'note' && target.type !== 'page') fail(NOTES_ON_CANVAS, i);
 
   const oldParentId = node.parentId;
   const oldIndex = draft.get(oldParentId)!.children.indexOf(op.id);

@@ -132,3 +132,39 @@ describe('duplicate and clipboard', () => {
     expect(b.y + b.height / 2).toBeCloseTo(200, 6);
   });
 });
+
+describe('notes in commands', () => {
+  function withNote(): DesignDocument {
+    const doc = setup();
+    return applyOps(doc, [
+      {
+        type: 'create',
+        parentId: doc.rootId,
+        index: 1,
+        nodes: [createNode('note', { x: 1000, y: 100, text: 'Make it blue' }, 'n')],
+      },
+    ]).doc;
+  }
+
+  it('groups the other layers and leaves notes on the canvas', () => {
+    const doc = withNote();
+    const result = groupOps(doc, ['f', 'n'])!;
+    const after = applyOps(doc, result.ops).doc;
+    expect(after.nodes.n.parentId).toBe(doc.rootId);
+    expect(after.nodes.f.parentId).toBe(result.groupId);
+    expect(groupOps(doc, ['n'])).toBeNull();
+  });
+
+  it('pastes a note onto the canvas even when a frame is the target', () => {
+    const doc = withNote();
+    const data = copyToClipboardData(doc, ['n', 'a'])!;
+    const result = pasteOps(doc, data, 'f');
+    const after = applyOps(doc, result.ops).doc;
+    const pasted = result.newIds.map((id) => after.nodes[id]);
+    const note = pasted.find((n) => n.type === 'note')!;
+    const rect = pasted.find((n) => n.type === 'rect')!;
+    expect(note.parentId).toBe(doc.rootId);
+    expect(rect.parentId).toBe('f');
+    expect(checkIntegrity(after)).toEqual([]);
+  });
+});

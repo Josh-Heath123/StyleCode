@@ -4,15 +4,20 @@ import type { DesignDocument, Point, Rect } from '../model/types';
 import type { Camera } from './camera';
 import { History, type ChangeSource, type Transaction } from './history';
 
-export type Tool = 'move' | 'hand' | 'frame' | 'rect' | 'ellipse' | 'text';
+export type Tool = 'move' | 'hand' | 'frame' | 'rect' | 'ellipse' | 'text' | 'note';
 
 export interface Guide {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
-  /** snap: an alignment guide; insert: where a layer will land in an auto-layout frame. */
-  kind: 'snap' | 'insert';
+  /**
+   * snap: an alignment guide; insert: where a layer will land in an auto-layout
+   * frame; gap: an equal space between layers (with its size as the label);
+   * connector: a note's arrow being dragged to a layer.
+   */
+  kind: 'snap' | 'insert' | 'gap' | 'connector';
+  label?: string;
 }
 
 /** What the canvas shows about a change proposed by the AI and waiting for review. */
@@ -182,16 +187,14 @@ export class Editor {
 
   /** Applies a batch, runs the normaliser and returns the full result. Throws OpError. */
   private run(base: DesignDocument, ops: readonly Op[]) {
-    let result = applyOps(base, ops);
-    let all = [...ops];
-    if (this.normalizer) {
-      const extra = this.normalizer(result.doc, result.touched, base);
-      if (extra.length) {
-        all = [...all, ...extra];
-        result = applyOps(base, all);
-      }
-    }
-    return { ...result, ops: all };
+    const result = applyOps(base, ops);
+    if (!this.normalizer) return { ...result, ops: [...ops] };
+    const extra = this.normalizer(result.doc, result.touched, base);
+    if (!extra.length) return { ...result, ops: [...ops] };
+    // The normaliser's changes go on top (one more copy of the document, not a replay from the start).
+    const after = applyOps(result.doc, extra);
+    for (const id of after.touched) result.touched.add(id);
+    return { doc: after.doc, inverse: [...after.inverse, ...result.inverse], touched: result.touched, ops: [...ops, ...extra] };
   }
 
   /**
@@ -275,16 +278,27 @@ export class Editor {
     });
   }
 
-  /** Replaces the gesture's pending operations and shows the result. */
-  previewGesture(ops: readonly Op[], selection?: readonly string[]): void {
+  /**
+   * Replaces the gesture's pending operations and shows the result. A caller
+   * that has already applied the operations to the gesture's starting
+   * document (an OpBuilder) can pass that result as `applied` to skip doing it
+   * again; committing always re-applies and checks everything from the start.
+   */
+  previewGesture(ops: readonly Op[], selection?: readonly string[], applied?: DesignDocument): void {
     const gesture = this.gesture;
     if (!gesture) return;
     try {
-      const result = this.run(gesture.base, ops);
+      let doc: DesignDocument;
+      if (applied && this.normalizer) {
+        const extra = this.normalizer(applied, touchedBy(ops), gesture.base);
+        doc = extra.length ? applyOps(applied, extra).doc : applied;
+      } else {
+        doc = this.run(gesture.base, ops).doc;
+      }
       gesture.ops = [...ops];
       this.set({
-        doc: result.doc,
-        selection: selection ? this.validSelection(result.doc, selection) : this.validSelection(result.doc, this.state.selection),
+        doc,
+        selection: selection ? this.validSelection(doc, selection) : this.validSelection(doc, this.state.selection),
       });
     } catch (error) {
       if (!(error instanceof OpError)) throw error;
@@ -534,4 +548,14 @@ export class Editor {
   get committedDoc(): DesignDocument {
     return this.pending?.base ?? this.gesture?.base ?? this.state.doc;
   }
+}
+
+/** The layers a batch of operations creates, changes, moves or deletes. */
+function touchedBy(ops: readonly Op[]): Set<string> {
+  const touched = new Set<string>();
+  for (const op of ops) {
+    if (op.type === 'create') for (const n of op.nodes) touched.add(n.id);
+    else touched.add(op.id);
+  }
+  return touched;
 }

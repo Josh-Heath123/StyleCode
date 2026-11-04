@@ -3,6 +3,7 @@ import { listModels, saveAiConfig, type AiConfig, type ProviderKind, type Provid
 import { useAssistant, useAssistantState } from '../ai/react';
 import { useEditor } from '../editor/react';
 import { Icon } from '../ui/Icon';
+import { useDialogFocus } from '../ui/useDialogFocus';
 
 const KINDS: readonly ProviderKind[] = ['ollama', 'openai', 'anthropic'];
 
@@ -77,6 +78,7 @@ export function AiSettingsDialog({ onClose }: { onClose: () => void }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef);
   const loadId = useRef(0);
   const latest = useRef<Partial<Record<ProviderKind, number>>>({});
 
@@ -188,7 +190,7 @@ export function AiSettingsDialog({ onClose }: { onClose: () => void }) {
         {kind && draft && settings && modelState && (
           <div className="ai-fields">
             {kind === 'openai' && (
-              <div className="ai-presets" aria-label="Fill in the address for">
+              <div className="ai-presets" role="group" aria-label="Fill in the address for">
                 {PRESETS.map((preset) => (
                   <button
                     key={preset.name}

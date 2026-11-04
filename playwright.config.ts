@@ -17,6 +17,8 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:5174',
+    // Returning visitors: the welcome screen and checklist have been seen (onboarding has its own test).
+    storageState: 'e2e/storage-state.json',
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
   },

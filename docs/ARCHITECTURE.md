@@ -46,12 +46,12 @@ Source layout:
 | `src/editor` | The editor store (document + editing state), history, camera, React bindings. | `model` |
 | `src/render` | The single design-property → CSS mapping. | `model` |
 | `src/codegen` | Code generation: screens as element trees, HTML/CSS and React printers, CSS → design parsing, site and app export, ZIP. Pure TypeScript, no DOM. | `model`, `render` |
-| `src/canvas` | Canvas viewport, layer rendering, overlay, pointer gestures, snapping, text measurement, the layout normaliser. | `model`, `editor`, `render`, `ui` |
+| `src/canvas` | Canvas viewport, layer rendering, overlay, pointer gestures, snapping, text measurement, the layout normaliser. | `model`, `editor`, `render`, `ui`, and the shared actions and inserts in `app` |
 | `src/panels` | Layers, insert, properties and code panels and their controls. | everything above |
 | `src/persistence` | IndexedDB storage, image assets, project files, example project. | `model`, `editor` |
 | `src/ai` | The assistant: context builder, instructions, response schema, interpretation and AI policy, suggestions, the client for the local server. | `model`, `editor` |
-| `src/app` | App shell, top bar, tool dock, assistant bar, AI settings, shortcuts, shared actions, inserting images and blocks, preview and export. | everything |
-| `src/ui` | Generic UI: icons, menus. | nothing app-specific |
+| `src/app` | App shell, top bar, tool dock, assistant bar, AI settings, shortcuts, shared actions, inserting images and blocks, preview and export, onboarding, the screen-reader announcer and the recovery screen. | everything |
+| `src/ui` | Generic UI: icons, menus, dialog focus handling, error boundaries. | nothing app-specific |
 | `server/ai` | The local AI server (a Vite plugin): settings and keys, provider adapters, streaming. Runs in Node, never in the browser. | Node only |
 
 The `model` layer is the part that matters most and is tested most heavily. Everything above it is a view or an input method. Unit tests (Vitest) sit next to the code they test; browser tests (Playwright) live in `e2e/` and drive the real app.
@@ -66,11 +66,11 @@ interface DesignNode extends NodeProps { id; type; parentId; children: string[] 
 ```
 
 - **Flat map, ordered children.** Lookups by id are O(1) (important for AI operations, which reference ids), and the tree is expressed by `parentId` + `children`. Children are in paint order: later is on top.
-- **Node types:** `page` (the root, also the canvas background), `frame` (container), `rect`, `ellipse`, `text`, `image`. Only `page` and `frame` can contain children. A *group* is simply a frame without fill or clipping, which is exactly how it will be expressed in HTML: a `div`.
+- **Node types:** `page` (the root, also the canvas background), `frame` (container), `rect`, `ellipse`, `text`, `image`, and `note`. Only `page` and `frame` can contain children. A *group* is simply a frame without fill or clipping, which is exactly how it will be expressed in HTML: a `div`. A **note** is the designer's annotation: it always sits directly on the page (operations refuse to put one inside a frame, and loading moves stray ones out), may point at a layer through `noteTarget`, is never exported, and is read by the AI as an instruction (section 8).
 - **Flat properties.** Every editable property (`x`, `fill`, `fontSize`, …) is a top-level key described in the **property registry** (`model/properties.ts`): its type, range, and which node types it applies to. The registry drives validation, the properties panel, the AI's response schema and instructions, and the code generators. Adding a property means adding one registry entry.
 - **CSS semantics, on purpose.** Coordinates follow the CSS box model: a child's `x`/`y` is its offset from the parent's *padding box* (inside the parent's border), rotation is around the centre, and `box-sizing` is `border-box`. Design tools like Figma use their own model; StyleCode uses CSS's because its promise is that the canvas *is* the code. Changing a frame's border width therefore shifts its children by that width, exactly as the exported CSS will.
-- **Layout and meaning are properties too.** A frame's `layout` (`none`, `row`, `column`), `gap`, per-side padding, `justify` and `align` make it an auto-layout frame; every layer has `widthMode`/`heightMode` (`fixed`, `hug`, `fill`), `positioning` (`auto`, or `absolute` to sit outside the flow) and a semantic `role` (button, nav, card, heading, input, link…). Roles change nothing visually; they tell the code generators which HTML element to use and tell the AI what a layer is.
-- **Versioned file format.** Saved projects are `{ format: "stylecode", version, document, assets? }`. Loading goes through `parseProject`, which validates every property, repairs what it safely can (bad values fall back to defaults, dangling references are dropped) and rejects files from newer versions with a clear message instead of crashing. Version 2 added auto layout, sizing, roles, effects and images; version 1 files open unchanged, because every new property has a default that reproduces the old behaviour.
+- **Layout and meaning are properties too.** A frame's `layout` (`none`, `row`, `column`, `grid`, with `columns`), `gap`, per-side padding, `justify` and `align` make it an auto-layout frame; every layer has `widthMode`/`heightMode` (`fixed`, `hug`, `fill`), `positioning` (`auto`, or `absolute` to sit outside the flow) and a semantic `role` (button, nav, card, heading, input, link…). Roles change nothing visually; they tell the code generators which HTML element to use and tell the AI what a layer is.
+- **Versioned file format.** Saved projects are `{ format: "stylecode", version, document, assets? }`. Loading goes through `parseProject`, which validates every property, repairs what it safely can (bad values fall back to defaults, dangling references are dropped) and rejects files from newer versions with a clear message instead of crashing. Version 2 added auto layout, sizing, roles, effects and images, and version 4 notes, grids, size limits, per-corner radii and phone settings. Older files open unchanged, because every new property has a default that reproduces the old behaviour.
 
 ## 4. Operations, transactions and undo
 
@@ -115,11 +115,19 @@ A wrapping row places layers on a line until the next one doesn't fit, then star
 
 To know how tall a line is, the engine first measures each layer that stretches across it at its **natural size**, as CSS does: a frame at its content (with any layer filling its own length counted at its minimum, and layers stretching across it measured the same way), text at its wrapped height, a shape at its border. Only then are the stretched layers sized to the line.
 
+### Grids
+
+A frame with `layout: grid` has `columns` equal columns (`repeat(n, minmax(0, 1fr))`) and places its layers row by row, each taking `columnSpan` columns and starting a new row when it doesn't fit; rows are as tall as their tallest layer (`grid-auto-rows: max-content`, so a short grid never squeezes them and a tall one never stretches them). A layer that fills its width fills its cell, one that fills its height stretches to its row, and the others are placed in their cell by the frame's alignment (`justify-items`/`align-items`). A grid that hugs its width is as wide as its widest column needs times the number of columns (`width: max-content`). Switching a row to a grid keeps the order, gives it one column per layer up to six, and makes the layers fill their cells.
+
+### Size limits
+
+Layers in auto layout can have `minWidth`, `maxWidth`, `minHeight` and `maxHeight` (0 for none). Filling layers share space with the same *freezing* algorithm CSS flexbox uses (`flexSizes`): share out what is left in proportion, clamp anyone who went past a limit, freeze them, and share again among the rest until nobody moves. Hugging and fixed sizes are clamped directly. Limits also decide where wrapping rows break and how wide a hugging row may grow. Exported code uses the matching `min-width` and friends, and a filling layer keeps `min-width: 0` only when it has no minimum of its own.
+
 `layoutRoots` works out which frames a change can affect: the outermost frame of each unbroken chain of auto-layout ancestors. Editing a word deep inside a card re-lays out that card and whatever hugs it, and nothing else.
 
 ### Parity with the browser
 
-`e2e/layout-parity.spec.ts` builds random nested auto-layout trees (150 per run, from a fixed seed, including tiny outlined shapes and frames smaller than their own padding), lays each one out with the engine, renders the same tree in Chromium using the flexbox declarations from `render/css.ts`, and compares every box to within half a pixel. It found five places where a reasonable-looking engine disagrees with CSS, now encoded as rules:
+`e2e/layout-parity.spec.ts` builds random nested auto-layout trees (200 per run, from a fixed seed, including tiny outlined shapes and frames smaller than their own padding), lays each one out with the engine, renders the same tree in Chromium using the flexbox declarations from `render/css.ts`, and compares every box to within half a pixel. It found five places where a reasonable-looking engine disagrees with CSS, now encoded as rules:
 
 - A layer can only fill along an axis where its parent's size is decided by something else. In a parent that hugs that axis there is no space to fill, so it keeps its own size.
 - A box is never smaller than its border plus, for an auto-layout frame, its padding (with `box-sizing: border-box` the browser cannot draw it smaller). The normaliser enforces this for every layer, so the model never records a size the canvas can't show.
@@ -127,7 +135,7 @@ To know how tall a line is, the engine first measures each layer that stretches 
 - Sizes can be 0: an empty hugging frame collapses to its padding.
 - Text is measured to hundredths of a pixel and rounded up, not to whole pixels, or a row of labels drifts.
 
-The parity test also generates wrapping rows (about a quarter of frames, with filling and stretched layers among them). The code generators emit the same declarations, so this test also pins what exported code does; a second test (section 9) checks whole exported pages.
+The parity test also generates wrapping rows (with filling and stretched layers among them), grids with spans, and size limits; 200 trees run each time, and 1,600 across eight seeds were checked while building Phase 5. Grids added three more rules: a fixed-height grid whose rows overflow it still sizes rows by their content (hence `grid-auto-rows: max-content`), text measured for a hugging grid uses its natural width rather than its stored one, and a hugging grid inside another must be `max-content` wide rather than shrink-to-fit. The code generators emit the same declarations, so this test also pins what exported code does; a second test (section 9) checks whole exported pages.
 
 ### Tidy into auto layout
 
@@ -152,6 +160,8 @@ Dragging a layer inside an auto-layout frame lifts it out of the flow, so it fol
 
 Outside auto layout, moving, resizing and drawing snap a layer's edges and centre to the edges and centres of its siblings and of the frame it is in, within 6 screen pixels (so the pull feels the same at every zoom), and draw the guide lines that explain each snap. Holding <kbd>Ctrl</kbd>/<kbd>⌘</kbd> turns snapping off for that gesture.
 
+Moving also snaps to **equal spacing** (`canvas/snapping.ts`): to the gaps that siblings level with the layer already have, and to the middle between two neighbours. Edge alignment and spacing compete on distance, so whichever is nearer wins, and every matching gap is marked with its size. Holding <kbd>Alt</kbd> with a layer selected measures from it to the layer under the pointer (or to the edges of its frame). Notes aren't snap targets, so they never pull a layer out of line.
+
 ## 6. Canvas rendering: real DOM, screen-space overlay
 
 The single most consequential technical decision is how the canvas draws.
@@ -163,7 +173,21 @@ The single most consequential technical decision is how the canvas draws.
 | Canvas library (Konva, Fabric, Pixi) | Same fidelity problem plus a large dependency. |
 | **DOM for content + screen-space overlay** ✅ | Layers are real `div`s (and `img`s) styled by the same function that will generate the exported CSS. Text, fonts, shadows, gradients and blur come from the browser for free, so what you see is what the code renders; auto-layout positions come from the model and are checked against the browser's own flexbox. Selection outlines, handles and guides live in a separate SVG overlay in screen space, so they stay 1px crisp at any zoom. |
 
-Pan and zoom are a single CSS transform on the content layer, so they never re-render layers. Each layer component subscribes only to its own node, so editing one layer re-renders one component. UI documents rarely exceed a few hundred layers; in a 1,000-layer document, dragging 99 selected layers costs about 13 ms per pointer move in a production build. The layers panel is virtualised: only the rows in view (plus a margin) are rendered, so the list stays responsive with thousands of layers.
+Pan and zoom are a single CSS transform on the content layer, so they never re-render layers. Each layer component subscribes only to its own node, so editing one layer re-renders one component. The layers panel is virtualised: only the rows in view (plus a margin) are rendered.
+
+**Large documents.** Phase 5 profiled a 5,000-layer document (ten pages of twenty sections of cards, rows and grids) in a production build and fixed what showed up:
+
+| Hotspot | Fix |
+| --- | --- |
+| Painting and layerising every page on every frame | Top-level frames that clip get `content-visibility: auto`, so the browser skips pages out of view (it can only do that safely where the frame clips anyway). |
+| Selection changes repainting the design under the overlay | The overlay is its own compositing layer. |
+| Panning and zooming repainting everything | The content layer is composited while the camera moves and redrawn sharp 160 ms after it stops. |
+| Copying the 5,000-entry node map several times per drag frame | Gestures push operations together where nothing reads in between, the normaliser's changes are applied on top rather than replayed from the start, and a gesture can hand the editor the document it already built. |
+| Layer rows redrawing because a layer moved | Rows only redraw when what they show changes (name, type, visibility, lock, role, layout, children). |
+| Walking the whole tree on every hover and camera change | The layer list's tree shape is worked out once per document. |
+| Text measured twice on load | The measurement cache holds 20,000 entries instead of 1,000. |
+
+On the development container, a drag frame went from about 70 ms to about 35 ms of main-thread time and a pan step from about 27 ms to 17 ms; loading takes a second or two. `src/model/performance.test.ts` holds generous budgets for layout, edits, drag frames, code generation and saving on that document, and `e2e/large-document.spec.ts` checks the real editor stays usable with it.
 
 Hit-testing uses the browser where it is exact (which element is under the pointer, including rounded corners and rotation) and the model's affine matrices where it needs geometry (which frame a point is in, marquee intersection, resize maths). All geometry uses 2D affine matrices, so rotation and nesting compose correctly with auto layout.
 
@@ -174,6 +198,13 @@ Text is measured with an off-screen element styled by the same CSS mapping, so m
 There is no account and no cloud service. The open project autosaves to **IndexedDB** half a second after each change and on tab hide. Projects can be saved to and opened from `.stylecode.json` files (using the File System Access API's save dialog where the browser supports it, a download otherwise). Opening a file always creates a new local project, so it can never overwrite existing work. If the same project is open in two tabs, a notice explains that the last tab to save wins.
 
 **Images** are stored in their own IndexedDB store as blobs, keyed by a SHA-256 hash of their content (`asset_…`). The same picture added twice is stored once, and image layers refer to it by id, so the document stays small and copying an image layer between projects just works. Images up to 15 MB are accepted, in the formats every browser shows (PNG, JPEG, WebP, GIF, AVIF, SVG, BMP, ICO), so a picture on the canvas always appears in exported code too. Layers on screen share one object URL per image, released a few seconds after the last one goes away; a layer whose image is missing shows a placeholder and picks the image up as soon as it is added. Images finish loading in the background, and an insert waits for any drag or scrub in progress to end so it never interrupts it. Saving to a file embeds the images that project uses (base64, under `assets`), so a saved file is self-contained; opening it puts them back into the local store. Nothing is uploaded anywhere.
+
+**Recovery.** Storage can fail (a full disk, a blocked database, a project written by a bug), and none of that should cost work:
+
+- On start-up every stored project is tried, the last one first; one whose data doesn't parse, or that throws while loading, is skipped with a notice and left untouched, and Projects marks it *can't be opened* with **Download data**, which saves the stored record exactly as it is. Storage being unavailable at all is the only case that falls back to working in memory, and the save status says so.
+- A failed save is reported once, then retried after 2, 5, 15 and every 30 seconds; the save status becomes a menu with **Try saving again**, **Save to file…** and **Free up space in Projects…**. Quota errors get their own message. After a successful save, if the browser's storage estimate is over 90% full, a warning appears once per session, and Projects shows the usage.
+- `beforeunload` flushes a pending save and asks the browser to confirm leaving while one is pending, in progress or failed (or, with no storage, whenever there are unsaved edits). Opening, creating or importing another project first lets a waiting or running save finish, and if the current project's changes still couldn't be saved, asks before replacing it; saying no keeps it open.
+- Rendering errors are caught by error boundaries: a panel (layers, design, code, tools) shows *Try again* while the rest keeps working; if the editor itself fails, a recovery screen offers saving a copy to a file, undoing the last change (or cancelling a drag in progress) and reloading, with a prefilled bug report. Autosave pauses while it shows, so a design that broke the editor never replaces the last good save, and leaving doesn't ask; undoing resumes it. Errors that escape everything (a rejected promise, a bug in an event handler) become a notice instead of failing silently, and if StyleCode can't start at all the page says so.
 
 **Blocks** (button, badge, text field, card, navigation bar, hero section, in light or dark) are plain functions that build a subtree of auto-layout frames with roles set. They are inserted like anything else, as one undoable operation, and are fully editable afterwards; there is no separate component system to keep in sync.
 
@@ -212,6 +243,7 @@ e1 frame "Pricing" 1280×800 layout=column
 - Layers get short ids (`e1`, `e2`… in document order), mapped back to real ids afterwards. They save tokens and make mistyped references unlikely.
 - The layers the request may change (the selection and everything in it, or the whole screen when nothing is selected) are marked `*` and listed with every property that differs from the defaults. Ancestors are always shown; then siblings, then the rest of the screen as one-line summaries, while there is room.
 - The room is a character budget from the model's context window: for Ollama, the context size minus about 5,500 tokens for the instructions and the reply, at 3.5 characters a token; for hosted models, 60,000 characters. What doesn't fit is summarised as "… 12 more layers not shown".
+- **Notes** on the screen are appended as "Notes from the designer", each with its text and the short id of the layer it points at, and the instructions tell the model to treat them as requests. Notes aren't part of the screen tree the model sees, and it can't create them, so it acts on them rather than editing them.
 - The instructions (`src/ai/prompt.ts`) describe the design model, the operations and the rules, list every property the AI may set with its description from the property registry (so they never go out of date), and end with a worked example, which helps small models most.
 
 ### What the model returns
@@ -237,6 +269,7 @@ One JSON object: `{ "explanation": "...", "operations": [...] }`. The explanatio
 - **Preview before apply.** The editor shows the proposal without recording it: changed and new layers are outlined in cantaloupe, layers that would be deleted are shown as dashed outlines where they were. The properties and code panels show the proposed values. Autosave and export use the design as recorded (`editor.committedDoc`), so an unreviewed proposal is never saved or exported.
 - **The design is read-only during review.** Selecting, panning, zooming and looking at the properties and code still work, but an edit (a drag, a nudge, a property, the layers panel, the CSS editor) would be made on top of changes that aren't recorded, so the editor refuses it and says to accept or reject first. Undo rejects the proposal. A reply that arrives while you are dragging, scrubbing or typing (on the canvas, or in a field such as a property or a layer name) waits until you finish, then is checked again against the design as it is; images that finish loading during review are added after it.
 - **Undo.** An accepted proposal is one ordinary transaction, labelled with the request ("AI: make it darker"), marked `source: 'ai'`.
+- **No endless waiting.** A reply that goes quiet for two minutes (long enough for a local model to load) is given up with a message suggesting a smaller model; the client keeps its own abort controller so a stall and the user's Stop are told apart.
 
 ### Providers and keys
 
@@ -316,6 +349,8 @@ Fixed pixel layouts break on phones, so every screen's stylesheet ends with one 
 
 At the design width none of this applies, so it cannot disturb the faithful layout. Layers in free layout can't adapt this way; the code panel says so and points to <kbd>Shift</kbd>+<kbd>A</kbd>. The same test renders the tidied example at 390px and 768px and checks that nothing scrolls sideways.
 
+Grids export as CSS grid; below the design width their gaps scale like a row's. **Phone settings** (section 3) go into a second media query, below 640px or the page width if that is narrower: `display: none` for layers hidden on phones; a row or column switching direction (a row stacked as a column also stops wrapping, and its layers stop flexing and stretch across); a grid's columns on phones (one unless chosen), with spans limited to that many columns; full width (`width: 100%; max-width: 100%`); and font size and alignment for text. Notes are never part of a screen.
+
 ### React
 
 Each screen becomes a TypeScript component with a CSS module (`LandingPage.tsx`, `LandingPage.module.css`). **Repeated structures become components**: two subtrees count as the same when their elements and CSS match; whatever differs between them (text, images, alt text, placeholders, fill and text colours) becomes props. Colours are passed as CSS custom properties, so the styles stay in the stylesheet:
@@ -346,7 +381,17 @@ A full React-to-design round trip is a rabbit hole. Instead, the code panel lets
 
 Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, so any change to generated code shows up as a reviewable diff. Other unit tests cover tags and HTML validity, escaping, the split between design-width and responsive rules, component extraction, CSS parsing, the export file sets and the ZIP format; the browser tests cover fidelity, phone widths, the code panel, the preview and both downloads.
 
-## 10. Known risks
+## 10. Onboarding and accessibility
+
+**First run.** `app/onboarding.ts` keeps a little state in `localStorage` (a per-browser convenience: if it is missing, onboarding just starts again): whether the welcome screen has been seen, whether the checklist is open, and which steps are done. Steps tick themselves off by watching the editor's history labels ("Add frame", "Add auto layout", "Add note") or from the app (opening the Code tab, choosing the phone width in the preview, the AI coming back with a proposal), so the checklist never asks you to confirm anything. Empty states say what to do next, and the shortcut reference is generated from the same labels the menus use.
+
+**Keyboard.** The layer list is a single tab stop (`role="tree"` with `aria-activedescendant`), so a long list doesn't mean hundreds of <kbd>Tab</kbd> presses; arrow keys move the active row and the selection with it, and it scrolls into view. The canvas is a tab stop too: <kbd>Tab</kbd> walks through the layers beside the selected one and, at either end, lets focus move on, so it is never a trap. Its focus ring appears only when it was reached with <kbd>Tab</kbd>, not after a click and a shortcut. Global shortcuts leave <kbd>Enter</kbd>, <kbd>Space</kbd> and arrow keys to a button, tab or radio that was reached with the keyboard (`:focus-visible`), and still work after a mouse click on a toolbar button. Dialogs keep <kbd>Tab</kbd> inside and give focus back to whatever opened them.
+
+**Screen readers.** Every control has a name; the canvas describes its keys; a polite live region announces what is selected (debounced, so a marquee is read once) and the editor's messages, with errors in an assertive one. The regions are always in the page, because a live region that appears together with its text is often not read.
+
+**Contrast and checks.** Secondary text and line numbers meet 4.5:1 on every surface, and filled buttons use a slightly deeper electric blue so white text on them does too. `e2e/accessibility.spec.ts` runs axe (WCAG 2.1 A and AA) over the editor, the code panel, every dialog, the menus, the assistant, the welcome screen and the checklist, and drives the layer tree, the canvas and a dialog from the keyboard alone. The designs on the canvas are the user's own and are left out of the scan.
+
+## 11. Known risks
 
 | Risk | Mitigation |
 | --- | --- |
@@ -354,7 +399,9 @@ Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, 
 | Small models producing invalid or hallucinated operations | Constrained decoding, short ids, validation, a repair attempt, and preview before apply. |
 | Silent context truncation in Ollama | Explicit `num_ctx` and a context budget. |
 | AI damaging existing work | Scoped operations, locked layers protected, preview, atomic undoable transactions. |
-| DOM canvas performance at scale | Per-node subscriptions, transform-based pan/zoom, structural sharing, a virtualised layer list. |
+| DOM canvas performance at scale | Per-node subscriptions, transform-based pan/zoom, structural sharing, a virtualised layer list, off-screen pages skipped by the browser, and performance budgets on a 5,000-layer document. |
+| Losing work to storage problems or crashes | Retried saves with ways out, a warning before closing with unsaved changes, damaged projects skipped and downloadable, error boundaries and a recovery screen that can save a copy. |
+| An editor only usable with a mouse | Keyboard models for the layer tree, canvas and dialogs, a live region, AA contrast, and an axe check in CI. |
 | Canvas and export disagreeing | One CSS mapping used by both; CSS box-model semantics in the document; a randomised browser test comparing the layout engine with real flexbox; a browser test comparing whole exported pages with the canvas. |
 | Fixed-width designs breaking on phones | Responsive rules that apply only below the design width; a browser test for sideways scrolling at 390px and 768px; free layout flagged in the code panel. |
 | Large images bloating storage and files | Content-addressed storage (each picture stored once), a 15 MB limit per image, and only images in use are embedded in saved files. |

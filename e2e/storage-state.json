@@ -1,0 +1,11 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5174",
+      "localStorage": [
+        { "name": "stylecode.onboarding", "value": "{\"welcomed\":true,\"checklistOpen\":false,\"done\":{}}" }
+      ]
+    }
+  ]
+}

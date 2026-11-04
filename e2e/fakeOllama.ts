@@ -27,7 +27,9 @@ export interface FakeOllama {
 
 export const FAKE_MODEL = 'fake-designer:1b';
 
-function reply(body: FakeOllama['requests'][number]): { text: string; delay: number } | { status: number; error: string } {
+export type FakeReply = { text: string; delay: number } | { status: number; error: string };
+
+function reply(body: FakeOllama['requests'][number]): FakeReply {
   const first = body.messages.find((m) => m.role === 'user')?.content ?? '';
   const last = body.messages[body.messages.length - 1].content;
   const request = (/\nRequest: (.*)$/s.exec(first)?.[1] ?? '').toLowerCase();
@@ -97,12 +99,20 @@ function reply(body: FakeOllama['requests'][number]): { text: string; delay: num
   return { text: json('I can’t do that with the tools I have.', []), delay: 2 };
 }
 
-export async function startFakeOllama(): Promise<FakeOllama> {
+/**
+ * Starts the fake. The demo recordings pass their own scripted `respond` and
+ * model name; the tests use the defaults above.
+ */
+export async function startFakeOllama(
+  options: { respond?: (body: FakeOllama['requests'][number]) => FakeReply; models?: string[] } = {},
+): Promise<FakeOllama> {
   const requests: FakeOllama['requests'] = [];
+  const respond = options.respond ?? reply;
+  const models = options.models ?? [FAKE_MODEL, 'other-model:3b'];
   const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && req.url === '/api/tags') {
       res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ models: [{ name: FAKE_MODEL }, { name: 'other-model:3b' }] }));
+      res.end(JSON.stringify({ models: models.map((name) => ({ name })) }));
       return;
     }
     if (req.method === 'POST' && req.url === '/api/chat') {
@@ -110,7 +120,7 @@ export async function startFakeOllama(): Promise<FakeOllama> {
       for await (const chunk of req) raw += chunk;
       const body = JSON.parse(raw);
       requests.push(body);
-      const answer = reply(body);
+      const answer = respond(body);
       if ('status' in answer) {
         res.writeHead(answer.status, { 'content-type': 'application/json' });
         res.end(JSON.stringify({ error: answer.error }));

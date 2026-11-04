@@ -73,10 +73,59 @@ export interface ChatInput {
 }
 
 /**
- * Streams a reply from the configured provider. `onText` gets the reply so
- * far each time more arrives; the full reply is returned at the end.
+ * A reply that goes quiet for this long has stalled. It is generous because a
+ * local model loading for the first time can take a minute before it answers.
  */
-export async function chat(input: ChatInput, onText: (soFar: string) => void, signal: AbortSignal): Promise<string> {
+export const STALL_MS = 120_000;
+
+/**
+ * Streams a reply from the configured provider. `onText` gets the reply so
+ * far each time more arrives; the full reply is returned at the end. If
+ * nothing arrives for {@link STALL_MS}, the request is given up.
+ */
+export async function chat(
+  input: ChatInput,
+  onText: (soFar: string) => void,
+  signal: AbortSignal,
+  stallMs = STALL_MS,
+): Promise<string> {
+  // Our own controller, so a stall can end the request as well as the caller.
+  const local = new AbortController();
+  const forward = () => local.abort();
+  if (signal.aborted) local.abort();
+  signal.addEventListener('abort', forward, { once: true });
+  let stalled = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const wait = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      stalled = true;
+      local.abort();
+    }, stallMs);
+  };
+  wait();
+  try {
+    return await streamReply(input, onText, local.signal, wait);
+  } catch (error) {
+    if (stalled && !signal.aborted) {
+      const minutes = Math.round(stallMs / 60_000);
+      throw new Error(
+        `The model stopped responding (nothing for ${minutes > 1 ? `${minutes} minutes` : `${Math.round(stallMs / 1000)} seconds`}). Try again, or choose a smaller model.`,
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener('abort', forward);
+  }
+}
+
+async function streamReply(
+  input: ChatInput,
+  onText: (soFar: string) => void,
+  signal: AbortSignal,
+  onActivity: () => void,
+): Promise<string> {
   let response: Response;
   try {
     response = await fetch(`${BASE}/chat`, { method: 'POST', headers: HEADERS, body: JSON.stringify(input), signal });
@@ -84,6 +133,7 @@ export async function chat(input: ChatInput, onText: (soFar: string) => void, si
     if ((error as Error).name === 'AbortError') throw error;
     throw new AiUnavailableError('StyleCode’s local server isn’t reachable.');
   }
+  onActivity();
   if (response.status === 404)
     throw new AiUnavailableError('AI needs StyleCode’s local server: run it with npm run dev or npm run preview.');
   if (!response.ok || !response.body) {
@@ -106,6 +156,7 @@ export async function chat(input: ChatInput, onText: (soFar: string) => void, si
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
+    onActivity();
     buffer += decoder.decode(value, { stream: true });
     let newline = buffer.indexOf('\n');
     while (newline >= 0) {

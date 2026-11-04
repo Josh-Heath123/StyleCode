@@ -2,7 +2,7 @@ import type { Normalizer } from '../editor/editor';
 import type { Op } from '../model/ops';
 import { resizeAroundAnchor } from '../model/transform';
 import type { DesignNode, NodeProps } from '../model/types';
-import { textDeclarations } from '../render/css';
+import { NOTE_PADDING, textDeclarations } from '../render/css';
 
 /**
  * Text measurement for auto-sizing text layers. Measuring uses the same CSS
@@ -12,7 +12,8 @@ import { textDeclarations } from '../render/css';
 
 let host: HTMLDivElement | null = null;
 const cache = new Map<string, { width: number; height: number }>();
-const CACHE_LIMIT = 1000;
+/** Big enough for every distinct text in a large document, so loading one doesn't measure twice. */
+const CACHE_LIMIT = 20_000;
 
 function measureElement(): HTMLDivElement {
   if (!host) {
@@ -74,14 +75,30 @@ export function clearMeasureCache(): void {
 
 const ALIGN_ANCHOR = { left: 0, center: 0.5, right: 1 } as const;
 
+/** The smallest a note gets, so an empty one is still easy to see and click. */
+const NOTE_MIN_HEIGHT = 56;
+
+/** A note's height for its text: wrapped at its width, inside its padding. */
+export function noteHeight(node: DesignNode): number {
+  const inner = Math.max(1, node.width - NOTE_PADDING.x * 2);
+  const text = measureText({ ...node, type: 'text', textResize: 'auto-height', width: inner, letterSpacing: 0, fontWeight: 400 });
+  return Math.max(NOTE_MIN_HEIGHT, Math.ceil(text.height + NOTE_PADDING.y * 2));
+}
+
 /**
- * Keeps auto-sizing text layers fitted to their content. Runs inside the same
- * transaction as the edit that changed the text, so undo restores both.
+ * Keeps auto-sizing text layers (and notes) fitted to their content. Runs
+ * inside the same transaction as the edit that changed the text, so undo
+ * restores both.
  */
 export const textAutoSize: Normalizer = (doc, touched, base) => {
   const ops: Op[] = [];
   for (const id of touched) {
     const node = doc.nodes[id];
+    if (node?.type === 'note') {
+      const height = noteHeight(node);
+      if (Math.abs(height - node.height) >= 0.5) ops.push({ type: 'update', id, props: { height } });
+      continue;
+    }
     if (!node || node.type !== 'text' || node.textResize === 'fixed') continue;
     const size = measureText(node);
     const width = node.textResize === 'auto-width' ? size.width : node.width;

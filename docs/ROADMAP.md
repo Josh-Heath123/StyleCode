@@ -6,7 +6,7 @@ Each phase leaves the app working and builds on the previous one without restruc
 
 > Sketch a screen on the canvas → tidy it into auto-layout → export clean HTML/CSS or React → select part of it and ask a local or hosted AI to change it, with a preview you accept or reject.
 
-That is the smallest version that proves the core idea: visual input and AI working on the same structure, with real code at the end. It was reached at the end of Phase 4.
+That is the smallest version that proves the core idea: visual input and AI working on the same structure, with real code at the end. It was reached at the end of Phase 4, and Phase 5 refined it for other people to use.
 
 ## Changed from the original brief
 
@@ -86,13 +86,25 @@ The MVP: select part of a design, describe a change, review it on the canvas, ac
 - OpenAI's newer models (which take `max_completion_tokens` and no temperature) are detected from the error and retried
 - Unit tests for the schema, instructions, context, interpretation, policy and proposal mode; server tests against fake providers for request formats, streaming, fallbacks, errors, key handling and the request checks; browser tests of the whole flow against a fake Ollama
 
-## Phase 5: Refinement and presentation
+## Phase 5: Refinement and presentation ✅
 
-- Onboarding: a short interactive first run, empty states that teach, shortcut reference
-- Accessibility pass on the editor itself (keyboard-only editing of layers and properties, screen-reader labels)
-- Error handling and recovery for storage, files and providers
-- Performance pass against large documents
-- Annotations: sketch arrows and notes on the canvas that the AI reads as instructions (the "mark up a printout" interaction)
-- Editor polish carried over from Phase 2: per-corner radius, equal-spacing guides and distance labels
-- Layout carried over from Phase 3: grid layout, min/max widths, per-breakpoint overrides
-- Documentation site, demo GIFs, contribution guide, GitHub presentation
+- **Notes the AI reads** (the "mark up a printout" interaction): a `note` layer that lives on the canvas outside pages, can point at a layer with an arrow (pin it by clicking the layer with the note tool, or drag its connector), and is never exported. The AI's context lists the notes on the page, with what each points at, as instructions from the designer, and "Do what the note says" is offered first when there are any
+- **Grid layout**: a third auto-layout direction with equal columns, column spans, rows as tall as their content, and placement within cells; exported as CSS grid; switching a row of cards to a grid keeps their order
+- **Size limits**: minimum and maximum width and height for layers in auto layout, shared out with CSS's own freezing algorithm, including inside wrapping rows and grids
+- **Per-breakpoint overrides**: hide on phones, full width, a different direction for rows and columns, grid columns, font size and alignment, emitted as one media query below 640px (or the page width, if narrower)
+- The **layout parity test** now generates grids, spans and limits; each run lays out 200 random trees, and 1,600 across eight seeds were checked against Chromium during development, all within half a pixel
+- **Editor polish**: equal-spacing guides and centring between neighbours (competing fairly with edge snapping), distances while <kbd>Alt</kbd> is held, independent corner radii (also read back from `border-radius` with up to four values)
+- **Onboarding**: a welcome screen with the example project, a getting-started checklist that ticks itself off from what you do, a Help menu, and a searchable shortcut reference on <kbd>?</kbd>
+- **Accessibility**: a keyboard-driven layer tree (`aria-activedescendant`), <kbd>Tab</kbd> through layers on the canvas without trapping focus, focus kept inside dialogs and returned after, a live region that announces the selection and messages, shortcuts that leave keyboard-focused controls alone, AA contrast for text and filled buttons, and an axe check of the editor, panels, dialogs and menus in the browser tests
+- **Recovery**: damaged stored projects skipped on start-up and downloadable as raw data, failed saves retried with backoff and offering ways out, a warning before closing with unsaved changes, storage usage in Projects with a warning when nearly full, error boundaries per panel and a recovery screen for the editor, unexpected errors reported instead of failing silently, a stall timeout for AI replies
+- **Performance** on a 5,000-layer document: off-screen pages skipped by the browser (`content-visibility`), the selection overlay on its own layer, compositing while panning and zooming, fewer document copies per drag frame, layer rows that ignore geometry, cached tree shapes and a larger text-measurement cache; budgets in unit tests and a browser test
+- **Presentation**: a user guide, a contribution guide, demo GIFs recorded from the real editor (`npm run demos`), CI on every push and pull request, issue and pull request templates, and a documentation site with a live demo published to GitHub Pages
+
+## Beyond Phase 5
+
+Ideas that fit the core loop, not commitments:
+
+- Components with variants, so a repeated card is one definition on the canvas as well as in the code
+- Several screens linked into a clickable prototype in the preview
+- Breakpoints beyond phones (a tablet override), and per-breakpoint spacing
+- Importing an existing page's HTML and CSS as a starting design

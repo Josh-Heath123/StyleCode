@@ -66,7 +66,7 @@ interface Component {
 export function screenReact(screen: Screen, options: ReactOptions): ReactScreen {
   const componentName = uniqueComponentName(pascal(screen.slug) || 'Screen', new Set(options.reserved));
   const rulesById = new Map<string, Rule[]>();
-  for (const rule of [...screen.rules, ...screen.responsive]) {
+  for (const rule of [...screen.rules, ...screen.responsive, ...screen.mobile]) {
     const list = rulesById.get(rule.nodeId) ?? [];
     list.push(rule);
     rulesById.set(rule.nodeId, list);
@@ -246,6 +246,7 @@ export function screenReact(screen: Screen, options: ReactOptions): ReactScreen 
     ...screen,
     rules: screen.rules.filter(keep).map(withVars),
     responsive: screen.responsive.filter(keep),
+    mobile: screen.mobile.filter(keep),
   };
   const css = screenCss(
     moduleScreen,

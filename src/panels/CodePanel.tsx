@@ -6,7 +6,7 @@ import { screenReact } from '../codegen/react';
 import { buildScreen, listScreens, screenOf, type Decl, type ElementNode, type Screen } from '../codegen/screen';
 import { useEditor, useEditorState } from '../editor/react';
 import { getAncestors } from '../model/document';
-import { isInFlow } from '../model/layout';
+import { isGrid, isInFlow } from '../model/layout';
 import type { DesignDocument } from '../model/types';
 import { loadAssetTypes } from '../persistence/assets';
 import { Icon } from '../ui/Icon';
@@ -165,19 +165,21 @@ export function CodePanel({ onPreview }: { onPreview: (screenId: string) => void
         </div>
       )}
 
-      <div className="code-tabs" role="tablist" aria-label="Files">
-        {fileNames.map((f) => (
-          <button
-            key={f.kind}
-            type="button"
-            role="tab"
-            aria-selected={kind === f.kind}
-            className={`code-tab${kind === f.kind ? ' is-active' : ''}`}
-            onClick={() => setKind(f.kind)}
-          >
-            {f.name}
-          </button>
-        ))}
+      <div className="code-tabs">
+        <div className="code-tab-list" role="tablist" aria-label="Files">
+          {fileNames.map((f) => (
+            <button
+              key={f.kind}
+              type="button"
+              role="tab"
+              aria-selected={kind === f.kind}
+              className={`code-tab${kind === f.kind ? ' is-active' : ''}`}
+              onClick={() => setKind(f.kind)}
+            >
+              {f.name}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="icon-button code-copy"
@@ -260,6 +262,7 @@ function LayerCss({ screen, doc }: { screen: Screen; doc: DesignDocument }) {
     const result = declarationsToProps(node, parsed.decls, shown, {
       parseColor: cssColorParser,
       inFlow: isInFlow(doc, node),
+      inGrid: isInFlow(doc, node) && isGrid(doc.nodes[node.parentId!]),
     });
     if (!result.ok) return setErrors(result.errors);
     setErrors([]);
@@ -381,6 +384,10 @@ function CodeView({
     <div
       className="code-view"
       ref={scrollRef}
+      // Focusable so the code can be scrolled and read from the keyboard.
+      tabIndex={0}
+      role="region"
+      aria-label={`${file.name} code`}
       onClick={(e) => {
         // Clicking code selects its layer, unless text is being selected for copying.
         if (window.getSelection()?.toString()) return;

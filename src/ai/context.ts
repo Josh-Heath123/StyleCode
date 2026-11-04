@@ -1,5 +1,6 @@
 import { defaultProps } from '../model/defaults';
 import { isAncestorOf, isEffectivelyLocked, topLevelIds } from '../model/document';
+import { rectsIntersect, worldBounds } from '../model/geometry';
 import type { DesignDocument, DesignNode, NodeProps, PropKey } from '../model/types';
 import { AI_PROPERTIES } from './schema';
 
@@ -30,6 +31,24 @@ export interface AiContext {
   alias: Map<string, string>;
   /** Plain description of the target, for the UI ("Shared by default card"). */
   targetLabel: string;
+  /** How many of the designer's notes are on (or point at) this screen. */
+  notes: number;
+}
+
+/**
+ * The designer's notes about a screen: notes that point at a layer on it, or
+ * that sit over it. They are instructions, written on the canvas.
+ */
+export function notesFor(doc: DesignDocument, screenId: string): DesignNode[] {
+  const screenBox = worldBounds(doc, screenId);
+  return doc.nodes[doc.rootId].children
+    .map((id) => doc.nodes[id])
+    .filter((n) => n.type === 'note' && n.visible && n.text.trim())
+    .filter((n) => {
+      const target = n.noteTarget && doc.nodes[n.noteTarget];
+      if (target) return n.noteTarget === screenId || isAncestorOf(doc, screenId, n.noteTarget);
+      return rectsIntersect(worldBounds(doc, n.id), screenBox);
+    });
 }
 
 const shortName = (node: DesignNode) => node.name || node.type;
@@ -160,9 +179,27 @@ export function buildContext(
     real.set(`e${i + 1}`, id);
   });
 
+  // The designer's notes come out of the same budget: up to a quarter of it, longest notes trimmed.
+  const notes = notesFor(doc, screenId);
+  const noteBudget = Math.max(600, maxChars / 4);
+  const noteLines: string[] = [];
+  let noteChars = 0;
+  for (const [i, n] of notes.entries()) {
+    const on = n.noteTarget && alias.get(n.noteTarget);
+    const where = on ? ` (on ${on} ${JSON.stringify(shortName(doc.nodes[n.noteTarget]))})` : '';
+    const text = `- ${formatValue(n.text, 600)}${where}`;
+    if (noteLines.length > 0 && noteChars + text.length + 1 > noteBudget) {
+      noteLines.push(`- … ${notes.length - i} more ${notes.length - i === 1 ? 'note' : 'notes'} not shown`);
+      break;
+    }
+    noteLines.push(text);
+    noteChars += text.length + 1;
+  }
+  if (noteLines.length) noteLines.unshift('', 'Notes from the designer:');
+
   // Every layer that may change is shown in full; ancestors always; the rest while there is room.
   const lines = new Map<string, string>();
-  let used = 0;
+  let used = noteLines.reduce((sum, l) => sum + l.length + 1, 0);
   const render = (id: string) => {
     const node = doc.nodes[id];
     const marked = inScope(doc, scope, id);
@@ -214,5 +251,5 @@ export function buildContext(
       : `Selected: ${scope.roots.map((r) => alias.get(r)).join(', ')}. You may change the layers marked * and add layers inside or next to them.`,
     '',
   ];
-  return { screenId, scope, text: [...header, ...out].join('\n'), real, alias, targetLabel };
+  return { screenId, scope, text: [...header, ...out, ...noteLines].join('\n'), real, alias, targetLabel, notes: notes.length };
 }

@@ -1,5 +1,5 @@
 import { PROPERTY_DEFS, type PropDef } from '../model/properties';
-import { CREATABLE_TYPES, type PropKey } from '../model/types';
+import { DESIGN_TYPES, type PropKey } from '../model/types';
 
 /**
  * The shape of an AI reply, as a JSON schema. Providers that support it
@@ -14,9 +14,9 @@ import { CREATABLE_TYPES, type PropKey } from '../model/types';
  * a `ref` handle.
  */
 
-/** Properties the AI may set. It can't lock layers or point images at stored files. */
+/** Properties the AI may set. It can't lock layers, point images at stored files or touch notes. */
 export const AI_PROPERTIES: readonly PropKey[] = (Object.keys(PROPERTY_DEFS) as PropKey[]).filter(
-  (key) => key !== 'locked' && key !== 'src',
+  (key) => key !== 'locked' && key !== 'src' && key !== 'noteTarget',
 );
 
 const HEX = '^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$';
@@ -63,7 +63,7 @@ export function responseSchema(): Record<string, unknown> {
         items: {
           anyOf: [
             op('update', { id, set }, ['id', 'set']),
-            op('create', { ref: id, parent: id, index, type: { type: 'string', enum: [...CREATABLE_TYPES] }, set }, [
+            op('create', { ref: id, parent: id, index, type: { type: 'string', enum: [...DESIGN_TYPES] }, set }, [
               'ref',
               'parent',
               'type',
