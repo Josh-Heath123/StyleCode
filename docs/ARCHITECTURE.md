@@ -297,7 +297,7 @@ The routes only answer StyleCode's own page on this computer, checked on every r
 
 - the connection must come from this computer (a loopback address), even if the server was started with `--host`;
 - the `Host` must be `localhost`, `127.0.0.1` or `[::1]`, which defeats DNS rebinding;
-- an `Origin`, when there is one, must be exactly this server: Vite answers CORS preflights from other `localhost` ports, so this is the check that keeps another local web app out;
+- an `Origin`, when there is one, must be exactly this server, which keeps another local web app out (Vite's own CORS handling is turned off in `vite.config.ts`, so no response carries CORS headers and a browser lets no other site read a reply);
 - a browser's `Sec-Fetch-Site` must be `same-origin` or `none`;
 - every request carries an `x-stylecode-ai` header, so a plain form post from another page can't reach the routes at all.
 
