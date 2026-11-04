@@ -5,6 +5,8 @@ import type { ProjectSession } from '../persistence/session';
 import { Icon } from '../ui/Icon';
 import { MenuButton, type MenuEntry } from '../ui/Menu';
 import { SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from './actions';
+import { useAssistantState } from '../ai/react';
+import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
 
 interface TopBarProps {
@@ -12,6 +14,7 @@ interface TopBarProps {
   onOpenProjects: () => void;
   onCameraRestore: (camera: Camera | null) => void;
   onPreview: () => void;
+  onOpenAiSettings: () => void;
 }
 
 const STATUS_TEXT = {
@@ -22,8 +25,9 @@ const STATUS_TEXT = {
   unavailable: 'Storage unavailable',
 } as const;
 
-export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview }: TopBarProps) {
+export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview, onOpenAiSettings }: TopBarProps) {
   const editor = useEditor();
+  const ai = useAssistantState();
   const name = useEditorState((s) => s.doc.name);
   const zoom = useEditorState((s) => s.camera.zoom);
   useEditorState((s) => s.historyVersion);
@@ -32,6 +36,8 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview }: 
   useEffect(() => setDraft(name), [name]);
 
   const undoTx = editor.history.peekUndo();
+  // While an AI proposal is under review, undo rejects it.
+  const reviewing = useEditorState((s) => s.proposal !== null);
   const redoTx = editor.history.peekRedo();
 
   const run = async (task: () => Promise<unknown>) => {
@@ -156,9 +162,15 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview }: 
       <button
         type="button"
         className="icon-button"
-        aria-label={undoTx ? `Undo ${undoTx.label}` : 'Nothing to undo'}
-        data-tip={undoTx ? `Undo ${undoTx.label.toLowerCase()}  ${K.undo}` : 'Nothing to undo'}
-        disabled={!undoTx}
+        aria-label={reviewing ? 'Reject the AI’s changes' : undoTx ? `Undo ${undoTx.label}` : 'Nothing to undo'}
+        data-tip={
+          reviewing
+            ? `Reject the AI’s changes  ${K.undo}`
+            : undoTx
+              ? `Undo ${undoTx.label.toLowerCase()}  ${K.undo}`
+              : 'Nothing to undo'
+        }
+        disabled={!undoTx && !reviewing}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => undoFromButton('undo')}
       >
@@ -181,6 +193,18 @@ export function TopBar({ session, onOpenProjects, onCameraRestore, onPreview }: 
         {Math.round(zoom * 100)}%
         <Icon name="chevronDown" size={12} />
       </MenuButton>
+      <span className="topbar-divider" />
+      <button
+        type="button"
+        className="text-button ai-button"
+        data-on={ai.config && ai.config.provider !== 'off' && !ai.unavailable ? 'true' : undefined}
+        data-tip="AI settings"
+        aria-label={`AI settings: ${aiStatusLabel(ai.config, ai.unavailable)}`}
+        onClick={onOpenAiSettings}
+      >
+        <Icon name="sparkle" size={14} />
+        <span className="ai-button-label">{aiStatusLabel(ai.config, ai.unavailable)}</span>
+      </button>
       <span className="topbar-divider" />
       <button type="button" className="text-button" data-tip="See the exported page at different widths" onClick={onPreview}>
         <Icon name="play" size={13} /> Preview

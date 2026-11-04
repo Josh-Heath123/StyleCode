@@ -6,7 +6,7 @@ Each phase leaves the app working and builds on the previous one without restruc
 
 > Sketch a screen on the canvas → tidy it into auto-layout → export clean HTML/CSS or React → select part of it and ask a local or hosted AI to change it, with a preview you accept or reject.
 
-That is the smallest version that proves the core idea: visual input and AI working on the same structure, with real code at the end. It is reached at the end of Phase 4.
+That is the smallest version that proves the core idea: visual input and AI working on the same structure, with real code at the end. It was reached at the end of Phase 4.
 
 ## Changed from the original brief
 
@@ -17,7 +17,7 @@ That is the smallest version that proves the core idea: visual input and AI work
 ## Phase 1: Foundation ✅
 
 - Vite + React + TypeScript project, minimal dependencies
-- Design system: midnight surfaces, electric blue for selection, cantaloupe for drop targets (and later AI)
+- Design system: midnight surfaces, electric blue for selection, cantaloupe for drop targets (and, from Phase 4, AI)
 - Framework-independent document model, property registry and validation
 - Invertible operations, transactions, gestures, undo/redo
 - DOM canvas with screen-space overlay; pan (wheel, Space-drag, Hand tool, two-finger touch) and zoom (Ctrl/⌘+wheel, pinch, menu)
@@ -71,15 +71,20 @@ Moved to later phases:
 - Grid layout and minimum/maximum widths for responsive grids (Phase 5)
 - Per-breakpoint design overrides, such as a different layout on mobile (Phase 5)
 
-## Phase 4: AI collaboration
+## Phase 4: AI collaboration ✅
 
-- Provider abstraction: Ollama (local), OpenAI-compatible endpoints (LM Studio, llama.cpp, OpenRouter, Groq, OpenAI) and Anthropic
-- Local proxy route in the dev/preview server that holds API keys from a local config file; keys never reach the browser
-- Settings: provider, model, connection check, context size; a clear no-AI default
-- Context builder: selection, ancestors, siblings, frame summary, short id aliases, schema from the property registry
-- Schema-constrained responses; validation, AI policy (scope, locked layers) and one repair attempt
-- Assistant bar docked to the tool dock: selection-aware prompt, streamed explanation, proposals previewed on the canvas in cantaloupe, accept/reject, undo
-- Prompt suggestions based on what is selected
+The MVP: select part of a design, describe a change, review it on the canvas, accept or reject.
+
+- **Providers**: Ollama (local, free), OpenAI-compatible APIs (OpenAI, LM Studio, OpenRouter, Groq, llama.cpp's server) and Anthropic, each with schema-constrained output (Ollama's `format`, `response_format` with fallbacks, a forced Anthropic tool)
+- **Local AI server**: a Vite plugin mounts `/api/ai` on the dev and preview servers. It keeps settings and API keys in `~/.stylecode/ai.json` (mode 0600) or reads them from environment variables, calls the provider and streams the reply. Keys never reach the browser and are only sent to the saved address (a saved key is forgotten when its address changes); the routes only answer StyleCode's own page, from this computer
+- **AI settings**: off by default; provider, address, key (write-only), model picked from the provider's list, context size for Ollama; a connection check that lists the installed models
+- **Context builder**: the screen as a compact tree with short ids, the layers that may change in full, ancestors, siblings and the rest summarised within a budget derived from the context window
+- **Interpretation and policy**: short ids and new-layer refs resolved, operations validated like manual edits, changes kept to the selection (or the screen), locked layers and the screen protected (with a final before-and-after check of every locked layer), large deletions confirmed, one repair attempt with the problems explained to the model, cut-off replies reported
+- **Assistant bar** above the tool dock (<kbd>/</kbd>): the explanation streams in while the model writes, the proposal appears on the canvas in cantaloupe (dashed where layers would be deleted), <kbd>Enter</kbd> accepts as one undo step and <kbd>Esc</kbd> rejects; Stop at any time; the design is read-only during review (undo rejects), and a reply waits for a drag or text edit in progress to finish
+- **Suggestions** that fit the selection: text, images, shapes, empty or freely placed frames, several layers, or the whole screen
+- Proposals are never autosaved or exported until accepted
+- OpenAI's newer models (which take `max_completion_tokens` and no temperature) are detected from the error and retried
+- Unit tests for the schema, instructions, context, interpretation, policy and proposal mode; server tests against fake providers for request formats, streaming, fallbacks, errors, key handling and the request checks; browser tests of the whole flow against a fake Ollama
 
 ## Phase 5: Refinement and presentation
 

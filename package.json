@@ -1,6 +1,6 @@
 {
   "name": "stylecode",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "A local-first visual UI editor where the canvas is the prompt: draw interfaces, collaborate with an AI through structured edits, and export real frontend code.",
   "type": "module",

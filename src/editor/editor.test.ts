@@ -115,4 +115,88 @@ describe('Editor', () => {
     expect(editor.getState().selection).toBe(selection);
     editor.commitGesture('Move');
   });
+
+  it('shows an AI proposal without recording it; accepting makes one undo step from the AI', () => {
+    const editor = setup();
+    const view = { changed: ['r'], created: [], removed: [] };
+    expect(editor.propose([{ type: 'update', id: 'r', props: { x: 99 } }], 'AI: move it', view)).toBe(true);
+    expect(x(editor)).toBe(99);
+    expect(editor.getState().proposal).toEqual(view);
+    expect(editor.committedDoc.nodes.r.x).toBe(10);
+    expect(editor.history.peekUndo()?.label).toBe('Add rectangle');
+
+    const tx = editor.acceptProposal();
+    expect(tx).toMatchObject({ label: 'AI: move it', source: 'ai' });
+    expect(editor.getState().proposal).toBeNull();
+    expect(editor.committedDoc.nodes.r.x).toBe(99);
+    editor.undo();
+    expect(x(editor)).toBe(10);
+    editor.redo();
+    expect(x(editor)).toBe(99);
+  });
+
+  it('puts the design back when a proposal is rejected, and keeps the design read-only during review', () => {
+    const editor = setup();
+    const deleted = [{ type: 'delete', id: 'r' }] as Op[];
+    editor.propose(deleted, 'AI: remove', { changed: [], created: [], removed: [] });
+    expect(editor.getState().doc.nodes.r).toBeUndefined();
+    expect(editor.getState().selection).toEqual([]);
+    editor.discardProposal();
+    expect(x(editor)).toBe(10);
+    // The selection the proposal removed comes back.
+    expect(editor.getState().selection).toEqual(['r']);
+
+    // Edits during review would be made on top of unrecorded changes, so they wait.
+    editor.propose([{ type: 'update', id: 'r', props: { x: 99 } }], 'AI: move', { changed: ['r'], created: [], removed: [] });
+    expect(editor.apply([{ type: 'update', id: 'r', props: { y: 40 } }], { label: 'Move' })).toBeNull();
+    editor.beginGesture();
+    expect(editor.inGesture).toBe(false);
+    editor.setEditingText('r');
+    expect(editor.getState().editingTextId).toBeNull();
+    editor.redo();
+    expect(editor.getState().notice?.text).toMatch(/Accept or reject the AI’s changes first/);
+    expect(editor.hasProposal).toBe(true);
+    expect(editor.getState().doc.nodes.r).toMatchObject({ x: 99, y: 10 });
+
+    // Undo rejects the proposal, and only that.
+    editor.undo();
+    expect(editor.hasProposal).toBe(false);
+    expect(editor.getState().doc.nodes.r).toMatchObject({ x: 10, y: 10 });
+    expect(editor.history.peekUndo()?.label).toBe('Add rectangle');
+    expect(editor.acceptProposal()).toBeNull();
+  });
+
+  it('holds background work until a drag ends and a proposal is accepted or rejected', async () => {
+    const editor = setup();
+    editor.beginGesture();
+    let idle = false;
+    void editor.whenIdle().then(() => (idle = true));
+    await Promise.resolve();
+    expect(idle).toBe(false);
+    editor.commitGesture('Nothing');
+    await Promise.resolve();
+    expect(idle).toBe(true);
+
+    editor.propose([{ type: 'update', id: 'r', props: { x: 99 } }], 'AI: move', { changed: ['r'], created: [], removed: [] });
+    idle = false;
+    void editor.whenIdle().then(() => (idle = true));
+    await Promise.resolve();
+    expect(idle).toBe(false);
+    editor.acceptProposal();
+    await Promise.resolve();
+    expect(idle).toBe(true);
+  });
+
+  it('refuses a proposal that does not apply, without changing anything', () => {
+    const editor = setup();
+    const ok = editor.propose([{ type: 'update', id: 'missing', props: { x: 1 } }], 'AI: bad', {
+      changed: [],
+      created: [],
+      removed: [],
+    });
+    expect(ok).toBe(false);
+    expect(editor.hasProposal).toBe(false);
+    expect(editor.getState().notice?.tone).toBe('error');
+    expect(x(editor)).toBe(10);
+  });
 });

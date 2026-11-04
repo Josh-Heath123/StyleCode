@@ -48,7 +48,8 @@ export type ExportKind = 'site' | 'react';
 
 /** Saves the design as a ZIP: a static site or a React app. Returns false if cancelled. */
 export async function exportZip(editor: Editor, kind: ExportKind): Promise<boolean> {
-  const doc = editor.getState().doc;
+  // The design as recorded: an AI proposal still under review isn't exported.
+  const doc = editor.committedDoc;
   if (listScreens(doc).length === 0) {
     editor.notify('Nothing to export yet: each top-level frame becomes a page. Draw a frame with F.', 'error');
     return false;

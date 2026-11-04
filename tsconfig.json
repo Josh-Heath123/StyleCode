@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "types": [
       "vite/client"
     ],
@@ -24,6 +25,7 @@
   },
   "include": [
     "src",
+    "server",
     "vite.config.ts"
   ]
 }
