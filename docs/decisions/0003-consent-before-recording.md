@@ -1,6 +1,6 @@
 # ADR-0003: Consent is recorded before any recording
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context

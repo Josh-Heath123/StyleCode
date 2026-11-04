@@ -1,6 +1,6 @@
 # ADR-0004: Deterministic engines for cost, compatibility and constraints; AI proposes and explains
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context

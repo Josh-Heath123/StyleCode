@@ -1,6 +1,6 @@
 # ADR-0001: Build the workspace in the StyleCode repo
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context

@@ -1,6 +1,6 @@
 # ADR-0002: Local-first; data, recordings and files stay on the consultant's computer
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-04
 
 ## Context
