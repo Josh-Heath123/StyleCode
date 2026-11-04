@@ -1,6 +1,6 @@
 # First version (MVP) of the consulting workspace
 
-- **Status:** Draft, for the user's approval (Phase 0, WP2)
+- **Status:** Approved by the user, 2026-11-04 (Phase 0, WP2), with the decisions on Q1–Q16 below
 - **Date:** 2026-11-04
 - **Sources:** `docs/vision/PRODUCT-VISION.md`, `docs/phase-0/PHASE-0-BRIEF.md`, ADR-0001 to ADR-0004
 
@@ -19,7 +19,7 @@ The first version is one end-to-end path through a consultation, for one consult
 
 The StyleCode canvas can be opened from an engagement, but isn't yet informed by the record.
 
-**How it maps to the roadmap.** Steps 1–3, 5 and 7 (with findings entered by hand) are Phase 1, "Workspace spine". Steps 4 and 6 are Phase 2, "Extraction". Step 8 is discussed under open question Q1. Recording and local transcription come in Phase 3, "Capture".
+**How it maps to the roadmap.** Steps 1–3, 5 and 7 (with findings entered by hand), the Markdown export in step 8, and opening the canvas are Phase 1, "Workspace spine". Steps 4 and 6 are Phase 2, "Extraction", which also adds evidence quotes to the export (Q1). Recording and local transcription come in Phase 3, "Capture".
 
 **What the first version proves:** that a consultant can turn a real meeting into a reviewed, sourced record of what the client needs, without the AI's suggestions ever being confused with what the client said or what the consultant confirmed.
 
@@ -45,7 +45,7 @@ Each story is written for the consultant ("I"). "Given / when / then" is used on
 **1.1 Create a company.** As a consultant, I want to create a workspace for a client company, so that everything about that client is kept in one place.
 
 - I can create a company with a name (required), industry, what they do, existing systems, and notes.
-- The name can't be empty or only spaces. Two companies may not share the same name (open question Q4).
+- The name can't be empty or only spaces. A name that matches an existing company's, ignoring case, is refused (Q4).
 - The new company opens straight away, showing its profile and an empty list of engagements.
 - It survives closing and reopening the app.
 
@@ -60,11 +60,17 @@ Each story is written for the consultant ("I"). "Given / when / then" is used on
 - Every profile field can be edited. Changes are saved without a separate save step, and can be undone.
 - When the profile was last changed is shown.
 
+**1.4 Delete a company.** As a consultant, I want to delete a client's workspace entirely, for example when an engagement is over and the data mustn't be kept (Q6).
+
+- Deleting a company deletes everything in it: its engagements, sessions, consent records, transcripts, notes, findings, files and designs.
+- I must type the company's name to confirm. Until it matches, the delete button stays unavailable. The confirmation says what will be deleted.
+- Deletion can't be undone, and the confirmation says so.
+
 ### 2. Engagements and sessions
 
 **2.1 Create an engagement.** As a consultant, I want to create an engagement for a company, so that each project has its own record.
 
-- I can create an engagement inside a company with a name (required) and a short description of the goal (open question Q5 covers other fields).
+- I can create an engagement inside a company with a name (required), a short description of the goal, and a status: active, or ended with the date it ended (Q5).
 - An engagement always belongs to exactly one company, and can't be moved to another.
 - The company page lists its engagements, newest first.
 
@@ -73,6 +79,11 @@ Each story is written for the consultant ("I"). "Given / when / then" is used on
 - I can create a session inside an engagement with a title, date and time (defaulting to now) and its participants.
 - Each participant has a name, a role, and a side (client or consultant). At least one client participant is needed before the consent form can be filled in.
 - The engagement page lists its sessions by date, with the state of each one's consent (not filled in, given, given with limits, declined).
+
+**2.3 Delete an engagement or a session.** As a consultant, I want to remove an engagement or a session I no longer need (Q6).
+
+- Deleting asks for confirmation, naming the engagement or session and what will be deleted with it. It can't be undone, and the confirmation says so.
+- Deleting a session removes its consent record, transcript, notes and the findings whose only evidence is in it.
 
 ### 3. Consent form
 
@@ -90,7 +101,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 **4.1 Import a file.** As a consultant, I want to import the transcript my meeting platform produced, so that I don't have to type up what was said.
 
-- I can import a `.vtt` file or a `.docx` file exported from Teams, Zoom or Google Meet (the exact variants are confirmed against sample exports in Phase 2; open question Q7).
+- I can import a `.vtt` file or a `.docx` file exported from Teams, Zoom or Google Meet (the exact variants are confirmed against role-played sample exports the user provides at the start of Phase 2; Q7).
 - The import is read on the computer, by code, without AI.
 - The transcript is shown as segments, each with its speaker label, its text, and its start and end times where the file has them.
 - A file the app can't read is refused with a message that names the problem, and nothing is changed.
@@ -99,7 +110,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 **4.2 Paste a transcript.** As a consultant, I want to paste a transcript as text, for platforms or meetings that don't give me a file.
 
 - I can paste plain text. Lines in the form "Name: what they said" become segments with that speaker. Other lines become segments with no speaker.
-- Segments from pasted text have no times unless the text contains them (open question Q8).
+- A time stamp at the start of a line (such as `00:12:34` or `[12:34]`) becomes that segment's start time. Otherwise segments from pasted text have no times (Q8).
 
 **4.3 Match speakers to participants.** As a consultant, I want to say which participant each speaker label is, so that findings show who said what.
 
@@ -109,8 +120,8 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 **4.4 Keep the transcript as imported.** As a consultant, I want the transcript to stay exactly as imported, so that findings always point at what was really said.
 
-- The segments' text isn't edited in the first version (open question Q9).
-- A session has one transcript. Replacing it is only possible while no finding cites it (open question Q10).
+- The segments' text can't be edited in the first version (Q9).
+- A session has one transcript. Replacing it is only possible while no accepted finding cites it (Q10).
 
 ### 5. Notes
 
@@ -136,7 +147,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 - Selecting a proposal shows its evidence in the transcript or notes, highlighted.
 - Accept adds it to the record, recording who accepted it and when. I choose its status (confirmed, assumption or unresolved) as I accept it; the AI's proposed status is preselected.
 - Edit lets me change the kind, statement, status or evidence before accepting.
-- Reject removes it from the proposals (open question Q11 covers what is kept).
+- Reject removes it from the proposals. It is kept, hidden, with who rejected it and when, so the AI doesn't propose it again (Q11).
 - Every accept, edit and reject can be undone.
 - The AI can't mark a finding as confirmed or verified. Only my action does.
 
@@ -153,7 +164,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 **7.1 See the record.** As a consultant, I want one view of everything established for an engagement, so that I know what is agreed and what isn't.
 
-- The record lists every accepted finding from all of the engagement's sessions, grouped into confirmed findings, assumptions and open questions (open question Q12 settles exactly how the groups are formed).
+- The record lists every accepted finding from all of the engagement's sessions, grouped into confirmed (status confirmed), assumptions (status assumption) and open (status unresolved, or kind open question whatever its status) (Q12).
 - Each finding shows its kind, statement, status, provenance and, where it has evidence, a link to the passage or note, which opens it in its session.
 - I can filter the record by kind and by session.
 - I can change a finding's status, statement or kind from the record. Every change is undoable, and records who changed it and when.
@@ -162,7 +173,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 - I can link two findings in the same engagement as "influences", "depends on", "conflicts with" or "refines".
 - A finding shows its links, and I can follow them.
-- Findings in different engagements can't be linked in the first version (open question Q13).
+- Findings in different engagements can't be linked in the first version, and links never cross companies (Q13).
 
 ### 8. Export
 
@@ -191,26 +202,26 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 - The cost engine.
 - A canvas informed by the record.
 - Sync between devices, sharing, and more than one consultant.
-- Accumulated company knowledge beyond the profile (open question Q3).
+- Accumulated company knowledge beyond the profile. Promoting an accepted finding to company knowledge comes in the roadmap phase straight after extraction (Q3).
 - Export formats other than Markdown.
 
-## Open questions for the user
+## Decisions on the open questions
 
-Each has a recommendation. Nothing here is decided until you say so.
+The user accepted the recommendation for each question on 2026-11-04, with changes to Q3, Q6 and Q7 (marked).
 
-- **Q1. Where does export (step 8) land?** The roadmap puts "Specification export" in Phase 7, but the first version includes a Markdown export. *Recommendation:* export the record as Markdown in Phase 1 (it is deterministic and makes the record useful immediately), with evidence quotes added in Phase 2. Phase 7 then turns it into a fuller specification document.
-- **Q2. Files.** The roadmap's Phase 1 includes files (FileRef), but the slice doesn't mention them. *Recommendation:* include attaching, opening and removing files on a company or an engagement in Phase 1, without reading their content, and without the AI using them.
-- **Q3. Company knowledge.** The domain model includes accumulated company knowledge (facts with provenance), but no step uses it. *Recommendation:* model it in WP3, but leave it out of the first version's interface. Plan it into a later phase once the record exists.
-- **Q4. Duplicate company names.** *Recommendation:* refuse an exact duplicate (ignoring case), since the list is how the consultant tells clients apart.
-- **Q5. Engagement fields.** Retention "until the engagement ends" (consent form) implies an engagement can end. *Recommendation:* name, goal, and status (active or ended, with the date it ended). Nothing else for now.
-- **Q6. Deleting.** ADR-0002 says a company's data can be deleted as a unit. *Recommendation:* include deleting a company, an engagement and a session in the first version, each with a confirmation that names what will be deleted. No undo for deletion, so the confirmation is the safeguard.
-- **Q7. Transcript formats.** *Recommendation:* you provide role-played sample exports from each platform you use (typed, no real people) early in Phase 2. Formats are supported from those samples. Reading `.docx` may need a dependency; I would ask before adding one.
-- **Q8. Times for pasted text.** *Recommendation:* recognise common time stamps at the start of a line (such as `00:12:34` or `[12:34]`) and use them. Otherwise segments have no times.
-- **Q9. Correcting the transcript.** Platforms make mistakes. *Recommendation:* no text editing in the first version, to keep evidence exact. Speaker matching (story 4.3) can be changed at any time.
-- **Q10. Replacing a transcript.** *Recommendation:* one transcript per session, replaceable only while no accepted finding cites it.
-- **Q11. Rejected proposals.** *Recommendation:* keep them, hidden, with who rejected them and when. That stops the AI proposing them again and helps measure extraction quality, and rejected proposals are never exported.
-- **Q12. Grouping in the record.** The step names "confirmed findings, assumptions and open questions", but "open question" is a kind and "unresolved" is a status. *Recommendation:* three groups: confirmed (status confirmed), assumptions (status assumption), and open (status unresolved, or kind open question, whatever its status). Each group can be filtered by kind.
-- **Q13. Links across engagements.** *Recommendation:* not in the first version. Links stay within one engagement, and never cross companies.
-- **Q14. Provenance of AI-extracted findings.** The brief lists "said in a session" and "AI-suggested" as different provenances. When the AI extracts something the client said, with a quote, which is it? *Recommendation:* "said in a session", with the segments, plus a separate record that the AI proposed it and who accepted it. "AI-suggested" is kept for things the AI inferred that nobody said, such as a risk it spotted. This is settled in WP3.
-- **Q15. Notes and consent.** *Recommendation:* the session's consent for AI processing applies to its notes too, because they describe the same meeting. A session with consent declined can have notes, but the AI doesn't process them.
-- **Q16. Ollama on another computer.** The AI settings let Ollama point at any address. *Recommendation:* treat an Ollama address that isn't this computer as an external provider for the consent rules. This is settled in WP5.
+- **Q1. Where does export (step 8) land?** The roadmap puts "Specification export" in Phase 7, but the first version includes a Markdown export. *Decided:* export the record as Markdown in Phase 1 (it is deterministic and makes the record useful immediately), with evidence quotes added in Phase 2. Phase 7 then turns it into a fuller specification document.
+- **Q2. Files.** The roadmap's Phase 1 includes files (FileRef), but the slice doesn't mention them. *Decided:* include attaching, opening and removing files on a company or an engagement in Phase 1, without reading their content, and without the AI using them.
+- **Q3. Company knowledge.** The domain model includes accumulated company knowledge (facts with provenance), but no step uses it. *Decided:* model it in WP3, but leave it out of the first version's interface. **Change:** the roadmap gets "promote an accepted finding to company knowledge" in the phase straight after extraction, so what is learned about a company carries into its next engagement (vision §3).
+- **Q4. Duplicate company names.** *Decided:* refuse an exact duplicate (ignoring case), since the list is how the consultant tells clients apart.
+- **Q5. Engagement fields.** Retention "until the engagement ends" (consent form) implies an engagement can end. *Decided:* name, goal, and status (active or ended, with the date it ended). Nothing else for now.
+- **Q6. Deleting.** ADR-0002 says a company's data can be deleted as a unit. *Decided:* include deleting a company, an engagement and a session in the first version. No undo for deletion, so the confirmation is the safeguard. **Change:** deleting a company requires typing its name to confirm; engagements and sessions need a normal confirmation that names what will be deleted.
+- **Q7. Transcript formats.** *Decided:* **change:** the user provides role-played sample exports (typed, no real people) at the start of Phase 2. Formats are supported from those samples. Reading `.docx` may need a dependency; I would ask before adding one.
+- **Q8. Times for pasted text.** *Decided:* recognise common time stamps at the start of a line (such as `00:12:34` or `[12:34]`) and use them. Otherwise segments have no times.
+- **Q9. Correcting the transcript.** Platforms make mistakes. *Decided:* no text editing in the first version, to keep evidence exact. Speaker matching (story 4.3) can be changed at any time.
+- **Q10. Replacing a transcript.** *Decided:* one transcript per session, replaceable only while no accepted finding cites it.
+- **Q11. Rejected proposals.** *Decided:* keep them, hidden, with who rejected them and when. That stops the AI proposing them again and helps measure extraction quality, and rejected proposals are never exported.
+- **Q12. Grouping in the record.** The step names "confirmed findings, assumptions and open questions", but "open question" is a kind and "unresolved" is a status. *Decided:* three groups: confirmed (status confirmed), assumptions (status assumption), and open (status unresolved, or kind open question, whatever its status). Each group can be filtered by kind.
+- **Q13. Links across engagements.** *Decided:* not in the first version. Links stay within one engagement, and never cross companies.
+- **Q14. Provenance of AI-extracted findings.** The brief lists "said in a session" and "AI-suggested" as different provenances. When the AI extracts something the client said, with a quote, which is it? *Decided:* "said in a session", with the segments, plus a separate record that the AI proposed it and who accepted it. "AI-suggested" is kept for things the AI inferred that nobody said, such as a risk it spotted. WP3 models it this way.
+- **Q15. Notes and consent.** *Decided:* the session's consent for AI processing applies to its notes too, because they describe the same meeting. A session with consent declined can have notes, but the AI doesn't process them.
+- **Q16. Ollama on another computer.** The AI settings let Ollama point at any address. *Decided:* treat an Ollama address that isn't this computer as an external provider for the consent rules. WP5 writes it into the consent rules.

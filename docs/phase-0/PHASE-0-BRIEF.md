@@ -170,6 +170,7 @@ Add a "Consulting workspace" part with Phases 1–7. Give each one its scope, ac
 
 1. **Workspace spine:** companies, engagements, sessions, the consent form, files, notes, and the structured record entered by hand.
 2. **Extraction:** the AI proposes findings, to accept or reject, from session notes and from imported meeting transcripts (Teams, Zoom and Google Meet exports such as `.vtt` and `.docx`, or pasted text), each linked to the passage or note it came from. It opens with the extraction test and evaluation harness (old WP7), using typed role-play transcripts; the evaluation set runs in CI where feasible.
+   - Straight after extraction (before or within Phase 3; WP8 places it): **promote an accepted finding to company knowledge**, so what is learned about a company carries into its next engagement (vision §3; MVP Q3).
 3. **Capture:** recording and local transcription with speakers. It opens with the transcription test (old WP6).
 4. **Canvas in context:** the StyleCode editor in each engagement, informed by the record.
 5. **Technology catalogue and rules engine.**
