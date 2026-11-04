@@ -11,7 +11,10 @@ import { listScreens, screenOf } from '../codegen/screen';
 import { PreviewDialog } from './PreviewDialog';
 import type { ProjectSession } from '../persistence/session';
 import { fitAllCamera } from './actions';
-import { Dock } from './Dock';
+import type { Assistant } from '../ai/assistant';
+import { AssistantContext } from '../ai/react';
+import { AiSettingsDialog } from './AiSettingsDialog';
+import { DockArea } from './AssistantBar';
 import { Notice } from './Notice';
 import { ProjectsDialog } from './ProjectsDialog';
 import { useShortcuts } from './shortcuts';
@@ -19,12 +22,14 @@ import { TopBar } from './TopBar';
 
 interface AppProps {
   editor: Editor;
+  assistant: Assistant;
   session: ProjectSession;
   initialCamera: Camera | null;
 }
 
-export function App({ editor, session, initialCamera }: AppProps) {
+export function App({ editor, assistant, session, initialCamera }: AppProps) {
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'design' | 'code'>('design');
   const [preview, setPreview] = useState<string | null>(null);
   useShortcuts(editor);
@@ -48,40 +53,44 @@ export function App({ editor, session, initialCamera }: AppProps) {
 
   return (
     <EditorContext.Provider value={editor}>
-      <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}`}>
-        <TopBar
-          session={session}
-          onOpenProjects={() => setProjectsOpen(true)}
-          onCameraRestore={restoreCamera}
-          onPreview={() => openPreview()}
-        />
-        <aside className="panel panel-left" aria-label="Layers and insert panel">
-          <LeftPanel />
-        </aside>
-        <main className="canvas-area" style={{ display: 'contents' }}>
-          <Canvas />
-        </main>
-        <aside className="panel panel-right" aria-label="Design and code panel">
-          <PanelTabs
-            label="Inspector"
-            tabs={[
-              { id: 'design', label: 'Design' },
-              { id: 'code', label: 'Code' },
-            ]}
-            value={rightTab}
-            onChange={setRightTab}
+      <AssistantContext.Provider value={assistant}>
+        <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}`}>
+          <TopBar
+            session={session}
+            onOpenProjects={() => setProjectsOpen(true)}
+            onCameraRestore={restoreCamera}
+            onPreview={() => openPreview()}
+            onOpenAiSettings={() => setAiSettingsOpen(true)}
           />
-          <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${rightTab}`} aria-labelledby={`tab-${rightTab}`}>
-            {rightTab === 'design' ? <PropertiesPanel /> : <CodePanel onPreview={openPreview} />}
-          </div>
-        </aside>
-        <DockSlot />
-        <Notice />
-        {preview && <PreviewDialog screenId={preview} onClose={() => setPreview(null)} />}
-        {projectsOpen && (
-          <ProjectsDialog session={session} onClose={() => setProjectsOpen(false)} onCameraRestore={restoreCamera} />
-        )}
-      </div>
+          <aside className="panel panel-left" aria-label="Layers and insert panel">
+            <LeftPanel />
+          </aside>
+          <main className="canvas-area" style={{ display: 'contents' }}>
+            <Canvas />
+          </main>
+          <aside className="panel panel-right" aria-label="Design and code panel">
+            <PanelTabs
+              label="Inspector"
+              tabs={[
+                { id: 'design', label: 'Design' },
+                { id: 'code', label: 'Code' },
+              ]}
+              value={rightTab}
+              onChange={setRightTab}
+            />
+            <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${rightTab}`} aria-labelledby={`tab-${rightTab}`}>
+              {rightTab === 'design' ? <PropertiesPanel /> : <CodePanel onPreview={openPreview} />}
+            </div>
+          </aside>
+          <DockArea onOpenSettings={() => setAiSettingsOpen(true)} />
+          <Notice />
+          {preview && <PreviewDialog screenId={preview} onClose={() => setPreview(null)} />}
+          {projectsOpen && (
+            <ProjectsDialog session={session} onClose={() => setProjectsOpen(false)} onCameraRestore={restoreCamera} />
+          )}
+          {aiSettingsOpen && <AiSettingsDialog onClose={() => setAiSettingsOpen(false)} />}
+        </div>
+      </AssistantContext.Provider>
     </EditorContext.Provider>
   );
 }
@@ -135,14 +144,5 @@ function LeftPanel() {
         {tab === 'layers' ? <LayersPanel /> : <InsertPanel />}
       </div>
     </>
-  );
-}
-
-/** The dock floats over the canvas area, centred within it rather than the window. */
-function DockSlot() {
-  return (
-    <div className="dock-slot">
-      <Dock />
-    </div>
   );
 }

@@ -185,6 +185,8 @@ export function drawGesture(ctx: GestureContext, e: PointerEvent, tool: DrawTool
         dragging = true;
         editor.beginGesture();
       }
+      // The editor refused the edit (an AI proposal is under review): show nothing.
+      if (!editor.inGesture) return;
       const { rect, guides } = rectTo(ctx.toWorld(ev.clientX, ev.clientY), ev);
       editor.previewGesture([createOp(tool === 'text' ? { ...rect, textResize: 'auto-height' } : rect)], [id]);
       editor.setGuides(guides);
@@ -316,6 +318,8 @@ export function moveGesture(ctx: GestureContext, e: PointerEvent, ids: readonly 
         if (ev.altKey || e.altKey) duplicate = duplicateOps(base, top, { x: 0, y: 0 });
         editor.beginGesture();
       }
+      // The editor refused the edit (an AI proposal is under review): show nothing.
+      if (!editor.inGesture) return;
       const p = ctx.toWorld(ev.clientX, ev.clientY);
       let delta = { x: p.x - start.x, y: p.y - start.y };
       if (ev.shiftKey) delta = Math.abs(delta.x) >= Math.abs(delta.y) ? { x: delta.x, y: 0 } : { x: 0, y: delta.y };
@@ -447,6 +451,7 @@ export function resizeGesture(ctx: GestureContext, ids: readonly string[], handl
     return {
       cursor,
       move(ev) {
+        if (!editor.inGesture) return;
         const p = applyToPoint(toParent, ctx.toWorld(ev.clientX, ev.clientY));
         const r = resizeBox(node, handle, p, { keepAspect: ev.shiftKey, fromCenter: ev.altKey });
         let rr = exact
@@ -498,6 +503,7 @@ export function resizeGesture(ctx: GestureContext, ids: readonly string[], handl
   return {
     cursor,
     move(ev) {
+      if (!editor.inGesture) return;
       const p = ctx.toWorld(ev.clientX, ev.clientY);
       const nb = resizeBox({ ...bounds, rotation: 0 }, handle, p, { keepAspect: ev.shiftKey, fromCenter: ev.altKey });
       const sx = nb.width / Math.max(1e-6, bounds.width);

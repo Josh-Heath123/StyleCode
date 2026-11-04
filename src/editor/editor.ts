@@ -1,6 +1,6 @@
 import { hasNode } from '../model/document';
 import { applyOps, OpError, type Op } from '../model/ops';
-import type { DesignDocument, Rect } from '../model/types';
+import type { DesignDocument, Point, Rect } from '../model/types';
 import type { Camera } from './camera';
 import { History, type ChangeSource, type Transaction } from './history';
 
@@ -13,6 +13,14 @@ export interface Guide {
   y2: number;
   /** snap: an alignment guide; insert: where a layer will land in an auto-layout frame. */
   kind: 'snap' | 'insert';
+}
+
+/** What the canvas shows about a change proposed by the AI and waiting for review. */
+export interface ProposalView {
+  changed: readonly string[];
+  created: readonly string[];
+  /** Layers that would be deleted, with their outline (world space) from before. */
+  removed: readonly { id: string; corners: readonly Point[] }[];
 }
 
 export interface EditorState {
@@ -34,6 +42,16 @@ export interface EditorState {
   historyVersion: number;
   /** Short message shown in the status area (e.g. a rejected operation). */
   notice: { id: number; text: string; tone: 'info' | 'error' } | null;
+  /** An AI proposal being reviewed: `doc` shows it, the document before it is kept aside. */
+  proposal: ProposalView | null;
+}
+
+interface PendingProposal {
+  base: DesignDocument;
+  ops: Op[];
+  inverse: Op[];
+  label: string;
+  selectionBefore: readonly string[];
 }
 
 /**
@@ -72,6 +90,7 @@ export class Editor {
   private state: EditorState;
   private readonly listeners = new Set<Listener>();
   private gesture: Gesture | null = null;
+  private pending: PendingProposal | null = null;
   private noticeId = 0;
   readonly history = new History();
   normalizer: Normalizer | null = null;
@@ -94,6 +113,7 @@ export class Editor {
       gesturing: false,
       historyVersion: 0,
       notice: null,
+      proposal: null,
     };
   }
 
@@ -144,6 +164,7 @@ export class Editor {
   }
 
   setEditingText(editingTextId: string | null): void {
+    if (editingTextId && this.blockedByProposal()) return;
     if (this.state.editingTextId !== editingTextId) this.set({ editingTextId });
   }
 
@@ -191,6 +212,7 @@ export class Editor {
    */
   apply(ops: readonly Op[], options: ApplyOptions): Transaction | null {
     if (ops.length === 0) return null;
+    if (this.blockedByProposal()) return null;
     if (this.gesture) this.cancelGesture();
     try {
       const result = this.run(this.state.doc, ops);
@@ -222,6 +244,7 @@ export class Editor {
 
   /** Starts a continuous edit. Previews are applied on top of the document as it was now. */
   beginGesture(): void {
+    if (this.blockedByProposal()) return;
     if (this.gesture) this.cancelGesture();
     this.gesture = { base: this.state.doc, selectionBefore: this.state.selection, ops: [] };
     this.set({ gesturing: true });
@@ -232,15 +255,20 @@ export class Editor {
   }
 
   /**
-   * Resolves once no gesture is in progress. Work that finishes in the
-   * background (an image done loading) waits for this before applying, so it
-   * never cancels a drag or a scrub the user is in the middle of.
+   * Resolves once no gesture is in progress and no AI proposal is under
+   * review. Work that finishes in the background (an image done loading)
+   * waits for this before applying, so it never cancels a drag or a scrub the
+   * user is in the middle of, and lands after a proposal is accepted or rejected.
    */
   whenIdle(): Promise<void> {
-    if (!this.gesture) return Promise.resolve();
+    return this.when(() => !this.gesture && !this.pending);
+  }
+
+  private when(ready: () => boolean): Promise<void> {
+    if (ready()) return Promise.resolve();
     return new Promise((resolve) => {
       const unsubscribe = this.subscribe(() => {
-        if (this.gesture) return;
+        if (!ready()) return;
         unsubscribe();
         resolve();
       });
@@ -355,6 +383,7 @@ export class Editor {
 
   undo(): void {
     if (this.gesture) this.cancelGesture();
+    if (this.pending) return this.discardProposal();
     const tx = this.history.popUndo();
     if (!tx) return;
     const result = applyOps(this.state.doc, tx.inverse);
@@ -368,6 +397,7 @@ export class Editor {
 
   redo(): void {
     if (this.gesture) this.cancelGesture();
+    if (this.blockedByProposal()) return;
     const tx = this.history.popRedo();
     if (!tx) return;
     const result = applyOps(this.state.doc, tx.ops);
@@ -386,6 +416,7 @@ export class Editor {
    */
   loadDocument(doc: DesignDocument, camera?: Camera): void {
     this.gesture = null;
+    this.pending = null;
     this.history.clear();
     this.pendingText.clear();
     let loaded = doc;
@@ -407,6 +438,7 @@ export class Editor {
       dropTargetId: null,
       guides: [],
       gesturing: false,
+      proposal: null,
       camera: camera ?? this.state.camera,
       historyVersion: this.state.historyVersion + 1,
     });
@@ -416,6 +448,90 @@ export class Editor {
   renameDocument(name: string): void {
     const trimmed = name.trim().slice(0, 200);
     if (!trimmed || trimmed === this.state.doc.name) return;
+    if (this.pending) this.pending.base = { ...this.pending.base, name: trimmed };
     this.set({ doc: { ...this.state.doc, name: trimmed } });
+  }
+
+  // -------------------------------------------------------------------------
+  // AI proposals
+  // -------------------------------------------------------------------------
+
+  /**
+   * While an AI proposal is under review the design is read-only: selecting,
+   * panning and zooming still work, but an edit would be made on top of
+   * changes that aren't recorded yet. Undo rejects the proposal.
+   */
+  private blockedByProposal(): boolean {
+    if (!this.pending) return false;
+    this.notify('Accept or reject the AI’s changes first: Enter accepts, Esc rejects.');
+    return true;
+  }
+
+  /**
+   * Shows proposed changes on the canvas without recording them. Accepting
+   * records them as one undo step from the AI; rejecting (or any other edit)
+   * puts the design back as it was. Returns false if the changes are invalid.
+   */
+  propose(ops: readonly Op[], label: string, view: ProposalView): boolean {
+    if (this.gesture) this.cancelGesture();
+    if (this.pending) this.discardProposal();
+    try {
+      const base = this.state.doc;
+      const result = this.run(base, ops);
+      this.pending = { base, ops: result.ops, inverse: result.inverse, label, selectionBefore: this.state.selection };
+      this.set({
+        doc: result.doc,
+        proposal: view,
+        editingTextId: null,
+        selection: this.validSelection(result.doc, this.state.selection),
+      });
+      return true;
+    } catch (error) {
+      if (!(error instanceof OpError)) throw error;
+      this.notify(error.message, 'error');
+      return false;
+    }
+  }
+
+  get hasProposal(): boolean {
+    return this.pending !== null;
+  }
+
+  /** Records the proposal as one undo step, marked as coming from the AI. */
+  acceptProposal(selection?: readonly string[]): Transaction | null {
+    const pending = this.pending;
+    if (!pending) return null;
+    this.pending = null;
+    const selectionAfter = this.validSelection(this.state.doc, selection ?? this.state.selection);
+    if (pending.inverse.length === 0) {
+      this.set({ proposal: null, selection: selectionAfter });
+      return null;
+    }
+    const tx = this.history.push({
+      label: pending.label,
+      source: 'ai',
+      ops: pending.ops,
+      inverse: pending.inverse,
+      selectionBefore: pending.selectionBefore,
+      selectionAfter,
+    });
+    this.set({ proposal: null, selection: selectionAfter, historyVersion: this.state.historyVersion + 1 });
+    return tx;
+  }
+
+  /** Puts the design back as it was before the proposal. */
+  discardProposal(): void {
+    const pending = this.pending;
+    if (!pending) return;
+    this.pending = null;
+    // Keep what is selected now; if the proposal removed it all, go back to what was selected before.
+    const current = this.validSelection(pending.base, this.state.selection);
+    const selection = current.length ? current : this.validSelection(pending.base, pending.selectionBefore);
+    this.set({ doc: pending.base, proposal: null, selection });
+  }
+
+  /** The design as recorded: without a proposal under review or a drag in progress. */
+  get committedDoc(): DesignDocument {
+    return this.pending?.base ?? this.gesture?.base ?? this.state.doc;
   }
 }

@@ -324,6 +324,33 @@ const PATHS = {
       <path d="M18 22V8a2 2 0 0 0-2-2H2" />
     </>
   ),
+  sparkle: (
+    <>
+      <path d="M11.02 3.6a1 1 0 0 1 1.96 0l.9 4.13a3 3 0 0 0 2.39 2.39l4.13.9a1 1 0 0 1 0 1.96l-4.13.9a3 3 0 0 0-2.39 2.39l-.9 4.13a1 1 0 0 1-1.96 0l-.9-4.13a3 3 0 0 0-2.39-2.39l-4.13-.9a1 1 0 0 1 0-1.96l4.13-.9a3 3 0 0 0 2.39-2.39z" />
+      <path d="M19 2v4" />
+      <path d="M21 4h-4" />
+    </>
+  ),
+  send: (
+    <>
+      <path d="M12 19V5" />
+      <path d="m5 12 7-7 7 7" />
+    </>
+  ),
+  stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
+  sliders: (
+    <>
+      <path d="M4 6h9" />
+      <path d="M17 6h3" />
+      <circle cx="15" cy="6" r="2" />
+      <path d="M4 12h3" />
+      <path d="M11 12h9" />
+      <circle cx="9" cy="12" r="2" />
+      <path d="M4 18h11" />
+      <path d="M19 18h1" />
+      <circle cx="17" cy="18" r="2" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof PATHS;

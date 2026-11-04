@@ -16,8 +16,8 @@ const SHAPES: { tool: Tool; icon: IconName; label: string; key: string }[] = [
   { tool: 'text', icon: 'text', label: 'Text', key: 'T' },
 ];
 
-/** The floating tool dock at the bottom of the canvas. */
-export function Dock() {
+/** The floating tool dock at the bottom of the canvas, with the AI assistant's button at the end. */
+export function Dock({ aiOpen, onToggleAi }: { aiOpen: boolean; onToggleAi: () => void }) {
   const editor = useEditor();
   const active = useEditorState((s) => s.tool);
   const button = ({ tool, icon, label, key }: (typeof TOOLS)[number]) => (
@@ -48,6 +48,18 @@ export function Dock() {
         onClick={() => void insertImagesFromPicker(editor)}
       >
         <Icon name="image" size={18} />
+      </button>
+      <span className="dock-divider" />
+      <button
+        type="button"
+        className="icon-button dock-ai"
+        aria-label="Ask AI (/)"
+        aria-expanded={aiOpen}
+        data-tip="Ask AI  /"
+        data-tip-side="top"
+        onClick={onToggleAi}
+      >
+        <Icon name="sparkle" size={18} />
       </button>
     </div>
   );

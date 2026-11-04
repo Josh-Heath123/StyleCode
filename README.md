@@ -1,18 +1,22 @@
 # StyleCode
 
-A local-first visual UI editor where **the canvas is the prompt**. Draw an interface, export it as real HTML/CSS or React, and (in the next phase) select part of it and ask an AI to change it. Everything runs on your machine: no account, no server, no hosting costs.
+A local-first visual UI editor where **the canvas is the prompt**. Draw an interface, select part of it and ask an AI to change it, then export it as real HTML/CSS or React. Everything runs on your machine: no account, no cloud service, no hosting costs. AI is optional, and can be a free model on your own computer.
 
-![The StyleCode editor: an example landing page in auto layout, with a card selected and its code open beside the canvas](docs/editor.png)
+![The StyleCode editor: an example landing page in auto layout, with a card selected, its code open beside the canvas, and the AI assistant above the tool dock offering suggestions for the card](docs/editor.png)
 
 ## Why
 
 Prompt-to-UI tools make you describe everything in words. StyleCode lets you *show* instead. The boxes you draw tell the AI which element you mean, where things sit and what contains what, and text is left for intent: "make this feel more premium".
 
-Under the hood, one design document is the single source of truth. Every edit (yours, and later the AI's) is a small, validated, undoable operation on that document, and code is compiled from it deterministically. The canvas, the code and the preview can never drift apart, and AI changes are targeted and reviewable instead of wholesale rewrites. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full reasoning.
+Under the hood, one design document is the single source of truth. Every edit (yours and the AI's) is a small, validated, undoable operation on that document, and code is compiled from it deterministically. The canvas, the code and the preview can never drift apart, and AI changes are targeted and reviewable instead of wholesale rewrites. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full reasoning.
 
 ## Status
 
-**Phases 1 to 3 are complete.** The visual editor works on its own, its layouts are built the way real interfaces are, and it turns designs into code:
+**Phases 1 to 4 are complete.** The visual editor works on its own, its layouts are built the way real interfaces are, it turns designs into code, and an AI can work on the same design with you:
+
+- **Ask AI** (<kbd>/</kbd>): select part of a design (or nothing, for the whole screen), describe a change, and watch the AI explain what it is doing. Its proposal appears on the canvas in cantaloupe; <kbd>Enter</kbd> accepts it as one undoable step, <kbd>Esc</kbd> rejects it. Suggestions fit what is selected.
+- **Your choice of AI**: a free local model with [Ollama](https://ollama.com), any OpenAI-compatible API (OpenAI, LM Studio, OpenRouter, Groq…) or Anthropic, with your own key. Or none: AI is off until you turn it on.
+- **Safe by design**: the AI changes the design, never the code, through the same validated operations as your own edits. It only touches what you selected, never locked layers, and asks before deleting a lot. API keys stay on your computer and never reach the browser.
 
 - **Code beside the canvas**: the Code tab shows the selected screen as HTML, CSS and React, with the selected layer's code highlighted. Click a line to select its layer.
 - **Edit CSS, change the design**: a layer's CSS is editable in the code panel and flows back into the design, as one undoable step. Anything StyleCode can't represent is reported, not dropped.
@@ -38,7 +42,7 @@ Under the hood, one design document is the single source of truth. Every edit (y
 - Pan and zoom with mouse, trackpad or touch (two-finger pinch)
 - Projects autosave in your browser; save to and open from `.stylecode.json` files (images included)
 
-Next up: AI collaboration with a local model (Ollama) or your own API key: select part of a design, describe the change, and review it on the canvas before accepting. See [docs/ROADMAP.md](docs/ROADMAP.md).
+Next up: refinement and presentation, including onboarding, an accessibility pass, annotations the AI reads as instructions, and grid layout. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Getting started
 
@@ -59,6 +63,33 @@ For a faster, production build:
 npm run build
 npm run preview    # serves the build at http://localhost:4173
 ```
+
+Both `npm run dev` and `npm run preview` include StyleCode's small local AI server. Serving the `dist` folder some other way works too, without AI.
+
+## AI (optional)
+
+StyleCode works fully without AI, and AI is off until you choose a provider. Click the **AI** button in the top bar (or the sparkle at the end of the tool dock).
+
+**Ollama (free, runs on your computer).** Install [Ollama](https://ollama.com), then download a model, for example:
+
+```bash
+ollama pull qwen2.5:7b
+```
+
+In **AI settings**, choose **Ollama** and press **Test connection**: it lists your installed models. Bigger models follow instructions better; 7–9B models need roughly 5–8 GB of free memory, 3–4B models fit smaller laptops. Raise the **context size** if your designs are large and you have the memory.
+
+**OpenAI-compatible or Anthropic (your own key).** Choose the provider, pick a preset or enter the API address, paste your key, then **Test connection** to choose a model. Local servers such as LM Studio need no key.
+
+**Where keys go.** The key is sent once to StyleCode's local server and saved in `~/.stylecode/ai.json`, readable only by you (set `STYLECODE_AI_CONFIG` to use another file). It is never sent back to the browser, stored in the browser, or written into the project, and it is only ever sent to the API address it was saved with: change the address and you'll be asked for the key again. You can also leave the key out of the settings and set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in the environment you start StyleCode from; that key is sent to whichever address you save for that provider.
+
+**Using it.** Select what you want to change and press <kbd>/</kbd>, or click a suggestion. The AI sees the screen you are working on (as a compact list of layers, not a picture) and may change only what you selected, plus new layers inside or next to it. Lock a layer to protect it. While a proposal is on the canvas you can select, pan, zoom and look at its properties and code, but edits wait until you accept or reject it.
+
+| Action | How |
+| --- | --- |
+| Ask AI | <kbd>/</kbd>, or the sparkle in the tool dock; <kbd>Enter</kbd> sends, <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line |
+| Accept / reject a proposal | <kbd>Enter</kbd> / <kbd>Esc</kbd>, or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> to reject (a large deletion needs a click to accept) |
+| Undo an accepted proposal | <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd>, like any edit |
+| Stop a request | **Stop** in the assistant |
 
 ## Using the editor
 
@@ -109,21 +140,28 @@ Layouts in auto layout export as flexbox and adapt to smaller screens; layers in
 
 Projects are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Projects → Save to file…** to keep a portable copy or move a project between browsers (the images used in the project are embedded in the file), and **Open project file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored projects, so save important work to a file. Code export and the preview also run entirely on your machine.
 
+With AI on, each request sends a text description of the screen you are working on (layer names, text and properties, but not images) to the provider you chose. With Ollama on your own computer, nothing leaves it. AI settings and keys are kept in `~/.stylecode/ai.json`, not in the browser.
+
 ## Project structure
 
 ```
 src/
   model/        design document, property registry, operations, geometry, commands,
                 auto-layout engine and inference, file format (pure TS, fully tested)
+  ai/           the assistant: context builder, instructions, response schema,
+                interpretation and AI policy, suggestions, local server client
   editor/       editor store, history, camera, React bindings
   render/       the single design → CSS mapping shared by the canvas and code export
   codegen/      HTML/CSS and React generators, CSS → design parser, site and app export, ZIP (pure TS, tested)
   canvas/       viewport, layer rendering, selection overlay, gestures, snapping, text measurement
   panels/       layers, insert, properties and code panels
   persistence/  IndexedDB storage, image assets, project files, example project
-  app/          app shell, top bar, tool dock, shortcuts, actions, blocks, preview and export
+  app/          app shell, top bar, tool dock, assistant bar, AI settings, shortcuts,
+                actions, blocks, preview and export
   ui/           icons and menus
-e2e/            browser tests (Playwright), including layout parity and export fidelity
+server/ai/      the local AI server (a Vite plugin): settings and keys, providers, streaming
+e2e/            browser tests (Playwright), including layout parity, export fidelity
+                and the AI flow against a fake Ollama
 docs/           architecture and roadmap
 ```
 
@@ -135,7 +173,7 @@ docs/           architecture and roadmap
 | `npm run build` | Type-check and build for production |
 | `npm run preview` | Serve the production build |
 | `npm test` | Run the unit tests |
-| `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174) |
+| `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174, with AI settings in a temporary file) |
 | `npm run test:all` | Unit tests, then browser tests |
 | `npm run typecheck` | Type-check the app and the browser tests |
 
@@ -143,4 +181,4 @@ The browser tests need Playwright's Chromium once per machine: `npx playwright i
 
 ## Tech
 
-React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so the canvas shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM and the Inter font, and nothing else; tests use Vitest and Playwright.
+React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so the canvas shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM and the Inter font, and nothing else; the AI server uses only Node's standard library (`fetch`, `http`, `fs`), and tests use Vitest and Playwright.

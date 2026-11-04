@@ -47,6 +47,7 @@ export function Overlay() {
   const editingTextId = useEditorState((s) => s.editingTextId);
   const gesturing = useEditorState((s) => s.gesturing);
   const guides = useEditorState((s) => s.guides);
+  const proposal = useEditorState((s) => s.proposal);
 
   const selected = topLevelIds(doc, selection).filter((id) => doc.nodes[id] && doc.nodes[id].type !== 'page');
   const single = selected.length === 1 ? doc.nodes[selected[0]] : null;
@@ -102,6 +103,24 @@ export function Overlay() {
           selected.map((id) => <polygon key={id} className="ov-outline" points={toPoints(screenCorners(doc, id, camera))} />)}
 
         {box && !editingSelected && <polygon className="ov-selection" points={toPoints(box)} />}
+
+        {/* AI proposals draw over the selection outline so what would change stays visible. */}
+        {proposal && (
+          <g className="ov-proposal" aria-hidden="true">
+            {proposal.removed.map(({ id, corners }) => (
+              <polygon
+                key={`r-${id}`}
+                className="ov-proposal-removed"
+                points={toPoints(corners.map((p) => worldToScreen(camera, p)))}
+              />
+            ))}
+            {[...proposal.changed, ...proposal.created]
+              .filter((id) => doc.nodes[id])
+              .map((id) => (
+                <polygon key={id} className="ov-proposal-changed" points={toPoints(screenCorners(doc, id, camera))} />
+              ))}
+          </g>
+        )}
 
         {guides.map((g, i) => {
           const a = worldToScreen(camera, { x: g.x1, y: g.y1 });

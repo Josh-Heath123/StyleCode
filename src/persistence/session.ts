@@ -134,8 +134,9 @@ export class ProjectSession {
     this.unsubscribe?.();
     this.lastCamera = this.editor.getState().camera;
     this.unsubscribe = this.editor.subscribe(() => {
-      const { doc, camera, gesturing } = this.editor.getState();
-      if (gesturing) return;
+      const { doc, camera, gesturing, proposal } = this.editor.getState();
+      // Drags and AI proposals under review aren't saved until they are done.
+      if (gesturing || proposal) return;
       const docChanged = doc !== this.lastSavedDoc;
       const cameraChanged = camera !== this.lastCamera;
       if (!docChanged && !cameraChanged) return;
@@ -167,7 +168,8 @@ export class ProjectSession {
   async saveNow(): Promise<void> {
     if (!this.storageAvailable) return;
     this.timer = null;
-    const { doc, camera } = this.editor.getState();
+    const { camera } = this.editor.getState();
+    const doc = this.editor.committedDoc;
     const record: ProjectRecord = { id: doc.id, name: doc.name, updatedAt: Date.now(), camera, file: toProjectFile(doc) };
     const docChanged = doc !== this.lastSavedDoc;
     if (docChanged) this.set({ status: 'saving' });
@@ -177,7 +179,7 @@ export class ProjectSession {
       this.lastCamera = camera;
       if (docChanged) this.channel?.postMessage({ id: doc.id, tab: this.tabId });
       // A newer change may have arrived while saving.
-      if (this.editor.getState().doc === doc) this.set({ status: 'saved', error: null });
+      if (this.editor.committedDoc === doc) this.set({ status: 'saved', error: null });
     } catch (error) {
       const message =
         (error as DOMException)?.name === 'QuotaExceededError'
@@ -242,7 +244,7 @@ export class ProjectSession {
   }
 
   async exportToFile(): Promise<boolean> {
-    const { doc } = this.editor.getState();
+    const doc = this.editor.committedDoc;
     return exportProjectFile(doc, () => exportAssets(referencedAssets(doc)));
   }
 

@@ -27,7 +27,7 @@ A useful consequence of rule 3: small local models become viable. A 4–8B model
  keyboard ─▶ │  Shortcuts ───────┼──▶ commands ──▶ operations ──▶ Editor store │
  panels ───▶ │  Property panel ──┘                    ▲              │          │
              │                                        │              ▼          │
- (Phase 4)   │  AI assistant ──▶ proposed operations ─┘     design document     │
+             │  AI assistant ──▶ proposed operations ─┘     design document     │
              │                    (validated, previewed)          │             │
              │                                  ┌─────────────────┼──────────┐  │
              │                                  ▼                 ▼          ▼  │
@@ -35,7 +35,7 @@ A useful consequence of rule 3: small local models become viable. A 4–8B model
              │                                          → code panel,    + files │
              │                                            preview, ZIP            │
              └──────────────────────────────────────────────────────────────────┘
- (Phase 4)   local dev server: proxies AI calls, holds API keys, talks to Ollama
+             local server (Vite dev/preview): AI route, holds API keys, calls the provider
 ```
 
 Source layout:
@@ -49,8 +49,10 @@ Source layout:
 | `src/canvas` | Canvas viewport, layer rendering, overlay, pointer gestures, snapping, text measurement, the layout normaliser. | `model`, `editor`, `render`, `ui` |
 | `src/panels` | Layers, insert, properties and code panels and their controls. | everything above |
 | `src/persistence` | IndexedDB storage, image assets, project files, example project. | `model`, `editor` |
-| `src/app` | App shell, top bar, tool dock, shortcuts, shared actions, inserting images and blocks, preview and export. | everything |
+| `src/ai` | The assistant: context builder, instructions, response schema, interpretation and AI policy, suggestions, the client for the local server. | `model`, `editor` |
+| `src/app` | App shell, top bar, tool dock, assistant bar, AI settings, shortcuts, shared actions, inserting images and blocks, preview and export. | everything |
 | `src/ui` | Generic UI: icons, menus. | nothing app-specific |
+| `server/ai` | The local AI server (a Vite plugin): settings and keys, provider adapters, streaming. Runs in Node, never in the browser. | Node only |
 
 The `model` layer is the part that matters most and is tested most heavily. Everything above it is a view or an input method. Unit tests (Vitest) sit next to the code they test; browser tests (Playwright) live in `e2e/` and drive the real app.
 
@@ -65,7 +67,7 @@ interface DesignNode extends NodeProps { id; type; parentId; children: string[] 
 
 - **Flat map, ordered children.** Lookups by id are O(1) (important for AI operations, which reference ids), and the tree is expressed by `parentId` + `children`. Children are in paint order: later is on top.
 - **Node types:** `page` (the root, also the canvas background), `frame` (container), `rect`, `ellipse`, `text`, `image`. Only `page` and `frame` can contain children. A *group* is simply a frame without fill or clipping, which is exactly how it will be expressed in HTML: a `div`.
-- **Flat properties.** Every editable property (`x`, `fill`, `fontSize`, …) is a top-level key described in the **property registry** (`model/properties.ts`): its type, range, and which node types it applies to. The registry drives validation, the properties panel, and will drive the AI's operation schema and the code generators. Adding a property means adding one registry entry.
+- **Flat properties.** Every editable property (`x`, `fill`, `fontSize`, …) is a top-level key described in the **property registry** (`model/properties.ts`): its type, range, and which node types it applies to. The registry drives validation, the properties panel, the AI's response schema and instructions, and the code generators. Adding a property means adding one registry entry.
 - **CSS semantics, on purpose.** Coordinates follow the CSS box model: a child's `x`/`y` is its offset from the parent's *padding box* (inside the parent's border), rotation is around the centre, and `box-sizing` is `border-box`. Design tools like Figma use their own model; StyleCode uses CSS's because its promise is that the canvas *is* the code. Changing a frame's border width therefore shifts its children by that width, exactly as the exported CSS will.
 - **Layout and meaning are properties too.** A frame's `layout` (`none`, `row`, `column`), `gap`, per-side padding, `justify` and `align` make it an auto-layout frame; every layer has `widthMode`/`heightMode` (`fixed`, `hug`, `fill`), `positioning` (`auto`, or `absolute` to sit outside the flow) and a semantic `role` (button, nav, card, heading, input, link…). Roles change nothing visually; they tell the code generators which HTML element to use and tell the AI what a layer is.
 - **Versioned file format.** Saved projects are `{ format: "stylecode", version, document, assets? }`. Loading goes through `parseProject`, which validates every property, repairs what it safely can (bad values fall back to defaults, dangling references are dropped) and rejects files from newer versions with a clear message instead of crashing. Version 2 added auto layout, sizing, roles, effects and images; version 1 files open unchanged, because every new property has a default that reproduces the old behaviour.
@@ -94,7 +96,7 @@ The **editor store** (`editor/editor.ts`) records batches as **transactions** wi
 
 A **normaliser** hook runs after every batch, inside the same transaction. It keeps auto-sizing text boxes fitted to their content and then lays out every auto-layout frame the batch could have affected (section 5). Because its output is part of the same transaction, undoing a text edit also restores the box size and the position of everything the layout moved.
 
-AI edits will be transactions with `source: 'ai'`. They undo exactly like manual edits.
+AI edits are transactions with `source: 'ai'`. They undo exactly like manual edits.
 
 ## 5. Auto layout
 
@@ -138,7 +140,7 @@ The parity test also generates wrapping rows (about a quarter of frames, with fi
 - layers that overlap cannot be split, so they stay together as a freely arranged group, and a frame whose layers all overlap is left alone with an explanation;
 - frames inside that are still freely arranged are tidied too, so one command structures a whole sketch.
 
-Inference is deterministic: the same sketch always gives the same structure, and the whole result is one undoable step. This is exactly the kind of geometry a language model is bad at, so in Phase 4 the AI will call it rather than reinvent it.
+Inference is deterministic: the same sketch always gives the same structure, and the whole result is one undoable step. This is exactly the kind of geometry a language model is bad at, so the AI calls it (the `tidy` operation) rather than reinventing it.
 
 With other layers selected, <kbd>Shift</kbd>+<kbd>A</kbd> wraps them in a new hugging row or column without moving them. <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> turns auto layout off and leaves everything where it is.
 
@@ -169,67 +171,121 @@ Text is measured with an off-screen element styled by the same CSS mapping, so m
 
 ## 7. Local-first persistence
 
-There is no account and no server. The open project autosaves to **IndexedDB** half a second after each change and on tab hide. Projects can be saved to and opened from `.stylecode.json` files (using the File System Access API's save dialog where the browser supports it, a download otherwise). Opening a file always creates a new local project, so it can never overwrite existing work. If the same project is open in two tabs, a notice explains that the last tab to save wins.
+There is no account and no cloud service. The open project autosaves to **IndexedDB** half a second after each change and on tab hide. Projects can be saved to and opened from `.stylecode.json` files (using the File System Access API's save dialog where the browser supports it, a download otherwise). Opening a file always creates a new local project, so it can never overwrite existing work. If the same project is open in two tabs, a notice explains that the last tab to save wins.
 
 **Images** are stored in their own IndexedDB store as blobs, keyed by a SHA-256 hash of their content (`asset_…`). The same picture added twice is stored once, and image layers refer to it by id, so the document stays small and copying an image layer between projects just works. Images up to 15 MB are accepted, in the formats every browser shows (PNG, JPEG, WebP, GIF, AVIF, SVG, BMP, ICO), so a picture on the canvas always appears in exported code too. Layers on screen share one object URL per image, released a few seconds after the last one goes away; a layer whose image is missing shows a placeholder and picks the image up as soon as it is added. Images finish loading in the background, and an insert waits for any drag or scrub in progress to end so it never interrupts it. Saving to a file embeds the images that project uses (base64, under `assets`), so a saved file is self-contained; opening it puts them back into the local store. Nothing is uploaded anywhere.
 
 **Blocks** (button, badge, text field, card, navigation bar, hero section, in light or dark) are plain functions that build a subtree of auto-layout frames with roles set. They are inserted like anything else, as one undoable operation, and are fully editable afterwards; there is no separate component system to keep in sync.
 
-## 8. AI architecture (Phase 4, designed now)
+## 8. AI collaboration
 
 ### Pipeline
 
 ```
-user request + selection
-  → context builder      (compact, relevant slice of the document)
-  → provider             (Ollama / OpenAI-compatible / Anthropic …)
-  → structured response  ({ explanation, operations[] } constrained by JSON schema)
-  → validation           (tryApplyOps against the real document + AI policy checks)
-  → preview              (proposed changes shown on the canvas, in cantaloupe)
-  → accept → transaction (source: 'ai', undoable)   |   reject → nothing changed
+request + selection (or the screen in view)
+  → context builder        src/ai/context.ts    one screen as a compact tree with short ids
+  → local server           server/ai            adds the key, calls the provider, streams back
+  → provider               Ollama / OpenAI-compatible / Anthropic, constrained to a JSON schema
+  → streamed explanation   shown while the reply is still arriving
+  → interpretation         src/ai/proposal.ts   ids resolved, AI policy, operations validated
+      ↳ problems?          one repair attempt: the errors go back to the model, in its own ids
+  → proposal               shown on the canvas in cantaloupe, not yet recorded
+  → accept → one transaction (source: 'ai', undoable)   |   reject → nothing changed
 ```
+
+`src/ai/assistant.ts` runs the pipeline and holds the assistant's state; the assistant bar (`src/app/AssistantBar.tsx`) sits above the tool dock and shows each stage.
 
 ### Context, not the whole document
 
-Small models have small context windows, so the context builder sends what matters for the request, not the whole tree:
+Small models have small context windows, so the model is told about one screen, not the document. The context builder writes the screen as an indented tree, one line per layer:
 
-- the selection with full properties;
-- its ancestors (for layout context) and siblings (for spatial relationships);
-- a one-line-per-node summary of the rest of the frame;
-- short ids (`e1`, `e2`, …) aliased to real ids, which saves tokens and reduces mis-typed references;
-- the property registry's descriptions as the schema for what may be changed.
+```
+Screen e1 "Pricing", 1280×800.
+Selected: e4. You may change the layers marked * and add layers inside or next to them.
+
+e1 frame "Pricing" 1280×800 layout=column
+  e3 frame "Plans" 960×300 layout=row
+    * e4 frame "Basic plan" 300×300 layout=column gap=8 fill=#ffffff
+      * e5 text "Name" 46×22 text="Basic"
+```
+
+- Layers get short ids (`e1`, `e2`… in document order), mapped back to real ids afterwards. They save tokens and make mistyped references unlikely.
+- The layers the request may change (the selection and everything in it, or the whole screen when nothing is selected) are marked `*` and listed with every property that differs from the defaults. Ancestors are always shown; then siblings, then the rest of the screen as one-line summaries, while there is room.
+- The room is a character budget from the model's context window: for Ollama, the context size minus about 5,500 tokens for the instructions and the reply, at 3.5 characters a token; for hosted models, 60,000 characters. What doesn't fit is summarised as "… 12 more layers not shown".
+- The instructions (`src/ai/prompt.ts`) describe the design model, the operations and the rules, list every property the AI may set with its description from the property registry (so they never go out of date), and end with a worked example, which helps small models most.
+
+### What the model returns
+
+One JSON object: `{ "explanation": "...", "operations": [...] }`. The explanation comes first so it streams first. There are five operations:
+
+| Operation | Meaning |
+| --- | --- |
+| `update {id, set}` | change properties of a layer |
+| `create {ref, parent, index?, type, set}` | add a layer; later operations can use its `ref` (`n1`) as an id or parent |
+| `delete {id}` | remove a layer and what is inside it |
+| `move {id, parent, index?}` | reorder, or move into another frame keeping its place on screen |
+| `tidy {id}` | arrange a frame's freely placed layers with auto layout (the same inference as <kbd>Shift</kbd>+<kbd>A</kbd>) |
+
+`src/ai/schema.ts` builds the JSON schema for this from the property registry: every property except `locked` and `src` (the AI can't lock layers or point images at stored files), with enums for keyword properties and a pattern for colours. The schema is deliberately flat, with no `$ref` and no length or range limits, which some constrained decoders turn into very large grammars. Ranges are checked afterwards.
 
 ### Safeguards
 
-- **Schema-constrained output.** Ollama accepts a JSON schema in its `format` parameter (since v0.5) and constrains generation to it; hosted providers have equivalent structured-output modes.
-- **Validation is the same as for manual edits.** Invalid operations are rejected before anything changes; the error is fed back to the model for one repair attempt.
-- **AI policy on top of validity.** Operations may only touch the selection and its descendants unless the request is explicitly page-wide; locked layers are off-limits (locking becomes "protect this from the AI"); deletions above a threshold need confirmation.
-- **Preview before apply.** Proposed changes are shown on the canvas in the AI accent colour with an accept/reject choice and a plain-language explanation.
-- **Undo.** Accepted proposals are ordinary transactions.
+- **Constrained output.** Ollama gets the schema as `format`; OpenAI-compatible servers get `response_format` with the schema, and fall back to a JSON object, then to plain text, if a server rejects it; Anthropic gets a single tool, `propose_changes`, whose input schema is the schema, and is required to call it.
+- **Validation is the same as for manual edits.** The operations are applied to a copy of the document with the same checks as any edit; nothing changes until they all succeed.
+- **AI policy on top of validity.** The AI may change only the layers marked `*`, and add or move layers inside them or next to them in the same frame. The screen itself can't be deleted or moved. Locked layers can't be changed, moved on their own, deleted (directly or with the frame around them), rearranged by `tidy` or given new layers; moving or hiding the frame around a locked layer still carries it along, as it does when you edit by hand. A final check compares every locked layer before and after and refuses the whole proposal if one differs in anything but the position and size auto layout works out. A proposal that deletes more than 10 layers, or 3 or more that make up at least half of what it may change, needs a deliberate click ("Delete 12 layers and apply"); <kbd>Enter</kbd> alone won't apply it.
+- **One repair attempt.** Problems are reported back to the model in its own terms ("Operation 2: there is no layer "e99"") for one more try. If the reply is still wrong, nothing changes and the assistant lists what was wrong. A reply cut off by the length limit is reported as such rather than repaired, since asking again would only cut it off again.
+- **Preview before apply.** The editor shows the proposal without recording it: changed and new layers are outlined in cantaloupe, layers that would be deleted are shown as dashed outlines where they were. The properties and code panels show the proposed values. Autosave and export use the design as recorded (`editor.committedDoc`), so an unreviewed proposal is never saved or exported.
+- **The design is read-only during review.** Selecting, panning, zooming and looking at the properties and code still work, but an edit (a drag, a nudge, a property, the layers panel, the CSS editor) would be made on top of changes that aren't recorded, so the editor refuses it and says to accept or reject first. Undo rejects the proposal. A reply that arrives while you are dragging, scrubbing or typing (on the canvas, or in a field such as a property or a layer name) waits until you finish, then is checked again against the design as it is; images that finish loading during review are added after it.
+- **Undo.** An accepted proposal is one ordinary transaction, labelled with the request ("AI: make it darker"), marked `source: 'ai'`.
 
 ### Providers and keys
 
 Three modes, all first-class:
 
-1. **No AI.** The editor and code export are fully useful on their own.
-2. **Local.** Ollama on `localhost`. No key, no cost, nothing leaves the machine. Ollama accepts browser requests from `localhost` origins by default.
-3. **Bring your own key.** OpenAI-compatible endpoints (which also covers LM Studio, llama.cpp's server, OpenRouter and Groq), Anthropic and others.
+1. **No AI**, the default. The editor and code export are fully useful on their own, and nothing is sent anywhere.
+2. **Local.** Ollama on this computer. No key, no cost, nothing leaves the machine. The context size is set explicitly (`num_ctx`), because Ollama otherwise picks one from available memory and silently truncates longer prompts.
+3. **Your own key.** OpenAI-compatible APIs (OpenAI, LM Studio, OpenRouter, Groq, llama.cpp's server…) and Anthropic.
 
-API keys are **never stored in or sent to the browser**. StyleCode already runs a local Node process (the Vite dev server, or a small static server for the built app); Phase 4 adds a tiny local proxy route to it that reads keys from a local `.env` or config file in the user's home directory and forwards requests. Keys stay on the user's machine and out of frontend code, browser storage and the repository. This costs the project owner nothing to host.
+Requests go through a small local server, not from the browser to the provider. `server/ai/plugin.ts` is a Vite plugin that mounts `/api/ai` on both the dev server and the preview server, so it runs wherever StyleCode runs and costs nothing to host:
+
+| Route | Purpose |
+| --- | --- |
+| `GET /api/ai/config` | the settings, with `hasKey` and where the key comes from, never the key |
+| `PUT /api/ai/config` | save settings; a key is sent once and stored, or removed |
+| `POST /api/ai/models` | list a provider's models; also the connection check (unsaved settings may be tried) |
+| `POST /api/ai/chat` | stream a reply as lines of JSON: `{"delta"}`… then `{"done"}`, or `{"error"}` in plain words |
+
+Settings live in `~/.stylecode/ai.json` (or the file named by `STYLECODE_AI_CONFIG`), readable only by the user (mode 0600, in a folder created 0700). Saves happen one at a time, each written to a new temporary file and renamed into place, so the file is never half-written. Keys can instead come from `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`. Keys are never sent to the browser, stored in browser storage, written into frontend code or kept in the repository.
+
+A key saved in the settings only ever goes to the address it was saved with, and a key from an environment variable only to the saved address. Trying another address in the settings dialog uses only a key typed for it; saving a new address without a new key forgets the old key; and provider requests never follow redirects, which would otherwise carry `x-api-key` to wherever the redirect points.
+
+The routes only answer StyleCode's own page on this computer, checked on every request:
+
+- the connection must come from this computer (a loopback address), even if the server was started with `--host`;
+- the `Host` must be `localhost`, `127.0.0.1` or `[::1]`, which defeats DNS rebinding;
+- an `Origin`, when there is one, must be exactly this server: Vite answers CORS preflights from other `localhost` ports, so this is the check that keeps another local web app out;
+- a browser's `Sec-Fetch-Site` must be `same-origin` or `none`;
+- every request carries an `x-stylecode-ai` header, so a plain form post from another page can't reach the routes at all.
+
+If the browser goes away mid-reply, the request to the provider is aborted too. A build served by some other static server has no `/api/ai`, and the assistant says so.
 
 ### Local model trade-offs
 
 | Factor | Reality | Mitigation |
 | --- | --- | --- |
-| Hardware | 7–9B models at 4-bit need roughly 5–8 GB of RAM or VRAM; 3–4B models fit 8 GB laptops. | Operations are short (100–500 tokens), so even CPU-only generation is tolerable; model choice is a setting. |
-| Quality | Small models are weaker at design judgement and nested JSON. | Constrained decoding, a narrow operation vocabulary, validation with a repair loop, and deterministic commands doing the heavy lifting. |
-| Speed | Grammar-constrained decoding is noticeably slower than free text. | Small outputs, streaming of the explanation, and the UI never blocks editing. |
-| Context window | Ollama picks its default context size from available VRAM (4K tokens on typical laptops) and silently truncates prompts that exceed it. | The app sets `num_ctx` explicitly on the native API and budgets the context it sends. |
-| Installation | Ollama installs with one download on Windows, macOS and Linux. | Clear setup instructions, connection check in settings, and no-AI mode always available. |
+| Hardware | 7–9B models at 4-bit need roughly 5–8 GB of RAM or VRAM; 3–4B models fit 8 GB laptops. | Replies are short (a few hundred tokens), so even CPU-only generation is tolerable; the model is a setting. |
+| Quality | Small models are weaker at design judgement and nested JSON. | Constrained decoding, a narrow and flat operation vocabulary, a worked example, validation with a repair attempt, and deterministic commands (`tidy`) doing the heavy lifting. |
+| Speed | Constrained decoding is slower than free text. | The explanation streams first, you can keep editing while a request runs, and it can be stopped at any time. |
+| Context window | Ollama picks its default context size from available memory and silently truncates prompts that exceed it. | `num_ctx` is set explicitly, the context is budgeted to fit, and the context size is a setting. |
+| Installation | Ollama installs with one download on Windows, macOS and Linux. | Setup steps in the settings dialog and the README, a connection check that lists installed models, and no-AI mode always available. |
+
+### Tests
+
+Unit tests cover the schema, the instructions, the context builder (scope, short ids, budget), interpretation and policy (out-of-scope changes, locked layers reached by every kind of operation, unknown properties, bad colours, refs between new layers, moves, tidy, deletion confirmation), the streamed explanation, the editor's proposal mode (read-only review, undo rejecting, waiting for edits in progress) and the assistant's state machine with a fake server (repair, errors, a project switched mid-request, a reply arriving during an edit). The server's tests run fake provider servers to check each provider's request format and stream parsing, the JSON and token-parameter fallbacks, cut-off replies, error messages, key handling (file mode, environment, never returned, only sent to its own address, redirects not followed), serialised saves and the request checks. The browser tests drive the whole flow against a fake Ollama (`e2e/fakeOllama.ts`): settings, a request, the proposal on the canvas, accept, undo, reject, edits refused during review, the repair attempt, a reply that stays wrong, large deletions, Stop and suggestions.
 
 ## 9. Code generation
 
-Generators are pure functions from the document to files, in `src/codegen`. The AI never writes code (section 1): it will change the document, and the generators compile it.
+Generators are pure functions from the document to files, in `src/codegen`. The AI never writes code (section 1): it changes the document, and the generators compile it.
 
 ### From a screen to an element tree
 
@@ -302,5 +358,5 @@ Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, 
 | Canvas and export disagreeing | One CSS mapping used by both; CSS box-model semantics in the document; a randomised browser test comparing the layout engine with real flexbox; a browser test comparing whole exported pages with the canvas. |
 | Fixed-width designs breaking on phones | Responsive rules that apply only below the design width; a browser test for sideways scrolling at 390px and 768px; free layout flagged in the code panel. |
 | Large images bloating storage and files | Content-addressed storage (each picture stored once), a 15 MB limit per image, and only images in use are embedded in saved files. |
-| API key exposure | Keys live in a local server process, never in browser code or storage. |
+| API key exposure | Keys live in a file readable only by the user (or in environment variables) and are used by the local server; the browser only learns whether one is set. A key only goes to the address it was saved with, redirects aren't followed, and the AI routes only answer StyleCode's own page, from this computer. |
 | Scope creep | Each phase must leave the app working; no feature without a place in the core loop. |
