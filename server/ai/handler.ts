@@ -14,6 +14,13 @@ import {
   type ProviderSettings,
 } from './config.ts';
 import { listModels, ProviderError, streamChat, type ChatMessage, type ChatRequest } from './providers.ts';
+import {
+  readJson as readJsonBody,
+  rejectReason as checkRequest,
+  RequestError,
+  sendJson,
+  type RequestPolicy,
+} from '../shared/requests.ts';
 
 /**
  * The local AI routes, served by StyleCode's own dev and preview servers:
@@ -24,78 +31,25 @@ import { listModels, ProviderError, streamChat, type ChatMessage, type ChatReque
  *   POST /api/ai/chat     a streamed reply, as newline-delimited JSON
  *
  * They hold the user's keys and can spend money on their account, so only
- * StyleCode's own page on this computer may use them: the connection must
- * come from this computer (even if the server was started with --host), the
- * Host must be localhost (which defeats DNS rebinding), any Origin must be
- * exactly this server, a browser's Sec-Fetch-Site must say same-origin, and
- * every request must carry the `x-stylecode-ai` header, so a plain form post
- * from another page can't reach them. A saved key is only ever sent to the
- * address it was saved with.
+ * StyleCode's own page on this computer may use them: every request passes
+ * the shared checks in `server/shared/requests.ts` (loopback connection,
+ * Host, exact Origin, Sec-Fetch-Site) and carries the `x-stylecode-ai`
+ * header. A saved key is only ever sent to the address it was saved with.
  */
 
 export const AI_HEADER = 'x-stylecode-ai';
 const MAX_BODY = 2 * 1024 * 1024;
+const POLICY: RequestPolicy = { header: AI_HEADER, feature: 'AI' };
 
 type Next = (error?: unknown) => void;
 
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
-
-function hostname(host: string): string {
-  if (host.startsWith('[')) return host.slice(0, host.indexOf(']') + 1);
-  return host.split(':')[0].toLowerCase();
-}
-
-/** Whether a connection comes from this computer. */
-function isLoopback(address: string | undefined): boolean {
-  if (!address) return false;
-  const ip = address.startsWith('::ffff:') ? address.slice(7) : address;
-  return ip === '::1' || ip.startsWith('127.');
-}
-
-/** Why a request isn't allowed, or null if it is. */
+/** Why a request isn't allowed, or null if it is (the shared checks, `server/shared/requests.ts`). */
 export function rejectReason(req: IncomingMessage): string | null {
-  if (!isLoopback(req.socket.remoteAddress)) return 'AI is only available to StyleCode on this computer.';
-  const host = req.headers.host ?? '';
-  if (!LOCAL_HOSTS.has(hostname(host))) return 'AI is only available to StyleCode on this computer (open it at localhost).';
-  const origin = req.headers.origin;
-  if (origin) {
-    try {
-      const url = new URL(origin);
-      if (!LOCAL_HOSTS.has(url.hostname) || url.host !== host) return 'Requests from other sites are not allowed.';
-    } catch {
-      return 'Requests from other sites are not allowed.';
-    }
-  }
-  const site = req.headers['sec-fetch-site'];
-  if (site && site !== 'same-origin' && site !== 'none') return 'Requests from other sites are not allowed.';
-  if (req.headers[AI_HEADER] !== '1') return 'Missing StyleCode request header.';
-  return null;
+  return checkRequest(req, POLICY);
 }
 
-function send(res: ServerResponse, status: number, body: unknown): void {
-  res.statusCode = status;
-  res.setHeader('content-type', 'application/json; charset=utf-8');
-  res.setHeader('cache-control', 'no-store');
-  res.end(JSON.stringify(body));
-}
-
-async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += (chunk as Buffer).length;
-    if (size > MAX_BODY) throw new ProviderError('Request too large.', 413);
-    chunks.push(chunk as Buffer);
-  }
-  if (!size) return {};
-  try {
-    const value = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-    if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
-  } catch {
-    // fall through
-  }
-  throw new ProviderError('Expected a JSON object.', 400);
-}
+const send = sendJson;
+const readJson = (req: IncomingMessage) => readJsonBody(req, MAX_BODY);
 
 const isKind = (value: unknown): value is ProviderKind => PROVIDER_KINDS.includes(value as ProviderKind);
 
@@ -174,7 +128,8 @@ export function createAiHandler(options: { path?: () => string } = {}) {
       return send(res, 405, { error: 'Method not allowed.' });
     } catch (error) {
       if (res.headersSent) return void res.end();
-      const status = error instanceof ProviderError ? error.status : error instanceof ConfigError ? 400 : 500;
+      const status =
+        error instanceof ProviderError || error instanceof RequestError ? error.status : error instanceof ConfigError ? 400 : 500;
       return send(res, status, { error: error instanceof Error ? error.message : 'Something went wrong.' });
     }
   };

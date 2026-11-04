@@ -301,6 +301,8 @@ The routes only answer StyleCode's own page on this computer, checked on every r
 - a browser's `Sec-Fetch-Site` must be `same-origin` or `none`;
 - every request carries an `x-stylecode-ai` header, so a plain form post from another page can't reach the routes at all.
 
+These checks live in `server/shared/requests.ts`, with their tests, and every local API uses them with its own header (`x-stylecode-ai` here).
+
 If the browser goes away mid-reply, the request to the provider is aborted too. A build served by some other static server has no `/api/ai`, and the assistant says so.
 
 ### Local model trade-offs
@@ -475,7 +477,7 @@ The domain model is already one validated value per company, and at the sizes a 
 
 ### Local API security (ADR-0008)
 
-**Decided:** the workspace routes get the same checks as `/api/ai` (§8): the connection comes from a loopback address; `Host` is `localhost`, `127.0.0.1` or `[::1]`; any `Origin` is exactly this server; `Sec-Fetch-Site` is `same-origin` or `none`; and every request carries a StyleCode header. Phase 1 moves these checks from `server/ai/handler.ts` into one shared module, so both APIs use the same code and tests. On top of that, because these routes touch the disk:
+**Decided:** the workspace routes get the same checks as `/api/ai` (§8): the connection comes from a loopback address; `Host` is `localhost`, `127.0.0.1` or `[::1]`; any `Origin` is exactly this server; `Sec-Fetch-Site` is `same-origin` or `none`; and every request carries a StyleCode header. They live in one shared module, `server/shared/requests.ts`, so both APIs use the same code and tests; the workspace routes have their own header. On top of that, because these routes touch the disk:
 
 - the server refuses to start if the workspace folder is inside this repo or any git repository;
 - every id in a path is checked with `isValidId` before it becomes part of a file path, and file names from the browser are never used as paths;
