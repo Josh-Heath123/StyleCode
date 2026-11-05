@@ -13,6 +13,7 @@ import { ClientsPage } from './ClientsPage';
 import { CompanyPage } from './CompanyPage';
 import { EngagementPage } from './EngagementPage';
 import { SessionPage } from './SessionPage';
+import { ConsentPage } from './consent/ConsentPage';
 import { SettingsPage } from './SettingsPage';
 
 interface ShellProps {
@@ -97,6 +98,15 @@ function renderPage(route: Route): ReactNode {
       return <CompanyPage key={route.companyId} companyId={route.companyId} />;
     case 'engagement':
       return <EngagementPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
+    case 'consent':
+      return (
+        <ConsentPage
+          key={route.companyId}
+          companyId={route.companyId}
+          engagementId={route.engagementId}
+          sessionId={route.sessionId}
+        />
+      );
     case 'session':
       return (
         <SessionPage

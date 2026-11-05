@@ -159,6 +159,24 @@ test.describe('the workspace pages', () => {
     await expect(participant).toBeHidden();
     await scan(page, 'A session');
 
+    // Confirming needs the consultant's name, from settings.
+    await page.request.put('/api/workspace/settings', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { consultantName: 'Sam Consultant' },
+    });
+    await page.getByRole('link', { name: 'Fill in consent form' }).click();
+    await expect(page.getByRole('heading', { name: 'Who was asked' })).toBeVisible();
+    await page.getByLabel(/^Pat Physio/).check();
+    await page.getByRole('group', { name: 'Transcription' }).getByLabel('Yes').check();
+    await scan(page, 'The consent form, with a problem next to an answer');
+    await page.getByRole('group', { name: 'Transcription' }).getByLabel('No').check();
+    await page.getByLabel('I asked for consent as recorded above.').check();
+    await page.getByRole('button', { name: 'Save and confirm' }).click();
+    await expect(page.getByRole('heading', { name: /^Consent: given/ })).toBeVisible();
+    await page.getByRole('button', { name: 'Withdraw consent…' }).click();
+    await scan(page, 'Withdraw consent');
+    await page.keyboard.press('Escape');
+
     await page.getByRole('button', { name: 'Delete session…' }).click();
     await scan(page, 'Delete session');
     await page.keyboard.press('Escape');

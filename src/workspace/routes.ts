@@ -8,6 +8,7 @@ import { isValidId } from '../model/ids.ts';
  *   #/c/<company>                       a client
  *   #/c/<company>/e/<engagement>        an engagement
  *   #/c/<company>/e/<engagement>/s/<session>   a session
+ *   #/c/<company>/e/<engagement>/s/<session>/consent   its consent form
  *   #/settings                          the consultant's settings
  *   #/editor                            the design editor
  */
@@ -16,6 +17,7 @@ export type Route =
   | { page: 'company'; companyId: string }
   | { page: 'engagement'; companyId: string; engagementId: string }
   | { page: 'session'; companyId: string; engagementId: string; sessionId: string }
+  | { page: 'consent'; companyId: string; engagementId: string; sessionId: string }
   | { page: 'settings' }
   | { page: 'editor' };
 
@@ -24,13 +26,15 @@ export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (parts.length === 1 && parts[0] === 'editor') return { page: 'editor' };
   if (parts.length === 1 && parts[0] === 'settings') return { page: 'settings' };
-  const [c, companyId, e, engagementId, s, sessionId, ...rest] = parts;
+  const [c, companyId, e, engagementId, s, sessionId, sub, ...rest] = parts;
   if (c !== 'c' || !isValidId(companyId) || rest.length) return { page: 'clients' };
   if (e === undefined) return { page: 'company', companyId };
   if (e !== 'e' || !isValidId(engagementId)) return { page: 'clients' };
   if (s === undefined) return { page: 'engagement', companyId, engagementId };
   if (s !== 's' || !isValidId(sessionId)) return { page: 'clients' };
-  return { page: 'session', companyId, engagementId, sessionId };
+  if (sub === undefined) return { page: 'session', companyId, engagementId, sessionId };
+  if (sub === 'consent') return { page: 'consent', companyId, engagementId, sessionId };
+  return { page: 'clients' };
 }
 
 /** The hash for a route, for links. */
@@ -44,6 +48,8 @@ export function routeHref(route: Route): string {
       return `#/c/${route.companyId}/e/${route.engagementId}`;
     case 'session':
       return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}`;
+    case 'consent':
+      return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}/consent`;
     case 'settings':
       return '#/settings';
     case 'editor':

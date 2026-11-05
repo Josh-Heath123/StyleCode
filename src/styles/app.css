@@ -3547,3 +3547,162 @@ a.ws-row:focus-visible {
 .ws-list.is-compact .ws-row .icon-button {
   flex: none;
 }
+
+/* Consent: the state at the top of a session, and the form. */
+.ws-consent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--text-3);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+
+.ws-consent[data-state='confirmed'] {
+  border-left-color: var(--blue);
+}
+
+.ws-consent[data-state='withdrawn'] {
+  border-left-color: var(--danger);
+}
+
+.ws-consent h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ws-consent p {
+  margin: 2px 0 0;
+  color: var(--text-2);
+}
+
+.ws-consent-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ws-consent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+  margin-top: 16px;
+}
+
+.ws-form-section {
+  margin: 0;
+  min-width: 0;
+}
+
+.ws-form-section h2,
+.ws-confirm h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.ws-statement {
+  align-items: flex-start;
+  padding: 4px 0;
+}
+
+.ws-statement input {
+  margin-top: 3px;
+}
+
+.ws-choice input[type='checkbox'] {
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+.ws-yesno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.ws-yesno:first-of-type {
+  border-top: 0;
+}
+
+.ws-yesno legend {
+  float: left;
+  width: 260px;
+  padding: 0;
+  color: var(--text);
+}
+
+.ws-c2 {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--caution);
+}
+
+.ws-issues {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--caution);
+}
+
+.ws-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ws-number {
+  width: 90px;
+}
+
+.ws-choices + .ws-input,
+.ws-choices + .ws-inline {
+  margin-top: 8px;
+}
+
+.ws-confirm ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.ws-confirm .ws-choice {
+  margin: 10px 0 14px;
+  font-weight: 600;
+}
+
+.ws-dialog-text {
+  margin: 0 0 14px;
+  color: var(--text-2);
+}
+
+.ws-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.ws-dl dt {
+  color: var(--text-2);
+}
+
+.ws-dl dd {
+  margin: 0;
+}
+
+.ws-told {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

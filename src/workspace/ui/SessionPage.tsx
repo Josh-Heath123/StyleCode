@@ -9,6 +9,7 @@ import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { Missing } from './EngagementPage';
+import { ConsentPanel } from './consent/ConsentPanel';
 import { now, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
@@ -70,6 +71,7 @@ function SessionView({ view, engagement, meeting }: { view: ClientView; engageme
         lede={formatWhen(meeting.startsAt)}
         notices={notices}
       >
+        <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
         <div className="ws-columns">
           <section className="ws-card" aria-labelledby="participants-title">
             <div className="ws-card-head">
