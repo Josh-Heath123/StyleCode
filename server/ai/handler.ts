@@ -130,7 +130,10 @@ export function createAiHandler(options: { path?: () => string } = {}) {
       if (res.headersSent) return void res.end();
       const status =
         error instanceof ProviderError || error instanceof RequestError ? error.status : error instanceof ConfigError ? 400 : 500;
-      return send(res, status, { error: error instanceof Error ? error.message : 'Something went wrong.' });
+      if (status === 500) console.error('[stylecode ai]', error);
+      // Unexpected errors can carry local paths, so the page gets a plain message.
+      const message = status !== 500 && error instanceof Error ? error.message : "Something went wrong in StyleCode's AI server.";
+      return send(res, status, { error: message });
     }
   };
 }

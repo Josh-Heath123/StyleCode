@@ -1,8 +1,10 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { rename } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { CompanyWorkspace, FileRef } from '../../src/workspace/model/index.ts';
+import { sampleWorkspace } from '../../src/workspace/model/fixtures.ts';
 import { isSafeId, revisionOf, WorkspaceStore } from './store.ts';
 
 let root: string;
@@ -180,7 +182,7 @@ describe('saving', () => {
     expect(readJson(companyFile(id)).company.notes).toBe('a');
   });
 
-  it('leaves no copy of deleted data behind after a permanent deletion', async () => {
+  it('overwrites the previous copy when the app says a save is a permanent deletion', async () => {
     const opened = await bakery();
     const id = opened.workspace.company.id;
     const secret = await store.save(id, withNotes(opened.workspace, 'to be deleted'), opened.revision, false);
@@ -270,14 +272,124 @@ describe('files', () => {
     expect(readdirSync(join(root, 'companies', id, 'files'))).toEqual([]);
   });
 
-  it('clears files no saved workspace lists, but never one uploaded since the server started', async () => {
+  it('clears old unlisted uploads on a permanent save, but never a recent one or one uploaded since the server started', async () => {
     const opened = await bakery();
     const id = opened.workspace.company.id;
+    const files = join(root, 'companies', id, 'files');
     const kept = await store.addFile(id, [Buffer.from('new')], 100);
-    writeFileSync(join(root, 'companies', id, 'files', 'fi_orphan'), 'old');
-    writeFileSync(join(root, 'companies', id, 'files', 'fi_half.tmp'), 'half');
+    const longAgo = new Date('2026-11-01T09:00:00.000Z');
+    for (const name of ['fi_orphan', 'fi_half.tmp']) {
+      writeFileSync(join(files, name), 'old');
+      utimesSync(join(files, name), longAgo, longAgo);
+    }
+    writeFileSync(join(files, 'fi_recent'), 'from before a restart, an hour ago');
+    // An ordinary save leaves every file alone.
+    const saved = await store.save(id, withNotes(opened.workspace, 'x'), opened.revision, false);
+    expect(readdirSync(files).sort()).toEqual(['fi_half.tmp', 'fi_orphan', 'fi_recent', kept.id].sort());
+    await store.save(id, withNotes(opened.workspace, 'y'), saved.revision, true);
+    expect(readdirSync(files).sort()).toEqual(['fi_recent', kept.id].sort());
+  });
+});
+
+describe('permanent deletions (decision 5)', () => {
+  const withEngagement = (ws: CompanyWorkspace): CompanyWorkspace => {
+    const sample = sampleWorkspace();
+    return { ...ws, engagements: { en_1: { ...sample.engagements.en_1, companyId: ws.company.id } } };
+  };
+
+  it('treats a missing engagement as a permanent deletion, even if the app does not say so', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const first = await store.save(id, withEngagement(opened.workspace), opened.revision, false);
+    await store.save(id, withNotes(opened.workspace, 'engagement deleted'), first.revision, false);
+    const previous = readJson(companyFile(id, 'workspace.previous.json'));
+    expect(previous.engagements).toEqual({});
+    expect(previous.company.notes).toBe('engagement deleted');
+  });
+
+  it("deletes a removed file's bytes with the save, and keeps no copy listing it", async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const file = await store.addFile(id, [Buffer.from('contract')], 100);
+    const ref: FileRef = {
+      id: file.id,
+      owner: { kind: 'company' },
+      purpose: 'document',
+      name: 'Contract.pdf',
+      mediaType: 'application/pdf',
+      sizeBytes: file.sizeBytes,
+      addedBy: 'Sam',
+      addedAt: NOW.toISOString(),
+    };
+    const saved = await store.save(id, { ...opened.workspace, files: { [file.id]: ref } }, opened.revision, false);
+    await store.save(id, opened.workspace, saved.revision, false);
+    expect(readdirSync(join(root, 'companies', id, 'files'))).toEqual([]);
+    expect(readJson(companyFile(id, 'workspace.previous.json')).files).toEqual({});
+  });
+
+  it('removes the previous copy if it cannot take the new state, before changing the client', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const first = await store.save(id, withEngagement(opened.workspace), opened.revision, false);
+    await store.save(id, withEngagement(withNotes(opened.workspace, 'n')), first.revision, false);
+    expect(readJson(companyFile(id, 'workspace.previous.json')).engagements).not.toEqual({});
+    const latest = await store.read(id);
+    const stuck = new WorkspaceStore(root, {
+      retry: {
+        attempts: 1,
+        renameFile: async (from, to) => {
+          if (to.endsWith('workspace.previous.json')) throw Object.assign(new Error('busy'), { code: 'EBUSY' });
+          await rename(from, to);
+        },
+      },
+    });
+    await stuck.save(id, withNotes(opened.workspace, 'deleted'), latest.revision, false);
+    expect(readJson(companyFile(id)).engagements).toEqual({});
+    expect(existsSync(companyFile(id, 'workspace.previous.json'))).toBe(false);
+  });
+});
+
+describe('the review of Slice A', () => {
+  it('cleans up temporary files a crash left behind, at the next save', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const leftover = join(root, 'companies', id, 'workspace.json.abc123.tmp');
+    writeFileSync(leftover, '{"half": "a client\'s data"');
     await store.save(id, withNotes(opened.workspace, 'x'), opened.revision, false);
-    expect(readdirSync(join(root, 'companies', id, 'files'))).toEqual([kept.id]);
+    expect(existsSync(leftover)).toBe(false);
+  });
+
+  it('never leaves an upload behind when the client is deleted at the same time', async () => {
+    for (let run = 0; run < 15; run++) {
+      const opened = await store.create({ name: `Race ${run}` });
+      const id = opened.workspace.company.id;
+      await Promise.allSettled([store.remove(id, `Race ${run}`), store.addFile(id, [Buffer.from('bytes')], 100)]);
+      expect(existsSync(join(root, 'companies', id)), `run ${run}`).toBe(false);
+    }
+  });
+
+  it('opens a client read-only when its file names another client', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const copy = join(root, 'companies', 'co_copy');
+    mkdirSync(copy);
+    writeFileSync(join(copy, 'workspace.json'), readFileSync(companyFile(id)));
+    const reopened = await store.read('co_copy');
+    expect(reopened.access).toBe('read-only');
+    expect(reopened.problems[0].code).toBe('company.folder');
+    expect((await store.list()).find((c) => c.id === 'co_copy')?.access).toBe('read-only');
+    await expect(store.save('co_copy', opened.workspace, reopened.revision, false)).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("refuses to rename a client to another client's name", async () => {
+    const opened = await bakery();
+    await store.create({ name: 'Quay Coffee' });
+    const renamed = { ...opened.workspace, company: { ...opened.workspace.company, name: 'quay coffee' } };
+    await expect(store.save(opened.workspace.company.id, renamed, opened.revision, false)).rejects.toMatchObject({
+      status: 409,
+    });
+    const recased = { ...opened.workspace, company: { ...opened.workspace.company, name: 'Harbour BAKERY' } };
+    await store.save(opened.workspace.company.id, recased, opened.revision, false);
   });
 });
 

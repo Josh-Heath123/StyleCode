@@ -1,12 +1,14 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  claimDataFolder,
   cloudServiceFor,
   DataFolderError,
   gitRepositoryAround,
   isInside,
+  LOCK_FILE,
   prepareDataFolder,
   resolveDataFolder,
   type FolderEnvironment,
@@ -78,6 +80,20 @@ describe('client data is never inside a git repository', () => {
   });
 });
 
+describe('the refusal message', () => {
+  it("doesn't suggest the default folder when the default is the one refused", () => {
+    mkdirSync(join(base, 'home', '.git'), { recursive: true });
+    let message = '';
+    try {
+      prepareDataFolder('start', join(base, 'repo'), environment());
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toMatch(/inside a git repository/);
+    expect(message).not.toMatch(/use the default/);
+  });
+});
+
 describe('cloud-synced folders get a warning', () => {
   it('spots OneDrive from its environment variables on Windows', () => {
     const oneDrive = join(base, 'home', 'OneDrive - Harbour Bakery');
@@ -109,5 +125,28 @@ describe('cloud-synced folders get a warning', () => {
   it('reports the service when preparing the folder, and still uses it', () => {
     const env = environment({ STYLECODE_WORKSPACE: join(base, 'home', 'Dropbox', 'StyleCode Data') });
     expect(prepareDataFolder('start', join(base, 'repo'), env).cloudService).toBe('Dropbox');
+  });
+});
+
+describe('one StyleCode per data folder', () => {
+  it('refuses a second server while the first is running, and takes over a lock left by one that stopped', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    const alive = new Set([111]);
+    claimDataFolder(folder, 111, (pid) => alive.has(pid));
+    expect(() => claimDataFolder(folder, 222, (pid) => alive.has(pid))).toThrow(/already running .*process 111/);
+    // The same process again (the dev server restarting) keeps it.
+    expect(() => claimDataFolder(folder, 111, (pid) => alive.has(pid))).not.toThrow();
+    alive.delete(111);
+    claimDataFolder(folder, 222, (pid) => alive.has(pid));
+    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(222);
+  });
+
+  it('takes over a lock file it cannot read', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    writeFileSync(join(folder, LOCK_FILE), 'not json');
+    claimDataFolder(folder, 333, () => true);
+    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(333);
   });
 });

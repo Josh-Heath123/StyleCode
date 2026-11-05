@@ -78,6 +78,10 @@ export interface Settings {
 
 const SETTINGS_FORMAT = 'stylecode-settings';
 const PROFILE_FIELDS = ['name', 'industry', 'description', 'existingSystems', 'notes'] as const;
+/** Maps whose entries are permanent deletions when they disappear (Phase 1 brief, decision 5). */
+const PERMANENT_MAPS = ['engagements', 'sessions', 'transcripts', 'files'] as const;
+/** How long an upload nothing lists is kept, so undo and redo across a restart can't lose it. */
+const ORPHAN_GRACE_MS = 24 * 60 * 60 * 1000;
 
 export interface StoreOptions {
   /** For tests: how renames are retried. */
@@ -148,14 +152,26 @@ export class WorkspaceStore {
     }
   }
 
-  private static parse(bytes: Buffer): ReturnType<typeof parseWorkspace> {
+  /**
+   * Reads a company's file. A file whose company id isn't its folder's name
+   * (a backup copied back under another name, say) opens read-only with that
+   * problem, so it is never saved under the wrong client.
+   */
+  private static parse(bytes: Buffer, companyId: string): ReturnType<typeof parseWorkspace> {
     let data: unknown;
     try {
       data = JSON.parse(bytes.toString('utf8'));
     } catch {
       return { ok: false, error: "The client's file is damaged and can't be read." };
     }
-    return parseWorkspace(data);
+    const parsed = parseWorkspace(data);
+    if (!parsed.ok || parsed.workspace.company.id === companyId) return parsed;
+    const problem: Problem = {
+      code: 'company.folder',
+      message: `This client's file says it belongs to another client (${String(parsed.workspace.company.id)}), not to the folder it is in (${companyId}). Was a folder copied or renamed?`,
+      where: { map: 'company' },
+    };
+    return { ok: true, access: 'read-only', workspace: parsed.workspace, problems: [problem, ...parsed.problems] };
   }
 
   /** Every company in the folder, by name. */
@@ -173,7 +189,7 @@ export class WorkspaceStore {
       } catch {
         continue; // Not a company folder (or one still being created).
       }
-      const parsed = WorkspaceStore.parse(bytes);
+      const parsed = WorkspaceStore.parse(bytes, entry.name);
       if (!parsed.ok) {
         out.push({ id: entry.name, name: null, industry: '', changedAt, access: 'unreadable' });
         continue;
@@ -190,6 +206,11 @@ export class WorkspaceStore {
     return out.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '') || a.id.localeCompare(b.id));
   }
 
+  /** The names of every company except one, for keeping names unique (MVP Q4). */
+  private async otherNames(exceptId: string | null): Promise<string[]> {
+    return (await this.list()).flatMap((c) => (c.name === null || c.id === exceptId ? [] : [c.name]));
+  }
+
   /** Creates a company, refusing a name another company already has (ignoring case). */
   async create(profile: Record<string, unknown>): Promise<OpenedWorkspace> {
     const fields: Record<string, string> = {};
@@ -201,9 +222,9 @@ export class WorkspaceStore {
     }
     const name = (fields.name ?? '').trim();
     if (!name) throw new RequestError('Give the company a name.', 400);
-    return this.serial('create', async () => {
-      const names = (await this.list()).flatMap((c) => (c.name === null ? [] : [c.name]));
-      if (!isCompanyNameFree(name, names)) throw new RequestError(`There is already a client called ${name}.`, 409);
+    return this.serial('names', async () => {
+      if (!isCompanyNameFree(name, await this.otherNames(null)))
+        throw new RequestError(`There is already a client called ${name}.`, 409);
       const workspace = createWorkspace({ ...fields, name }, this.now());
       const check = checkBeforeSave(workspace);
       if (!check.ok) throw new ProblemsError(check.error, 422, check.problems);
@@ -219,7 +240,7 @@ export class WorkspaceStore {
   /** Opens a company: editable when valid, read-only with its problems when not. */
   async read(companyId: string): Promise<OpenedWorkspace> {
     const bytes = await this.readCompanyFile(companyId);
-    const parsed = WorkspaceStore.parse(bytes);
+    const parsed = WorkspaceStore.parse(bytes, companyId);
     if (!parsed.ok) throw new RequestError(parsed.error, 422);
     const revision = revisionOf(bytes);
     if (parsed.access === 'editable') return { ...parsed, revision };
@@ -229,9 +250,11 @@ export class WorkspaceStore {
   /**
    * Saves a company's workspace over the revision it was based on.
    *
-   * `permanent` says the save makes a permanent deletion (an engagement, a
-   * session, a transcript or a file). Then the previous copy is overwritten
-   * with the new state too, so the deleted data doesn't stay behind in it.
+   * A save is a permanent deletion when the app says so (`permanent`), or when
+   * an engagement, session, transcript or file on disk is missing from the new
+   * workspace, whatever the app says. Then the previous copy gets the new
+   * state too, so the deleted data doesn't stay behind in it (Phase 1 brief,
+   * decision 5), and the bytes of every file no longer listed are deleted.
    */
   async save(companyId: string, input: unknown, baseRevision: unknown, permanent: boolean): Promise<{ revision: string }> {
     const folder = this.folderOf(companyId);
@@ -239,11 +262,12 @@ export class WorkspaceStore {
       throw new RequestError('The save must name the revision it is based on.', 400);
     }
     return this.serial(companyId, async () => {
+      await this.clearTemporaryFiles(folder);
       const current = await this.readCompanyFile(companyId);
       if (revisionOf(current) !== baseRevision) {
         throw new RequestError('This client was changed in another window. Reload it to see the latest version.', 409);
       }
-      const onDisk = WorkspaceStore.parse(current);
+      const onDisk = WorkspaceStore.parse(current, companyId);
       if (!onDisk.ok || onDisk.access !== 'editable') {
         throw new RequestError("This client's file has problems, so StyleCode won't save over it.", 409);
       }
@@ -253,35 +277,77 @@ export class WorkspaceStore {
       if (workspace.company?.id !== companyId) throw new RequestError('The workspace belongs to another client.', 400);
       const check = checkBeforeSave(workspace);
       if (!check.ok) throw new ProblemsError(check.error, 422, check.problems);
+      if (workspace.company.name.trim().toLocaleLowerCase() !== onDisk.workspace.company.name.trim().toLocaleLowerCase()) {
+        const names = await this.serial('names', () => this.otherNames(companyId));
+        if (!isCompanyNameFree(workspace.company.name, names)) {
+          throw new RequestError(`There is already a client called ${workspace.company.name.trim()}.`, 409);
+        }
+      }
+
+      const removed = (map: (typeof PERMANENT_MAPS)[number]) =>
+        Object.keys(onDisk.workspace[map]).filter((id) => !Object.hasOwn(workspace[map], id));
+      const removedFiles = removed('files');
+      const isPermanent = permanent || PERMANENT_MAPS.some((map) => removed(map).length > 0);
 
       const bytes = JSON.stringify(workspace);
       const main = join(folder, 'workspace.json');
       const previous = join(folder, 'workspace.previous.json');
-      if (permanent) {
+      if (isPermanent) {
+        // The previous copy first: if it can't take the new state, it is removed, and if even that fails
+        // the save stops before anything changes, so deleted data is never left only in the previous copy.
+        try {
+          await this.replaceFile(previous, bytes);
+        } catch (error) {
+          await rm(previous, { force: true, maxRetries: 5, retryDelay: 200 }).catch(() => {
+            throw error;
+          });
+        }
         await this.replaceFile(main, bytes);
-        await this.replaceFile(previous, bytes);
+        for (const id of removedFiles) {
+          this.uploaded.delete(`${companyId}/${id}`);
+          if (isSafeId(id)) await this.deleteBytes(companyId, id);
+        }
+        await this.removeOrphanedFiles(companyId, workspace);
       } else {
         await this.replaceFile(previous, current);
         await this.replaceFile(main, bytes);
       }
-      await this.removeUnusedFiles(companyId, workspace);
       return { revision: revisionOf(bytes) };
     });
   }
 
-  /** Removes stored files the saved workspace no longer lists (and leftovers of failed uploads). */
-  private async removeUnusedFiles(companyId: string, workspace: CompanyWorkspace): Promise<void> {
-    const dir = join(this.folderOf(companyId), 'files');
-    let names: string[];
-    try {
-      names = await readdir(dir);
-    } catch {
-      return;
+  private async deleteBytes(companyId: string, fileId: string): Promise<void> {
+    await rm(join(this.folderOf(companyId), 'files', fileId), { force: true, maxRetries: 5, retryDelay: 200 });
+  }
+
+  /** Removes temporary files a save interrupted by a crash left in a company's folder. Runs inside the company's queue. */
+  private async clearTemporaryFiles(folder: string): Promise<void> {
+    const names = await readdir(folder).catch(() => [] as string[]);
+    for (const name of names) {
+      if (/^workspace(\.previous)?\.json\.[0-9a-f]+\.tmp$/.test(name)) {
+        await rm(join(folder, name), { force: true, maxRetries: 3, retryDelay: 100 }).catch(() => undefined);
+      }
     }
+  }
+
+  /**
+   * Removes stored bytes nothing lists: uploads the app never added to the
+   * client, and leftovers of failed uploads. A file uploaded since the server
+   * started, or in the last day, is kept, so an undo and redo can't lose it.
+   */
+  private async removeOrphanedFiles(companyId: string, workspace: CompanyWorkspace): Promise<void> {
+    const dir = join(this.folderOf(companyId), 'files');
+    const names = await readdir(dir).catch(() => [] as string[]);
+    const cutoff = (this.options.now?.() ?? new Date()).getTime() - ORPHAN_GRACE_MS;
     for (const name of names) {
       const id = name.endsWith('.tmp') ? name.slice(0, -4) : name;
       if (this.uploaded.has(`${companyId}/${id}`)) continue;
       if (!name.endsWith('.tmp') && Object.hasOwn(workspace.files, id)) continue;
+      const changed = await stat(join(dir, name)).then(
+        (s) => s.mtimeMs,
+        () => 0,
+      );
+      if (changed > cutoff) continue;
       await rm(join(dir, name), { force: true, maxRetries: 5, retryDelay: 200 }).catch(() => undefined);
     }
   }
@@ -294,7 +360,7 @@ export class WorkspaceStore {
   async remove(companyId: string, confirmName: unknown): Promise<void> {
     const folder = this.folderOf(companyId);
     await this.serial(companyId, async () => {
-      const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId));
+      const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId), companyId);
       const expected = parsed.ok && typeof parsed.workspace.company.name === 'string' ? parsed.workspace.company.name : companyId;
       if (confirmName !== expected) throw new RequestError("The name doesn't match the client's name.", 400);
       // Move it out of the list first, so a deletion interrupted by a busy file can't leave half a client.
@@ -317,23 +383,37 @@ export class WorkspaceStore {
     }
   }
 
-  /** Stores an uploaded file's bytes under a new id. The workspace's file entry is added by the app. */
+  /**
+   * Stores an uploaded file's bytes under a new id. The workspace's file entry
+   * is added by the app. The checks before and the rename after run in the
+   * company's queue, so an upload can't recreate the folder of a client being
+   * deleted; the bytes themselves stream outside it, so saves aren't held up.
+   */
   async addFile(
     companyId: string,
     source: AsyncIterable<Buffer> | Iterable<Buffer>,
     maxBytes: number,
   ): Promise<{ id: string; sizeBytes: number }> {
-    const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId));
-    if (!parsed.ok || parsed.access !== 'editable') {
-      throw new RequestError("This client's file has problems, so nothing can be added to it.", 409);
-    }
+    const folder = this.folderOf(companyId);
+    const dir = join(folder, 'files');
     const id = createId('fi');
-    const dir = join(this.folderOf(companyId), 'files');
-    await mkdir(dir, { recursive: true, mode: 0o700 });
     const key = `${companyId}/${id}`;
-    this.uploaded.add(key);
     const temp = join(dir, `${id}.tmp`);
-    const handle = await open(temp, 'wx', 0o600);
+    const ready = async () => {
+      const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId), companyId);
+      if (!parsed.ok || parsed.access !== 'editable') {
+        throw new RequestError("This client's file has problems, so nothing can be added to it.", 409);
+      }
+      // Never recursive: the company's folder must already exist.
+      await mkdir(dir, { mode: 0o700 }).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== 'EEXIST') throw error;
+      });
+    };
+    const handle = await this.serial(companyId, async () => {
+      await ready();
+      this.uploaded.add(key);
+      return open(temp, 'wx', 0o600);
+    });
     let size = 0;
     try {
       for await (const chunk of source) {
@@ -344,10 +424,13 @@ export class WorkspaceStore {
       }
       await handle.sync();
       await handle.close();
-      await renameWithRetry(temp, join(dir, id), this.options.retry);
+      await this.serial(companyId, async () => {
+        await ready(); // The client may have been deleted while the bytes arrived.
+        await renameWithRetry(temp, join(dir, id), this.options.retry);
+      });
     } catch (error) {
       await handle.close().catch(() => undefined);
-      await rm(temp, { force: true });
+      await rm(temp, { force: true }).catch(() => undefined);
       this.uploaded.delete(key);
       throw error;
     }
@@ -370,8 +453,9 @@ export class WorkspaceStore {
   }
 
   /**
-   * Removes a stored file's bytes. The app removes the file's entry from the
-   * workspace and saves first, so a file still listed is never removed.
+   * Removes a stored file's bytes that the client doesn't list (an upload the
+   * app abandoned). Removing a listed file is a save without its entry, which
+   * deletes the bytes itself.
    */
   async removeFile(companyId: string, fileId: string): Promise<void> {
     if (!isSafeId(fileId)) throw new RequestError('Invalid id.', 400);

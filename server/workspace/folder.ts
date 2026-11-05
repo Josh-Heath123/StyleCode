@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, realpathSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, parse, resolve, sep } from 'node:path';
 
@@ -145,9 +145,13 @@ export function prepareDataFolder(
   environment: FolderEnvironment = here(),
 ): DataFolder {
   const path = resolveDataFolder(mode, environment);
+  const fallback = join(environment.home, FOLDER_NAMES[mode]);
   const refuse = (why: string) =>
     new DataFolderError(
-      `StyleCode won't use ${path} for client data: ${why} Choose a folder outside any git repository with STYLECODE_WORKSPACE, or use the default (${join(environment.home, FOLDER_NAMES[mode])}).`,
+      `StyleCode won't use ${path} for client data: ${why} Choose a folder outside any git repository with STYLECODE_WORKSPACE` +
+        (isInside(path, fallback, environment.platform) && isInside(fallback, path, environment.platform)
+          ? '.'
+          : `, or use the default (${fallback}).`),
     );
   if (isInside(path, repositoryRoot, environment.platform)) {
     throw refuse('it is inside the StyleCode repository, so client data could be committed.');
@@ -160,4 +164,67 @@ export function prepareDataFolder(
     throw new DataFolderError(`StyleCode can't create its data folder ${path}: ${(error as Error).message}`);
   }
   return { path, mode, cloudService: cloudServiceFor(path, environment) };
+}
+
+/** The lock file that keeps a second StyleCode from using the same data folder. */
+export const LOCK_FILE = '.stylecode.lock';
+
+/** Whether a process is still running. */
+function isRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM';
+  }
+}
+
+/**
+ * Claims the data folder for this process, so two StyleCode servers (a second
+ * `npm start`, or `npm run dev` pointed at the same folder) can't both save to
+ * it: each keeps its own queue of saves, and one could overwrite the other's.
+ * The lock is released when the process exits; one left by a process that has
+ * stopped is taken over. Throws a `DataFolderError` if another StyleCode holds it.
+ */
+export function claimDataFolder(path: string, pid: number = process.pid, running: (pid: number) => boolean = isRunning): void {
+  const lock = join(path, LOCK_FILE);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      writeFileSync(
+        lock,
+        `${JSON.stringify({ pid, startedAt: new Date().toISOString() })}
+`,
+        { flag: 'wx', mode: 0o600 },
+      );
+      if (pid === process.pid) {
+        process.once('exit', () => {
+          try {
+            if ((JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid === pid) unlinkSync(lock);
+          } catch {
+            // Already gone.
+          }
+        });
+      }
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw new DataFolderError(`StyleCode can't lock its data folder ${path}: ${(error as Error).message}`);
+      }
+    }
+    let holder: number | null = null;
+    try {
+      const value = (JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid;
+      holder = typeof value === 'number' ? value : null;
+    } catch {
+      // Unreadable: treat as left behind.
+    }
+    if (holder === pid) return; // This process already holds it (the dev server restarted).
+    if (holder !== null && running(holder)) {
+      throw new DataFolderError(
+        `StyleCode is already running with the data folder ${path} (process ${holder}). Use the window where it is running, or close it first. If StyleCode isn't running, delete ${lock}.`,
+      );
+    }
+    unlinkSync(lock); // Left by a StyleCode that has stopped.
+  }
+  throw new DataFolderError(`StyleCode can't lock its data folder ${path}.`);
 }

@@ -243,6 +243,8 @@ Attach, open and remove documents on a company or an engagement (MVP Q2), throug
 - Each file shows its name, size, who added it and when.
 - Files are listed on the company or engagement page.
 - Nothing reads a file's contents.
+- **Opening a file saves it; it never opens inside StyleCode** (from the Slice A security review). The download route needs the workspace header, so the app fetches the bytes. It then saves them through `<a download>` with the blob typed `application/octet-stream`, and never through `window.open` or a page-viewable object URL. A stored HTML or SVG file opened in place would run as StyleCode's own page, with access to the workspace API.
+- **Removing a file is a save without its entry** (decision 7). The server deletes the bytes of any file the saved workspace no longer lists, so an undo that drops a file's entry deletes its bytes too. Adding a file therefore can't simply be undone and redone: the WP10 design must settle this (for example, adding a file clears the redo history, or isn't an undoable step), and raise it at the check-in.
 
 ### WP11: Markdown export
 

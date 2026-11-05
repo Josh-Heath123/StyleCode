@@ -96,11 +96,13 @@ If part of the interface fails, that panel says so and offers **Try again** whil
 
 Open a terminal in the StyleCode folder and run `npm start`. The first time, and after each update, it builds StyleCode, which takes a minute; then it prints the address to open, usually <http://localhost:4173>. Keep the terminal open while you work: closing it, or pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>, stops StyleCode.
 
+Only one StyleCode can use the data folder at a time. If you run `npm start` again while it is already running, the second one says so and stops; use the window where it is running.
+
 `npm run dev` is for developing StyleCode only. It keeps workspace data in a separate folder, `StyleCode Data (development)`, so it never touches your clients' data.
 
 ## Where client data lives
 
-Client data lives in the `StyleCode Data` folder in your home folder (on Windows, `C:\Users\<you>\StyleCode Data`). To use another folder, set `STYLECODE_WORKSPACE` to its path before running `npm start`. StyleCode refuses to start if the folder is inside a git repository, including the StyleCode folder itself, and says why, so client data can never be committed by accident.
+Client data lives in the `StyleCode Data` folder in your home folder (on Windows, `C:\Users\<you>\StyleCode Data`). To use another folder, set `STYLECODE_WORKSPACE` to its path before running `npm start`. StyleCode refuses to start if the folder is inside a git repository, including the StyleCode folder itself, and says why, so client data can never be committed by accident. (It looks for a `.git` folder, so a "bare" repository that tracks your home folder from elsewhere, as some dotfiles setups do, isn't detected: if you use one, put the data folder outside what it tracks.)
 
 Inside it, `companies` holds one folder per client, named by the client's id:
 

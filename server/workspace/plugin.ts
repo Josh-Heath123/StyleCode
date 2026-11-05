@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { prepareDataFolder, type WorkspaceMode } from './folder.ts';
+import { claimDataFolder, prepareDataFolder, type WorkspaceMode } from './folder.ts';
 import { createWorkspaceHandler } from './handler.ts';
 
 /**
@@ -16,6 +16,7 @@ export function stylecodeWorkspace(): Plugin {
   let root = process.cwd();
   const mount = (mode: WorkspaceMode, middlewares: { use: (path: string, fn: unknown) => void }) => {
     const folder = prepareDataFolder(mode, root);
+    claimDataFolder(folder.path);
     middlewares.use('/api/workspace', createWorkspaceHandler(folder));
     const where = `StyleCode data folder: ${folder.path}`;
     console.log(

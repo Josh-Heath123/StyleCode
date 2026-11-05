@@ -40,7 +40,7 @@ async function main(): Promise<void> {
     console.log('Building StyleCode (this happens once after each update)...');
     await build({ root: ROOT, logLevel: 'error' });
   }
-  const server = await preview({ root: ROOT, preview: { port: 4173, open: false } });
+  const server = await preview({ root: ROOT, preview: { port: 4173, strictPort: true, open: false } });
   console.log('\nStyleCode is running. Open it in your browser:');
   server.printUrls();
   console.log('\nKeep this window open while you work. Closing it, or pressing Ctrl+C, stops StyleCode.\n');
@@ -48,6 +48,12 @@ async function main(): Promise<void> {
 
 main().catch((error: unknown) => {
   // A refused data folder explains itself; anything else gets its message, not a stack trace.
-  console.error(`\nStyleCode didn't start. ${error instanceof Error ? error.message : String(error)}\n`);
+  const message = error instanceof Error ? error.message : String(error);
+  const portBusy = (error as NodeJS.ErrnoException)?.code === 'EADDRINUSE' || /port \d+ is (already )?in use/i.test(message);
+  console.error(
+    portBusy
+      ? "\nStyleCode didn't start: port 4173 is in use, usually because StyleCode is already running in another window. Use that window, or close it first.\n"
+      : `\nStyleCode didn't start. ${message}\n`,
+  );
   process.exit(1);
 });

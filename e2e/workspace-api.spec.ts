@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { expect, test, type APIRequestContext } from '@playwright/test';
-import { E2E_WORKSPACE } from './workspaceFolder';
+import { requireTestWorkspace } from './workspaceFolder';
 
 /**
  * The workspace API as the browser meets it. These tests write to the dev
@@ -11,14 +11,7 @@ import { E2E_WORKSPACE } from './workspaceFolder';
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
-test.beforeAll(async ({ request }) => {
-  const info = await request.get('/api/workspace/info', { headers: HEADERS });
-  expect(info.ok(), 'the workspace API answers').toBe(true);
-  const { folder } = (await info.json()) as { folder: string };
-  if (folder !== E2E_WORKSPACE) {
-    throw new Error(`Refusing to run: the server's workspace folder is ${folder}, not the test folder ${E2E_WORKSPACE}.`);
-  }
-});
+test.beforeAll(async ({ request }) => requireTestWorkspace(request));
 
 async function newCompany(request: APIRequestContext, name: string): Promise<string> {
   const res = await request.post('/api/workspace/companies', {
