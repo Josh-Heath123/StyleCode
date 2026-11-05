@@ -41,7 +41,7 @@ export function SettingsPage() {
   return (
     <>
       <WorkspaceHeader />
-      <Page title="Settings" crumbs={[{ label: 'Clients', href: '#/' }, { label: 'Settings' }]}>
+      <Page title="Settings">
         <div className="ws-columns">
           <form className="ws-card" aria-labelledby="you-title" onSubmit={(e) => void submit(e)}>
             <h2 id="you-title">You</h2>

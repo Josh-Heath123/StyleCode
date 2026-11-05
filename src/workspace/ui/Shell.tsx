@@ -11,6 +11,8 @@ import { parseRoute, routeHref, type Route } from '../routes';
 import { WorkspaceInfoContext } from './chrome';
 import { ClientsPage } from './ClientsPage';
 import { CompanyPage } from './CompanyPage';
+import { EngagementPage } from './EngagementPage';
+import { SessionPage } from './SessionPage';
 import { SettingsPage } from './SettingsPage';
 
 interface ShellProps {
@@ -93,6 +95,17 @@ function renderPage(route: Route): ReactNode {
   switch (route.page) {
     case 'company':
       return <CompanyPage key={route.companyId} companyId={route.companyId} />;
+    case 'engagement':
+      return <EngagementPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
+    case 'session':
+      return (
+        <SessionPage
+          key={route.companyId}
+          companyId={route.companyId}
+          engagementId={route.engagementId}
+          sessionId={route.sessionId}
+        />
+      );
     case 'settings':
       return <SettingsPage />;
     default:

@@ -43,6 +43,7 @@ export interface CompanySummary {
   industry: string;
   changedAt: string;
   access: 'editable' | 'read-only' | 'unreadable';
+  activeEngagements: number;
 }
 
 export interface OpenedCompany {
@@ -99,6 +100,13 @@ export const saveCompany = (id: string, workspace: CompanyWorkspace, baseRevisio
   request<{ revision: string }>(`/companies/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify({ workspace, baseRevision, permanent }),
+  });
+
+/** Deletes a client and everything in it. The server checks the name again, as a second safeguard. */
+export const deleteCompany = (id: string, confirmName: string) =>
+  request<{ deleted: string }>(`/companies/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ confirmName }),
   });
 
 export type WorkspaceApi = {

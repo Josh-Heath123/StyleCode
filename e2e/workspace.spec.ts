@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_WORKSPACE } from './workspaceFolder';
@@ -121,9 +121,30 @@ test('a client whose file has problems opens read-only, with the problems listed
   await expect(row).toContainText('Has problems · opens read-only');
   await row.click();
   await expect(page.getByRole('heading', { name: 'This client opens read-only' })).toBeVisible();
-  await expect(page.getByRole('textbox', { name: 'Industry', exact: true })).toHaveAttribute('readonly', '');
+  // Read-only looks read-only: the profile is text, not fields, and nothing offers to change it.
+  await expect(page.getByRole('textbox')).toHaveCount(0);
+  await expect(page.getByText(name, { exact: true }).last()).toBeVisible();
   await expect(page.getByText('Read-only', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /undo/i })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /undo|New engagement/i })).toHaveCount(0);
+  // Each problem says what to do.
+  // (Its engagement has an unknown status and unreadable times: two problems.)
+  const problems = page.locator('.ws-problems li');
+  await expect(problems).toHaveCount(2);
+  for (const problem of await problems.all())
+    await expect(problem).toContainText('What to do: restore the client’s folder from a backup');
+});
+
+test('a copied client folder opens read-only, saying to rename it back or remove the copy', async ({ page }) => {
+  const id = await createClient(page, unique('Copied Client'));
+  const copy = `co_${Math.random().toString(36).slice(2, 8)}x1`;
+  cpSync(join(E2E_WORKSPACE, 'companies', id), join(E2E_WORKSPACE, 'companies', copy), { recursive: true });
+  await page.goto(`/#/c/${copy}`);
+  const problem = page.locator('.ws-problems li');
+  await expect(problem).toContainText(`The folder is named ${copy}, but the file inside it belongs to the client ${id}.`);
+  await expect(problem).toContainText(`rename it back to ${id}. If it is a copy of that client’s folder, remove the copy.`);
+  // Ids are monospace, so an "x" stays an "x".
+  await expect(problem.locator('code.ws-id').first()).toHaveText(copy);
+  await expect(problem.locator('code.ws-id').first()).toHaveCSS('font-family', /monospace|Cascadia|Consolas|Menlo/);
 });
 
 test('the design editor is one click away, and Clients leads back to the page that was open', async ({ page }) => {
@@ -131,12 +152,17 @@ test('the design editor is one click away, and Clients leads back to the page th
   const id = await createClient(page, name);
   await page.goto(`/#/c/${id}`);
   await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Industry', exact: true }).fill('Kite making');
+  await page.getByRole('textbox', { name: 'Industry', exact: true }).press('Enter');
   await page.getByRole('link', { name: 'Design editor' }).click();
   await page.waitForSelector('.canvas');
   await expect(page.getByRole('link', { name: 'Design editor' })).toHaveAttribute('aria-current', 'page');
 
+  // Back at the client, its undo history is as it was.
   await page.getByRole('link', { name: 'Clients' }).click();
   await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+  await page.getByRole('button', { name: 'Undo Change the industry' }).click();
+  await expect(page.getByRole('textbox', { name: 'Industry', exact: true })).toHaveValue('');
   // The browser's back button works between them.
   await page.goBack();
   await page.waitForSelector('.canvas');

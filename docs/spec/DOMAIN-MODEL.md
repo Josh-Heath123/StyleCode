@@ -130,7 +130,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 
 The validator reads entries of any shape without failing, which the tests check by damaging every map and the nested values in turn.
 
-**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `removeSession`, `removeEngagement`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
+**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `removeSession`, `removeEngagement`, `editConsent`, `lockConsent`, `amendConsent`, and in `entities.ts` `createEngagement`, `editEngagement`, `createSession`, `editSession`, `addParticipant`, `editParticipant`, `removeParticipant`), so Phase 1 can make each one an undoable step, as the editor does with operations.
 
 ## Versioning
 
@@ -191,3 +191,4 @@ Made from the user's decisions before Phase 1 (`docs/phase-1/PHASE-1-BRIEF.md`),
 - **Deleting a session** (`removeSession`, decision 4): its participants, consent record, transcript, segments, notes and files go. Every passage of the session cited by a finding becomes deleted evidence, in the finding, in what the AI proposed and in its history, as after a withdrawal. A finding whose only evidence was in the session is removed, and so is one said in a session with no transcript segment left; others keep their evidence from other sessions. Company knowledge promoted from a removed finding stays, marked "source deleted", and keeps its copied quotes (unlike `removeTranscript` after a withdrawal, which removes them, C8).
 - **Deleting an engagement** (`removeEngagement`): its findings and their links, its sessions (as above), its design links and its files. Company knowledge from its findings stays, marked "source deleted".
 - Both return what they removed (findings, files) and the company facts affected, so the confirmation can name them.
+- **Engagements, sessions and participants** (WP6, `entities.ts`): create and edit each. A participant the session's consent record names as asked can't be removed or moved to the consultant's side until the record changes. `consentSummary` gives a session's consent in a word for lists.

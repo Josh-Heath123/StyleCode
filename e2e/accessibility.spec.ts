@@ -120,6 +120,52 @@ test.describe('the workspace pages', () => {
     await expect(page.getByRole('heading', { name: 'Where client data is kept' })).toBeVisible();
     await scan(page, 'Settings');
   });
+
+  test('an engagement and a session, with their dialogs, all from the keyboard', async ({ page }) => {
+    const name = `Accessible Physio ${Math.random().toString(36).slice(2, 8)}`;
+    const res = await page.request.post('/api/workspace/companies', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { profile: { name } },
+    });
+    const id = ((await res.json()) as { workspace: { company: { id: string } } }).workspace.company.id;
+    await page.goto(`/#/c/${id}`);
+
+    // New engagement, from the keyboard alone.
+    await page.getByRole('button', { name: 'New engagement' }).focus();
+    await page.keyboard.press('Enter');
+    const engagement = page.getByRole('dialog', { name: 'New engagement' });
+    await expect(engagement.getByLabel('Name')).toBeFocused();
+    await scan(page, 'New engagement');
+    await page.keyboard.type('Bookings');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1, name: 'Bookings' })).toBeVisible();
+    await scan(page, 'An engagement');
+
+    await page.getByRole('button', { name: 'New session' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: 'New session' }).getByLabel('Title')).toBeFocused();
+    await scan(page, 'New session');
+    await page.keyboard.type('First visit');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1, name: 'First visit' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Add participant' }).focus();
+    await page.keyboard.press('Enter');
+    const participant = page.getByRole('dialog', { name: 'Add participant' });
+    await expect(participant).toBeVisible();
+    await scan(page, 'Add participant');
+    await participant.getByLabel('Name').fill('Pat Physio');
+    await page.keyboard.press('Enter');
+    await expect(participant).toBeHidden();
+    await scan(page, 'A session');
+
+    await page.getByRole('button', { name: 'Delete session…' }).click();
+    await scan(page, 'Delete session');
+    await page.keyboard.press('Escape');
+    await page.getByRole('link', { name }).click();
+    await page.getByRole('button', { name: 'Delete client…' }).click();
+    await scan(page, 'Delete client');
+  });
 });
 
 test.describe('keyboard only', () => {

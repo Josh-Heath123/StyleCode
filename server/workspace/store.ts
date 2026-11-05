@@ -65,6 +65,8 @@ export interface CompanySummary {
   changedAt: string;
   /** `read-only` when the file has problems; `unreadable` when it can't be opened at all. */
   access: 'editable' | 'read-only' | 'unreadable';
+  /** Engagements still active, for the clients list. */
+  activeEngagements: number;
 }
 
 export type OpenedWorkspace =
@@ -191,7 +193,7 @@ export class WorkspaceStore {
       }
       const parsed = WorkspaceStore.parse(bytes, entry.name);
       if (!parsed.ok) {
-        out.push({ id: entry.name, name: null, industry: '', changedAt, access: 'unreadable' });
+        out.push({ id: entry.name, name: null, industry: '', changedAt, access: 'unreadable', activeEngagements: 0 });
         continue;
       }
       const { company } = parsed.workspace;
@@ -201,6 +203,7 @@ export class WorkspaceStore {
         industry: typeof company.industry === 'string' ? company.industry : '',
         changedAt,
         access: parsed.access,
+        activeEngagements: Object.values(parsed.workspace.engagements).filter((e) => e?.status?.state === 'active').length,
       });
     }
     return out.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '') || a.id.localeCompare(b.id));

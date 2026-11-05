@@ -3229,7 +3229,7 @@ a.ws-row:focus-visible {
 
 .ws-columns {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   gap: 20px;
   margin-top: 20px;
   align-items: start;
@@ -3409,4 +3409,141 @@ a.ws-row:focus-visible {
 
 .ws-help + .ws-help {
   margin-top: 8px;
+}
+
+/* Ids, folder and file names: monospace, so they read exactly as File Explorer shows them. */
+.ws-id {
+  font-family: var(--font-code);
+  font-size: 0.92em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.ws-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ws-heading-text {
+  min-width: 0;
+}
+
+.ws-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ws-card-head h2 {
+  margin: 0;
+}
+
+.ws-card-foot {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.ws-value {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ws-value.is-empty {
+  color: var(--text-3);
+}
+
+.ws-fieldset {
+  border: 0;
+  margin: 0 0 14px;
+  padding: 0;
+  min-width: 0;
+}
+
+.ws-fieldset legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.ws-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ws-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+}
+
+.ws-choice input[type='radio'] {
+  margin: 0;
+  accent-color: var(--blue);
+}
+
+.ws-date {
+  width: auto;
+  padding: 4px 8px;
+}
+
+.ws-empty.is-small {
+  padding: 20px;
+  text-align: left;
+}
+
+.ws-empty.is-small p {
+  margin: 0 0 14px;
+  max-width: none;
+}
+
+.ws-alert.is-caution {
+  border-color: rgba(242, 201, 76, 0.35);
+  background: var(--caution-soft);
+}
+
+.ws-problems {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ws-problems li {
+  padding-left: 12px;
+  border-left: 2px solid rgba(242, 201, 76, 0.5);
+}
+
+.ws-problems p {
+  margin: 0;
+  color: var(--text);
+}
+
+.ws-problems .ws-fix {
+  color: var(--text-2);
+}
+
+.button.danger-fill {
+  background: #c22f45;
+  border-color: #c22f45;
+  color: #fff;
+}
+
+.button.danger-fill:hover:not(:disabled) {
+  background: #d23a51;
+}
+
+.ws-delete-what p {
+  margin: 0 0 10px;
+}
+
+.ws-list.is-compact .ws-row .icon-button {
+  flex: none;
 }

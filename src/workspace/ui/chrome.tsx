@@ -12,6 +12,21 @@ export function useWorkspaceInfo(): WorkspaceInfo {
   return info;
 }
 
+/** A client's folder on disk, as File Explorer (or Finder) shows it. */
+export function clientFolder(info: WorkspaceInfo, companyId: string): string {
+  const sep = info.folder.includes('\\') ? '\\' : '/';
+  return [info.folder.replace(/[\\/]+$/, ''), 'companies', companyId].join(sep);
+}
+
+/**
+ * An id, a folder or a file name, in the monospace face used for the data
+ * folder. In Inter, "4x1" reads as "4×1", and an id must be typed exactly to
+ * find it in File Explorer.
+ */
+export function Id({ children }: { children: ReactNode }) {
+  return <code className="ws-id">{children}</code>;
+}
+
 /** The mark and name, as in the editor's top bar. */
 export function Brand() {
   return (
@@ -76,24 +91,48 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
 
 /**
  * A page's main area. Focus moves to its heading when the page opens, so
- * keyboard and screen-reader users start at the top of the new page.
+ * keyboard and screen-reader users start at the top of the new page. Pages
+ * at the top level (the clients list, settings) have no breadcrumb: a single
+ * crumb would only repeat the heading.
  */
-export function Page({ title, crumbs, children }: { title: string; crumbs: Crumb[]; children: ReactNode }) {
+export function Page({
+  title,
+  crumbs,
+  lede,
+  actions,
+  notices,
+  children,
+}: {
+  title: string;
+  crumbs?: Crumb[];
+  lede?: ReactNode;
+  /** Buttons beside the title. */
+  actions?: ReactNode;
+  /** Banners that belong under the title: read-only, a failed save. */
+  notices?: ReactNode;
+  children?: ReactNode;
+}) {
   const heading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => heading.current?.focus({ preventScroll: true }), []);
+  useEffect(() => heading.current?.focus({ preventScroll: true }), [title]);
   return (
     <main className="ws-main">
-      <Breadcrumb crumbs={crumbs} />
-      <h1 className="ws-title" ref={heading} tabIndex={-1}>
-        {title}
-      </h1>
+      {crumbs && crumbs.length > 1 && <Breadcrumb crumbs={crumbs} />}
+      <div className="ws-heading">
+        <div className="ws-heading-text">
+          <h1 className="ws-title" ref={heading} tabIndex={-1}>
+            {title}
+          </h1>
+          {lede && <p className="ws-lede">{lede}</p>}
+        </div>
+        {actions && <div className="ws-heading-actions">{actions}</div>}
+      </div>
+      {notices}
       {children}
     </main>
   );
 }
 
 const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-
 const dayFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' });
 
 /** A calendar date such as "2026-11-04", as the consultant reads dates. */
@@ -105,4 +144,9 @@ export function formatDay(date: string): string {
 export function formatWhen(iso: string): string {
   const time = Date.parse(iso);
   return Number.isNaN(time) ? '' : dateFormat.format(time);
+}
+
+/** "1 session", "2 sessions". */
+export function count(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`;
 }

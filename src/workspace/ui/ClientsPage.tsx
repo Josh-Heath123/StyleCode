@@ -3,7 +3,8 @@ import { Icon } from '../../ui/Icon';
 import { useDialogFocus } from '../../ui/useDialogFocus';
 import { createCompany, listCompanies, type CompanySummary } from '../api';
 import { isCompanyNameFree } from '../model/workspace';
-import { formatWhen, Page, WorkspaceHeader } from './chrome';
+import { count, formatWhen, Id, Page, WorkspaceHeader } from './chrome';
+import { saveOpenClients } from './useCompanySession';
 
 /** The front door: every client, by name, and a way to add one (MVP story 1.1). */
 export function ClientsPage() {
@@ -13,7 +14,8 @@ export function ClientsPage() {
 
   const load = useCallback(() => {
     setError(null);
-    listCompanies()
+    saveOpenClients()
+      .then(listCompanies)
       .then(setCompanies)
       .catch((e: Error) => setError(e.message));
   }, []);
@@ -23,7 +25,7 @@ export function ClientsPage() {
   return (
     <>
       <WorkspaceHeader />
-      <Page title="Clients" crumbs={[{ label: 'Clients' }]}>
+      <Page title="Clients">
         <div className="ws-toolbar">
           <p className="ws-lede">
             {companies === null
@@ -80,10 +82,23 @@ function ClientRow({ company: c }: { company: CompanySummary }) {
     <>
       <span className="ws-row-main">
         <span className="ws-row-title">{name}</span>
-        <span className="ws-row-sub">{c.access === 'unreadable' ? `Folder ${c.id}` : c.industry || 'No industry given'}</span>
+        <span className="ws-row-sub">
+          {c.access === 'unreadable' ? (
+            <>
+              Folder <Id>{c.id}</Id>
+            </>
+          ) : (
+            c.industry || 'No industry given'
+          )}
+        </span>
       </span>
       {c.access === 'read-only' && <span className="ws-badge">Has problems · opens read-only</span>}
       {c.access === 'unreadable' && <span className="ws-badge">Can’t be opened</span>}
+      {c.access !== 'unreadable' && (
+        <span className="ws-row-meta">
+          {c.activeEngagements ? count(c.activeEngagements, 'active engagement') : 'No active engagements'}
+        </span>
+      )}
       <span className="ws-row-meta">Changed {formatWhen(c.changedAt)}</span>
       {c.access !== 'unreadable' && <Icon name="chevronRight" size={14} className="ws-row-go" />}
     </>

@@ -1,12 +1,16 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { isTypingTarget } from '../../canvas/Canvas';
+import { useState } from 'react';
 import { Icon } from '../../ui/Icon';
-import { listCompanies } from '../api';
-import type { CompanyWorkspace, Engagement } from '../model/types';
+import { deleteCompany, listCompanies } from '../api';
+import { createEngagement } from '../model/entities';
+import type { CompanyWorkspace, EngagementStatus } from '../model/types';
 import { editCompany, isCompanyNameFree, type ProfileField } from '../model/workspace';
-import type { WorkspaceSession } from '../session';
-import { formatDay, Page, WorkspaceHeader } from './chrome';
-import { useCompanySession } from './useCompanySession';
+import { today } from '../time';
+import { ClientFrame, type ClientView } from './ClientFrame';
+import { count, formatDay, formatWhen, Id, Page } from './chrome';
+import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
+import { StatusField } from './status';
+import { now, step } from './steps';
+import { closeCompany } from './useCompanySession';
 
 const PROFILE: { field: ProfileField; label: string; multiline?: boolean; step: string }[] = [
   { field: 'name', label: 'Name', step: 'Rename the client' },
@@ -16,281 +20,178 @@ const PROFILE: { field: ProfileField; label: string; multiline?: boolean; step: 
   { field: 'notes', label: 'Notes', multiline: true, step: 'Change the notes' },
 ];
 
-/** A client: its profile and its engagements (MVP stories 1.1 and 1.2). */
+/** A client: its engagements, and its profile (MVP stories 1.2 to 1.4, 2.1). */
 export function CompanyPage({ companyId }: { companyId: string }) {
-  const [load, reload] = useCompanySession(companyId);
-  if (load.state === 'open') return <OpenCompany session={load.session} onReload={reload} />;
-  return (
-    <>
-      <WorkspaceHeader />
-      <Page title={load.state === 'loading' ? 'Opening the client…' : 'This client can’t be opened'} crumbs={crumbs(null)}>
-        {load.state === 'failed' && (
-          <div className="ws-alert" role="alert">
-            <p>{load.status === 404 ? 'There is no client here. It may have been deleted.' : load.error}</p>
-            <a className="button" href="#/">
-              Back to clients
-            </a>
-            {load.status !== 404 && (
-              <button type="button" className="button" onClick={reload}>
-                Try again
-              </button>
-            )}
-          </div>
-        )}
-      </Page>
-    </>
-  );
+  return <ClientFrame companyId={companyId}>{(view) => <Company view={view} />}</ClientFrame>;
 }
 
-const crumbs = (name: string | null) => [{ label: 'Clients', href: '#/' }, { label: name ?? 'Client' }];
-
-function useSession(session: WorkspaceSession) {
-  return useSyncExternalStore(session.subscribe, session.getState);
-}
-
-function OpenCompany({ session, onReload }: { session: WorkspaceSession; onReload: () => void }) {
-  const state = useSession(session);
-  const { workspace, access, problems } = state;
-  const readOnly = access !== 'editable';
-
-  // Ctrl+Z and Ctrl+Shift+Z (or Ctrl+Y) undo and redo the client's changes, except while typing,
-  // where they belong to the text field.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.altKey || isTypingTarget(e.target)) return;
-      if ((e.target as Element | null)?.closest?.('[role="dialog"]')) return;
-      const key = e.key.toLowerCase();
-      if (key === 'z' && !e.shiftKey) session.undo();
-      else if ((key === 'z' && e.shiftKey) || key === 'y') session.redo();
-      else return;
-      e.preventDefault();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [session]);
-
+function Company({ view }: { view: ClientView }) {
+  const { workspace, readOnly, notices } = view;
+  const { company } = workspace;
+  const [dialog, setDialog] = useState<'engagement' | 'delete' | null>(null);
   return (
     <>
-      <WorkspaceHeader>
-        <SaveControls session={session} />
-      </WorkspaceHeader>
-      <Page title={workspace.company.name} crumbs={crumbs(workspace.company.name)}>
-        {workspace.company.industry && <p className="ws-lede">{workspace.company.industry}</p>}
-        {readOnly && (
-          <section className="ws-alert" aria-labelledby="read-only-title">
-            <h2 id="read-only-title">This client opens read-only</h2>
-            <p>
-              Its file has {problems.length === 1 ? 'a problem' : `${problems.length} problems`}, so StyleCode shows what it can
-              but won’t change or save it. Nothing in the file has been altered.
-            </p>
-            <ul>
-              {problems.map((p, i) => (
-                <li key={i}>{p.message}</li>
-              ))}
-            </ul>
-          </section>
-        )}
-        {state.status === 'error' && <SaveProblem session={session} error={state.error} onReload={onReload} />}
+      <Page
+        title={company.name}
+        crumbs={[{ label: 'Clients', href: '#/' }, { label: company.name }]}
+        lede={company.industry || undefined}
+        notices={notices}
+      >
         <div className="ws-columns">
+          <section className="ws-card" aria-labelledby="engagements-title">
+            <div className="ws-card-head">
+              <h2 id="engagements-title">Engagements</h2>
+              {!readOnly && Object.keys(workspace.engagements).length > 0 && (
+                <button type="button" className="button primary" onClick={() => setDialog('engagement')}>
+                  <Icon name="plus" size={14} /> New engagement
+                </button>
+              )}
+            </div>
+            <Engagements workspace={workspace} readOnly={readOnly} onAdd={() => setDialog('engagement')} />
+          </section>
           <section className="ws-card" aria-labelledby="profile-title">
             <h2 id="profile-title">Profile</h2>
             {PROFILE.map((p) => (
-              <ProfileInput key={p.field} session={session} workspace={workspace} readOnly={readOnly} {...p} />
+              <TextField
+                key={p.field}
+                label={p.label}
+                value={company[p.field]}
+                multiline={p.multiline}
+                readOnly={readOnly}
+                onCommit={(value) => commitProfile(view, p.field, p.step, value)}
+              />
             ))}
-          </section>
-          <section className="ws-card" aria-labelledby="engagements-title">
-            <h2 id="engagements-title">Engagements</h2>
-            <Engagements workspace={workspace} />
+            <p className="ws-help">Profile changed {formatWhen(company.updatedAt)}</p>
+            <div className="ws-card-foot">
+              <button type="button" className="button danger" onClick={() => setDialog('delete')}>
+                <Icon name="trash" size={14} /> Delete client…
+              </button>
+            </div>
           </section>
         </div>
       </Page>
+      {dialog === 'engagement' && <NewEngagementDialog view={view} onClose={() => setDialog(null)} />}
+      {dialog === 'delete' && <DeleteClientDialog view={view} onClose={() => setDialog(null)} />}
     </>
   );
 }
 
-const STATUS_TEXT = { saved: 'Saved', pending: 'Saving…', saving: 'Saving…', error: 'Not saved' } as const;
-
-/** The save status, and undo and redo for this client, in the top bar. */
-function SaveControls({ session }: { session: WorkspaceSession }) {
-  const state = useSession(session);
-  if (state.access !== 'editable') return <span className="save-status ws-readonly-status">Read-only</span>;
-  return (
-    <>
-      <span className="save-status" role="status">
-        <span className="save-status-text" data-status={state.status}>
-          {STATUS_TEXT[state.status]}
-        </span>
-      </span>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={state.undoLabel ? `Undo ${state.undoLabel}` : 'Nothing to undo'}
-        data-tip={state.undoLabel ? `Undo: ${state.undoLabel.toLowerCase()}  Ctrl+Z` : 'Nothing to undo'}
-        disabled={!state.undoLabel}
-        onClick={() => session.undo()}
-      >
-        <Icon name="undo" />
-      </button>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={state.redoLabel ? `Redo ${state.redoLabel}` : 'Nothing to redo'}
-        data-tip={state.redoLabel ? `Redo: ${state.redoLabel.toLowerCase()}  Ctrl+Shift+Z` : 'Nothing to redo'}
-        data-tip-side="left"
-        disabled={!state.redoLabel}
-        onClick={() => session.redo()}
-      >
-        <Icon name="redo" />
-      </button>
-      <span className="topbar-divider" />
-    </>
-  );
-}
-
-/** A save that failed: why, and the ways forward. */
-function SaveProblem({ session, error, onReload }: { session: WorkspaceSession; error: string | null; onReload: () => void }) {
-  const reload = () => {
-    if (window.confirm('Reload this client from disk? The changes made here that weren’t saved will be lost.')) onReload();
-  };
-  return (
-    <div className="ws-alert" role="alert">
-      <p>
-        <strong>Your latest changes aren’t saved.</strong> {error}
-      </p>
-      <button type="button" className="button" onClick={() => void session.retry()}>
-        Try again
-      </button>
-      <button type="button" className="button" onClick={reload}>
-        Reload from disk
-      </button>
-    </div>
-  );
-}
-
-/**
- * One profile field. What is typed is applied as one undoable step when the
- * field is left or Enter is pressed (Escape puts it back). The name must stay
- * unique among the clients.
- */
-function ProfileInput({
-  session,
-  workspace,
-  readOnly,
-  field,
-  label,
-  multiline,
-  step,
-}: {
-  session: WorkspaceSession;
-  workspace: CompanyWorkspace;
-  readOnly: boolean;
-  field: ProfileField;
-  label: string;
-  multiline?: boolean;
-  step: string;
-}) {
-  const value = workspace.company[field];
-  const [draft, setDraft] = useState(value);
-  const [error, setError] = useState<string | null>(null);
-  // Undo and redo change the value from outside.
-  useEffect(() => setDraft(value), [value]);
-
-  const commit = async () => {
-    if (draft === value) return setError(null);
-    if (field === 'name') {
-      const name = draft.trim();
-      if (!name) return setError('A client needs a name.');
-      if (name.toLocaleLowerCase() !== value.trim().toLocaleLowerCase()) {
-        try {
-          const others = (await listCompanies()).flatMap((c) => (c.name && c.id !== workspace.company.id ? [c.name] : []));
-          if (!isCompanyNameFree(name, others)) return setError(`There is already a client called ${name}.`);
-        } catch (e) {
-          return setError((e as Error).message);
-        }
+/** A profile change; a new name must not be another client's (MVP Q4). */
+async function commitProfile(view: ClientView, field: ProfileField, label: string, value: string): Promise<string | null> {
+  const { session, workspace } = view;
+  if (field === 'name') {
+    const name = value.trim();
+    if (!name) return 'A client needs a name.';
+    if (name.toLocaleLowerCase() !== workspace.company.name.trim().toLocaleLowerCase()) {
+      try {
+        const others = (await listCompanies()).flatMap((c) => (c.name && c.id !== workspace.company.id ? [c.name] : []));
+        if (!isCompanyNameFree(name, others)) return `There is already a client called ${name}.`;
+      } catch (e) {
+        return (e as Error).message;
       }
     }
-    setError(null);
-    session.apply(step, (ws) => {
-      const result = editCompany(ws, { [field]: draft }, new Date().toISOString());
-      return result.ok ? result.value : ws;
-    });
-  };
-
-  const id = `profile-${field}`;
-  const common = {
-    id,
-    className: 'ws-input',
-    value: draft,
-    readOnly,
-    'aria-invalid': error ? true : undefined,
-    'aria-describedby': error ? `${id}-error` : undefined,
-    onBlur: () => void commit(),
-  };
-  return (
-    <div className="ws-field">
-      <label className="ws-label" htmlFor={id}>
-        {label}
-      </label>
-      {multiline ? (
-        <textarea
-          {...common}
-          rows={3}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setDraft(value);
-              setError(null);
-            }
-          }}
-        />
-      ) : (
-        <input
-          {...common}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void commit();
-            if (e.key === 'Escape') {
-              setDraft(value);
-              setError(null);
-            }
-          }}
-        />
-      )}
-      {error && (
-        <p className="ws-error" id={`${id}-error`} role="alert">
-          {error}
-        </p>
-      )}
-    </div>
-  );
+  }
+  return step(session, label, (ws) => editCompany(ws, { [field]: value }, now()));
 }
 
-/** The client's engagements. Creating and opening them comes with their pages (WP6). */
-function Engagements({ workspace }: { workspace: CompanyWorkspace }) {
+/** The client's engagements, newest first (MVP 2.1). */
+function Engagements({ workspace, readOnly, onAdd }: { workspace: CompanyWorkspace; readOnly: boolean; onAdd: () => void }) {
   const engagements = Object.values(workspace.engagements).sort(
-    (a, b) => Number(b.status.state === 'active') - Number(a.status.state === 'active') || a.name.localeCompare(b.name),
+    (a, b) => b.createdAt.localeCompare(a.createdAt) || a.name.localeCompare(b.name),
   );
-  if (!engagements.length) return <p className="ws-muted">No engagements yet.</p>;
-  const sessionsOf = (e: Engagement) => Object.values(workspace.sessions).filter((s) => s.engagementId === e.id).length;
+  if (!engagements.length) {
+    return (
+      <div className="ws-empty is-small">
+        <p>
+          No engagements yet. An engagement is one piece of work for this client, such as a new ordering system. Its sessions,
+          consent records and notes are kept inside it.
+        </p>
+        {!readOnly && (
+          <button type="button" className="button primary" onClick={onAdd}>
+            <Icon name="plus" size={14} /> New engagement
+          </button>
+        )}
+      </div>
+    );
+  }
+  const sessions = (id: string) => Object.values(workspace.sessions).filter((s) => s.engagementId === id).length;
   return (
     <ul className="ws-list is-compact" aria-label="Engagements">
-      {engagements.map((e) => {
-        const sessions = sessionsOf(e);
-        return (
-          <li key={e.id} className="ws-row is-static">
+      {engagements.map((e) => (
+        <li key={e.id}>
+          <a className="ws-row" href={`#/c/${workspace.company.id}/e/${e.id}`}>
             <span className="ws-row-main">
               <span className="ws-row-title">{e.name}</span>
               {e.goal && <span className="ws-row-sub">{e.goal}</span>}
             </span>
-            <span className="ws-row-meta">
-              {sessions} {sessions === 1 ? 'meeting' : 'meetings'}
-            </span>
+            <span className="ws-row-meta">{count(sessions(e.id), 'session')}</span>
             <span className={`ws-badge${e.status.state === 'active' ? ' is-active' : ''}`}>
               {e.status.state === 'active' ? 'Active' : `Ended ${formatDay(e.status.endedOn)}`}
             </span>
-          </li>
-        );
-      })}
+            <Icon name="chevronRight" size={14} className="ws-row-go" />
+          </a>
+        </li>
+      ))}
     </ul>
+  );
+}
+
+function NewEngagementDialog({ view, onClose }: { view: ClientView; onClose: () => void }) {
+  const [name, setName] = useState('');
+  const [goal, setGoal] = useState('');
+  const [status, setStatus] = useState<EngagementStatus>({ state: 'active' });
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <FormDialog
+      title="New engagement"
+      submitLabel="Add engagement"
+      error={error}
+      onClose={onClose}
+      onSubmit={() => {
+        const result = createEngagement(view.workspace, { name, goal, status }, now());
+        if (!result.ok) return setError(result.error);
+        view.session.apply('Add an engagement', () => result.value.workspace);
+        location.hash = `#/c/${view.workspace.company.id}/e/${result.value.id}`;
+      }}
+    >
+      <DialogField label="Name">
+        {(id) => <input id={id} className="ws-input" value={name} onChange={(e) => setName(e.target.value)} />}
+      </DialogField>
+      <DialogField label="Goal" optional>
+        {(id) => <textarea id={id} className="ws-input" rows={2} value={goal} onChange={(e) => setGoal(e.target.value)} />}
+      </DialogField>
+      <StatusField status={status} onChange={(s) => (setStatus(s), null)} defaultEnd={today()} />
+    </FormDialog>
+  );
+}
+
+/** Deleting a client: type its name; the server checks it again (MVP 1.4). */
+function DeleteClientDialog({ view, onClose }: { view: ClientView; onClose: () => void }) {
+  const ws = view.workspace;
+  const n = (map: Record<string, unknown>) => Object.keys(map).length;
+  return (
+    <DeleteDialog
+      title="Delete client…"
+      typeToConfirm={ws.company.name}
+      onClose={onClose}
+      onDelete={async () => {
+        await deleteCompany(ws.company.id, ws.company.name);
+        closeCompany(view.session.companyId);
+        location.hash = '#/';
+      }}
+      what={
+        <>
+          <p>
+            This deletes <strong>{ws.company.name}</strong> and everything in it: {count(n(ws.engagements), 'engagement')},{' '}
+            {count(n(ws.sessions), 'session')}, {count(n(ws.consents), 'consent record')}, {count(n(ws.notes), 'note')},{' '}
+            {count(n(ws.findings), 'finding')} and {count(n(ws.files), 'file')}. Its folder, <Id>{view.session.companyId}</Id>, is
+            removed from the data folder.
+          </p>
+          <p>
+            <strong>This can’t be undone.</strong> Backups and exports you made earlier aren’t affected.
+          </p>
+        </>
+      }
+    />
   );
 }

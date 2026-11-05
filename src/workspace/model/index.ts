@@ -1,5 +1,6 @@
 export * from './types.ts';
 export * from './consent.ts';
+export * from './entities.ts';
 export * from './findings.ts';
 export * from './validate.ts';
 export * from './workspace.ts';
