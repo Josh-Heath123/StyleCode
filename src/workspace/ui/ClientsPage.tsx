@@ -29,7 +29,7 @@ export function ClientsPage() {
             {companies === null
               ? ' '
               : count === 0
-                ? 'Each client keeps its own projects, meetings, consent records and notes, in its own folder on this computer.'
+                ? 'Each client keeps its own engagements, sessions, consent records and notes, in its own folder on this computer.'
                 : `${count} ${count === 1 ? 'client' : 'clients'}, each kept in its own folder on this computer.`}
           </p>
           {count > 0 && (

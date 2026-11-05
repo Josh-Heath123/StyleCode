@@ -12,8 +12,8 @@ export interface EditorSnapshot {
 export async function openFreshProject(page: Page): Promise<void> {
   await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New project', exact: true }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New design', exact: true }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBe(2);
 }
 

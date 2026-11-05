@@ -46,7 +46,7 @@ function showBootError(container: HTMLElement, error: unknown): void {
   const title = document.createElement('h1');
   title.textContent = 'StyleCode couldn’t start';
   const text = document.createElement('p');
-  text.textContent = 'Reloading usually fixes this. Projects saved on this device are not affected.';
+  text.textContent = 'Reloading usually fixes this. Designs saved on this device are not affected.';
   const detail = document.createElement('pre');
   detail.className = 'crash-error';
   detail.textContent = error instanceof Error ? error.message : String(error);

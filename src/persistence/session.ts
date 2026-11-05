@@ -111,7 +111,7 @@ export class ProjectSession {
     this.channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('stylecode') : null;
     this.channel?.addEventListener('message', (e: MessageEvent<{ id: string; tab: string }>) => {
       if (e.data?.tab !== this.tabId && e.data?.id === this.editor.getState().doc.id) {
-        this.editor.notify('This project is also open in another tab. The tab that saves last wins.', 'error');
+        this.editor.notify('This design is also open in another tab. The tab that saves last wins.', 'error');
       }
     });
   }
@@ -170,8 +170,8 @@ export class ProjectSession {
     if (skipped.length) {
       this.editor.notify(
         skipped.length === 1
-          ? `“${skipped[0]}” couldn’t be opened. It’s still in Projects, where you can download its data.`
-          : `${skipped.length} projects couldn’t be opened. They’re still in Projects, where you can download their data.`,
+          ? `“${skipped[0]}” couldn’t be opened. It’s still in Designs, where you can download its data.`
+          : `${skipped.length} designs couldn’t be opened. They’re still in Designs, where you can download their data.`,
         'error',
       );
     }
@@ -309,7 +309,7 @@ export class ProjectSession {
       if (docChanged) void this.checkSpace();
     } catch (error) {
       const message = isQuotaError(error)
-        ? 'Browser storage is full. Save the project to a file, or delete old projects to make room.'
+        ? 'Browser storage is full. Save the design to a file, or delete old designs to make room.'
         : `Couldn’t save: ${(error as Error)?.message ?? 'unknown error'}.`;
       // Said once when saving starts failing; the save status keeps showing it while retries carry on quietly.
       if (!this.failing) this.editor.notify(message, 'error');
@@ -368,7 +368,7 @@ export class ProjectSession {
     const space = await this.storageUsage();
     if (!space || space.usage / space.quota < NEARLY_FULL) return;
     this.warnedNearlyFull = true;
-    this.editor.notify('Browser storage is nearly full. Save projects to files, or delete old ones in Projects.', 'error');
+    this.editor.notify('Browser storage is nearly full. Save designs to files, or delete old ones in Designs.', 'error');
   }
 
   async listProjects(): Promise<ProjectSummary[]> {
@@ -392,10 +392,10 @@ export class ProjectSession {
    */
   async downloadStoredProject(id: string): Promise<boolean> {
     const record = await idbGet<ProjectRecord>(PROJECTS, id);
-    if (!record) throw new Error('That project no longer exists.');
+    if (!record) throw new Error('That design no longer exists.');
     return saveFile(
       `${(record.name || 'untitled').replace(/[^\w-]+/g, '-').slice(0, 60)}-data.json`,
-      { description: 'StyleCode project data', mime: 'application/json', extension: '.json' },
+      { description: 'StyleCode design data', mime: 'application/json', extension: '.json' },
       async () => new Blob([JSON.stringify(record.file, null, 2)], { type: 'application/json' }),
     );
   }
@@ -422,7 +422,7 @@ export class ProjectSession {
 
   async openProject(id: string): Promise<Camera | null> {
     const record = await idbGet<ProjectRecord>(PROJECTS, id);
-    if (!record) throw new Error('That project no longer exists.');
+    if (!record) throw new Error('That design no longer exists.');
     const parsed = parseProject(record.file);
     if (!parsed.ok) throw new Error(parsed.error);
     if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
@@ -474,8 +474,8 @@ export class KeptOpenError extends Error {
   constructor(canRetry = true) {
     super(
       canRetry
-        ? 'Kept this project open. Its latest changes still aren’t saved: try saving again, or save it to a file.'
-        : 'Kept this project open. This browser isn’t letting StyleCode save, so save it to a file first.',
+        ? 'Kept this design open. Its latest changes still aren’t saved: try saving again, or save it to a file.'
+        : 'Kept this design open. This browser isn’t letting StyleCode save, so save it to a file first.',
     );
     this.name = 'KeptOpenError';
   }

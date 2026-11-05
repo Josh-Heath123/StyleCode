@@ -81,8 +81,8 @@ export async function exampleProject(page: Page, tidy: boolean) {
   await page.addInitScript(demoOverlay);
   await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New example project' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New example design' }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBeGreaterThan(10);
   const find = async (name: string) => Object.values((await snapshot(page)).doc.nodes).find((n) => n.name === name)!.id;
   const landing = await find('Landing page');

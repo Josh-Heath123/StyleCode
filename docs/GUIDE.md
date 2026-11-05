@@ -4,7 +4,7 @@ How to get things done in StyleCode, from the first frame to exported code. The 
 
 ## First steps
 
-The first time you open StyleCode, a welcome screen offers the **example project** (a freely drawn landing page) or a **blank canvas**. Either way, a short **Getting started** checklist appears in the corner of the canvas and ticks itself off as you go: draw a frame, tidy it into rows and columns, look at the code, preview at phone width, leave a note for the AI and ask the AI for a change. Hide it whenever you like; the **Help** menu (the question mark in the top bar) brings it back, starts it again or shows the welcome screen.
+The first time you open StyleCode, a welcome screen offers the **example design** (a freely drawn landing page) or a **blank canvas**. Either way, a short **Getting started** checklist appears in the corner of the canvas and ticks itself off as you go: draw a frame, tidy it into rows and columns, look at the code, preview at phone width, leave a note for the AI and ask the AI for a change. Hide it whenever you like; the **Help** menu (the question mark in the top bar) brings it back, starts it again or shows the welcome screen.
 
 Press <kbd>?</kbd> at any time for every keyboard shortcut, with a filter.
 
@@ -84,13 +84,13 @@ Screen readers hear what is selected as it changes, and the editor's messages. E
 
 ## Saving and getting work back
 
-Projects save themselves in your browser a moment after every change; the top bar says when they are saved. If saving fails (usually because the browser's storage is full), the status turns red and becomes a menu: **Try saving again**, **Save to file…**, or **Free up space in Projects…**. StyleCode keeps retrying in the background, asks before you close the page while a change isn't saved, and asks before another project replaces one whose changes couldn't be saved. The Projects dialog shows how much of the browser's storage is in use and warns when it is nearly full.
+Designs save themselves in your browser a moment after every change; the top bar says when they are saved. If saving fails (usually because the browser's storage is full), the status turns red and becomes a menu: **Try saving again**, **Save to file…**, or **Free up space in Designs…**. StyleCode keeps retrying in the background, asks before you close the page while a change isn't saved, and asks before another design replaces one whose changes couldn't be saved. The Designs dialog shows how much of the browser's storage is in use and warns when it is nearly full.
 
-A project whose stored data is damaged is never opened half-broken: StyleCode opens your next project instead and says so, and the damaged one stays in Projects, where **Download data** saves exactly what was stored so it can be recovered or reported.
+A design whose stored data is damaged is never opened half-broken: StyleCode opens your next design instead and says so, and the damaged one stays in Designs, where **Download data** saves exactly what was stored so it can be recovered or reported.
 
-If part of the interface fails, that panel says so and offers **Try again** while the rest keeps working. If the editor itself fails, a recovery screen lets you save a copy of the project to a file, undo the last change, or reload. Autosave pauses while it shows, so the last good save is kept; the copy you save to a file has everything up to the moment it failed.
+If part of the interface fails, that panel says so and offers **Try again** while the rest keeps working. If the editor itself fails, a recovery screen lets you save a copy of the design to a file, undo the last change, or reload. Autosave pauses while it shows, so the last good save is kept; the copy you save to a file has everything up to the moment it failed.
 
-**Save to file…** (in Projects) is the way to keep a portable copy or move a project to another browser; files include their images.
+**Save to file…** (in Designs) is the way to keep a portable copy or move a design to another browser; files include their images.
 
 ## Starting StyleCode for client work
 
@@ -125,4 +125,4 @@ Inside it, `companies` holds one folder per client, named by the client's id:
 
 ## Large documents
 
-StyleCode stays responsive with thousands of layers: a 5,000-layer document (ten pages of cards) opens in a second or two, and dragging, editing and panning keep up with the pointer. Pages scrolled out of view aren't drawn, the layer list only draws the rows in view, and edits only re-lay out the frames they affect. If a very large document feels slow, splitting it into several projects helps more than anything else.
+StyleCode stays responsive with thousands of layers: a 5,000-layer document (ten pages of cards) opens in a second or two, and dragging, editing and panning keep up with the pointer. Pages scrolled out of view aren't drawn, the layer list only draws the rows in view, and edits only re-lay out the frames they affect. If a very large document feels slow, splitting it into several designs helps more than anything else.

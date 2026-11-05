@@ -29,10 +29,10 @@ test('a damaged project is skipped on start-up and its data can still be downloa
   await expect(page.locator('.notice')).toContainText('“Damaged project” couldn’t be opened');
   expect((await snapshot(page)).doc.id).not.toBe('doc_damaged');
 
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: /All projects/ }).click();
-  const dialog = page.getByRole('dialog', { name: 'Projects' });
-  await expect(dialog).toContainText('Can’t be opened: The project has no layers.');
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: /All designs/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Designs' });
+  await expect(dialog).toContainText('Can’t be opened: The design has no layers.');
   // Use the download fallback rather than the system save dialog.
   await page.evaluate(() => delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker);
   const [download] = await Promise.all([
@@ -63,7 +63,7 @@ test('a failed save says so, offers ways out, and saves when tried again', async
   });
   await saveStatus(page).click();
   await expect(page.getByRole('menuitem', { name: 'Save to file…' })).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Free up space in Projects…' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Free up space in Designs…' })).toBeVisible();
   await page.getByRole('menuitem', { name: 'Try saving again' }).click();
   await expect(saveStatus(page)).toHaveText('Saved on this device');
 });

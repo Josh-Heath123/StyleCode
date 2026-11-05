@@ -11,8 +11,8 @@ import { findByName, selected, snapshot } from './helpers';
 async function openExample(page: Page): Promise<void> {
   await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New example project' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New example design' }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBeGreaterThan(10);
 }
 
@@ -50,8 +50,8 @@ test.describe('accessibility checks', () => {
     await scan(page, 'Keyboard shortcuts');
     await page.keyboard.press('Escape');
 
-    await page.getByRole('button', { name: 'Projects' }).click();
-    await page.getByRole('menuitem', { name: /All projects/ }).click();
+    await page.getByRole('button', { name: 'Designs' }).click();
+    await page.getByRole('menuitem', { name: /All designs/ }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await scan(page, 'Projects');
     await page.keyboard.press('Escape');

@@ -70,7 +70,7 @@ test('edits properties from the panel as single undo steps', async ({ page }) =>
 
 test('keeps the project after a reload', async ({ page }) => {
   await draw(page, 'r', [420, 300], [560, 400]);
-  const name = page.getByLabel('Project name');
+  const name = page.getByLabel('Design name');
   await name.fill('Reload check');
   await name.press('Enter');
   await expect(page.locator('.save-status')).toHaveText('Saved on this device');

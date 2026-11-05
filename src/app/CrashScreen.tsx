@@ -46,7 +46,7 @@ export function CrashScreen({
 
   const saveCopy = async () => {
     try {
-      if (await session.exportToFile()) setMessage('Saved. You can open the file from Projects → Open project file.');
+      if (await session.exportToFile()) setMessage('Saved. You can open the file from Designs → Open design file.');
     } catch (e) {
       setMessage(`Couldn’t save a copy: ${(e as Error).message}`);
     }

@@ -35,7 +35,7 @@ Under the hood, one design document is the single source of truth. Every edit (y
 - **Editor polish**: equal-spacing guides, centring between neighbours, distances with <kbd>Alt</kbd>, and corners rounded one at a time.
 - **Onboarding**: a welcome screen, a getting-started checklist that ticks itself off, empty states that say what to do, and every shortcut behind <kbd>?</kbd>.
 - **Accessibility**: the layer tree, the canvas selection, properties, menus and dialogs all work from the keyboard; screen readers hear the selection and messages; text meets WCAG AA contrast; axe checks the whole interface in the browser tests.
-- **Recovery**: failed saves retry and offer ways out, closing with unsaved changes asks first, damaged projects are skipped (and their data can still be downloaded), a broken panel doesn't take the editor down, and a recovery screen keeps work reachable if the editor fails. A model that stops answering is given up on with a message.
+- **Recovery**: failed saves retry and offer ways out, closing with unsaved changes asks first, damaged designs are skipped (and their data can still be downloaded), a broken panel doesn't take the editor down, and a recovery screen keeps work reachable if the editor fails. A model that stops answering is given up on with a message.
 - **Performance**: a 5,000-layer document opens in a second or two and stays responsive while dragging, editing and panning. Pages out of view aren't drawn, and budgets in the tests catch regressions.
 - **Presentation**: a [guide](docs/GUIDE.md), a [contribution guide](CONTRIBUTING.md), these demo recordings, continuous integration, and a documentation site with a live demo on GitHub Pages.
 
@@ -55,7 +55,7 @@ Earlier phases built the rest:
 - **Drawing**: frames, rectangles, ellipses, text and images, nested in frames; select, marquee, move, resize, rotate; smart guides; semantic roles; shadows, gradients and background blur; ready-made **blocks** in light or dark.
 - **Panels**: layers (rename, hide, lock, drag to reorder or re-parent), properties (position, size and sizing, layout, role, appearance, typography, image fit, frame presets, align and distribute) and insert.
 - Group/ungroup, duplicate, copy/paste, z-order, context menu, keyboard shortcuts, and undo/redo for everything. Pan and zoom with mouse, trackpad or touch.
-- Projects autosave in your browser; save to and open from `.stylecode.json` files (images included).
+- Designs autosave in your browser; save to and open from `.stylecode.json` files (images included).
 
 ## Getting started
 
@@ -70,7 +70,7 @@ npm start
 
 `npm start` builds StyleCode the first time (and after each update), then serves it on this computer and prints the address, usually <http://localhost:4173>. Keep the terminal open while you work; closing it, or pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>, stops StyleCode. This is the way to run it for client work: client data goes in the `StyleCode Data` folder in your home folder (see [Where client data lives](docs/GUIDE.md#where-client-data-lives)).
 
-Open the address. The welcome screen offers the example project and a short getting-started checklist. You can also choose **Projects → New example project** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
+Open the address. The welcome screen offers the example design and a short getting-started checklist. You can also choose **Designs → New example design** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
 
 To work on StyleCode itself, use `npm run dev` (<http://localhost:5173>). It keeps workspace data in a separate folder, `StyleCode Data (development)`, so development never touches client data. `npm start`, `npm run dev` and `npm run preview` all include StyleCode's small local AI and workspace servers. Serving the `dist` folder some other way works too, without them.
 
@@ -88,7 +88,7 @@ In **AI settings**, choose **Ollama** and press **Test connection**: it lists yo
 
 **OpenAI-compatible or Anthropic (your own key).** Choose the provider, pick a preset or enter the API address, paste your key, then **Test connection** to choose a model. Local servers such as LM Studio need no key.
 
-**Where keys go.** The key is sent once to StyleCode's local server and saved in `~/.stylecode/ai.json` (set `STYLECODE_AI_CONFIG` to use another file). On macOS and Linux the file is readable only by you; on Windows it relies on your home folder's default Windows permissions. It is never sent back to the browser, stored in the browser, or written into the project, and it is only ever sent to the API address it was saved with: change the address and you'll be asked for the key again. You can also leave the key out of the settings and set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in the environment you start StyleCode from; that key is sent to whichever address you save for that provider.
+**Where keys go.** The key is sent once to StyleCode's local server and saved in `~/.stylecode/ai.json` (set `STYLECODE_AI_CONFIG` to use another file). On macOS and Linux the file is readable only by you; on Windows it relies on your home folder's default Windows permissions. It is never sent back to the browser, stored in the browser, or written into the design, and it is only ever sent to the API address it was saved with: change the address and you'll be asked for the key again. You can also leave the key out of the settings and set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in the environment you start StyleCode from; that key is sent to whichever address you save for that provider.
 
 **Using it.** Select what you want to change and press <kbd>/</kbd>, or click a suggestion. The AI sees the screen you are working on (as a compact list of layers, not a picture) and may change only what you selected, plus new layers inside or next to it. Lock a layer to protect it. While a proposal is on the canvas you can select, pan, zoom and look at its properties and code, but edits wait until you accept or reject it.
 
@@ -151,9 +151,9 @@ Layouts in auto layout export as flexbox or CSS grid and adapt to smaller screen
 
 ## Your data
 
-Projects are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Projects → Save to file…** to keep a portable copy or move a project between browsers (the images used in the project are embedded in the file), and **Open project file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored projects, so save important work to a file. Code export and the preview also run entirely on your machine.
+Designs are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Designs → Save to file…** to keep a portable copy or move a design between browsers (the images used in the design are embedded in the file), and **Open design file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored designs, so save important work to a file. Code export and the preview also run entirely on your machine.
 
-If saving fails (usually because the browser's storage is full), the save status in the top bar turns red and offers to try again, save to a file or free up space, and StyleCode asks before you close the page with unsaved changes. A project whose stored data is damaged is skipped rather than opened half-broken, and its data can still be downloaded from Projects. See [Saving and getting work back](docs/GUIDE.md#saving-and-getting-work-back).
+If saving fails (usually because the browser's storage is full), the save status in the top bar turns red and offers to try again, save to a file or free up space, and StyleCode asks before you close the page with unsaved changes. A design whose stored data is damaged is skipped rather than opened half-broken, and its data can still be downloaded from Designs. See [Saving and getting work back](docs/GUIDE.md#saving-and-getting-work-back).
 
 With AI on, each request sends a text description of the screen you are working on (layer names, text and properties, and your notes on it, but not images) to the provider you chose. With Ollama on your own computer, nothing leaves it. AI settings and keys are kept in `~/.stylecode/ai.json`, not in the browser.
 

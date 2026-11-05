@@ -64,19 +64,19 @@ export function TopBar({
   };
 
   const projectEntries = (): MenuEntry[] => [
-    { label: 'New project', onSelect: () => run(async () => onCameraRestore(await session.newProject())) },
-    { label: 'New example project', onSelect: () => run(async () => onCameraRestore(await session.newExampleProject())) },
-    { label: 'All projects…', onSelect: onOpenProjects },
+    { label: 'New design', onSelect: () => run(async () => onCameraRestore(await session.newProject())) },
+    { label: 'New example design', onSelect: () => run(async () => onCameraRestore(await session.newExampleProject())) },
+    { label: 'All designs…', onSelect: onOpenProjects },
     { kind: 'separator' },
     {
-      label: 'Open project file…',
+      label: 'Open design file…',
       onSelect: () =>
         run(async () => {
           const result = await session.importFromFile();
           if (!result) return;
           onCameraRestore(result.camera);
           editor.notify(
-            result.warnings ? `Opened with ${result.warnings} repair(s): some invalid values were reset.` : 'Project opened.',
+            result.warnings ? `Opened with ${result.warnings} repair(s): some invalid values were reset.` : 'Design opened.',
             result.warnings ? 'error' : 'info',
           );
         }),
@@ -86,14 +86,14 @@ export function TopBar({
 
   const saveToFile = () =>
     run(async () => {
-      if (await session.exportToFile()) editor.notify('Project saved to file.');
+      if (await session.exportToFile()) editor.notify('Design saved to file.');
     });
 
   const saveProblemEntries = (canRetry: boolean): MenuEntry[] => [
     { kind: 'header', label: canRetry ? 'Your latest changes aren’t saved yet' : 'This browser isn’t letting StyleCode save' },
     ...(canRetry ? [{ label: 'Try saving again', onSelect: () => void session.retry() }] : []),
     { label: 'Save to file…', onSelect: saveToFile },
-    ...(canRetry ? [{ label: 'Free up space in Projects…', onSelect: onOpenProjects }] : []),
+    ...(canRetry ? [{ label: 'Free up space in Designs…', onSelect: onOpenProjects }] : []),
   ];
 
   const exportEntries = (): MenuEntry[] => [
@@ -173,13 +173,13 @@ export function TopBar({
       </div>
       {nav}
       {nav && <span className="topbar-divider" />}
-      <MenuButton label="Projects" entries={projectEntries} className="text-button" minWidth={220}>
-        <Icon name="folder" size={14} /> Projects
+      <MenuButton label="Designs" entries={projectEntries} className="text-button" minWidth={220}>
+        <Icon name="folder" size={14} /> Designs
       </MenuButton>
       <span className="topbar-divider" />
       <input
         className="project-name"
-        aria-label="Project name"
+        aria-label="Design name"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commitName}

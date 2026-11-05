@@ -9,7 +9,7 @@ test('a new visitor is welcomed, and the checklist follows what they do', async 
   await page.goto('/#/editor');
   const welcome = page.getByRole('dialog', { name: 'Welcome to StyleCode' });
   await expect(welcome).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Open the example project' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Open the example design' })).toBeFocused();
 
   await page.getByRole('button', { name: 'Start with a blank canvas' }).click();
   await expect(welcome).toBeHidden();
@@ -41,9 +41,9 @@ test('a new visitor is welcomed, and the checklist follows what they do', async 
   await expect(checklist).toContainText('2 of 6');
 });
 
-test('the welcome screen can open the example project', async ({ page }) => {
+test('the welcome screen can open the example design', async ({ page }) => {
   await page.goto('/#/editor');
-  await page.getByRole('button', { name: 'Open the example project' }).click();
+  await page.getByRole('button', { name: 'Open the example design' }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBeGreaterThan(10);
   await expect(page.getByRole('region', { name: 'Getting started' })).toBeVisible();
 });

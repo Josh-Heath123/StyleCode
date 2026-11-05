@@ -28,7 +28,7 @@ export function exportProjectFile(
 ): Promise<boolean> {
   return saveFile(
     fileNameFor(doc.name),
-    { description: 'StyleCode project', mime: 'application/json', extension: '.json' },
+    { description: 'StyleCode design', mime: 'application/json', extension: '.json' },
     async () => new Blob([JSON.stringify(toProjectFile(doc, await gatherAssets()), null, 2)], { type: 'application/json' }),
   );
 }
