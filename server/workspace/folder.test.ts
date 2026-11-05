@@ -1,6 +1,8 @@
+import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   claimDataFolder,
@@ -142,11 +144,75 @@ describe('one StyleCode per data folder', () => {
     expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(222);
   });
 
+  it('takes over a lock written before the computer last started, even if its process number is in use now', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    const bootedAt = Date.parse('2026-11-05T08:00:00.000Z');
+    writeFileSync(join(folder, LOCK_FILE), JSON.stringify({ pid: 111, startedAt: '2026-11-04T17:00:00.000Z' }));
+    claimDataFolder(folder, 222, () => true, bootedAt);
+    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(222);
+    // One written since then still counts while its process runs.
+    expect(() => claimDataFolder(folder, 333, () => true, bootedAt)).toThrow(/already running .*process 222/);
+  });
+
   it('takes over a lock file it cannot read', () => {
     const folder = join(base, 'data');
     mkdirSync(folder);
     writeFileSync(join(folder, LOCK_FILE), 'not json');
     claimDataFolder(folder, 333, () => true);
     expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(333);
+  });
+});
+
+/**
+ * A real StyleCode process: claims `folder` (twice, as a dev-server restart
+ * does), reports how many SIGINT listeners it has, then waits to be stopped.
+ */
+function lockingProcess(folder: string) {
+  const module = pathToFileURL(join(import.meta.dirname, 'folder.ts')).href;
+  const script = `
+    const { claimDataFolder } = await import(${JSON.stringify(module)});
+    claimDataFolder(process.argv[1]);
+    await import(${JSON.stringify(module)} + '?again');
+    claimDataFolder(process.argv[1]);
+    console.log('ready ' + process.listenerCount('SIGINT'));
+    setInterval(() => {}, 1000);
+  `;
+  const child = spawn(
+    process.execPath,
+    ['--experimental-strip-types', '--disable-warning=ExperimentalWarning', '--input-type=module', '-e', script, folder],
+    { stdio: ['ignore', 'pipe', 'inherit'] },
+  );
+  const ready = new Promise<number>((resolve, reject) => {
+    child.stdout.on('data', (chunk: Buffer) => {
+      const match = /ready (\d+)/.exec(chunk.toString());
+      if (match) resolve(Number(match[1]));
+    });
+    child.once('exit', (code) => reject(new Error(`exited early (${code})`)));
+  });
+  const exited = new Promise<number | null>((resolve) => child.once('exit', (code) => resolve(code)));
+  return { child, ready, exited };
+}
+
+describe('the lock is released when StyleCode stops', () => {
+  it('registers its signal handlers once, however often the folder is claimed', async () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    const { child, ready, exited } = lockingProcess(folder);
+    expect(await ready).toBe(1);
+    expect(existsSync(join(folder, LOCK_FILE))).toBe(true);
+    child.kill();
+    await exited;
+  });
+
+  // On Windows, kill() ends a process without running its signal handlers, so this runs in CI on Linux.
+  it.skipIf(process.platform === 'win32')('removes the lock on Ctrl+C (SIGINT)', async () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    const { child, ready, exited } = lockingProcess(folder);
+    await ready;
+    child.kill('SIGINT');
+    expect(await exited).toBe(130);
+    expect(existsSync(join(folder, LOCK_FILE))).toBe(false);
   });
 });
