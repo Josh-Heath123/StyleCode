@@ -9,6 +9,7 @@ import {
   type CompanyWorkspace,
   type Evidence,
   type FactQuote,
+  type FileRef,
   type Finding,
   type FindingChange,
   type FindingKind,
@@ -183,38 +184,47 @@ export function removeFindings(ws: CompanyWorkspace, findingIds: readonly string
   return { ...ws, findings, relations, knowledge };
 }
 
-/** What deleting a session's transcript did, so the consultant can review what is left (CONSENT.md, rule C8). */
-export interface TranscriptRemoval {
+/**
+ * What removing a transcript, a session or an engagement did, so the
+ * consultant can be shown what goes and review what is left.
+ */
+export interface Removal {
   workspace: CompanyWorkspace;
-  /** Findings removed because nothing they rested on is left. */
+  /** Findings removed: nothing they rested on is left, or their engagement went. */
   removedFindingIds: string[];
-  /** Findings that rested partly on the transcript and keep their statement. */
+  /** Findings that rested partly on what was removed and keep their statement. */
   keptFindingIds: string[];
-  /** Company facts that keep a statement from the session: their quotes from it were removed, or their source cited it. */
+  /**
+   * Company facts affected. After a transcript is deleted: facts that keep a
+   * statement from the session (their quotes from it were removed, or their
+   * source cited it). After a session or an engagement is deleted: facts
+   * whose source finding was removed, now marked "source deleted".
+   */
   factIds: string[];
+  /** File entries removed with the session or engagement (their bytes are deleted when the save is written). */
+  removedFileIds: string[];
 }
 
+/** What deleting a session's transcript did (CONSENT.md, rule C8). */
+export type TranscriptRemoval = Omit<Removal, 'removedFileIds'>;
+
 /**
- * Deletes a session's transcript and every copy of its words, for example
- * after the client withdraws consent and asks for it to be deleted (CONSENT.md,
- * rule C8, decision 2). Each cited segment becomes deleted evidence, in the
- * finding, in what the AI proposed and in its history, so no quoted words are
- * left. A finding is removed when nothing it rests on is left, or when it was
- * said in a session and no transcript segment is left. Company facts lose
- * their quotes from the session and keep their statement. The consent record
- * stays, with its withdrawal.
+ * Removes passages of one session (transcript segments and notes) from every
+ * finding. Each cited passage becomes deleted evidence, in the finding, in
+ * what the AI proposed and in its history, so none of its words are left. A
+ * finding is removed when nothing it rested on is left, or when it was said
+ * in a session and no transcript segment is left.
  */
-export function removeTranscript(ws: CompanyWorkspace, sessionId: string, at: Timestamp): Result<TranscriptRemoval> {
-  const transcript = Object.values(ws.transcripts).find((t) => t.sessionId === sessionId);
-  if (!transcript) return fail('This session has no transcript.');
-  const gone = new Set(
-    Object.values(ws.segments)
-      .filter((s) => s.transcriptId === transcript.id)
-      .map((s) => s.id),
-  );
-  const cites = (list: Evidence[]) => list.some((e) => e.kind === 'segment' && gone.has(e.segmentId));
+function scrubPassages(
+  ws: CompanyWorkspace,
+  sessionId: string,
+  gone: ReadonlySet<string>,
+  at: Timestamp,
+): { workspace: CompanyWorkspace; touched: string[]; removed: string[] } {
+  const isGone = (e: Evidence) => (e.kind === 'segment' && gone.has(e.segmentId)) || (e.kind === 'note' && gone.has(e.noteId));
+  const cites = (list: Evidence[]) => list.some(isGone);
   const scrub = (list: Evidence[]): Evidence[] =>
-    list.map((e) => (e.kind === 'segment' && gone.has(e.segmentId) ? { kind: 'deleted', sessionId, deletedAt: at } : e));
+    list.map((e) => (isGone(e) ? { kind: 'deleted', sessionId, deletedAt: at } : e));
 
   const findings: Record<string, Finding> = {};
   const touched: string[] = [];
@@ -242,25 +252,145 @@ export function removeTranscript(ws: CompanyWorkspace, sessionId: string, at: Ti
     if (lostItsBasis) removed.push(id);
     findings[id] = { ...f, evidence, origin, history, updatedAt: at };
   }
+  return { workspace: { ...ws, findings }, touched, removed };
+}
 
-  const segments = Object.fromEntries(Object.entries(ws.segments).filter(([id]) => !gone.has(id)));
-  const transcripts = Object.fromEntries(Object.entries(ws.transcripts).filter(([id]) => id !== transcript.id));
+const without = <T>(map: Record<string, T>, drop: (value: T, id: string) => boolean): Record<string, T> =>
+  Object.fromEntries(Object.entries(map).filter(([id, value]) => !drop(value, id)));
+
+/**
+ * Deletes a session's transcript and every copy of its words, for example
+ * after the client withdraws consent and asks for it to be deleted (CONSENT.md,
+ * rule C8, decision 2). Cited segments become deleted evidence, as
+ * `scrubPassages` describes. Company facts lose their quotes from the session
+ * and keep their statement. The consent record stays, with its withdrawal.
+ */
+export function removeTranscript(ws: CompanyWorkspace, sessionId: string, at: Timestamp): Result<TranscriptRemoval> {
+  const transcript = Object.values(ws.transcripts).find((t) => t.sessionId === sessionId);
+  if (!transcript) return fail('This session has no transcript.');
+  const gone = new Set(
+    Object.values(ws.segments)
+      .filter((s) => s.transcriptId === transcript.id)
+      .map((s) => s.id),
+  );
+  const scrubbed = scrubPassages(ws, sessionId, gone, at);
   const factIds: string[] = [];
   const knowledge = Object.fromEntries(
     Object.entries(ws.knowledge).map(([id, fact]) => {
       if (!fact.source) return [id, fact];
       const quotes = fact.source.quotes.filter((q) => q.sessionId !== sessionId);
-      const fromHere = quotes.length !== fact.source.quotes.length || touched.includes(fact.source.findingId ?? '');
+      const fromHere = quotes.length !== fact.source.quotes.length || scrubbed.touched.includes(fact.source.findingId ?? '');
       if (fromHere) factIds.push(id);
       return [id, quotes.length === fact.source.quotes.length ? fact : { ...fact, source: { ...fact.source, quotes } }];
     }),
   );
-
-  const workspace = removeFindings({ ...ws, transcripts, segments, findings, knowledge }, removed, at);
+  const workspace = removeFindings(
+    {
+      ...scrubbed.workspace,
+      transcripts: without(ws.transcripts, (t) => t.id === transcript.id),
+      segments: without(ws.segments, (_, id) => gone.has(id)),
+      knowledge,
+    },
+    scrubbed.removed,
+    at,
+  );
   return ok({
     workspace,
-    removedFindingIds: removed,
-    keptFindingIds: touched.filter((id) => !removed.includes(id)),
+    removedFindingIds: scrubbed.removed,
+    keptFindingIds: scrubbed.touched.filter((id) => !scrubbed.removed.includes(id)),
     factIds,
   });
+}
+
+/** Facts whose source finding is among `findingIds` and still linked. */
+const factsFrom = (ws: CompanyWorkspace, findingIds: readonly string[]) =>
+  Object.values(ws.knowledge)
+    .filter((f) => f.source?.findingId != null && findingIds.includes(f.source.findingId))
+    .map((f) => f.id);
+
+/**
+ * Deletes a session (MVP 2.3; DOMAIN-MODEL.md, decision 4): its participants,
+ * consent record, transcript, segments, notes and files. Findings whose only
+ * evidence is in the session go with it; a finding with evidence from other
+ * sessions too keeps that, and the session's passages become deleted evidence
+ * (`scrubPassages`), so no copy of its words is left in a finding. Company
+ * facts promoted from a removed finding stay, marked "source deleted", with
+ * their copied quotes.
+ */
+export function removeSession(ws: CompanyWorkspace, sessionId: string, at: Timestamp): Result<Removal> {
+  if (!get(ws.sessions, sessionId)) return fail('The session does not exist.');
+  const transcriptIds = new Set(
+    Object.values(ws.transcripts)
+      .filter((t) => t.sessionId === sessionId)
+      .map((t) => t.id),
+  );
+  const segmentIds = Object.values(ws.segments)
+    .filter((s) => transcriptIds.has(s.transcriptId))
+    .map((s) => s.id);
+  const noteIds = Object.values(ws.notes)
+    .filter((n) => n.sessionId === sessionId)
+    .map((n) => n.id);
+  const scrubbed = scrubPassages(ws, sessionId, new Set([...segmentIds, ...noteIds]), at);
+  const factIds = factsFrom(ws, scrubbed.removed);
+  const ownsFile = (f: FileRef) => f.owner.kind === 'session' && f.owner.sessionId === sessionId;
+  const removedFileIds = Object.values(ws.files)
+    .filter(ownsFile)
+    .map((f) => f.id);
+  const workspace = removeFindings(
+    {
+      ...scrubbed.workspace,
+      sessions: without(ws.sessions, (_, id) => id === sessionId),
+      participants: without(ws.participants, (p) => p.sessionId === sessionId),
+      consents: without(ws.consents, (c) => c.sessionId === sessionId),
+      transcripts: without(ws.transcripts, (_, id) => transcriptIds.has(id)),
+      segments: without(ws.segments, (s) => transcriptIds.has(s.transcriptId)),
+      notes: without(ws.notes, (n) => n.sessionId === sessionId),
+      files: without(ws.files, ownsFile),
+    },
+    scrubbed.removed,
+    at,
+  );
+  return ok({
+    workspace,
+    removedFindingIds: scrubbed.removed,
+    keptFindingIds: scrubbed.touched.filter((id) => !scrubbed.removed.includes(id)),
+    factIds,
+    removedFileIds,
+  });
+}
+
+/**
+ * Deletes an engagement and everything in it: its findings and their links,
+ * its sessions (as `removeSession` does), its design links and its files.
+ * Company facts promoted from its findings stay, marked "source deleted"
+ * (decision 4).
+ */
+export function removeEngagement(ws: CompanyWorkspace, engagementId: string, at: Timestamp): Result<Removal> {
+  if (!get(ws.engagements, engagementId)) return fail('The engagement does not exist.');
+  const findingIds = Object.values(ws.findings)
+    .filter((f) => f.engagementId === engagementId)
+    .map((f) => f.id);
+  const factIds = factsFrom(ws, findingIds);
+  let next = removeFindings(ws, findingIds, at);
+  const removedFileIds: string[] = [];
+  for (const session of Object.values(ws.sessions)) {
+    if (session.engagementId !== engagementId) continue;
+    const removal = removeSession(next, session.id, at);
+    if (!removal.ok) return removal;
+    next = removal.value.workspace;
+    removedFileIds.push(...removal.value.removedFileIds);
+  }
+  const ownsFile = (f: FileRef) => f.owner.kind === 'engagement' && f.owner.engagementId === engagementId;
+  removedFileIds.push(
+    ...Object.values(next.files)
+      .filter(ownsFile)
+      .map((f) => f.id),
+  );
+  const workspace: CompanyWorkspace = {
+    ...next,
+    engagements: without(next.engagements, (_, id) => id === engagementId),
+    designs: without(next.designs, (d) => d.engagementId === engagementId),
+    files: without(next.files, ownsFile),
+  };
+  return ok({ workspace, removedFindingIds: findingIds, keptFindingIds: [], factIds, removedFileIds });
 }

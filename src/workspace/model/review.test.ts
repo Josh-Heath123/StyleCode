@@ -14,6 +14,12 @@ import { checkBeforeSave, createWorkspace, parseWorkspace } from './workspace';
 const codes = (ws: CompanyWorkspace) => validateWorkspace(ws).map((p) => p.code);
 const LATER = '2026-11-04T12:00:00.000Z';
 
+/** The client was also told about external AI by this provider (decision 2). */
+function toldAbout(ws: CompanyWorkspace, provider: string): CompanyWorkspace {
+  ws.consents.cr_1.told = { ...ws.consents.cr_1.told, processingExternal: true, externalProvider: provider };
+  return ws;
+}
+
 function withFact(): CompanyWorkspace {
   const ws = sampleWorkspace();
   const fact = promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3);
@@ -30,7 +36,7 @@ describe('1: consent amendments are validated like the record', () => {
   };
 
   it('refuses external AI turned on without a named provider', () => {
-    const ws = sampleWorkspace();
+    const ws = toldAbout(sampleWorkspace(), 'Anthropic');
     amend(ws, { given: { aiExternal: true } });
     expect(codes(ws)).toEqual(['consent.provider']);
     const refused = amendConsent(consentRecord(), {
@@ -69,7 +75,7 @@ describe('1: consent amendments are validated like the record', () => {
   });
 
   it('drops the provider when external AI is turned off', () => {
-    const ws = sampleWorkspace();
+    const ws = toldAbout(sampleWorkspace(), 'Anthropic');
     ws.consents.cr_1.given = { ...ws.consents.cr_1.given, aiExternal: true, externalProvider: 'Anthropic' };
     amend(ws, { given: { aiExternal: false } });
     expect(codes(ws)).toEqual([]);
@@ -77,7 +83,7 @@ describe('1: consent amendments are validated like the record', () => {
   });
 
   it('never reports external AI without a provider for a valid record', () => {
-    const ws = sampleWorkspace();
+    const ws = toldAbout(sampleWorkspace(), 'Anthropic');
     amend(ws, { given: { aiExternal: true, externalProvider: 'Anthropic' } });
     expect(codes(ws)).toEqual([]);
     expect(aiPermission(ws, 'se_1')).toEqual({ local: true, external: true, externalProvider: 'Anthropic' });
@@ -102,7 +108,7 @@ describe('2: AI proposals need consent to AI processing', () => {
   });
 
   it('refuses local processing when only an external provider was agreed (WP5, rule C6)', () => {
-    const ws = sampleWorkspace();
+    const ws = toldAbout(sampleWorkspace(), 'Anthropic');
     ws.consents.cr_1.given = { ...ws.consents.cr_1.given, aiLocal: false, aiExternal: true, externalProvider: 'Anthropic' };
     expect(codes(ws)).toEqual(['finding.aiConsent', 'finding.aiConsent']);
   });

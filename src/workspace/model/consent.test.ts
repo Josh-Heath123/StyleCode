@@ -18,9 +18,11 @@ describe('C2: the client was told about everything they agreed to', () => {
       recorded: false,
       transcribed: true,
       aiExtraction: false,
-      processingLocation: true,
+      processingLocal: true,
+      processingExternal: false,
       retention: false,
       canStopOrDelete: false,
+      externalProvider: null,
     };
     const record = consentRecord({ told });
     expect(missingStatements(record)).toEqual(['aiExtraction', 'canStopOrDelete']);
@@ -41,9 +43,11 @@ describe('C2: the client was told about everything they agreed to', () => {
       recorded: false,
       transcribed: false,
       aiExtraction: false,
-      processingLocation: false,
+      processingLocal: false,
+      processingExternal: false,
       retention: false,
       canStopOrDelete: false,
+      externalProvider: null,
     };
     const none = { audioRecording: false, transcription: false, aiLocal: false, aiExternal: false, externalProvider: null };
     expect(missingStatements(consentRecord({ told, given: none, outcome: { kind: 'declined' } }))).toEqual([]);
