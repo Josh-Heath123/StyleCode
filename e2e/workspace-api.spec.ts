@@ -1,17 +1,13 @@
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { expect, test, type APIRequestContext } from '@playwright/test';
-import { requireTestWorkspace } from './workspaceFolder';
 
 /**
  * The workspace API as the browser meets it. These tests write to the dev
- * server's data folder, so they first make sure it is the temporary one from
- * playwright.config.ts, and refuse to run otherwise (a dev server already
- * running on port 5174 with real data, for example).
+ * server's data folder; the setup project (e2e/workspace-folder.setup.ts) has
+ * already made sure it is the temporary one from playwright.config.ts.
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
-
-test.beforeAll(async ({ request }) => requireTestWorkspace(request));
 
 async function newCompany(request: APIRequestContext, name: string): Promise<string> {
   const res = await request.post('/api/workspace/companies', {

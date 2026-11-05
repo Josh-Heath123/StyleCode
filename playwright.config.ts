@@ -25,7 +25,15 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } }],
+  projects: [
+    // Checks the server's data folder before anything else runs (e2e/workspace-folder.setup.ts).
+    { name: 'workspace folder', testMatch: /\.setup\.ts$/ },
+    {
+      name: 'chromium',
+      dependencies: ['workspace folder'],
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
+  ],
   webServer: {
     command: 'npm run dev -- --port 5174 --strictPort',
     url: 'http://localhost:5174',

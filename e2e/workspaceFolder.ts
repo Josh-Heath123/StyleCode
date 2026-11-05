@@ -10,7 +10,7 @@ import { join } from 'node:path';
 export const E2E_WORKSPACE = join(tmpdir(), 'stylecode-e2e', 'workspace');
 
 /**
- * Every browser test that writes workspace data calls this first: it stops
+ * The setup project (workspace-folder.setup.ts) calls this before any test: it stops
  * the test unless the server's data folder is the temporary test folder (a
  * dev server already running on port 5174 with real data, say).
  */
