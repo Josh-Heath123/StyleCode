@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { Canvas } from '../canvas/Canvas';
 import type { Camera } from '../editor/camera';
 import type { Editor } from '../editor/editor';
@@ -31,9 +31,11 @@ interface AppProps {
   assistant: Assistant;
   session: ProjectSession;
   initialCamera: Camera | null;
+  /** Navigation between the workspace and the editor, shown in the top bar. */
+  nav?: ReactNode;
 }
 
-export function App({ editor, assistant, session, initialCamera }: AppProps) {
+export function App({ editor, assistant, session, initialCamera, nav }: AppProps) {
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'design' | 'code'>('design');
@@ -91,6 +93,7 @@ export function App({ editor, assistant, session, initialCamera }: AppProps) {
       <AssistantContext.Provider value={assistant}>
         <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}`}>
           <TopBar
+            nav={nav}
             session={session}
             onOpenProjects={() => setProjectsOpen(true)}
             onCameraRestore={restoreCamera}

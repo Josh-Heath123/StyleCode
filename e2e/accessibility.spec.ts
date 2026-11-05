@@ -9,7 +9,7 @@ import { findByName, selected, snapshot } from './helpers';
  */
 
 async function openExample(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
   await page.getByRole('button', { name: 'Projects' }).click();
   await page.getByRole('menuitem', { name: 'New example project' }).click();
@@ -84,6 +84,41 @@ test.describe('accessibility checks', () => {
     await page.getByRole('button', { name: 'Start with a blank canvas' }).click();
     await expect(page.getByRole('region', { name: 'Getting started' })).toBeVisible();
     await scan(page, 'Checklist');
+  });
+});
+
+test.describe('the workspace pages', () => {
+  test('the clients list, the new client dialog, a client and settings', async ({ page }) => {
+    const name = `Accessible Bakery ${Math.random().toString(36).slice(2, 8)}`;
+    const res = await page.request.post('/api/workspace/companies', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { profile: { name, industry: 'Food retail' } },
+    });
+    const id = ((await res.json()) as { workspace: { company: { id: string } } }).workspace.company.id;
+
+    await page.goto('/');
+    await page.getByRole('link', { name: new RegExp(name) }).waitFor();
+    await scan(page, 'The clients list');
+
+    // From the keyboard: the New client button opens its dialog, which keeps focus and gives it back.
+    const add = page.getByRole('button', { name: 'New client' });
+    await add.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'New client' });
+    await expect(dialog.getByLabel('Name')).toBeFocused();
+    await scan(page, 'New client');
+    for (let i = 0; i < 6; i++) await page.keyboard.press('Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(add).toBeFocused();
+
+    await page.goto(`/#/c/${id}`);
+    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+    await scan(page, 'A client');
+
+    await page.goto('/#/settings');
+    await expect(page.getByRole('heading', { name: 'Where client data is kept' })).toBeVisible();
+    await scan(page, 'Settings');
   });
 });
 

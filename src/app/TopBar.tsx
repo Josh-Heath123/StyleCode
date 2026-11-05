@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { Camera } from '../editor/camera';
 import { useEditor, useEditorState } from '../editor/react';
 import type { ProjectSession } from '../persistence/session';
@@ -11,6 +11,7 @@ import { exportZip } from './codeExport';
 import type { Onboarding } from './onboardingState';
 
 interface TopBarProps {
+  nav?: ReactNode;
   session: ProjectSession;
   onOpenProjects: () => void;
   onCameraRestore: (camera: Camera | null) => void;
@@ -31,6 +32,7 @@ const STATUS_TEXT = {
 } as const;
 
 export function TopBar({
+  nav,
   session,
   onOpenProjects,
   onCameraRestore,
@@ -169,6 +171,8 @@ export function TopBar({
         </svg>
         StyleCode
       </div>
+      {nav}
+      {nav && <span className="topbar-divider" />}
       <MenuButton label="Projects" entries={projectEntries} className="text-button" minWidth={220}>
         <Icon name="folder" size={14} /> Projects
       </MenuButton>

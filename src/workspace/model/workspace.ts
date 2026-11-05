@@ -6,7 +6,7 @@ import {
   type CompanyWorkspace,
   type Timestamp,
 } from './types.ts';
-import { createId, isNonEmptyText } from './util.ts';
+import { createId, fail, isNonEmptyText, ok, type Result } from './util.ts';
 import { validateWorkspace, type Problem } from './validate.ts';
 
 /** Prefixes for new ids, so an id says what it is when it turns up in a log or a test. */
@@ -69,6 +69,36 @@ export function isCompanyNameFree(name: string, existing: readonly string[]): bo
   if (!isNonEmptyText(name)) return false;
   const key = name.trim().toLocaleLowerCase();
   return !existing.some((other) => other.trim().toLocaleLowerCase() === key);
+}
+
+/** The company profile fields the consultant edits (MVP story 1.1). */
+export const PROFILE_FIELDS = ['name', 'industry', 'description', 'existingSystems', 'notes'] as const;
+export type ProfileField = (typeof PROFILE_FIELDS)[number];
+
+/**
+ * Changes the company's profile. The name is trimmed and can't be empty;
+ * whether another company has it is checked by the caller, against every
+ * company on disk (`isCompanyNameFree`). Returns the same workspace when
+ * nothing changes, so no empty step is recorded.
+ */
+export function editCompany(
+  ws: CompanyWorkspace,
+  changes: Partial<Record<ProfileField, string>>,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  const next = { ...ws.company };
+  let changed = false;
+  for (const field of PROFILE_FIELDS) {
+    const value = changes[field];
+    if (value === undefined) continue;
+    const text = field === 'name' ? value.trim() : value;
+    if (field === 'name' && !text) return fail('Give the company a name.');
+    if (text === next[field]) continue;
+    next[field] = text;
+    changed = true;
+  }
+  if (!changed) return ok(ws);
+  return ok({ ...ws, company: { ...next, updatedAt: at } });
 }
 
 /**

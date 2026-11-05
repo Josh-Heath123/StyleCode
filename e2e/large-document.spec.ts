@@ -10,7 +10,7 @@ import { snapshot } from './helpers';
 test.setTimeout(90_000);
 
 test('a 5,000-layer document loads, lists, scrolls and drags', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
 
   const loadMs = await page.evaluate(async () => {

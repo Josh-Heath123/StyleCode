@@ -1,6 +1,5 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './app/App';
 import { CrashScreen } from './app/CrashScreen';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { clearMeasureCache } from './canvas/measure';
@@ -10,6 +9,8 @@ import { Editor } from './editor/editor';
 import { createDocument } from './model/document';
 import { ProjectSession } from './persistence/session';
 import { loadFonts } from './styles/fonts';
+import { getWorkspaceInfo } from './workspace/api';
+import { Shell } from './workspace/ui/Shell';
 import './styles/app.css';
 
 /**
@@ -69,7 +70,8 @@ async function boot() {
 
 async function start(container: HTMLElement) {
   // Text is measured with the bundled font, so it must be ready first.
-  await loadFonts();
+  // Meanwhile, ask whether the workspace server is running (it isn't in a static build).
+  const [info] = await Promise.all([getWorkspaceInfo(), loadFonts()]);
   clearMeasureCache();
 
   const editor = new Editor(createDocument());
@@ -91,7 +93,7 @@ async function start(container: HTMLElement) {
       <ErrorBoundary
         fallback={(error, reset) => <CrashScreen error={error} editor={editor} session={session} onRecover={reset} />}
       >
-        <App editor={editor} assistant={assistant} session={session} initialCamera={camera} />
+        <Shell editor={editor} assistant={assistant} session={session} initialCamera={camera} info={info} />
       </ErrorBoundary>
     </StrictMode>,
   );

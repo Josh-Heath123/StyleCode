@@ -6,7 +6,7 @@ import { snapshot } from './helpers';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test('a new visitor is welcomed, and the checklist follows what they do', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/editor');
   const welcome = page.getByRole('dialog', { name: 'Welcome to StyleCode' });
   await expect(welcome).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open the example project' })).toBeFocused();
@@ -42,7 +42,7 @@ test('a new visitor is welcomed, and the checklist follows what they do', async 
 });
 
 test('the welcome screen can open the example project', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.getByRole('button', { name: 'Open the example project' }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBeGreaterThan(10);
   await expect(page.getByRole('region', { name: 'Getting started' })).toBeVisible();

@@ -10,7 +10,7 @@ export interface EditorSnapshot {
 }
 
 export async function openFreshProject(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
   await page.getByRole('button', { name: 'Projects' }).click();
   await page.getByRole('menuitem', { name: 'New project', exact: true }).click();

@@ -8,7 +8,7 @@ import { promoteToKnowledge, removeEngagement, removeSession } from './findings'
 import { consentRecord, sampleWorkspace, T0, T1, T2, T3 } from './fixtures';
 import type { CompanyWorkspace, ConsentAmendment, ConsentRecord, Finding } from './types';
 import { validateWorkspace } from './validate';
-import { checkBeforeSave } from './workspace';
+import { checkBeforeSave, editCompany } from './workspace';
 
 const codes = (ws: CompanyWorkspace) => validateWorkspace(ws).map((p) => p.code);
 const LATER = '2026-11-04T12:00:00.000Z';
@@ -313,5 +313,21 @@ describe('6: deleting an engagement', () => {
 
   it('refuses an engagement that does not exist', () => {
     expect(removeEngagement(sampleWorkspace(), 'en_none', LATER).ok).toBe(false);
+  });
+});
+
+describe('editing the company profile', () => {
+  it('changes the fields given, trims the name, and refuses an empty one', () => {
+    const ws = sampleWorkspace();
+    const edited = editCompany(ws, { name: '  Harbour Bakeries ', notes: 'Prefers calls after 2pm.' }, LATER);
+    if (!edited.ok) throw new Error(edited.error);
+    expect(edited.value.company).toMatchObject({ name: 'Harbour Bakeries', notes: 'Prefers calls after 2pm.', updatedAt: LATER });
+    expect(codes(edited.value)).toEqual([]);
+    expect(editCompany(ws, { name: ' ' }, LATER).ok).toBe(false);
+  });
+
+  it('returns the same workspace when nothing changes', () => {
+    const ws = sampleWorkspace();
+    expect(editCompany(ws, { name: 'Harbour Bakery', industry: 'Food retail' }, LATER)).toEqual({ ok: true, value: ws });
   });
 });

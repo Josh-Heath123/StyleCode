@@ -79,7 +79,7 @@ export const pause = (page: Page, ms: number) => page.waitForTimeout(ms);
 
 export async function exampleProject(page: Page, tidy: boolean) {
   await page.addInitScript(demoOverlay);
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
   await page.getByRole('button', { name: 'Projects' }).click();
   await page.getByRole('menuitem', { name: 'New example project' }).click();
