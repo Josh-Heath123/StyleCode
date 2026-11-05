@@ -65,19 +65,14 @@ You need [Node.js](https://nodejs.org) **22.12 or newer**.
 git clone https://github.com/Josh-Heath123/StyleCode.git
 cd StyleCode
 npm install
-npm run dev
+npm start
 ```
 
-Then open <http://localhost:5173>. The welcome screen offers the example project and a short getting-started checklist. You can also choose **Projects → New example project** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
+`npm start` builds StyleCode the first time (and after each update), then serves it on this computer and prints the address, usually <http://localhost:4173>. Keep the terminal open while you work; closing it, or pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>, stops StyleCode. This is the way to run it for client work: client data goes in the `StyleCode Data` folder in your home folder (see [Where client data lives](docs/GUIDE.md#where-client-data-lives)).
 
-For a faster, production build:
+Open the address. The welcome screen offers the example project and a short getting-started checklist. You can also choose **Projects → New example project** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
 
-```bash
-npm run build
-npm run preview    # serves the build at http://localhost:4173
-```
-
-Both `npm run dev` and `npm run preview` include StyleCode's small local AI server. Serving the `dist` folder some other way works too, without AI.
+To work on StyleCode itself, use `npm run dev` (<http://localhost:5173>). It keeps workspace data in a separate folder, `StyleCode Data (development)`, so development never touches client data. `npm start`, `npm run dev` and `npm run preview` all include StyleCode's small local AI and workspace servers. Serving the `dist` folder some other way works too, without them.
 
 ## AI (optional)
 
@@ -192,11 +187,12 @@ docs/           guide, architecture, roadmap, demo media
 
 | Script | What it does |
 | --- | --- |
-| `npm run dev` | Start the development server |
+| `npm start` | Build if needed and serve StyleCode for client work, with the real data folder |
+| `npm run dev` | Start the development server (data in `StyleCode Data (development)`) |
 | `npm run build` | Type-check and build for production |
-| `npm run preview` | Serve the production build |
+| `npm run preview` | Serve the production build (uses the real data folder, like `npm start`) |
 | `npm test` | Run the unit tests |
-| `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174, with AI settings in a temporary file) |
+| `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174, with AI settings and workspace data in temporary places) |
 | `npm run test:all` | Unit tests, then browser tests |
 | `npm run typecheck` | Type-check the app and the browser tests |
 | `npm run demos` | Re-record the demo GIFs and the screenshot (needs ffmpeg) |

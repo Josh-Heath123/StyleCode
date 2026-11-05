@@ -297,9 +297,11 @@ The routes only answer StyleCode's own page on this computer, checked on every r
 
 - the connection must come from this computer (a loopback address), even if the server was started with `--host`;
 - the `Host` must be `localhost`, `127.0.0.1` or `[::1]`, which defeats DNS rebinding;
-- an `Origin`, when there is one, must be exactly this server: Vite answers CORS preflights from other `localhost` ports, so this is the check that keeps another local web app out;
+- an `Origin`, when there is one, must be exactly this server, which keeps another local web app out (Vite's own CORS handling is turned off in `vite.config.ts`, so no response carries CORS headers and a browser lets no other site read a reply);
 - a browser's `Sec-Fetch-Site` must be `same-origin` or `none`;
 - every request carries an `x-stylecode-ai` header, so a plain form post from another page can't reach the routes at all.
+
+These checks live in `server/shared/requests.ts`, with their tests, and every local API uses them with its own header (`x-stylecode-ai` here).
 
 If the browser goes away mid-reply, the request to the provider is aborted too. A build served by some other static server has no `/api/ai`, and the assistant says so.
 
@@ -461,13 +463,21 @@ The workspace's data is described in `docs/spec/DOMAIN-MODEL.md`: one `CompanyWo
 
 The domain model is already one validated value per company, and at the sizes a consultant reaches with one client, a JSON file is fast enough, needs no dependency, and is readable with any text editor if StyleCode is ever gone. The budgets in `src/workspace/model/performance.test.ts` keep it that way. SQLite would add a second representation to keep in step, and on the user's Windows Node it brings neither stability nor search. The choice is revisited (a new ADR) when one of these holds: a real workspace takes over a second to load, search needs ranking that substring search can't give, or `node:sqlite` is stable with FTS5 on Windows. `better-sqlite3` (a native runtime dependency, with FTS5) is the fallback if that happens before Node catches up.
 
-**Writes** follow `~/.stylecode/ai.json`: one at a time, to a temporary file renamed into place, so a file is never half-written. On Windows, the rename can fail with `EPERM` or `EBUSY` while antivirus or search indexing has the file open, so it is retried a few times, with a short wait, before the save is reported as failed. Before replacing `workspace.json` the server keeps the last good copy as `workspace.previous.json`. The server refuses to save a workspace with problems (`checkBeforeSave`). Each save carries the revision it was based on; if the file has moved on (a second tab), the save is refused and the page says so, instead of "last tab wins".
+**Writes** follow `~/.stylecode/ai.json`: one at a time, to a temporary file renamed into place, so a file is never half-written. On Windows, the rename can fail with `EPERM` or `EBUSY` while antivirus or search indexing has the file open, so it is retried a few times, with a short wait, before the save is reported as failed. Before replacing `workspace.json` the server keeps the last good copy as `workspace.previous.json`. The server refuses to save a workspace with problems (`checkBeforeSave`). Each save carries the revision it was based on (a hash of the file); if the file has moved on (a second tab), the save is refused and the page says so, instead of "last tab wins".
+
+As built in Workspace Phase 1 (`server/workspace/store.ts`):
+
+- **Permanent deletions** (Phase 1 brief, decision 5): when an engagement, session, transcript or file on disk is missing from the new workspace, or the app says the save is permanent, the previous copy gets the new state too (written first; removed if it can't be), and the bytes of every file no longer listed are deleted. The server works this out itself rather than trusting the page.
+- **Uploads** stream outside the company's queue of saves, but their checks and their final rename run inside it, so an upload can't recreate the folder of a client being deleted. Bytes nothing lists are removed on a permanent save once they are a day old and weren't uploaded since the server started, so undo and redo can't lose a file.
+- **Leftovers** of a crash (temporary files) are removed at the next save; a company deletion renames the folder out of the list first and is finished on the next listing if a file was busy.
+- **A file naming another client** (a backup copied back under another folder name) opens read-only with that problem.
+- **One server per data folder:** a lock file (`.stylecode.lock`, with the process id) refuses a second StyleCode on the same folder, and `npm start` uses a fixed port (4173).
 
 **Files** (documents now, audio in Phase 3) are stored under `files/` by their id, never by a name the browser sent, and listed in the workspace as `FileRef`s. Audio stays out of `workspace.json`.
 
 **The workspace folder** is `StyleCode Data` in the user's home folder by default (visible, so it's easy to back up, and not to be confused with a checkout of the StyleCode repo), or wherever `STYLECODE_WORKSPACE` points. On macOS and Linux it is created readable only by the user. On Windows Node can't set that, so it relies on the home folder's default Windows permissions.
 
-**Where it may not be.** The server refuses to start if the workspace folder is inside this repo or any git repository, so client data can never be committed. It warns in the app if the folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive), because syncing sends client data off the computer, which ADR-0002 rules out. Real client work uses the built app (`npm start`), not `npm run dev`; the guide says so.
+**Where it may not be.** The server refuses to start if the workspace folder is inside this repo or any git repository, so client data can never be committed. It warns in the app if the folder is inside a cloud-synced folder (OneDrive, Dropbox, Google Drive, and, as an extension of ADR-0009 decided in Phase 1, iCloud Drive), because syncing sends client data off the computer, which ADR-0002 rules out. The services are recognised by OneDrive's environment variables on Windows and by their usual folder names (`server/workspace/folder.ts`), so a service syncing a folder with another name isn't detected. Real client work uses the built app (`npm start`), not `npm run dev`; the guide says so.
 
 ### Existing StyleCode projects (ADR-0007)
 
@@ -475,7 +485,7 @@ The domain model is already one validated value per company, and at the sizes a 
 
 ### Local API security (ADR-0008)
 
-**Decided:** the workspace routes get the same checks as `/api/ai` (§8): the connection comes from a loopback address; `Host` is `localhost`, `127.0.0.1` or `[::1]`; any `Origin` is exactly this server; `Sec-Fetch-Site` is `same-origin` or `none`; and every request carries a StyleCode header. Phase 1 moves these checks from `server/ai/handler.ts` into one shared module, so both APIs use the same code and tests. On top of that, because these routes touch the disk:
+**Decided:** the workspace routes get the same checks as `/api/ai` (§8): the connection comes from a loopback address; `Host` is `localhost`, `127.0.0.1` or `[::1]`; any `Origin` is exactly this server; `Sec-Fetch-Site` is `same-origin` or `none`; and every request carries a StyleCode header. They live in one shared module, `server/shared/requests.ts`, so both APIs use the same code and tests; the workspace routes have their own header. On top of that, because these routes touch the disk:
 
 - the server refuses to start if the workspace folder is inside this repo or any git repository;
 - every id in a path is checked with `isValidId` before it becomes part of a file path, and file names from the browser are never used as paths;

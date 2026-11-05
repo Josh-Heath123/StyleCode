@@ -14,8 +14,8 @@ import {
   type FindingKind,
   type FindingStatus,
   type Timestamp,
-} from './types';
-import { fail, get, isNonEmptyText, ok, time, type Result } from './util';
+} from './types.ts';
+import { fail, get, isNonEmptyText, ok, time, type Result } from './util.ts';
 
 /** Whether a finding is part of the record: entered by the consultant, or proposed by the AI and accepted. */
 export function isInRecord(finding: Finding): boolean {

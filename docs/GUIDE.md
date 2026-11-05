@@ -92,6 +92,37 @@ If part of the interface fails, that panel says so and offers **Try again** whil
 
 **Save to file…** (in Projects) is the way to keep a portable copy or move a project to another browser; files include their images.
 
+## Starting StyleCode for client work
+
+Open a terminal in the StyleCode folder and run `npm start`. The first time, and after each update, it builds StyleCode, which takes a minute; then it prints the address to open, usually <http://localhost:4173>. Keep the terminal open while you work: closing it, or pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>, stops StyleCode.
+
+Only one StyleCode can use the data folder at a time. If you run `npm start` again while it is already running, the second one says so and stops; use the window where it is running.
+
+`npm run dev` is for developing StyleCode only. It keeps workspace data in a separate folder, `StyleCode Data (development)`, so it never touches your clients' data.
+
+## Where client data lives
+
+Client data lives in the `StyleCode Data` folder in your home folder (on Windows, `C:\Users\<you>\StyleCode Data`). To use another folder, set `STYLECODE_WORKSPACE` to its path before running `npm start`. StyleCode refuses to start if the folder is inside a git repository, including the StyleCode folder itself, and says why, so client data can never be committed by accident. (It looks for a `.git` folder, so a "bare" repository that tracks your home folder from elsewhere, as some dotfiles setups do, isn't detected: if you use one, put the data folder outside what it tracks.)
+
+Inside it, `companies` holds one folder per client, named by the client's id:
+
+- `workspace.json`: everything about the client (engagements, meetings, consent records, notes and findings);
+- `workspace.previous.json`: the copy from before the last save;
+- `files`: documents attached to the client, stored by id (their names are kept in `workspace.json`).
+
+`settings.json`, next to `companies`, holds your own settings, such as your name.
+
+**Backups** are a folder copy: stop StyleCode, then copy the whole `StyleCode Data` folder, or one client's folder, somewhere safe. To restore, put the copy back.
+
+**Deleting** removes data from StyleCode's folder, not from backups or exports you have already made. Disk encryption (below) protects what the disk itself may still hold.
+
+## Protecting client data
+
+- **Turn on disk encryption.** It protects clients' data if the computer is lost or stolen. On Windows 11 Home, use Device encryption where the hardware supports it; on Pro, Enterprise and Education, BitLocker ([Microsoft, Device encryption in Windows](https://support.microsoft.com/en-us/windows/device-encryption-in-windows-cf7e2b6f-3e70-4882-9532-18633605b7df)). On macOS use FileVault, and on Linux LUKS. StyleCode doesn't encrypt the data itself.
+- **Keep the folder out of cloud-synced folders.** Syncing sends client data off your computer. If the data folder seems to be inside OneDrive, Dropbox, Google Drive or iCloud Drive, StyleCode warns you when it starts. It recognises these services by their usual folders, so a service set up to sync a folder with another name isn't detected.
+- **Who can open the folder.** On macOS and Linux, StyleCode creates the folder so only you can open it. On Windows it relies on your home folder's default Windows permissions.
+- **The consent wording is a draft** until a POPIA review (`docs/spec/CONSENT.md`). Check it with your own adviser before using it with clients.
+
 ## Large documents
 
 StyleCode stays responsive with thousands of layers: a 5,000-layer document (ten pages of cards) opens in a second or two, and dragging, editing and panning keep up with the pointer. Pages scrolled out of view aren't drawn, the layer list only draws the rows in view, and edits only re-lay out the frames they affect. If a very large document feels slow, splitting it into several projects helps more than anything else.

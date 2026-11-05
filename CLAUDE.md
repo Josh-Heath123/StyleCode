@@ -14,7 +14,7 @@ The project is now becoming an **AI-assisted consulting workspace** for software
 - **AI is optional.** Everything works with AI off. Local models (Ollama) are the default; the user's own API key is an option.
 - **API keys never reach** the browser, the repo, project files or logs. Keys live with the local server only (see `server/ai/`).
 - **No recording without consent.** A session's consent record must exist before recording, audio import or transcript import (importing or pasting one), and must allow it (`docs/spec/CONSENT.md` once written).
-- **Never commit real client data** or recordings of real people. Test data is role-played. Audio files are git-ignored (`.gitignore`).
+- **Never commit real client data** or recordings of real people. Test data is role-played. Audio files are git-ignored (`.gitignore`). The workspace server refuses a data folder inside any git repository; browser tests use a temporary one (`e2e/workspaceFolder.ts`).
 - **Companies' data never mix.** Nothing in one company's workspace may reference another's.
 - **Deterministic where it matters.** Costs, compatibility and constraint checks are code over sourced, dated data. The AI never supplies a price, and never marks something as verified.
 - **Status and provenance on every finding.** Never blur "AI-suggested" with "confirmed", or "assumption" with "said by the client".
@@ -26,7 +26,8 @@ The project is now becoming an **AI-assisted consulting workspace** for software
 ```bash
 npm install                      # first time
 npx playwright install chromium  # first time, for browser tests
-npm run dev                      # http://localhost:5173 (includes the local AI server)
+npm start                        # for client work: build if needed, serve at http://localhost:4173, data in ~/StyleCode Data
+npm run dev                      # http://localhost:5173, local AI and workspace servers, data in ~/StyleCode Data (development)
 npm run typecheck                # app + browser tests
 npm test                         # unit tests (Vitest)
 npm run test:e2e                 # browser tests (Playwright, own dev server on 5174)
@@ -53,7 +54,8 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
 | `src/ai` | Assistant: context, prompt, schema from the registry, interpreting replies as proposals. |
 | `src/persistence` | IndexedDB storage, images, project files. |
 | `server/ai` | Local AI server (Vite plugin): settings, keys, providers. Node only. |
-| `server/shared` | Node helpers shared by the local servers. |
+| `server/shared` | Node helpers shared by the local servers: request checks, renames that retry. |
+| `server/workspace` | Local workspace server (Vite plugin): the data folder, companies, saves, files, settings. Node only. |
 | `src/workspace` | (new) The consulting workspace: domain model first. |
 | `e2e`, `e2e/demos` | Browser tests; demo recordings. |
 | `scripts` | The documentation site builder and its Markdown renderer. |
