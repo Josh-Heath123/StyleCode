@@ -2,10 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 import { unzip } from '../src/codegen/zip';
 import { findByName, node, openFreshProject, select, snapshot } from './helpers';
 
-/** Opens the example project, optionally tidied into auto layout, and returns the landing page's id. */
+/** Opens the example design, optionally tidied into auto layout, and returns the landing page's id. */
 async function example(page: Page, tidy: boolean): Promise<string> {
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New example project' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New example design' }).click();
   await expect.poll(async () => findByName(await snapshot(page), 'Navigation')).toBeTruthy();
   const landing = findByName(await snapshot(page), 'Landing page')!;
   if (tidy) {

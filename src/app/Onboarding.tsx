@@ -75,7 +75,7 @@ export function WelcomeDialog({
               await onOpenExample();
             }}
           >
-            Open the example project
+            Open the example design
           </button>
         </div>
       </div>

@@ -46,7 +46,32 @@ describe('companies', () => {
     expect(readdirSync(join(root, 'companies', id)).sort()).toEqual(['files', 'workspace.json']);
     expect(opened.revision).toBe(revisionOf(readFileSync(companyFile(id))));
     const [summary] = await store.list();
-    expect(summary).toMatchObject({ id, name: 'Harbour Bakery', industry: 'Food', access: 'editable' });
+    expect(summary).toMatchObject({ id, name: 'Harbour Bakery', industry: 'Food', access: 'editable', activeEngagements: 0 });
+  });
+
+  it('counts each client’s active engagements for the list', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const at = opened.workspace.company.createdAt;
+    const engagement = (eid: string, status: CompanyWorkspace['engagements'][string]['status']) => ({
+      id: eid,
+      companyId: id,
+      name: `Engagement ${eid}`,
+      goal: '',
+      status,
+      createdAt: at,
+      updatedAt: at,
+    });
+    const workspace: CompanyWorkspace = {
+      ...opened.workspace,
+      engagements: {
+        en_a: engagement('en_a', { state: 'active' }),
+        en_b: engagement('en_b', { state: 'active' }),
+        en_c: engagement('en_c', { state: 'ended', endedOn: '2026-10-01' }),
+      },
+    };
+    await store.save(id, workspace, opened.revision, false);
+    expect((await store.list())[0].activeEngagements).toBe(2);
   });
 
   it('refuses a name another company has, ignoring case and spaces', async () => {

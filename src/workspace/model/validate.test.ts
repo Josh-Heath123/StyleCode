@@ -268,6 +268,7 @@ describe('consent in the workspace', () => {
     const ws = sampleWorkspace();
     ws.consents.cr_1 = consentRecord({
       askedParticipantIds: ['pa_me'],
+      told: { ...consentRecord().told, processingExternal: true, externalProvider: 'Anthropic' },
       given: { audioRecording: false, transcription: true, aiLocal: true, aiExternal: true, externalProvider: null },
     });
     expect(codes(ws)).toEqual(['consent.asked', 'consent.provider']);

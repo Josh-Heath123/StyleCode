@@ -64,7 +64,7 @@ A finding has two separate dimensions, and the model never merges them:
   - `calculated`: computed by a deterministic engine, named with its version (cost engine, later);
   - `ai-suggested`: inferred by the AI; nobody said it.
 
-**Kinds** come from vision §2: business requirement, functional requirement, non-functional requirement, expectation, objective, operational challenge, existing system, budget, performance, scalability, security, design preference, constraint, open question, risk, decision.
+**Kinds** come from vision §2: business requirement, functional requirement, non-functional requirement, expectation, objective, operational challenge, existing system, budget, performance, scalability, security, design preference, constraint, open question, risk, decision, future consideration (vision §8: something for a later phase or project; added in Workspace Phase 1).
 
 **Evidence** is a list of passages, each a transcript segment or a note, with the words quoted from it. A quote must appear in its passage. Differences in white space, letter case and the style of quotation marks are ignored; anything else counts as invented evidence. A quote is at least three words, unless it is the whole segment or note, so a single word such as "a" can't count as evidence.
 
@@ -84,7 +84,7 @@ So a client's statement extracted by the AI has provenance `said-in-session`, wi
 Fields as listed in the Phase 0 brief (WP5 refines them in `docs/spec/CONSENT.md`):
 
 - the session, who was asked (client participants), who asked, and how (verbally at the start, in writing beforehand, or other, described);
-- the version of the wording shown, and what the client was told (one yes or no per statement);
+- the version of the wording shown, and what the client was told (one yes or no per statement, with separate statements for AI on this computer and AI by an external provider, and the provider the external statement named);
 - what was agreed: audio recording · transcription · AI processing on this computer · AI processing by an external provider (named);
 - retention: N days, until the engagement ends, or deleted after transcription;
 - outcome: given · given with limits (described) · declined;
@@ -92,9 +92,9 @@ Fields as listed in the Phase 0 brief (WP5 refines them in `docs/spec/CONSENT.md
 
 `consentState(record, at)` gives what a record allows at a point in time, after its amendments up to then. A draft, declined or withdrawn record allows nothing.
 
-**Amendments** are checked like the record itself: answers are yes or no, only fields of the form can change, limits are described and retention is valid. The terms left after each amendment are checked too (`termsIssues`), so external AI always has a named provider and declined consent agrees to nothing. Turning external AI off drops the provider. `amendConsent` refuses an amendment that fails any of these.
+**Amendments** can record statements the client was newly told, with the wording version shown, for example when the client agrees to external AI by email after the meeting. Each "yes" is checked against everything the client has been told up to that point (`toldSoFar`). Amendments are checked like the record itself: answers are yes or no, only fields of the form can change, limits are described and retention is valid. The terms left after each amendment are checked too (`termsIssues`), so external AI always has a named provider and declined consent agrees to nothing. Turning external AI off drops the provider. `amendConsent` refuses an amendment that fails any of these.
 
-**Withdrawal is final.** Nothing can follow it; if the client agrees again, that is a new session with its own consent record.
+**Withdrawal is final.** It works on any confirmed record, and locks one that isn't locked yet. Nothing can follow it; if the client agrees again, that is a new session with its own consent record.
 
 ## Rules
 
@@ -118,6 +118,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 | A locked record changes only by dated amendments, in order, each with who and why; nothing follows a withdrawal | `consent.amendment` | `validate.ts`, `editConsent`, `amendConsent` |
 | Each amendment, and the terms after it, pass the same checks as the record | `consent.provider`, `consent.limits`, `consent.declined`, `consent.retention`, `field.*` | `validate.ts`, `amendmentIssues`, `termsIssues` |
 | Recording needs consent to recording; declined consent allows only notes | | `canCapture` |
+| The client was told each statement for what they agreed to, external AI naming the same provider, counting what amendments newly told (CONSENT.md C2) | `consent.told`, `consent.provider`, `consent.wording` | `validate.ts`, `missingFor`, `toldSoFar`, `toldIssues` |
 | External AI only if the client agreed, with the provider named; AI processing covers the session's notes too (MVP Q15) | `consent.provider` | `aiPermission`, `validate.ts` |
 | One consent record and one transcript per session; a speaker label belongs to one participant | `consent.duplicate`, `transcript.duplicate`, `participant.label` | `validate.ts` |
 
@@ -129,7 +130,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 
 The validator reads entries of any shape without failing, which the tests check by damaging every map and the nested values in turn.
 
-**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `editConsent`, `lockConsent`, `amendConsent`), so Phase 1 can make each one an undoable step, as the editor does with operations.
+**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `removeSession`, `removeEngagement`, `editConsent`, `lockConsent`, `amendConsent`, and in `entities.ts` `createEngagement`, `editEngagement`, `createSession`, `editSession`, `addParticipant`, `editParticipant`, `removeParticipant`), so Phase 1 can make each one an undoable step, as the editor does with operations.
 
 ## Versioning
 
@@ -142,7 +143,7 @@ The user's decisions on the six points raised in the draft (2026-11-04):
 1. **Withdrawal is final.** *Agreed.* After a withdrawal no further amendments are accepted. Renewed consent means a new session.
 2. **"Suggested" findings** are shown as a fourth group in the record. *Agreed.*
 3. **Transcript import needs consent to transcription.** *Agreed,* provisional until WP5 settles the exact rule. WP5: rule C1 of `docs/spec/CONSENT.md`.
-4. **Deleting a session** (MVP 2.3) removes its consent record, transcript, segments and notes, and the findings whose only evidence is in it. A finding with evidence from other sessions too keeps that evidence and loses the rest. Company knowledge promoted from a removed finding stays, with its source marked as deleted (point 5 of the review). *Agreed.* `removeFindings` does the findings part; deleting sessions and engagements comes in Phase 1.
+4. **Deleting a session** (MVP 2.3) removes its consent record, transcript, segments and notes, and the findings whose only evidence is in it. A finding with evidence from other sessions too keeps that evidence and loses the rest. Company knowledge promoted from a removed finding stays, with its source marked as deleted (point 5 of the review). *Agreed.* Built in Workspace Phase 1: `removeSession` and `removeEngagement`, using `removeFindings` for company knowledge.
 5. **AI proposals and consent.** *Partly now:* an AI proposal is invalid if a session it cites allowed no AI processing when it was made (`finding.aiConsent`). Whether the provider used was local or external, as the consent allowed, is checked once WP5 settles which providers count as local (MVP Q16). WP5: done, rules C5 and C6 of `docs/spec/CONSENT.md`; AI proposals now record where they ran (`origin.processing`).
 6. **The consultant's name** comes from the app (asked once, in settings) in Phase 1. The model only requires it to be present. *Agreed.*
 
@@ -177,4 +178,17 @@ Fixes from the independent review, each with a test in `src/workspace/model/wp9.
 - Files have a purpose (document, audio, consent attachment); audio needs consent to recording.
 - A finding the consultant entered can't be AI-suggested; "conflicts with" counts once in either direction; the same person can't be asked twice; an amendment with an unreadable date is never in force; `sharedIds` also checks ids kept after their entity is deleted.
 
-**For Phase 1:** deleting a session (decision 4) must reuse `removeTranscript`'s clean-up, so that what the AI proposed and the history lose that session's words too, and a finding said in the session with no segment left is removed rather than left invalid.
+**For Phase 1:** deleting a session (decision 4) must reuse `removeTranscript`'s clean-up, so that what the AI proposed and the history lose that session's words too, and a finding said in the session with no segment left is removed rather than left invalid. *Done in WP4:* both share `scrubPassages`.
+
+## Changes from Workspace Phase 1 (WP4)
+
+Made from the user's decisions before Phase 1 (`docs/phase-1/PHASE-1-BRIEF.md`), each with a test in `src/workspace/model/phase1.test.ts`. No workspace had been saved yet, so they go into version 1 directly; from Slice B's merge on, every model change raises the version, with a migration.
+
+- **Two AI statements** (decision 2): `told.processingLocal` and `told.processingExternal`, with `told.externalProvider` naming the provider the external statement named. See CONSENT.md C2.
+- **Amendments record what the client was newly told** (decision 3): `told` and `wordingVersion` on a change amendment.
+- **Withdrawal on an unlocked record** is an amendment, and locks the record (`amendConsent`).
+- **The `future-consideration` finding kind.**
+- **Deleting a session** (`removeSession`, decision 4): its participants, consent record, transcript, segments, notes and files go. Every passage of the session cited by a finding becomes deleted evidence, in the finding, in what the AI proposed and in its history, as after a withdrawal. A finding whose only evidence was in the session is removed, and so is one said in a session with no transcript segment left; others keep their evidence from other sessions. Company knowledge promoted from a removed finding stays, marked "source deleted", and keeps its copied quotes (unlike `removeTranscript` after a withdrawal, which removes them, C8).
+- **Deleting an engagement** (`removeEngagement`): its findings and their links, its sessions (as above), its design links and its files. Company knowledge from its findings stays, marked "source deleted".
+- Both return what they removed (findings, files) and the company facts affected, so the confirmation can name them.
+- **Engagements, sessions and participants** (WP6, `entities.ts`): create and edit each. A participant the session's consent record names as asked can't be removed or moved to the consultant's side until the record changes. `consentSummary` gives a session's consent in a word for lists.

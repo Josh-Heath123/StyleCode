@@ -3,15 +3,18 @@
  * C11), so the domain model can't represent a captured or AI-processed session
  * without consent.
  */
-import type {
-  AiProcessing,
-  CompanyWorkspace,
-  ConsentAmendment,
-  ConsentGiven,
-  ConsentOutcome,
-  ConsentRecord,
-  Retention,
-  Timestamp,
+import {
+  CONSENT_STATEMENTS,
+  type AiProcessing,
+  type CompanyWorkspace,
+  type ConsentAmendment,
+  type ConsentGiven,
+  type ConsentOutcome,
+  type ConsentRecord,
+  type ConsentStatement,
+  type ConsentTold,
+  type Retention,
+  type Timestamp,
 } from './types.ts';
 import { fail, get, isNonEmptyText, isTimestamp, ok, time, type Result } from './util.ts';
 
@@ -80,10 +83,47 @@ export function termsIssues(terms: ConsentTerms): ConsentIssue[] {
   return issues;
 }
 
+const TOLD_KEYS: readonly string[] = [...CONSENT_STATEMENTS, 'externalProvider'];
+
+/** Problems with what a record says the client was told: yes or no per statement, and the provider the external statement named. */
+export function toldIssues(t: unknown): ConsentIssue[] {
+  const told = t as Record<string, unknown> | null;
+  if (!told || typeof told !== 'object' || !CONSENT_STATEMENTS.every((k) => typeof told[k] === 'boolean'))
+    return [{ code: 'field.type', message: 'What the client was told must be yes or no.' }];
+  if (Object.keys(told).some((k) => !TOLD_KEYS.includes(k)))
+    return [{ code: 'field.value', message: 'The consent record says the client was told something the form does not have.' }];
+  if (told.processingExternal === true && !isNonEmptyText(told.externalProvider))
+    return [{ code: 'consent.provider', message: 'Name the external AI provider the client was told about.' }];
+  if (told.processingExternal !== true && told.externalProvider !== null)
+    return [{ code: 'consent.provider', message: 'A provider is named only when the client was told about external AI.' }];
+  return [];
+}
+
 /** Problems with the fields an amendment sets, before it is applied. */
 export function amendmentIssues(a: ConsentAmendment): ConsentIssue[] {
   if (a.kind === 'withdrawal') return [];
   const issues: ConsentIssue[] = [];
+  if (a.told !== undefined) {
+    // An amendment records what the client was newly told; it can't take back what they heard.
+    const t = a.told as Record<string, unknown> | null;
+    if (!t || typeof t !== 'object' || Object.keys(t).some((k) => !TOLD_KEYS.includes(k))) {
+      issues.push({ code: 'field.value', message: 'An amendment says the client was told something the form does not have.' });
+    } else if (!CONSENT_STATEMENTS.some((k) => t[k] === true) || CONSENT_STATEMENTS.some((k) => k in t && t[k] !== true)) {
+      issues.push({ code: 'field.value', message: 'An amendment lists only the statements the client was newly told.' });
+    } else if (t.processingExternal === true ? !isNonEmptyText(t.externalProvider) : 'externalProvider' in t) {
+      issues.push({ code: 'consent.provider', message: 'Name the external AI provider the client was told about.' });
+    }
+    if (!isNonEmptyText(a.wordingVersion))
+      issues.push({
+        code: 'consent.wording',
+        message: 'An amendment that records what the client was told names the wording shown.',
+      });
+  } else if (a.wordingVersion !== undefined) {
+    issues.push({
+      code: 'consent.wording',
+      message: 'An amendment names a wording only when it records what the client was told.',
+    });
+  }
   if (a.given !== undefined) {
     const g = a.given as Record<string, unknown> | null;
     if (!g || typeof g !== 'object' || Object.keys(g).some((k) => !GIVEN_KEYS.includes(k))) {
@@ -206,29 +246,71 @@ export function aiPermission(ws: CompanyWorkspace, sessionId: string, at?: Times
   return { local: given.aiLocal, external: given.aiExternal, externalProvider: given.externalProvider };
 }
 
-/** What the client must have been told before agreeing to each item (CONSENT.md, rule C2). */
-export const TOLD_FOR: Record<'audioRecording' | 'transcription' | 'aiLocal' | 'aiExternal', (keyof ConsentRecord['told'])[]> = {
+/** What the client must have been told before agreeing to each item (CONSENT.md, rule C2; decision 2). */
+export const TOLD_FOR: Record<'audioRecording' | 'transcription' | 'aiLocal' | 'aiExternal', ConsentStatement[]> = {
   audioRecording: ['recorded', 'retention'],
   transcription: ['transcribed'],
-  aiLocal: ['aiExtraction', 'processingLocation'],
-  aiExternal: ['aiExtraction', 'processingLocation'],
+  aiLocal: ['aiExtraction', 'processingLocal'],
+  aiExternal: ['aiExtraction', 'processingExternal'],
 };
 
-/** Statements the client wasn't told but agreed to, plus "can stop or delete", needed whenever anything is agreed. */
-export function missingStatements(record: ConsentRecord): (keyof ConsentRecord['told'])[] {
-  return missingFor(record.told, record.given);
+/** Everything a client has been told up to a point: the statements, and each provider the external statement named. */
+export interface ToldSoFar {
+  statements: ReadonlySet<ConsentStatement>;
+  providers: readonly string[];
 }
 
-/** The same check for any set of answers, such as the terms after an amendment. */
-export function missingFor(toldIn: ConsentRecord['told'] | null | undefined, givenIn: ConsentGiven | null | undefined) {
-  const told = (toldIn ?? {}) as Partial<ConsentRecord['told']>;
+const TOLD_NOTHING: ToldSoFar = { statements: new Set(), providers: [] };
+
+/** Adds what the client was told (on the form, or newly in an amendment) to what they had been told before. */
+function addTold(before: ToldSoFar, told: Partial<ConsentTold> | null | undefined): ToldSoFar {
+  if (!told || typeof told !== 'object') return before;
+  const statements = new Set(before.statements);
+  for (const s of CONSENT_STATEMENTS) if (told[s] === true) statements.add(s);
+  const provider = told.processingExternal === true && isNonEmptyText(told.externalProvider) ? told.externalProvider : null;
+  return { statements, providers: provider === null ? before.providers : [...before.providers, provider] };
+}
+
+/**
+ * What the client had been told once the record and its first `count`
+ * amendments (default: all of them) were made (decision 3).
+ */
+export function toldSoFar(record: ConsentRecord, count?: number): ToldSoFar {
+  let told = addTold(TOLD_NOTHING, record.told);
+  const amendments = Array.isArray(record.amendments) ? record.amendments.slice(0, count) : [];
+  for (const a of amendments) if (a && typeof a === 'object' && a.kind === 'change') told = addTold(told, a.told);
+  return told;
+}
+
+/** Statements the client wasn't told but agreed to, plus "can stop or delete", needed whenever anything is agreed. */
+export function missingStatements(record: ConsentRecord): ConsentStatement[] {
+  return missingFor(addTold(TOLD_NOTHING, record.told), record.given);
+}
+
+/**
+ * The same check for any answers against everything told so far, such as the
+ * terms after an amendment. Agreeing to external AI also needs the external
+ * statement to have named that provider; if it named only others, the
+ * statement counts as missing.
+ */
+export function missingFor(told: ToldSoFar, givenIn: ConsentGiven | null | undefined): ConsentStatement[] {
   const given = (givenIn ?? {}) as Partial<ConsentGiven>;
-  const needed = new Set<keyof ConsentRecord['told']>();
+  const needed = new Set<ConsentStatement>();
   for (const [item, statements] of Object.entries(TOLD_FOR)) {
     if (given[item as keyof typeof TOLD_FOR] === true) for (const s of statements) needed.add(s);
   }
   if (needed.size) needed.add('canStopOrDelete');
-  return [...needed].filter((s) => told[s] !== true);
+  const missing = [...needed].filter((s) => !told.statements.has(s));
+  // A "yes" with no provider named is reported as a missing provider (termsIssues), not here.
+  if (
+    given.aiExternal === true &&
+    isNonEmptyText(given.externalProvider) &&
+    told.statements.has('processingExternal') &&
+    !told.providers.some((p) => sameProvider(p, given.externalProvider))
+  ) {
+    missing.push('processingExternal');
+  }
+  return missing;
 }
 
 /**
@@ -330,19 +412,32 @@ export function lockConsent(record: ConsentRecord, at: Timestamp): Result<Consen
   return ok({ ...record, lockedAt: at, updatedAt: at });
 }
 
-/** Adds a dated amendment to a locked record. Amendments are never edited or removed. */
+/**
+ * Adds a dated amendment. Amendments are never edited or removed. A change
+ * needs a locked record (an unlocked one is edited directly). A withdrawal
+ * works on any confirmed record, and locks it if it isn't locked yet.
+ */
 export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment): Result<ConsentRecord> {
-  if (!record.lockedAt) return fail('The consent record is not locked yet. Edit it directly.');
+  if (!record.confirmed) return fail('Confirm the consent form first.');
+  if (!record.lockedAt && amendment.kind !== 'withdrawal') return fail('The consent record is not locked yet. Edit it directly.');
   const last = record.amendments.at(-1);
-  if (time(amendment.at) < time(last?.at ?? record.lockedAt)) return fail('An amendment cannot be dated before the last change.');
+  if (time(amendment.at) < time(last?.at ?? record.lockedAt ?? record.confirmed.at))
+    return fail('An amendment cannot be dated before the last change.');
   if (!amendment.reason.trim()) return fail('Say why consent changed.');
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
   const before = record.amendments.reduce(applyAmendment, termsOf(record));
   const after = applyAmendment(before, amendment);
   const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0];
   if (issue) return fail(issue.message);
-  // Rule C2 holds for amendments too: the client can't agree to something they weren't told.
-  const missing = missingFor(record.told, after.given).filter((s) => !missingFor(record.told, before.given).includes(s));
+  // Rule C2 holds for amendments too: each "yes" is checked against everything the client has been told so far.
+  const toldBefore = toldSoFar(record);
+  const toldAfter = amendment.kind === 'change' ? addTold(toldBefore, amendment.told) : toldBefore;
+  const missing = missingFor(toldAfter, after.given).filter((s) => !missingFor(toldBefore, before.given).includes(s));
   if (missing.length) return fail(`The client wasn't told about this (${missing.join(', ')}), so they can't agree to it.`);
-  return ok({ ...record, amendments: [...record.amendments, amendment], updatedAt: amendment.at });
+  return ok({
+    ...record,
+    lockedAt: record.lockedAt ?? amendment.at,
+    amendments: [...record.amendments, amendment],
+    updatedAt: amendment.at,
+  });
 }

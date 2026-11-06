@@ -31,8 +31,8 @@ test('Shift+A wraps rough shapes in a row, drag and arrow keys reorder it', asyn
 });
 
 test('tidies the example landing page into rows and columns without moving much', async ({ page }) => {
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New example project' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New example design' }).click();
   await expect.poll(async () => findByName(await snapshot(page), 'Navigation')).toBeTruthy();
 
   const before = await snapshot(page);

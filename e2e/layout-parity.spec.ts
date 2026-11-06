@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
  * same frames with real CSS in the browser, and checks every box matches.
  */
 test('the layout engine matches the browser’s flexbox and grid', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
 
   const mismatches = await page.evaluate(async () => {

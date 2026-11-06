@@ -88,6 +88,8 @@ describe('consent: locking and amendments', () => {
       by: 'Sam',
       at: T3,
       reason: 'Client agreed by email.',
+      told: { processingExternal: true, externalProvider: 'OpenAI' },
+      wordingVersion: 'draft-1',
       given: { aiExternal: true, externalProvider: 'OpenAI' },
     });
     expect(amended.ok).toBe(true);
@@ -116,8 +118,9 @@ describe('consent: locking and amendments', () => {
     const record = consentRecord();
     expect(amendConsent(record, { id: 'am_1', kind: 'withdrawal', by: 'Sam', at: T0, reason: 'Early.' }).ok).toBe(false);
     expect(amendConsent(record, { id: 'am_1', kind: 'withdrawal', by: 'Sam', at: T3, reason: ' ' }).ok).toBe(false);
+    // A change to an unlocked record is an edit, not an amendment.
     expect(
-      amendConsent(consentRecord({ lockedAt: null }), { id: 'am_1', kind: 'withdrawal', by: 'Sam', at: T3, reason: 'x' }).ok,
+      amendConsent(consentRecord({ lockedAt: null }), { id: 'am_1', kind: 'change', by: 'Sam', at: T3, reason: 'x' }).ok,
     ).toBe(false);
   });
 });

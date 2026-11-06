@@ -137,7 +137,7 @@ describe('autosave', () => {
     expect(editor.getState().doc.id).toBe(good.id);
     expect(editor.getState().notice?.text).toContain('“Damaged” couldn’t be opened');
     const listed = await session.listProjects();
-    expect(listed.find((p) => p.id === 'doc_damaged')?.problem).toBe('The project has no layers.');
+    expect(listed.find((p) => p.id === 'doc_damaged')?.problem).toBe('The design has no layers.');
   });
 
   it('stops autosaving while paused (the recovery screen), and starts again after', async () => {

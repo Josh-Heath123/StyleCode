@@ -1,6 +1,10 @@
 export * from './types.ts';
 export * from './consent.ts';
+export * from './consentForm.ts';
+export * from './entities.ts';
 export * from './findings.ts';
+export * from './notes.ts';
 export * from './validate.ts';
 export * from './workspace.ts';
 export { isQuoteLongEnough, MIN_QUOTE_WORDS, quoteAppearsIn, type Result } from './util.ts';
+export * from './wording.ts';

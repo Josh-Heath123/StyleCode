@@ -1,16 +1,10 @@
 import { expect, type APIRequestContext } from '@playwright/test';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { E2E_WORKSPACE } from './workspacePath';
+
+export { E2E_WORKSPACE };
 
 /**
- * The browser tests' workspace data folder: a temporary one, never the
- * consultant's own. `playwright.config.ts` gives it to the dev server, and the
- * workspace tests refuse to run if the server reports any other folder.
- */
-export const E2E_WORKSPACE = join(tmpdir(), 'stylecode-e2e', 'workspace');
-
-/**
- * Every browser test that writes workspace data calls this first: it stops
+ * The setup project (workspace-folder.setup.ts) calls this before any test: it stops
  * the test unless the server's data folder is the temporary test folder (a
  * dev server already running on port 5174 with real data, say).
  */

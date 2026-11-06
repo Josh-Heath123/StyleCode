@@ -43,7 +43,7 @@ export function ProjectsDialog({
 
   const download = async (id: string) => {
     try {
-      if (await session.downloadStoredProject(id)) editor.notify('Project data saved.');
+      if (await session.downloadStoredProject(id)) editor.notify('Design data saved.');
     } catch (error) {
       editor.notify((error as Error).message, 'error');
     }
@@ -85,7 +85,7 @@ export function ProjectsDialog({
         className="dialog glass"
         role="dialog"
         aria-modal="true"
-        aria-label="Projects"
+        aria-label="Designs"
         tabIndex={-1}
         onKeyDown={(e) => {
           e.stopPropagation();
@@ -93,14 +93,14 @@ export function ProjectsDialog({
         }}
       >
         <div className="dialog-head">
-          Projects on this device
+          Designs on this device
           <button type="button" className="icon-button" aria-label="Close" onClick={onClose}>
             <Icon name="x" />
           </button>
         </div>
         <div className="dialog-body">
           {projects === null && <p className="layers-empty">Loading…</p>}
-          {projects?.length === 0 && <p className="layers-empty">No saved projects yet.</p>}
+          {projects?.length === 0 && <p className="layers-empty">No saved designs yet.</p>}
           {projects?.map((p) => (
             <div key={p.id} className={`project-item${p.id === currentId ? ' is-current' : ''}`}>
               <div className="project-item-main">
@@ -149,7 +149,7 @@ export function ProjectsDialog({
             <div className="projects-space-bar" aria-hidden="true">
               <span style={{ width: `${Math.min(100, (space.usage / space.quota) * 100)}%` }} />
             </div>
-            Using {megabytes(space.usage)} of the {megabytes(space.quota)} this browser allows. Projects and images stay on this
+            Using {megabytes(space.usage)} of the {megabytes(space.quota)} this browser allows. Designs and images stay on this
             device.
           </div>
         )}

@@ -9,10 +9,10 @@ import { findByName, selected, snapshot } from './helpers';
  */
 
 async function openExample(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'New example project' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'New example design' }).click();
   await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes).length).toBeGreaterThan(10);
 }
 
@@ -50,8 +50,8 @@ test.describe('accessibility checks', () => {
     await scan(page, 'Keyboard shortcuts');
     await page.keyboard.press('Escape');
 
-    await page.getByRole('button', { name: 'Projects' }).click();
-    await page.getByRole('menuitem', { name: /All projects/ }).click();
+    await page.getByRole('button', { name: 'Designs' }).click();
+    await page.getByRole('menuitem', { name: /All designs/ }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await scan(page, 'Projects');
     await page.keyboard.press('Escape');
@@ -84,6 +84,106 @@ test.describe('accessibility checks', () => {
     await page.getByRole('button', { name: 'Start with a blank canvas' }).click();
     await expect(page.getByRole('region', { name: 'Getting started' })).toBeVisible();
     await scan(page, 'Checklist');
+  });
+});
+
+test.describe('the workspace pages', () => {
+  test('the clients list, the new client dialog, a client and settings', async ({ page }) => {
+    const name = `Accessible Bakery ${Math.random().toString(36).slice(2, 8)}`;
+    const res = await page.request.post('/api/workspace/companies', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { profile: { name, industry: 'Food retail' } },
+    });
+    const id = ((await res.json()) as { workspace: { company: { id: string } } }).workspace.company.id;
+
+    await page.goto('/');
+    await page.getByRole('link', { name: new RegExp(name) }).waitFor();
+    await scan(page, 'The clients list');
+
+    // From the keyboard: the New client button opens its dialog, which keeps focus and gives it back.
+    const add = page.getByRole('button', { name: 'New client' });
+    await add.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: 'New client' });
+    await expect(dialog.getByLabel('Name')).toBeFocused();
+    await scan(page, 'New client');
+    for (let i = 0; i < 6; i++) await page.keyboard.press('Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(add).toBeFocused();
+
+    await page.goto(`/#/c/${id}`);
+    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+    await scan(page, 'A client');
+
+    await page.goto('/#/settings');
+    await expect(page.getByRole('heading', { name: 'Where client data is kept' })).toBeVisible();
+    await scan(page, 'Settings');
+  });
+
+  test('an engagement and a session, with their dialogs, all from the keyboard', async ({ page }) => {
+    const name = `Accessible Physio ${Math.random().toString(36).slice(2, 8)}`;
+    const res = await page.request.post('/api/workspace/companies', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { profile: { name } },
+    });
+    const id = ((await res.json()) as { workspace: { company: { id: string } } }).workspace.company.id;
+    await page.goto(`/#/c/${id}`);
+
+    // New engagement, from the keyboard alone.
+    await page.getByRole('button', { name: 'New engagement' }).focus();
+    await page.keyboard.press('Enter');
+    const engagement = page.getByRole('dialog', { name: 'New engagement' });
+    await expect(engagement.getByLabel('Name')).toBeFocused();
+    await scan(page, 'New engagement');
+    await page.keyboard.type('Bookings');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1, name: 'Bookings' })).toBeVisible();
+    await scan(page, 'An engagement');
+
+    await page.getByRole('button', { name: 'New session' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: 'New session' }).getByLabel('Title')).toBeFocused();
+    await scan(page, 'New session');
+    await page.keyboard.type('First visit');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1, name: 'First visit' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Add participant' }).focus();
+    await page.keyboard.press('Enter');
+    const participant = page.getByRole('dialog', { name: 'Add participant' });
+    await expect(participant).toBeVisible();
+    await scan(page, 'Add participant');
+    await participant.getByLabel('Name').fill('Pat Physio');
+    await page.keyboard.press('Enter');
+    await expect(participant).toBeHidden();
+    await scan(page, 'A session');
+
+    // Confirming needs the consultant's name, from settings.
+    await page.request.put('/api/workspace/settings', {
+      headers: { 'x-stylecode-workspace': '1' },
+      data: { consultantName: 'Sam Consultant' },
+    });
+    await page.getByRole('link', { name: 'Fill in consent form' }).click();
+    await expect(page.getByRole('heading', { name: 'Who was asked' })).toBeVisible();
+    await page.getByLabel(/^Pat Physio/).check();
+    await page.getByRole('group', { name: 'Transcription' }).getByLabel('Yes').check();
+    await scan(page, 'The consent form, with a problem next to an answer');
+    await page.getByLabel(/written transcript/).check();
+    await page.getByLabel(/can ask me to stop/).check();
+    await page.getByLabel('I asked for consent as recorded above.').check();
+    await page.getByRole('button', { name: 'Save and confirm' }).click();
+    await expect(page.getByRole('heading', { name: /^Consent: given/ })).toBeVisible();
+    await page.getByRole('button', { name: 'Withdraw consent…' }).click();
+    await scan(page, 'Withdraw consent');
+    await page.keyboard.press('Escape');
+
+    await page.getByRole('button', { name: 'Delete session…' }).click();
+    await scan(page, 'Delete session');
+    await page.keyboard.press('Escape');
+    await page.getByRole('link', { name }).click();
+    await page.getByRole('button', { name: 'Delete client…' }).click();
+    await scan(page, 'Delete client');
   });
 });
 

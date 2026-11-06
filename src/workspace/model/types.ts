@@ -46,6 +46,8 @@ export const FINDING_KINDS = [
   'open-question',
   'risk',
   'decision',
+  /** Something for a later phase or project, not this one (vision §8). */
+  'future-consideration',
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -88,8 +90,9 @@ export const AI_PROVENANCES: readonly ProvenanceKind[] = ['said-in-session', 'ai
 /**
  * A passage a finding rests on: words quoted from a transcript segment or a
  * note. A passage deleted after the client withdrew consent (CONSENT.md, rule
- * C8) becomes `deleted`: its words are gone, and only the fact that the
- * finding rested on something from that session is kept.
+ * C8), or with its session (`removeSession`), becomes `deleted`: its words are
+ * gone, and only the fact that the finding rested on something from that
+ * session is kept.
  */
 export type Evidence =
   | { kind: 'segment'; segmentId: string; quote: string }
@@ -361,15 +364,24 @@ export interface FileRef {
 
 export type ConsentMethod = { kind: 'verbal-at-start' } | { kind: 'written-before' } | { kind: 'other'; description: string };
 
-/** What the client was told, one flag per statement shown on the form. */
-export interface ConsentTold {
-  recorded: boolean;
-  transcribed: boolean;
-  aiExtraction: boolean;
-  processingLocation: boolean;
-  retention: boolean;
-  canStopOrDelete: boolean;
-}
+/** The statements on the consent form (CONSENT.md, "Wording shown to the client"). */
+export const CONSENT_STATEMENTS = [
+  'recorded',
+  'transcribed',
+  'aiExtraction',
+  'processingLocal',
+  'processingExternal',
+  'retention',
+  'canStopOrDelete',
+] as const;
+export type ConsentStatement = (typeof CONSENT_STATEMENTS)[number];
+
+/**
+ * What the client was told: one flag per statement shown on the form, and the
+ * provider the external-AI statement named. `externalProvider` is set exactly
+ * when `processingExternal` is true (Phase 1 brief, decision 2).
+ */
+export type ConsentTold = Record<ConsentStatement, boolean> & { externalProvider: string | null };
 
 /** What the client agreed to. */
 export interface ConsentGiven {
@@ -386,7 +398,13 @@ export type Retention =
 
 export type ConsentOutcome = { kind: 'given' } | { kind: 'limited'; limits: string } | { kind: 'declined' };
 
-/** A dated change to a locked consent record. Amendments are added, never edited or removed. */
+/**
+ * A dated change to a locked consent record. Amendments are added, never
+ * edited or removed. A change can record statements the client was newly told,
+ * for example by email after the meeting, with the wording version shown
+ * (decision 3): `told` lists only statements now told (each `true`), and
+ * `wordingVersion` is set exactly when `told` is.
+ */
 export type ConsentAmendment =
   | {
       id: string;
@@ -394,6 +412,8 @@ export type ConsentAmendment =
       by: string;
       at: Timestamp;
       reason: string;
+      told?: Partial<ConsentTold>;
+      wordingVersion?: string;
       given?: Partial<ConsentGiven>;
       retention?: Retention;
       outcome?: ConsentOutcome;
@@ -416,7 +436,7 @@ export interface ConsentRecord {
   /** "I asked for consent as recorded above". Until confirmed, the record is a draft and allows nothing. */
   confirmed: { by: string; at: Timestamp } | null;
   attachmentFileId: string | null;
-  /** Set when recording starts or a transcript is imported. After that, changes are amendments. */
+  /** Set when recording starts, a transcript is imported, or consent is withdrawn. After that, changes are amendments. */
   lockedAt: Timestamp | null;
   amendments: ConsentAmendment[];
   createdAt: Timestamp;

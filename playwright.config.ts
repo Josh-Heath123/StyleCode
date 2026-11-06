@@ -2,7 +2,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-import { E2E_WORKSPACE } from './e2e/workspaceFolder';
+import { E2E_WORKSPACE } from './e2e/workspacePath';
 
 /**
  * End-to-end tests drive the real editor in Chromium. They start their own dev
@@ -25,9 +25,19 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } }],
+  projects: [
+    // Checks the server's data folder before anything else runs (e2e/workspace-folder.setup.ts).
+    { name: 'workspace folder', testMatch: /\.setup\.ts$/ },
+    {
+      name: 'chromium',
+      dependencies: ['workspace folder'],
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
+  ],
   webServer: {
-    command: 'npm run dev -- --port 5174 --strictPort',
+    // The test data folder is emptied first, lock included (e2e/clearTestWorkspace.ts).
+    command:
+      'node --experimental-strip-types --disable-warning=ExperimentalWarning e2e/clearTestWorkspace.ts && npm run dev -- --port 5174 --strictPort',
     url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

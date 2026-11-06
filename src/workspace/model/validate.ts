@@ -14,9 +14,12 @@ import {
   missingFor,
   missingStatements,
   termsIssues,
+  toldIssues,
+  toldSoFar,
   type ConsentTerms,
 } from './consent.ts';
 import { isInRecord } from './findings.ts';
+import { wordingFor } from './wording.ts';
 import {
   AI_PROVENANCES,
   ENTITY_MAPS,
@@ -242,7 +245,9 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
       report('consent.method', 'Describe how consent was asked.', 'consents', c.id);
     }
     // CONSENT.md rule C2: the client was told about everything they agreed to.
-    if (c.confirmed && c.told && typeof c.told === 'object') {
+    const toldProblems = toldIssues(c.told);
+    for (const issue of toldProblems) report(issue.code, issue.message, 'consents', c.id);
+    if (c.confirmed && !toldProblems.length) {
       const missing = missingStatements(c);
       if (missing.length)
         report(
@@ -254,8 +259,20 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
     }
     if (!isNonEmptyText(c.wordingVersion))
       report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
-    if (!c.told || !Object.values(c.told).every((v) => typeof v === 'boolean'))
-      report('field.type', 'What the client was told must be yes or no.', 'consents', c.id);
+    // The record must be able to say exactly what the client heard (rule C9).
+    else if (!wordingFor(c.wordingVersion))
+      report(
+        'consent.wording',
+        `The consent record names a wording this StyleCode doesn't know (${c.wordingVersion}).`,
+        'consents',
+        c.id,
+      );
+    // Consent given, or given with limits, to nothing at all contradicts itself.
+    const given = c.given as Partial<ConsentRecord['given']> | null;
+    if (c.confirmed && given && typeof given === 'object' && c.outcome?.kind !== 'declined') {
+      if (!['audioRecording', 'transcription', 'aiLocal', 'aiExternal'].some((k) => given[k as keyof typeof given] === true))
+        report('consent.nothing', 'A confirmed consent record that isn’t declined agrees to something.', 'consents', c.id);
+    }
     const terms: ConsentTerms = { given: c.given, retention: c.retention, outcome: c.outcome };
     for (const issue of termsIssues(terms)) report(issue.code, issue.message, 'consents', c.id);
     if (c.confirmed !== null && (!c.confirmed || !isNonEmptyText(c.confirmed.by) || !isTimestamp(c.confirmed.at))) {
@@ -291,7 +308,7 @@ function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report
   let withdrawn = false;
   let terms = original;
   const ids = new Set<string>();
-  for (const a of c.amendments) {
+  for (const [index, a] of c.amendments.entries()) {
     if (!a || typeof a !== 'object') {
       report('field.value', 'An amendment is not readable.', 'consents', c.id);
       continue;
@@ -316,10 +333,10 @@ function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report
       if (own.length) continue;
       // Report only what the amendment introduced, so a problem in the record isn't repeated for each amendment.
       const known = new Set(termsIssues(terms).map((i) => i.message));
-      const toldBefore = missingFor(c.told, terms.given);
+      const missingBefore = missingFor(toldSoFar(c, index), terms.given);
       terms = applyAmendment(terms, a);
-      // Rule C2 holds for amendments too.
-      const untold = missingFor(c.told, terms.given).filter((s) => !toldBefore.includes(s));
+      // Rule C2 holds for amendments too, against everything the client had been told by then (decision 3).
+      const untold = missingFor(toldSoFar(c, index + 1), terms.given).filter((s) => !missingBefore.includes(s));
       if (untold.length)
         report(
           'consent.told',

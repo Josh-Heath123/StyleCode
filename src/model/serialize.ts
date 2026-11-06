@@ -57,14 +57,14 @@ const KNOWN_TYPES = new Set<NodeType>(['page', 'frame', 'rect', 'ellipse', 'text
  * rejected with a clear error instead of crashing the editor later.
  */
 export function parseProject(input: unknown): ParseResult {
-  if (!input || typeof input !== 'object') return { ok: false, error: 'The file is not a StyleCode project.' };
+  if (!input || typeof input !== 'object') return { ok: false, error: 'The file is not a StyleCode design.' };
   const file = input as Partial<ProjectFile>;
-  if (file.format !== FILE_FORMAT) return { ok: false, error: 'The file is not a StyleCode project.' };
-  if (typeof file.version !== 'number') return { ok: false, error: 'The project has no schema version.' };
+  if (file.format !== FILE_FORMAT) return { ok: false, error: 'The file is not a StyleCode design.' };
+  if (typeof file.version !== 'number') return { ok: false, error: 'The design has no schema version.' };
   if (file.version > SCHEMA_VERSION) {
     return {
       ok: false,
-      error: `This project was saved by a newer version of StyleCode (schema ${file.version}). Update StyleCode to open it.`,
+      error: `This design was saved by a newer version of StyleCode (schema ${file.version}). Update StyleCode to open it.`,
     };
   }
   return parseDocument(file.document);
@@ -74,10 +74,10 @@ export function parseDocument(input: unknown): ParseResult {
   const warnings: string[] = [];
   const raw = input as Partial<DesignDocument> | undefined;
   if (!raw || typeof raw !== 'object' || !raw.nodes || typeof raw.nodes !== 'object') {
-    return { ok: false, error: 'The project has no layers.' };
+    return { ok: false, error: 'The design has no layers.' };
   }
   if (!isValidId(raw.rootId) || !Object.prototype.hasOwnProperty.call(raw.nodes, raw.rootId)) {
-    return { ok: false, error: 'The project has no page.' };
+    return { ok: false, error: 'The design has no page.' };
   }
 
   // 1. Sanitise each node individually.
@@ -110,7 +110,7 @@ export function parseDocument(input: unknown): ParseResult {
   }
 
   const root = clean[raw.rootId];
-  if (!root || root.type !== 'page') return { ok: false, error: 'The project page is invalid.' };
+  if (!root || root.type !== 'page') return { ok: false, error: 'The design page is invalid.' };
 
   // 2. Rebuild the tree from the root so parent/child links are consistent.
   const nodes: Record<string, DesignNode> = {};

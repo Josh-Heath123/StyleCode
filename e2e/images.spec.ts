@@ -54,7 +54,7 @@ test('adds an image, saves it inside the project file and restores it on open', 
   // Save to a file (headless Chromium has no save dialog, so the download path is used).
   await page.evaluate(() => ((window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker = undefined));
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Projects' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
   await page.getByRole('menuitem', { name: 'Save to file…' }).click();
   const download = await downloadPromise;
   const filePath = testInfo.outputPath('project.stylecode.json');
@@ -79,8 +79,8 @@ test('adds an image, saves it inside the project file and restores it on open', 
       }),
   );
   page.once('filechooser', (chooser) => chooser.setFiles(filePath));
-  await page.getByRole('button', { name: 'Projects' }).click();
-  await page.getByRole('menuitem', { name: 'Open project file…' }).click();
+  await page.getByRole('button', { name: 'Designs' }).click();
+  await page.getByRole('menuitem', { name: 'Open design file…' }).click();
   await expect.poll(async () => Object.values((await snapshot(page)).doc.nodes).some((n) => n.type === 'image')).toBe(true);
   const reopened = Object.values((await snapshot(page)).doc.nodes).find((n) => n.type === 'image')!;
   await expect(page.locator(`[data-node-id="${reopened.id}"] img`)).toHaveJSProperty('naturalWidth', 640);
