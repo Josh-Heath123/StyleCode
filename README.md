@@ -26,6 +26,20 @@ Under the hood, one design document is the single source of truth. Every edit (y
 
 ![The row of cards is switched to a grid with two columns; the third card's span is set to two; the preview shows two columns at desktop width and one column at phone width](docs/media/grids-and-phones.gif)
 
+## The consulting workspace
+
+StyleCode is also becoming a workspace for software consultants ([the vision](docs/vision/PRODUCT-VISION.md)). Run with `npm start`, it opens on your clients:
+
+- **Clients, engagements and sessions:** one folder per client on your computer, each engagement with its meetings and who took part.
+- **Consent first:** a consent form for each session, with the wording shown to the client, a check that every "yes" was explained, confirmation, and withdrawal. Nothing is recorded or imported without it.
+- **Notes during the meeting:** press <kbd>N</kbd>, type, <kbd>Ctrl</kbd>+<kbd>Enter</kbd>; each note keeps its time and how far into the meeting it was written.
+- **The record:** findings with a kind, a status and where they came from (two separate labels), evidence quoted from your notes, links between findings, and every change undoable, with who and when.
+- **Files and export:** documents on a client or an engagement, and the record exported as a Markdown specification, the same file every time.
+
+Everything works with AI off, and nothing leaves your computer. Extraction from transcripts comes next ([roadmap](docs/ROADMAP.md)). See [Running a consultation](docs/GUIDE.md#running-a-consultation) in the guide.
+
+![A role-played session in StyleCode: consent given for transcription and AI on this computer, three notes with their times and minutes into the meeting, a fourth being typed, and the participants on the client's side and the consultant's](docs/workspace.png)
+
 ## Status
 
 **All five phases of the roadmap are complete** (version 0.5.0). Phase 5 refined and presented it:
@@ -70,7 +84,7 @@ npm start
 
 `npm start` builds StyleCode the first time (and after each update), then serves it on this computer and prints the address, usually <http://localhost:4173>. Keep the terminal open while you work; closing it, or pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>, stops StyleCode. This is the way to run it for client work: client data goes in the `StyleCode Data` folder in your home folder (see [Where client data lives](docs/GUIDE.md#where-client-data-lives)).
 
-Open the address. The welcome screen offers the example design and a short getting-started checklist. You can also choose **Designs → New example design** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
+Open the address: StyleCode opens on your clients (see [Running a consultation](docs/GUIDE.md#running-a-consultation)). The design editor is one click away, under **Design editor** in the top bar. Its welcome screen offers the example design and a short getting-started checklist. You can also choose **Designs → New example design** at any time. The example is drawn freely; select the *Landing page* frame and press <kbd>Shift</kbd>+<kbd>A</kbd> to watch it become rows and columns, then try editing the headline or dragging one of the cards to a new place in its row. Open the **Code** tab on the right to see the page as HTML, CSS and React, and press **Preview** to see it at phone width.
 
 To work on StyleCode itself, use `npm run dev` (<http://localhost:5173>). It keeps workspace data in a separate folder, `StyleCode Data (development)`, so development never touches client data. `npm start`, `npm run dev` and `npm run preview` all include StyleCode's small local AI and workspace servers. Serving the `dist` folder some other way works too, without them.
 
@@ -150,6 +164,8 @@ Each top-level frame is a **screen**: one page of the exported site, or one comp
 Layouts in auto layout export as flexbox or CSS grid and adapt to smaller screens, with any **On phones** settings applied below 640px; layers in free layout keep fixed positions, and the Code tab says so. Selecting the screen and pressing <kbd>Shift</kbd>+<kbd>A</kbd> fixes that. Notes never appear in exported code.
 
 ## Your data
+
+Client data (clients, engagements, sessions, consent records, notes, findings and files) is kept in the `StyleCode Data` folder in your home folder, one folder per client, and nowhere else. StyleCode refuses to start if that folder is inside a git repository, and warns if a cloud service syncs it. See [Where client data lives](docs/GUIDE.md#where-client-data-lives) and [Protecting client data](docs/GUIDE.md#protecting-client-data).
 
 Designs are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Designs → Save to file…** to keep a portable copy or move a design between browsers (the images used in the design are embedded in the file), and **Open design file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored designs, so save important work to a file. Code export and the preview also run entirely on your machine.
 

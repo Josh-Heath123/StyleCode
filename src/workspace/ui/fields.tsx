@@ -90,7 +90,7 @@ export function TextField({
         />
       )}
       {help && (
-        <p className="ws-help ws-caution" id={`${id}-help`}>
+        <p className="ws-help" id={`${id}-help`}>
           {help}
         </p>
       )}
