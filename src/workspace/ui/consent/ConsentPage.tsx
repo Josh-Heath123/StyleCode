@@ -13,9 +13,8 @@ import {
 import type { ConsentGiven, ConsentRecord, ConsentStatement, Engagement, Session } from '../../model/types';
 import { get } from '../../model/util';
 import { CURRENT_WORDING, wordingFor } from '../../model/wording';
-import { ClientFrame, type ClientView } from '../ClientFrame';
+import { ClientFrame, Missing, type ClientView } from '../ClientFrame';
 import { formatWhen, Page } from '../chrome';
-import { Missing } from '../EngagementPage';
 import { now, step } from '../steps';
 import { retentionSummary } from './ConsentPanel';
 import { useConsentContext, type ConsentContext } from './useConsentContext';

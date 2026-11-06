@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { consentSummary, createSession, editEngagement } from '../model/entities';
-import { removeEngagement } from '../model/findings';
+import { recordGroups, removeEngagement } from '../model/findings';
+import { RecordSummary } from './RecordPage';
 import type { CompanyWorkspace, Engagement } from '../model/types';
 import { get } from '../model/util';
 import { fromLocalInput, nowToTheMinute, toLocalInput, today } from '../time';
-import { ClientFrame, type ClientView } from './ClientFrame';
+import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { StatusField } from './status';
@@ -20,28 +21,6 @@ export function EngagementPage({ companyId, engagementId }: { companyId: string;
         return engagement ? <EngagementView view={view} engagement={engagement} /> : <Missing view={view} what="engagement" />;
       }}
     </ClientFrame>
-  );
-}
-
-/** A link to something that isn't there (deleted, or never was), with the way back. */
-export function Missing({ view, what, back }: { view: ClientView; what: string; back?: { href: string; label: string } }) {
-  const company = view.workspace.company;
-  const to = back ?? { href: `#/c/${company.id}`, label: `Back to ${company.name}` };
-  return (
-    <Page
-      title={`There is no ${what} here`}
-      crumbs={[
-        { label: 'Clients', href: '#/' },
-        { label: company.name, href: `#/c/${company.id}` },
-      ]}
-    >
-      <div className="ws-alert" role="alert">
-        <p>It may have been deleted.</p>
-        <a className="button" href={to.href}>
-          {to.label}
-        </a>
-      </div>
-    </Page>
   );
 }
 
@@ -76,6 +55,19 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
         lede={engagement.goal || undefined}
         notices={notices}
       >
+        <section className="ws-consent" aria-labelledby="record-line" data-state="confirmed">
+          <div className="ws-consent-text">
+            <h2 id="record-line">Record</h2>
+            <p>
+              <RecordSummary groups={recordGroups(workspace, engagement.id)} />
+            </p>
+          </div>
+          <div className="ws-consent-actions">
+            <a className="button" href={`${companyHref}/e/${engagement.id}/record`}>
+              Open the record
+            </a>
+          </div>
+        </section>
         <div className="ws-columns">
           <section className="ws-card" aria-labelledby="sessions-title">
             <div className="ws-card-head">
