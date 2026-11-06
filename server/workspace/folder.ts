@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { constants, homedir, uptime } from 'node:os';
 import { dirname, isAbsolute, join, parse, resolve, sep } from 'node:path';
 
 /**
@@ -179,32 +179,73 @@ function isRunning(pid: number): boolean {
   }
 }
 
+/** When the computer last started, in milliseconds since 1970. */
+function bootTime(): number {
+  return Date.now() - uptime() * 1000;
+}
+
+/** Removes a lock file if this process still holds it. */
+function release(lock: string, pid: number): void {
+  try {
+    if ((JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid === pid) unlinkSync(lock);
+  } catch {
+    // Already gone.
+  }
+}
+
+/**
+ * The locks this process holds, kept on `process` rather than in this module:
+ * a dev-server restart loads the module again, and must not register the
+ * signal handlers a second time.
+ */
+const HELD = Symbol.for('stylecode.dataFolderLocks');
+type Held = { locks: Set<string> };
+
+function held(): Held {
+  const owner = process as unknown as { [HELD]?: Held };
+  if (owner[HELD]) return owner[HELD];
+  const state: Held = { locks: new Set() };
+  owner[HELD] = state;
+  const releaseAll = () => {
+    for (const lock of state.locks) release(lock, process.pid);
+    state.locks.clear();
+  };
+  // Node doesn't run 'exit' listeners when a signal stops it, so Ctrl+C
+  // (SIGINT), closing the console window on Windows (SIGHUP), Ctrl+Break
+  // (SIGBREAK) and SIGTERM each release the locks first, then exit.
+  const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+  if (process.platform === 'win32') signals.push('SIGBREAK');
+  for (const signal of signals) {
+    process.once(signal, () => {
+      releaseAll();
+      process.exit(128 + (constants.signals[signal] ?? 0));
+    });
+  }
+  process.once('exit', releaseAll);
+  return state;
+}
+
 /**
  * Claims the data folder for this process, so two StyleCode servers (a second
  * `npm start`, or `npm run dev` pointed at the same folder) can't both save to
  * it: each keeps its own queue of saves, and one could overwrite the other's.
- * The lock is released when the process exits; one left by a process that has
- * stopped is taken over. Throws a `DataFolderError` if another StyleCode holds it.
+ * The lock is released when the process exits or is stopped by a signal. A
+ * lock is taken over when it was left by a process that has stopped, or was
+ * written before the computer last started (its process number may since
+ * belong to another program). Throws a `DataFolderError` if another StyleCode
+ * holds it.
  */
-export function claimDataFolder(path: string, pid: number = process.pid, running: (pid: number) => boolean = isRunning): void {
+export function claimDataFolder(
+  path: string,
+  pid: number = process.pid,
+  running: (pid: number) => boolean = isRunning,
+  bootedAt: number = bootTime(),
+): void {
   const lock = join(path, LOCK_FILE);
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      writeFileSync(
-        lock,
-        `${JSON.stringify({ pid, startedAt: new Date().toISOString() })}
-`,
-        { flag: 'wx', mode: 0o600 },
-      );
-      if (pid === process.pid) {
-        process.once('exit', () => {
-          try {
-            if ((JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid === pid) unlinkSync(lock);
-          } catch {
-            // Already gone.
-          }
-        });
-      }
+      writeFileSync(lock, `${JSON.stringify({ pid, startedAt: new Date().toISOString() })}\n`, { flag: 'wx', mode: 0o600 });
+      if (pid === process.pid) held().locks.add(lock);
       return;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
@@ -212,14 +253,17 @@ export function claimDataFolder(path: string, pid: number = process.pid, running
       }
     }
     let holder: number | null = null;
+    let startedAt = Number.NaN;
     try {
-      const value = (JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid;
-      holder = typeof value === 'number' ? value : null;
+      const value = JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown; startedAt?: unknown };
+      holder = typeof value.pid === 'number' ? value.pid : null;
+      startedAt = typeof value.startedAt === 'string' ? Date.parse(value.startedAt) : Number.NaN;
     } catch {
       // Unreadable: treat as left behind.
     }
     if (holder === pid) return; // This process already holds it (the dev server restarted).
-    if (holder !== null && running(holder)) {
+    const beforeBoot = startedAt < bootedAt; // False when startedAt is missing (NaN): then the process number decides.
+    if (holder !== null && !beforeBoot && running(holder)) {
       throw new DataFolderError(
         `StyleCode is already running with the data folder ${path} (process ${holder}). Use the window where it is running, or close it first. If StyleCode isn't running, delete ${lock}.`,
       );
