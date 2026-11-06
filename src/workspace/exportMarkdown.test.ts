@@ -82,3 +82,23 @@ describe('the Markdown export (MVP 8)', () => {
     expect(exportFileName('Café Ünïcode', '?!')).toBe('cafe-unicode.md');
   });
 });
+
+describe('the export, from the Phase 1 review', () => {
+  it('keeps a heading on one line, and can’t be turned into a heading by an underline', () => {
+    const ws = record();
+    ws.findings.fd_peak.statement = 'Peak\n===';
+    const out = exportEngagementMarkdown(ws, 'en_1');
+    expect(out).toContain('#### F1. Peak ===');
+    expect(md('Foo\n===')).toBe('Foo  \n\\===');
+  });
+
+  it('writes a placeholder, not "undefined", for values a damaged file can’t give', () => {
+    const ws = record();
+    (ws.engagements.en_1 as unknown as { status: unknown }).status = { state: 'ended' };
+    (ws.sessions.se_1 as unknown as { title: unknown }).title = 42;
+    const out = exportEngagementMarkdown(ws, 'en_1');
+    expect(out).toContain('- **Status:** ended on (unreadable)');
+    expect(out).toContain('### (unreadable)');
+    expect(out).not.toContain('undefined');
+  });
+});

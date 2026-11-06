@@ -102,6 +102,13 @@ test('a document on an engagement, kept apart from the company’s; an HTML file
   expect(page.context().pages()).toHaveLength(pages);
   expect(await page.title()).not.toBe('ran');
 
+  // Removed from the engagement, its bytes go with it.
+  await page.getByRole('button', { name: 'Remove Mock-up.html' }).click();
+  await page.getByRole('dialog', { name: 'Remove file…' }).getByRole('button', { name: 'Remove file' }).click();
+  await expect(page.getByText(/No files yet\. Add documents for this engagement/)).toBeVisible();
+  await expect.poll(() => listed(id)).toEqual([]);
+  await expect.poll(() => filesOnDisk(id)).toEqual([]);
+
   // The company page lists only the company's own files.
   await page.getByRole('link', { name: /^Harbour Bakery/ }).click();
   await expect(page.getByText(/No files yet/)).toBeVisible();

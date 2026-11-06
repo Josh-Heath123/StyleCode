@@ -133,6 +133,24 @@ export class WorkspaceSession {
     return true;
   }
 
+  /**
+   * Puts the workspace back as it was before a permanent step whose save
+   * failed, so a deletion that never reached the disk doesn't look done.
+   * Nothing on disk changed, so going back is safe; the deletion can be
+   * tried again.
+   */
+  rollBack(to: CompanyWorkspace): void {
+    if (this.disposed) return;
+    if (this.timer) clearTimeout(this.timer);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.timer = null;
+    this.retryTimer = null;
+    this.permanent = false;
+    const unsaved = to !== this.lastSaved;
+    this.set({ workspace: to, status: unsaved ? 'error' : 'saved', error: unsaved ? this.state.error : null });
+    if (unsaved) this.schedule();
+  }
+
   undo(): void {
     const step = this.undoStack.at(-1);
     if (!step || this.readOnly) return;

@@ -54,6 +54,47 @@ async function engagementWithNotes(page: Page): Promise<string> {
       updatedAt: '2026-11-11T09:20:00.000Z',
     },
   };
+  // Kick-off has a confirmed consent record: told and agreed to transcription and AI on this computer.
+  ws.participants = {
+    pa_a: {
+      id: 'pa_a',
+      sessionId: 'se_1',
+      name: 'Alex Owner',
+      role: 'Owner',
+      organisation: '',
+      side: 'client',
+      speakerLabels: [],
+    },
+  };
+  ws.consents = {
+    cr_1: {
+      id: 'cr_1',
+      sessionId: 'se_1',
+      askedParticipantIds: ['pa_a'],
+      askedBy: 'Sam Consultant',
+      method: { kind: 'verbal-at-start' },
+      wordingVersion: 'draft-1',
+      told: {
+        recorded: false,
+        transcribed: true,
+        aiExtraction: true,
+        processingLocal: true,
+        processingExternal: false,
+        retention: false,
+        canStopOrDelete: true,
+        externalProvider: null,
+      },
+      given: { audioRecording: false, transcription: true, aiLocal: true, aiExternal: false, externalProvider: null },
+      retention: { kind: 'until-engagement-ends' },
+      outcome: { kind: 'given' },
+      confirmed: { by: 'Sam Consultant', at },
+      attachmentFileId: null,
+      lockedAt: null,
+      amendments: [],
+      createdAt: at,
+      updatedAt: at,
+    },
+  };
   const saved = await page.request.put(`/api/workspace/companies/${id}`, {
     headers: HEADERS,
     data: { workspace: ws, baseRevision: opened.revision },
@@ -196,9 +237,18 @@ test('links: made within the engagement, shown from both ends, followed, and rem
   );
   await expect(scale.getByRole('list', { name: 'Links' })).toContainText('Influenced by: Traffic peaks in December.');
 
-  // Following a link moves focus to the other finding.
-  await scale.getByRole('button', { name: 'Traffic peaks in December.', exact: true }).click();
+  // Following a link moves focus to the other finding, from the keyboard.
+  await scale.getByRole('button', { name: 'Traffic peaks in December.', exact: true }).focus();
+  await page.keyboard.press('Enter');
   await expect(peak).toBeFocused();
+
+  // A finding the filters hide: following the link clears them, so it can be shown.
+  await page.getByLabel('Kind').selectOption({ label: 'Performance' });
+  await expect(scale).toHaveCount(0);
+  await peak.getByRole('button', { name: 'The shop must handle five times the usual orders.', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByLabel('Kind')).toHaveValue('');
+  await expect(scale).toBeFocused();
 
   await peak.getByRole('button', { name: /Remove the link/ }).click();
   await expect(page.getByRole('list', { name: 'Links' })).toHaveCount(0);
@@ -230,5 +280,9 @@ test('the record exports as Markdown with findings, links and consent, the same 
   expect(first.text).toContain('“Orders peak in December, about five times the usual.” (note in Kick-off');
   expect(first.text).toContain('F1 (Traffic peaks in December.) **influences** F2');
   expect(first.text).toContain('## Consent');
+  // Which AI statement the client heard, in the words shown, and what the record allows.
+  expect(first.text).toContain('- [x] “The AI runs on my computer only; nothing is sent elsewhere.”');
+  expect(first.text).toContain('- **Allows now:** transcription, AI on this computer');
+  expect(first.text).toContain('### Follow-up\n\nNo consent record.');
   expect((await exportOnce()).text).toBe(first.text);
 });

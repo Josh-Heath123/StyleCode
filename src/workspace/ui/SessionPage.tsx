@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import {
   addParticipant,
@@ -18,7 +18,7 @@ import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { ConsentPanel } from './consent/ConsentPanel';
 import { NotesCard } from './NotesCard';
-import { NOT_APPLIED, now, step } from './steps';
+import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
 export function SessionPage({
@@ -30,11 +30,17 @@ export function SessionPage({
   engagementId: string;
   sessionId: string;
 }) {
+  // While its deletion is being saved, the page keeps showing the session, so its dialog stays open
+  // to say if the save fails (and the deletion is rolled back).
+  const shown = useRef<{ engagement: Engagement; meeting: Session } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   return (
     <ClientFrame companyId={companyId}>
       {(view) => {
         const engagement = get(view.workspace.engagements, engagementId);
         const session = get(view.workspace.sessions, sessionId);
+        if (engagement && session && session.engagementId === engagementId) shown.current = { engagement, meeting: session };
+        else if (deleting && shown.current) return <SessionView view={view} {...shown.current} onDeleting={setDeleting} />;
         if (!engagement) return <Missing view={view} what="engagement" />;
         if (!session || session.engagementId !== engagementId)
           return (
@@ -44,7 +50,7 @@ export function SessionPage({
               back={{ href: `#/c/${companyId}/e/${engagementId}`, label: `Back to ${engagement.name}` }}
             />
           );
-        return <SessionView view={view} engagement={engagement} meeting={session} />;
+        return <SessionView view={view} engagement={engagement} meeting={session} onDeleting={setDeleting} />;
       }}
     </ClientFrame>
   );
@@ -52,9 +58,19 @@ export function SessionPage({
 
 const SIDE_TEXT: Record<Side, string> = { client: 'Client', consultant: 'Your side' };
 
-function SessionView({ view, engagement, meeting }: { view: ClientView; engagement: Engagement; meeting: Session }) {
+function SessionView({
+  view,
+  engagement,
+  meeting,
+  onDeleting,
+}: {
+  view: ClientView;
+  engagement: Engagement;
+  meeting: Session;
+  onDeleting: (deleting: boolean) => void;
+}) {
   const { workspace, readOnly, session, notices } = view;
-  const companyHref = `#/c/${workspace.company.id}`;
+  const companyHref = `#/c/${session.companyId}`;
   const engagementHref = `${companyHref}/e/${engagement.id}`;
   const [dialog, setDialog] = useState<{ kind: 'participant'; participant: Participant | null } | { kind: 'delete' } | null>(
     null,
@@ -200,18 +216,17 @@ function SessionView({ view, engagement, meeting }: { view: ClientView; engageme
         <DeleteDialog
           title="Delete session…"
           onClose={() => setDialog(null)}
-          onDelete={() => {
-            const problem = step(
-              session,
-              'Delete the session',
-              (ws) => {
+          onDelete={async () => {
+            onDeleting(true);
+            try {
+              await permanentStep(session, 'Delete the session', (ws) => {
                 const removal = removeSession(ws, meeting.id, now());
                 return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
-              },
-              { permanent: true },
-            );
-            if (problem) throw new Error(problem);
-            location.hash = engagementHref;
+              });
+              location.hash = engagementHref;
+            } finally {
+              onDeleting(false);
+            }
           }}
           what={<SessionContents view={view} meeting={meeting} />}
         />

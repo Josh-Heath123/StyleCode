@@ -119,7 +119,7 @@ Decisions and specs, with no interface: ADR-0001 to ADR-0009, the first-version 
 
 ### Workspace Phase 1: Workspace spine ✅
 
-Built in three slices (pull requests #9, #11 and the Slice C pull request): the workspace server, clients, engagements, sessions and participants, the consent form, notes, the hand-entered record with links, files, and the Markdown export, all with AI off. Future considerations (vision §8) are a finding kind. See `docs/phase-1/HANDOVER.md`.
+Built in three slices (pull requests #9 and #10 for Slice A, #11 for Slice B, and the Slice C pull request): the workspace server, clients, engagements, sessions and participants, the consent form, notes, the hand-entered record with links, files, and the Markdown export, all with AI off. Future considerations (vision §8) are a finding kind. See `docs/phase-1/HANDOVER.md`.
 
 **Scope:** MVP steps 1 to 3 and 5, plus the hand-entered record and its export (stories 1, 2, 3, 5, 6.4, 7 and 8 of `docs/spec/MVP.md`).
 

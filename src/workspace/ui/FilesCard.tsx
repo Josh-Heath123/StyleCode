@@ -6,7 +6,7 @@ import type { FileRef } from '../model/types';
 import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
 import { DeleteDialog, DialogField, FormDialog } from './fields';
-import { now, step } from './steps';
+import { now, permanentStep, step } from './steps';
 import { saveAs } from './download';
 import { useConsultant } from './useConsultant';
 
@@ -146,10 +146,7 @@ export function FilesCard({ view, owner }: { view: ClientView; owner: NewFile['o
           title="Remove file…"
           onClose={() => setRemoving(null)}
           onDelete={async () => {
-            const problem = step(session, `Remove ${removing.name}`, (ws) => removeFileRef(ws, removing.id), { permanent: true });
-            if (problem) throw new Error(problem);
-            const failed = await saveNow();
-            if (failed) throw new Error(failed);
+            await permanentStep(session, `Remove ${removing.name}`, (ws) => removeFileRef(ws, removing.id));
             setRemoving(null);
           }}
           what={

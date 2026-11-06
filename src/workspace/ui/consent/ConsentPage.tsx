@@ -52,12 +52,13 @@ export function ConsentPage({
 function Consent({ view, engagement, meeting }: { view: ClientView; engagement: Engagement; meeting: Session }) {
   const context = useConsentContext();
   const company = view.workspace.company;
-  const sessionHref = `#/c/${company.id}/e/${engagement.id}/s/${meeting.id}`;
+  const folder = view.session.companyId;
+  const sessionHref = `#/c/${folder}/e/${engagement.id}/s/${meeting.id}`;
   const record = consentFor(view.workspace, meeting.id);
   const crumbs = [
     { label: 'Clients', href: '#/' },
-    { label: company.name, href: `#/c/${company.id}` },
-    { label: engagement.name, href: `#/c/${company.id}/e/${engagement.id}` },
+    { label: company.name, href: `#/c/${folder}` },
+    { label: engagement.name, href: `#/c/${folder}/e/${engagement.id}` },
     { label: meeting.title, href: sessionHref },
     { label: 'Consent' },
   ];

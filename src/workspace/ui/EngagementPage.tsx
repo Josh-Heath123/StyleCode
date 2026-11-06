@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { consentSummary, createSession, editEngagement } from '../model/entities';
 import { recordGroups, removeEngagement } from '../model/findings';
@@ -11,15 +11,25 @@ import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { FilesCard } from './FilesCard';
 import { StatusField } from './status';
-import { NOT_APPLIED, now, step } from './steps';
+import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** An engagement: its sessions, and its name, goal and status (MVP 2.1 to 2.3). */
 export function EngagementPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
+  // While its deletion is being saved, the page keeps showing the engagement, so its dialog stays open
+  // to say if the save fails (and the deletion is rolled back).
+  const shown = useRef<Engagement | null>(null);
+  const [deleting, setDeleting] = useState(false);
   return (
     <ClientFrame companyId={companyId}>
       {(view) => {
         const engagement = get(view.workspace.engagements, engagementId);
-        return engagement ? <EngagementView view={view} engagement={engagement} /> : <Missing view={view} what="engagement" />;
+        if (engagement) shown.current = engagement;
+        const keep = engagement ?? (deleting ? shown.current : null);
+        return keep ? (
+          <EngagementView view={view} engagement={keep} onDeleting={setDeleting} />
+        ) : (
+          <Missing view={view} what="engagement" />
+        );
       }}
     </ClientFrame>
   );
@@ -34,9 +44,18 @@ const CONSENT_TEXT = {
   withdrawn: 'Consent withdrawn',
 } as const;
 
-function EngagementView({ view, engagement }: { view: ClientView; engagement: Engagement }) {
+function EngagementView({
+  view,
+  engagement,
+  onDeleting,
+}: {
+  view: ClientView;
+  engagement: Engagement;
+  onDeleting: (deleting: boolean) => void;
+}) {
   const { workspace, readOnly, session, notices } = view;
-  const companyHref = `#/c/${workspace.company.id}`;
+  // The folder the page was opened from: for a copied folder, the id in its file is the original's.
+  const companyHref = `#/c/${session.companyId}`;
   const [dialog, setDialog] = useState<'session' | 'delete' | null>(null);
   const sessions = Object.values(workspace.sessions)
     .filter((s) => s.engagementId === engagement.id)
@@ -150,7 +169,13 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
       </Page>
       {dialog === 'session' && <NewSessionDialog view={view} engagement={engagement} onClose={() => setDialog(null)} />}
       {dialog === 'delete' && (
-        <DeleteEngagementDialog view={view} engagement={engagement} onClose={() => setDialog(null)} companyHref={companyHref} />
+        <DeleteEngagementDialog
+          view={view}
+          engagement={engagement}
+          onClose={() => setDialog(null)}
+          companyHref={companyHref}
+          onDeleting={onDeleting}
+        />
       )}
     </>
   );
@@ -172,7 +197,7 @@ function NewSessionDialog({ view, engagement, onClose }: { view: ClientView; eng
         const result = createSession(view.workspace, engagement.id, { title, startsAt: start }, now());
         if (!result.ok) return setError(result.error);
         if (!view.session.apply('Add a session', () => result.value.workspace)) return setError(NOT_APPLIED);
-        location.hash = `#/c/${view.workspace.company.id}/e/${engagement.id}/s/${result.value.id}`;
+        location.hash = `#/c/${view.session.companyId}/e/${engagement.id}/s/${result.value.id}`;
       }}
     >
       <DialogField label="Title">
@@ -227,11 +252,13 @@ function DeleteEngagementDialog({
   view,
   engagement,
   companyHref,
+  onDeleting,
   onClose,
 }: {
   view: ClientView;
   engagement: Engagement;
   companyHref: string;
+  onDeleting: (deleting: boolean) => void;
   onClose: () => void;
 }) {
   const c = engagementContents(view.workspace, engagement.id);
@@ -239,18 +266,17 @@ function DeleteEngagementDialog({
     <DeleteDialog
       title="Delete engagement…"
       onClose={onClose}
-      onDelete={() => {
-        const error = step(
-          view.session,
-          'Delete the engagement',
-          (ws) => {
+      onDelete={async () => {
+        onDeleting(true);
+        try {
+          await permanentStep(view.session, 'Delete the engagement', (ws) => {
             const removal = removeEngagement(ws, engagement.id, now());
             return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
-          },
-          { permanent: true },
-        );
-        if (error) throw new Error(error);
-        location.hash = companyHref;
+          });
+          location.hash = companyHref;
+        } finally {
+          onDeleting(false);
+        }
       }}
       what={
         <>

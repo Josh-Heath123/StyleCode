@@ -186,3 +186,28 @@ test('deleting a client needs its name typed, and removes its folder', async ({ 
   await expect(page.getByRole('link', { name: new RegExp(client) })).toHaveCount(0);
   expect(existsSync(join(E2E_WORKSPACE, 'companies', id))).toBe(false);
 });
+
+test('a deletion whose save is refused says so in its dialog, instead of looking done (Phase 1 review)', async ({ page }) => {
+  const id = await createClient(page, unique('Refused Save'));
+  await page.goto(`/#/c/${id}`);
+  await newEngagement(page, 'Bookings');
+  await newSession(page, 'First visit', '2026-11-05T10:00');
+  await saved(page);
+
+  // The next save is refused, as when the client was changed in another window.
+  await page.route(`**/api/workspace/companies/${id}`, (route) =>
+    route.request().method() === 'PUT'
+      ? route.fulfill({
+          status: 409,
+          json: { error: 'This client was changed in another window. Reload it to see the latest version.' },
+        })
+      : route.fallback(),
+  );
+  await page.getByRole('button', { name: 'Delete session…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete session…' });
+  await dialog.getByRole('button', { name: 'Delete session' }).click();
+  await expect(dialog.getByRole('alert')).toHaveText(
+    'Not saved: This client was changed in another window. Reload it to see the latest version.',
+  );
+  await expect(page).toHaveURL(/\/s\//);
+});

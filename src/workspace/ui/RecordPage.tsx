@@ -48,7 +48,7 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
   const [sessionId, setSessionId] = useState('');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState<string | null>(null);
-  const companyHref = `#/c/${workspace.company.id}`;
+  const companyHref = `#/c/${view.session.companyId}`;
   const engagementHref = `${companyHref}/e/${engagement.id}`;
   const groups = filteredRecord(workspace, engagement.id, { kind: kind || null, sessionId: sessionId || null });
   const total = Object.values(workspace.findings).filter((f) => f.engagementId === engagement.id && isInRecord(f)).length;
@@ -56,6 +56,14 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
   const sessions = Object.values(workspace.sessions)
     .filter((s) => s.engagementId === engagement.id)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  /** Follows a link to another finding; if the filters hide it, they are cleared first, so it can be shown. */
+  const follow = (findingId: string) => {
+    if (focusFinding(findingId)) return;
+    setKind('');
+    setSessionId('');
+    requestAnimationFrame(() => focusFinding(findingId));
+  };
 
   return (
     <>
@@ -147,6 +155,7 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
                       onEdit={() => setDialog({ kind: 'finding', finding: f })}
                       onLink={() => setDialog({ kind: 'link', finding: f })}
                       onError={setError}
+                      onFollow={follow}
                     />
                   ))}
                 </ol>
@@ -179,11 +188,13 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-/** Moves focus to a finding's card, so a link can be followed from the keyboard. */
-function goTo(findingId: string) {
+/** Moves focus to a finding's card, so a link can be followed from the keyboard. Returns false if it isn't shown. */
+function focusFinding(findingId: string): boolean {
   const card = document.getElementById(`finding-${findingId}`);
-  card?.scrollIntoView({ block: 'center' });
-  card?.focus();
+  if (!card) return false;
+  card.scrollIntoView({ block: 'center' });
+  card.focus();
+  return true;
 }
 
 function FindingCard({
@@ -193,6 +204,7 @@ function FindingCard({
   onEdit,
   onLink,
   onError,
+  onFollow,
 }: {
   view: ClientView;
   finding: Finding;
@@ -200,6 +212,7 @@ function FindingCard({
   onEdit: () => void;
   onLink: () => void;
   onError: (error: string | null) => void;
+  onFollow: (findingId: string) => void;
 }) {
   const { workspace, readOnly, session } = view;
   const links = linksOf(workspace, f.id);
@@ -233,7 +246,7 @@ function FindingCard({
           {links.map(({ relation, outgoing, other }) => (
             <li key={relation.id}>
               <span className="ws-muted">{RELATION_LABEL[relation.type][outgoing ? 'from' : 'to']}:</span>{' '}
-              <button type="button" className="ws-link-button" onClick={() => goTo(other.id)}>
+              <button type="button" className="ws-link-button" onClick={() => onFollow(other.id)}>
                 {other.statement}
               </button>
               {!readOnly && (
@@ -567,18 +580,32 @@ export function RecordSummary({ groups }: { groups: RecordGroups }) {
 
 /** Saves the engagement's record as a Markdown file (MVP story 8). */
 export function ExportButton({ workspace, engagement }: { workspace: CompanyWorkspace; engagement: Engagement }) {
+  const [error, setError] = useState<string | null>(null);
   return (
-    <button
-      type="button"
-      className="button"
-      onClick={() =>
-        saveAs(
-          exportFileName(workspace.company.name, engagement.name),
-          new Blob([exportEngagementMarkdown(workspace, engagement.id)], { type: 'text/markdown;charset=utf-8' }),
-        )
-      }
-    >
-      <Icon name="download" size={14} /> Export as Markdown
-    </button>
+    <>
+      <button
+        type="button"
+        className="button"
+        onClick={() => {
+          setError(null);
+          try {
+            saveAs(
+              exportFileName(String(workspace.company.name), String(engagement.name)),
+              new Blob([exportEngagementMarkdown(workspace, engagement.id)], { type: 'text/markdown;charset=utf-8' }),
+            );
+          } catch (e) {
+            // A damaged client (opened read-only) may hold values the export can't read: say so, rather than nothing.
+            setError(`The record couldn’t be exported: ${(e as Error).message}`);
+          }
+        }}
+      >
+        <Icon name="download" size={14} /> Export as Markdown
+      </button>
+      {error && (
+        <span className="ws-error" role="alert">
+          {error}
+        </span>
+      )}
+    </>
   );
 }

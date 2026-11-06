@@ -21,14 +21,28 @@ import {
 import { get } from './model/util.ts';
 import { wordingFor } from './model/wording.ts';
 
-/** Text from the record, made safe to place in Markdown: nothing in it can become a heading, list, link or emphasis. */
-export function md(text: string): string {
-  return text
+/**
+ * Text from the record, made safe to place in Markdown: nothing in it can
+ * become a heading (including one underlined with = or -), a list, a link or
+ * emphasis. A value that isn't text (a damaged file, opened read-only) is
+ * shown as a placeholder rather than "undefined".
+ */
+export function md(value: unknown): string {
+  if (typeof value !== 'string') return '(unreadable)';
+  return value
     .replace(/\r\n?/g, '\n')
     .replace(/[\\`*_[\]<>|]/g, (c) => `\\${c}`)
-    .replace(/^(\s*)([#>+-]|\d+[.)])/gm, (_m, space: string, mark: string) => `${space}\\${mark}`)
+    .replace(/^(\s*)([#>+=-]|\d+[.)])/gm, (_m, space: string, mark: string) => `${space}\\${mark}`)
     .replace(/\n/g, '  \n');
 }
+
+/** Text for a heading, which has to stay on one line. */
+function heading(value: unknown): string {
+  return md(typeof value === 'string' ? value.replace(/\s*[\r\n]+\s*/g, ' ') : value);
+}
+
+/** Compares by character codes, not the computer's language settings, so every computer sorts alike. */
+const byCode = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** A timestamp as a fixed, readable UTC time: "2026-11-04 09:00 UTC". */
 function utc(iso: string): string {
@@ -40,7 +54,7 @@ function utc(iso: string): string {
 const byTime =
   <T extends { id: string }>(time: (x: T) => string) =>
   (a: T, b: T) =>
-    time(a).localeCompare(time(b)) || a.id.localeCompare(b.id);
+    byCode(time(a), time(b)) || byCode(a.id, b.id);
 
 function retentionText(r: Retention): string {
   return r.kind === 'days'
@@ -60,7 +74,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   const lines: string[] = [];
   const push = (...l: string[]) => lines.push(...l);
 
-  push(`# ${md(engagement.name)}`, '', `Record of the engagement with ${md(company.name)}, exported from StyleCode.`, '');
+  push(`# ${heading(engagement.name)}`, '', `Record of the engagement with ${md(company.name)}, exported from StyleCode.`, '');
 
   // Company and engagement.
   push('## Company', '');
@@ -70,7 +84,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   if (company.existingSystems) push(`- **Existing systems:** ${md(company.existingSystems)}`);
   push('', '## Engagement', '');
   if (engagement.goal) push(`- **Goal:** ${md(engagement.goal)}`);
-  push(`- **Status:** ${engagement.status.state === 'active' ? 'active' : `ended on ${engagement.status.endedOn}`}`, '');
+  push(`- **Status:** ${engagement.status.state === 'active' ? 'active' : `ended on ${md(engagement.status.endedOn)}`}`, '');
 
   // Sessions, with their participants.
   const sessions = Object.values(ws.sessions)
@@ -79,14 +93,12 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   push('## Sessions', '');
   if (!sessions.length) push('No sessions.', '');
   for (const s of sessions) {
-    push(`### ${md(s.title)}`, '', `${utc(s.startsAt)}`, '');
+    push(`### ${heading(s.title)}`, '', `${utc(s.startsAt)}`, '');
     const people = Object.values(ws.participants)
       .filter((p) => p.sessionId === s.id)
       .sort(
         (a, b) =>
-          Number(a.side === 'consultant') - Number(b.side === 'consultant') ||
-          a.name.localeCompare(b.name) ||
-          a.id.localeCompare(b.id),
+          Number(a.side === 'consultant') - Number(b.side === 'consultant') || byCode(a.name, b.name) || byCode(a.id, b.id),
       );
     if (!people.length) push('No participants recorded.', '');
     else {
@@ -117,8 +129,8 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
       (a, b) =>
         numbered.get(a.fromId)! - numbered.get(b.fromId)! ||
         numbered.get(a.toId)! - numbered.get(b.toId)! ||
-        a.type.localeCompare(b.type) ||
-        a.id.localeCompare(b.id),
+        byCode(a.type, b.type) ||
+        byCode(a.id, b.id),
     );
   push('## Links', '');
   if (!relations.length) push('No links.', '');
@@ -137,7 +149,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   push('## Consent', '');
   if (!sessions.length) push('No sessions.', '');
   for (const s of sessions) {
-    push(`### ${md(s.title)}`, '');
+    push(`### ${heading(s.title)}`, '');
     const record = consentFor(ws, s.id);
     if (!record) push('No consent record.', '');
     else push(...consentLines(ws, record), '');
@@ -151,7 +163,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
 
 function findingLines(ws: CompanyWorkspace, f: Finding, n: number): string[] {
   const out = [
-    `#### F${n}. ${md(f.statement)}`,
+    `#### F${n}. ${heading(f.statement)}`,
     '',
     `- **Kind:** ${KIND_LABEL[f.kind]}`,
     `- **Status:** ${STATUS_LABEL[f.status]}`,

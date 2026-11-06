@@ -222,13 +222,15 @@ function problemAndFix(p: Problem, folderId: string, fileId: unknown): ReactNode
 /** A link to something that isn't there (deleted, or never was), with the way back. */
 export function Missing({ view, what, back }: { view: ClientView; what: string; back?: { href: string; label: string } }) {
   const company = view.workspace.company;
-  const to = back ?? { href: `#/c/${company.id}`, label: `Back to ${company.name}` };
+  // Links use the folder the page was opened from: for a copied folder, the id in its file is the original's.
+  const folder = view.session.companyId;
+  const to = back ?? { href: `#/c/${folder}`, label: `Back to ${company.name}` };
   return (
     <Page
       title={`There is no ${what} here`}
       crumbs={[
         { label: 'Clients', href: '#/' },
-        { label: company.name, href: `#/c/${company.id}` },
+        { label: company.name, href: `#/c/${folder}` },
       ]}
     >
       <div className="ws-alert" role="alert">
