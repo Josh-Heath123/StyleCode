@@ -169,7 +169,8 @@ test.describe('the workspace pages', () => {
     await page.getByLabel(/^Pat Physio/).check();
     await page.getByRole('group', { name: 'Transcription' }).getByLabel('Yes').check();
     await scan(page, 'The consent form, with a problem next to an answer');
-    await page.getByRole('group', { name: 'Transcription' }).getByLabel('No').check();
+    await page.getByLabel(/written transcript/).check();
+    await page.getByLabel(/can ask me to stop/).check();
     await page.getByLabel('I asked for consent as recorded above.').check();
     await page.getByRole('button', { name: 'Save and confirm' }).click();
     await expect(page.getByRole('heading', { name: /^Consent: given/ })).toBeVisible();

@@ -172,7 +172,8 @@ test('deleting a client needs its name typed, and removes its folder', async ({ 
   await page.goto(`/#/c/${id}`);
   await page.getByRole('button', { name: 'Delete client…' }).click();
   const dialog = page.getByRole('dialog', { name: 'Delete client…' });
-  await expect(dialog).toContainText(`This deletes ${client} and everything in it`);
+  // A copied folder has the same name as the original, so the folder id is shown too.
+  await expect(dialog).toContainText(`This deletes ${client} (folder ${id}) and everything in it`);
   await expect(dialog).toContainText('This can’t be undone.');
   const remove = dialog.getByRole('button', { name: 'Delete client' });
   await expect(remove).toBeDisabled();

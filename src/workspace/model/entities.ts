@@ -158,12 +158,16 @@ export function addParticipant(
 }
 
 /**
- * Whether the session's consent record names this participant as asked. Such
- * a participant can't be removed or moved to the consultant's side while the
- * record names them, or the record would no longer say who was asked.
+ * Why a participant the session's consent record names as asked can't be
+ * removed or moved to the consultant's side (the record would no longer say
+ * who was asked), with the way out; or null if the record doesn't name them.
  */
-function askedForConsent(ws: CompanyWorkspace, participant: Participant): boolean {
-  return consentFor(ws, participant.sessionId)?.askedParticipantIds.includes(participant.id) ?? false;
+function namedOnConsent(ws: CompanyWorkspace, participant: Participant, action: string): string | null {
+  const record = consentFor(ws, participant.sessionId);
+  if (!record?.askedParticipantIds.includes(participant.id)) return null;
+  if (record.lockedAt)
+    return `${participant.name} is named on the consent record as asked, and the record can no longer be changed, so they stay.`;
+  return `${participant.name} is named on the consent form as asked. To ${action}, untick them under “Who was asked” on the consent form first.`;
 }
 
 /** Changes a participant's name, role, organisation or side. */
@@ -172,8 +176,9 @@ export function editParticipant(ws: CompanyWorkspace, id: string, changes: Parti
   if (!participant) return fail('The participant does not exist.');
   const issue = participantIssue(changes);
   if (issue) return fail(issue);
-  if (changes.side === 'consultant' && participant.side === 'client' && askedForConsent(ws, participant))
-    return fail(`${participant.name} was asked for consent as the client. Change the consent form first.`);
+  const named =
+    changes.side === 'consultant' && participant.side === 'client' && namedOnConsent(ws, participant, 'move them to your side');
+  if (named) return fail(named);
   const next: Participant = {
     ...participant,
     ...(changes.name !== undefined && { name: changes.name.trim() }),
@@ -189,8 +194,8 @@ export function editParticipant(ws: CompanyWorkspace, id: string, changes: Parti
 export function removeParticipant(ws: CompanyWorkspace, id: string): Result<CompanyWorkspace> {
   const participant = get(ws.participants, id);
   if (!participant) return fail('The participant does not exist.');
-  if (askedForConsent(ws, participant))
-    return fail(`${participant.name} is named on the consent form as asked. Change the consent form first.`);
+  const named = namedOnConsent(ws, participant, 'remove them');
+  if (named) return fail(named);
   const participants = { ...ws.participants };
   delete participants[id];
   return { ok: true, value: { ...ws, participants } };

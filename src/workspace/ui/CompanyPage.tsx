@@ -182,10 +182,10 @@ function DeleteClientDialog({ view, onClose }: { view: ClientView; onClose: () =
       what={
         <>
           <p>
-            This deletes <strong>{ws.company.name}</strong> and everything in it: {count(n(ws.engagements), 'engagement')},{' '}
-            {count(n(ws.sessions), 'session')}, {count(n(ws.consents), 'consent record')}, {count(n(ws.notes), 'note')},{' '}
-            {count(n(ws.findings), 'finding')} and {count(n(ws.files), 'file')}. Its folder, <Id>{view.session.companyId}</Id>, is
-            removed from the data folder.
+            This deletes <strong>{ws.company.name}</strong> (folder <Id>{view.session.companyId}</Id>) and everything in it:{' '}
+            {count(n(ws.engagements), 'engagement')}, {count(n(ws.sessions), 'session')},{' '}
+            {count(n(ws.consents), 'consent record')}, {count(n(ws.notes), 'note')}, {count(n(ws.findings), 'finding')} and{' '}
+            {count(n(ws.files), 'file')}. The folder is removed from the data folder.
           </p>
           <p>
             <strong>This can’t be undone.</strong> Backups and exports you made earlier aren’t affected.

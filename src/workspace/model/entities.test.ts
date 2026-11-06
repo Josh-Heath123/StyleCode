@@ -79,8 +79,22 @@ describe('participants (MVP 2.2)', () => {
 
   it('keeps someone the consent form names as asked: they can’t be removed or moved to the consultant’s side', () => {
     const ws = sampleWorkspace();
-    expect(removeParticipant(ws, 'pa_client').ok).toBe(false);
-    expect(editParticipant(ws, 'pa_client', { side: 'consultant' }).ok).toBe(false);
+    // The sample's record is locked (a transcript was imported), so it can't change either.
+    expect(removeParticipant(ws, 'pa_client')).toEqual({
+      ok: false,
+      error: 'Alex Owner is named on the consent record as asked, and the record can no longer be changed, so they stay.',
+    });
+    const unlocked = structuredClone(ws);
+    unlocked.consents.cr_1.lockedAt = null;
+    expect(removeParticipant(unlocked, 'pa_client')).toEqual({
+      ok: false,
+      error:
+        'Alex Owner is named on the consent form as asked. To remove them, untick them under “Who was asked” on the consent form first.',
+    });
+    expect(editParticipant(unlocked, 'pa_client', { side: 'consultant' })).toMatchObject({
+      ok: false,
+      error: expect.stringContaining('To move them to your side, untick them'),
+    });
     // Someone not named on the form goes, and the workspace stays valid.
     const removed = value(removeParticipant(ws, 'pa_me'));
     expect(removed.participants.pa_me).toBeUndefined();

@@ -122,6 +122,18 @@ describe('the consent form (MVP 3.1)', () => {
   });
 });
 
+describe('consent given to nothing', () => {
+  it('can’t be confirmed: it should be declined, or say what was agreed', () => {
+    const none = consentFormFor(blank(), 'se_1');
+    const v = { ...none, askedParticipantIds: ['pa_client'], outcome: { kind: 'limited' as const, limits: 'No recording.' } };
+    expect(confirmIssues(v, 'Sam')).toEqual([
+      { place: 'given', message: 'Nothing is agreed: choose Declined, or set what they agreed to.' },
+    ]);
+    expect(saveConsentForm(blank(), 'se_1', { ...v, confirm: true }, 'Sam', AT).ok).toBe(false);
+    expect(confirmIssues(decline(v), 'Sam')).toEqual([]);
+  });
+});
+
 describe('withdrawal (C8)', () => {
   it('is recorded with its reason on an unlocked record, locks it, and stops everything', () => {
     const confirmed = value(saveConsentForm(blank(), 'se_1', filled(blank(), { confirm: true }), 'Sam', AT));

@@ -110,6 +110,9 @@ export function confirmIssues(v: ConsentFormValues, askedBy: string | null): For
   const issues: FormIssue[] = [];
   if (!v.askedParticipantIds.length) issues.push({ place: 'asked', message: 'Tick who was asked.' });
   if (!isNonEmptyText(askedBy)) issues.push({ place: 'confirm', message: 'Give your name, as the person who asked.' });
+  // Consent given (with or without limits) to nothing at all contradicts itself.
+  if (v.outcome.kind !== 'declined' && !ANSWERS.some((a) => v.given[a]))
+    issues.push({ place: 'given', message: 'Nothing is agreed: choose Declined, or set what they agreed to.' });
   const told: ToldSoFar = {
     statements: new Set(CONSENT_STATEMENTS.filter((s) => v.told[s])),
     providers: v.told.processingExternal && v.told.externalProvider ? [v.told.externalProvider] : [],

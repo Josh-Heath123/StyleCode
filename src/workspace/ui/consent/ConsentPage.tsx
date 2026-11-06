@@ -130,6 +130,14 @@ function ConsentForm({
     });
   };
 
+  // The retention statement's words follow the choice under "Audio kept", so a tick for the old words
+  // no longer stands: it is cleared, for the consultant to tick the words they actually said.
+  const [retentionUnticked, setRetentionUnticked] = useState(false);
+  const setRetention = (retention: ConsentFormValues['retention']) => {
+    if (values.told.retention) setRetentionUnticked(true);
+    update({ retention, told: { ...values.told, retention: false } });
+  };
+
   const blocking = useMemo(() => saveIssues(ws, meeting.id, values), [ws, meeting.id, values]);
   const toConfirm = useMemo(() => confirmIssues(values, askedBy), [values, askedBy]);
   const at = (place: FormPlace) => [...blocking, ...toConfirm].filter((i) => i.place === place);
@@ -225,15 +233,16 @@ function ConsentForm({
             <input
               type="checkbox"
               checked={values.told[s]}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (s === 'retention' && e.target.checked) setRetentionUnticked(false);
                 update({
                   told: {
                     ...values.told,
                     [s]: e.target.checked,
                     ...(s === 'processingExternal' && { externalProvider: e.target.checked ? provider : null }),
                   },
-                })
-              }
+                });
+              }}
             />
             <q>{wording.statement(s, { provider, retention: values.retention })}</q>
           </label>
@@ -257,31 +266,39 @@ function ConsentForm({
         )}
       </Section>
 
-      <Choice
-        title="Audio kept"
-        issues={at('retention')}
-        value={values.retention.kind}
-        options={[
-          ['days', 'For a number of days'],
-          ['until-engagement-ends', 'Until the engagement ends'],
-          ['delete-after-transcription', 'Deleted after transcription'],
-        ]}
-        onChange={(kind) => update({ retention: kind === 'days' ? { kind, days: 30 } : { kind } })}
-      >
-        {values.retention.kind === 'days' && (
-          <label className="ws-inline">
-            <input
-              className="ws-input ws-number"
-              type="number"
-              min={1}
-              aria-label="Days the audio is kept"
-              value={values.retention.days}
-              onChange={(e) => update({ retention: { kind: 'days', days: Math.floor(Number(e.target.value)) } })}
-            />
-            days
-          </label>
-        )}
-      </Choice>
+      {values.given.audioRecording && (
+        <Choice
+          title="Audio kept"
+          issues={at('retention')}
+          value={values.retention.kind}
+          options={[
+            ['days', 'For a number of days'],
+            ['until-engagement-ends', 'Until the engagement ends'],
+            ['delete-after-transcription', 'Deleted after transcription'],
+          ]}
+          onChange={(kind) => setRetention(kind === 'days' ? { kind, days: 30 } : { kind })}
+        >
+          {values.retention.kind === 'days' && (
+            <label className="ws-inline">
+              <input
+                className="ws-input ws-number"
+                type="number"
+                min={1}
+                aria-label="Days the audio is kept"
+                value={values.retention.days}
+                onChange={(e) => setRetention({ kind: 'days', days: Math.floor(Number(e.target.value)) })}
+              />
+              days
+            </label>
+          )}
+          {retentionUnticked && (
+            <p className="ws-help" role="status">
+              The statement about how long the recording is kept now says something else, so it is unticked. Tick it again under
+              “What you told them” if that is what you said.
+            </p>
+          )}
+        </Choice>
+      )}
 
       <Choice
         title="Outcome"

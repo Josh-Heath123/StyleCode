@@ -168,7 +168,10 @@ test('a "yes" the client wasn’t told about says so beside it, and the form can
   const { id, href } = await sessionWithPeople(page);
   await page.goto(`${href}/consent`);
   await page.getByLabel(/^Alex Owner/).check();
+  // How long audio is kept is asked only once audio recording is agreed.
+  await expect(page.getByRole('heading', { name: 'Audio kept' })).toHaveCount(0);
   await page.getByRole('group', { name: 'Audio recording' }).getByLabel('Yes').check();
+  await expect(page.getByRole('heading', { name: 'Audio kept' })).toBeVisible();
   const audio = page.getByRole('group', { name: 'Audio recording' });
   await expect(audio).toContainText(
     'Tick what you told them: recording the audio, how long the recording is kept, stopping or deleting.',
@@ -178,10 +181,16 @@ test('a "yes" the client wasn’t told about says so beside it, and the form can
   await page.getByLabel(/record the audio of this meeting/).check();
   await page.getByLabel(/The recording is kept until the project ends/).check();
   await expect(audio).toContainText('Tick what you told them: stopping or deleting.');
-  // How long the audio is kept changes the wording shown.
+  // Choosing how long the audio is kept changes the statement's words, so its tick is cleared:
+  // the consultant ticks the words they actually said.
   await page.getByLabel('For a number of days').check();
   await page.getByLabel('Days the audio is kept').fill('14');
-  await expect(page.getByLabel(/The recording is kept for 14 days/)).toBeVisible();
+  const retention = page.getByLabel(/The recording is kept for 14 days/);
+  await expect(retention).not.toBeChecked();
+  await expect(page.getByText(/now says something else, so it is unticked/)).toBeVisible();
+  await expect(audio).toContainText('how long the recording is kept');
+  await retention.check();
+  await expect(page.getByText(/now says something else, so it is unticked/)).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Save as draft' }).click();
   await expect(page.getByRole('heading', { name: 'Consent: not confirmed' })).toBeVisible();
@@ -243,6 +252,18 @@ test('with an external AI provider set up, the form names it in the statement an
   });
 });
 
+test('consent given to nothing can’t be confirmed', async ({ page }) => {
+  const { href } = await sessionWithPeople(page);
+  await page.goto(`${href}/consent`);
+  await page.getByLabel(/^Alex Owner/).check();
+  await expect(page.getByRole('group', { name: 'What they agreed to' })).toContainText(
+    'Nothing is agreed: choose Declined, or set what they agreed to.',
+  );
+  await expect(page.getByLabel('I asked for consent as recorded above.')).toBeDisabled();
+  await page.getByLabel('Declined').check();
+  await expect(page.getByLabel('I asked for consent as recorded above.')).toBeEnabled();
+});
+
 test('someone named on the consent form as asked can’t be removed from the session', async ({ page }) => {
   const { href } = await sessionWithPeople(page);
   await page.goto(`${href}/consent`);
@@ -251,7 +272,7 @@ test('someone named on the consent form as asked can’t be removed from the ses
   await expect(page.getByRole('heading', { name: 'Consent: not confirmed' })).toBeVisible();
   await page.getByRole('button', { name: 'Remove Alex Owner' }).click();
   await expect(page.getByRole('alert')).toHaveText(
-    'Alex Owner is named on the consent form as asked. Change the consent form first.',
+    'Alex Owner is named on the consent form as asked. To remove them, untick them under “Who was asked” on the consent form first.',
   );
   await expect(page.getByRole('list', { name: 'Participants' }).getByRole('listitem')).toHaveCount(3);
 });
