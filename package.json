@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "private": true,
   "description": "A local-first visual UI editor where the canvas is the prompt: draw interfaces, collaborate with an AI through structured edits, and export real frontend code.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://josh-heath123.github.io/StyleCode/",
   "repository": {
     "type": "git",

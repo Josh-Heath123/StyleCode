@@ -202,7 +202,7 @@ The browser tests need Playwright's Chromium once per machine: `npx playwright i
 
 ## Contributing
 
-Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for the principles, the layout of the code and how changes are tested. CI runs the type-check, the unit tests, a production build and the browser tests on every push and pull request.
+StyleCode doesn't take outside contributions. [CONTRIBUTING.md](CONTRIBUTING.md) describes how it is worked on: the principles, the layout of the code and how changes are tested. CI runs the type-check, the unit tests, a production build and the browser tests on every push and pull request.
 
 ## Tech
 
@@ -210,4 +210,8 @@ React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM 
 
 ## Licence
 
-[MIT](LICENSE).
+StyleCode is released under the [PolyForm Strict License 1.0.0](LICENSE). In plain words: you may view StyleCode and run it for non-commercial purposes. You may not change it, redistribute it, or use it commercially. The licence text is what counts; this summary only explains it.
+
+Versions up to commit `0fdbdcd` were released under the MIT licence.
+
+Third-party dependencies and the Inter font keep their own licences.
