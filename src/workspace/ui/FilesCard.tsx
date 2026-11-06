@@ -7,6 +7,7 @@ import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
 import { DeleteDialog, DialogField, FormDialog } from './fields';
 import { now, step } from './steps';
+import { saveAs } from './download';
 import { useConsultant } from './useConsultant';
 
 /**
@@ -59,16 +60,7 @@ export function FilesCard({ view, owner }: { view: ClientView; owner: NewFile['o
   const download = async (file: FileRef) => {
     setError(null);
     try {
-      const blob = await downloadFile(companyId, file.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      a.rel = 'noopener';
-      document.body.append(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      saveAs(file.name, await downloadFile(companyId, file.id));
     } catch (e) {
       setError((e as Error).message);
     }

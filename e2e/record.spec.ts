@@ -206,3 +206,29 @@ test('links: made within the engagement, shown from both ends, followed, and rem
   await expect(page.getByRole('list', { name: 'Links' })).toHaveCount(2);
   await saved(page);
 });
+
+test('the record exports as Markdown with findings, links and consent, the same every time', async ({ page }) => {
+  const id = await engagementWithNotes(page);
+  await page.goto(`/#/c/${id}/e/en_1/record`);
+  await addFinding(page, 'Traffic peaks in December.', 'Performance', 'Confirmed', 'Orders peak in December');
+  await addFinding(page, 'The shop must cope with five times the usual orders.', 'Scalability', 'Assumption');
+  await page.getByRole('button', { name: 'Link “Traffic peaks in December.” to another finding' }).click();
+  await page.getByRole('dialog', { name: 'Link to another finding' }).getByRole('button', { name: 'Link' }).click();
+  await saved(page);
+
+  const exportOnce = async () => {
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export as Markdown' }).click();
+    const file = await download;
+    return { name: file.suggestedFilename(), text: (await import('node:fs')).readFileSync(await file.path(), 'utf8') };
+  };
+  const first = await exportOnce();
+  expect(first.name).toMatch(/^harbour-bakery-[a-z0-9]+-online-ordering\.md$/);
+  expect(first.text).toContain('# Online ordering');
+  expect(first.text).toContain('#### F1. Traffic peaks in December.');
+  expect(first.text).toContain('- **Provenance:** Entered by the consultant');
+  expect(first.text).toContain('“Orders peak in December, about five times the usual.” (note in Kick-off');
+  expect(first.text).toContain('F1 (Traffic peaks in December.) **influences** F2');
+  expect(first.text).toContain('## Consent');
+  expect((await exportOnce()).text).toBe(first.text);
+});

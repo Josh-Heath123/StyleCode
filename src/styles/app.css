@@ -3927,3 +3927,8 @@ a.ws-row:focus-visible {
   margin: 0 0 14px;
   padding-left: 18px;
 }
+
+.ws-heading-actions {
+  display: flex;
+  gap: 8px;
+}

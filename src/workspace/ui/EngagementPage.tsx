@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { consentSummary, createSession, editEngagement } from '../model/entities';
 import { recordGroups, removeEngagement } from '../model/findings';
-import { RecordSummary } from './RecordPage';
+import { ExportButton, RecordSummary } from './RecordPage';
 import type { CompanyWorkspace, Engagement } from '../model/types';
 import { get } from '../model/util';
 import { fromLocalInput, nowToTheMinute, toLocalInput, today } from '../time';
@@ -64,6 +64,7 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
             </p>
           </div>
           <div className="ws-consent-actions">
+            <ExportButton workspace={workspace} engagement={engagement} />
             <a className="button" href={`${companyHref}/e/${engagement.id}/record`}>
               Open the record
             </a>

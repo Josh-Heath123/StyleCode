@@ -24,6 +24,8 @@ import { count, formatWhen, Page } from './chrome';
 import { DialogField, FormDialog } from './fields';
 import { NOT_APPLIED, now, step } from './steps';
 import { useConsultant, type Consultant } from './useConsultant';
+import { saveAs } from './download';
+import { exportEngagementMarkdown, exportFileName } from '../exportMarkdown';
 
 /** An engagement's record (MVP stories 6.4, 7.1, 7.2). */
 export function RecordPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
@@ -68,11 +70,14 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
         lede={`What is established for ${engagement.name}, from all its sessions.`}
         notices={view.notices}
         actions={
-          !readOnly && (
-            <button type="button" className="button primary" onClick={() => setDialog({ kind: 'finding', finding: null })}>
-              <Icon name="plus" size={14} /> Add finding
-            </button>
-          )
+          <>
+            <ExportButton workspace={workspace} engagement={engagement} />
+            {!readOnly && (
+              <button type="button" className="button primary" onClick={() => setDialog({ kind: 'finding', finding: null })}>
+                <Icon name="plus" size={14} /> Add finding
+              </button>
+            )}
+          </>
         }
       >
         {error && (
@@ -558,4 +563,22 @@ function LinkDialog({
 export function RecordSummary({ groups }: { groups: RecordGroups }) {
   const parts = GROUPS.map((g) => `${groups[g.key].length} ${g.title.toLowerCase()}`);
   return <>{parts.join(' · ')}</>;
+}
+
+/** Saves the engagement's record as a Markdown file (MVP story 8). */
+export function ExportButton({ workspace, engagement }: { workspace: CompanyWorkspace; engagement: Engagement }) {
+  return (
+    <button
+      type="button"
+      className="button"
+      onClick={() =>
+        saveAs(
+          exportFileName(workspace.company.name, engagement.name),
+          new Blob([exportEngagementMarkdown(workspace, engagement.id)], { type: 'text/markdown;charset=utf-8' }),
+        )
+      }
+    >
+      <Icon name="download" size={14} /> Export as Markdown
+    </button>
+  );
 }
