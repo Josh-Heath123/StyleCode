@@ -112,3 +112,42 @@ export const deleteCompany = (id: string, confirmName: string) =>
 export type WorkspaceApi = {
   saveCompany: typeof saveCompany;
 };
+
+/** Stores a file's bytes in the client's folder, giving the id the app then lists it under. Nothing reads the contents. */
+export async function uploadFile(companyId: string, file: Blob): Promise<{ id: string; sizeBytes: number }> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}/companies/${encodeURIComponent(companyId)}/files`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/octet-stream', 'x-stylecode-workspace': '1' },
+      body: file,
+    });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  const body = (await response.json().catch(() => null)) as { id?: string; sizeBytes?: number; error?: string } | null;
+  if (!response.ok || !body?.id)
+    throw new WorkspaceApiError(body?.error ?? `The file couldn’t be stored (${response.status}).`, response.status);
+  return { id: body.id, sizeBytes: body.sizeBytes ?? file.size };
+}
+
+/**
+ * A file's bytes, typed as a download so the browser never shows them as a
+ * page (Phase 1 brief, WP10): a stored HTML or SVG file opened in place would
+ * run as StyleCode's own page, with access to the workspace API.
+ */
+export async function downloadFile(companyId: string, fileId: string): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}/companies/${encodeURIComponent(companyId)}/files/${encodeURIComponent(fileId)}`, {
+      headers: { 'x-stylecode-workspace': '1' },
+    });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new WorkspaceApiError(body?.error ?? `The file couldn’t be read (${response.status}).`, response.status);
+  }
+  return new Blob([await response.arrayBuffer()], { type: 'application/octet-stream' });
+}

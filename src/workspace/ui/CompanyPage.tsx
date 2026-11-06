@@ -8,6 +8,7 @@ import { today } from '../time';
 import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatDay, formatWhen, Id, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
+import { FilesCard } from './FilesCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, step } from './steps';
 import { closeCompany } from './useCompanySession';
@@ -38,17 +39,20 @@ function Company({ view }: { view: ClientView }) {
         notices={notices}
       >
         <div className="ws-columns">
-          <section className="ws-card" aria-labelledby="engagements-title">
-            <div className="ws-card-head">
-              <h2 id="engagements-title">Engagements</h2>
-              {!readOnly && Object.keys(workspace.engagements).length > 0 && (
-                <button type="button" className="button primary" onClick={() => setDialog('engagement')}>
-                  <Icon name="plus" size={14} /> New engagement
-                </button>
-              )}
-            </div>
-            <Engagements workspace={workspace} readOnly={readOnly} onAdd={() => setDialog('engagement')} />
-          </section>
+          <div className="ws-stack">
+            <section className="ws-card" aria-labelledby="engagements-title">
+              <div className="ws-card-head">
+                <h2 id="engagements-title">Engagements</h2>
+                {!readOnly && Object.keys(workspace.engagements).length > 0 && (
+                  <button type="button" className="button primary" onClick={() => setDialog('engagement')}>
+                    <Icon name="plus" size={14} /> New engagement
+                  </button>
+                )}
+              </div>
+              <Engagements workspace={workspace} readOnly={readOnly} onAdd={() => setDialog('engagement')} />
+            </section>
+            <FilesCard view={view} owner={{ kind: 'company' }} />
+          </div>
           <section className="ws-card" aria-labelledby="profile-title">
             <h2 id="profile-title">Profile</h2>
             {PROFILE.map((p) => (

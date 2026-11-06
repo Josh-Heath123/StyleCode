@@ -9,6 +9,7 @@ import { fromLocalInput, nowToTheMinute, toLocalInput, today } from '../time';
 import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
+import { FilesCard } from './FilesCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, step } from './steps';
 
@@ -69,47 +70,50 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
           </div>
         </section>
         <div className="ws-columns">
-          <section className="ws-card" aria-labelledby="sessions-title">
-            <div className="ws-card-head">
-              <h2 id="sessions-title">Sessions</h2>
-              {!readOnly && sessions.length > 0 && (
-                <button type="button" className="button primary" onClick={() => setDialog('session')}>
-                  <Icon name="plus" size={14} /> New session
-                </button>
-              )}
-            </div>
-            {sessions.length === 0 ? (
-              <div className="ws-empty is-small">
-                <p>No sessions yet. Add one for each meeting with the client, before or after it happens.</p>
-                {!readOnly && (
+          <div className="ws-stack">
+            <section className="ws-card" aria-labelledby="sessions-title">
+              <div className="ws-card-head">
+                <h2 id="sessions-title">Sessions</h2>
+                {!readOnly && sessions.length > 0 && (
                   <button type="button" className="button primary" onClick={() => setDialog('session')}>
                     <Icon name="plus" size={14} /> New session
                   </button>
                 )}
               </div>
-            ) : (
-              <ul className="ws-list is-compact" aria-label="Sessions">
-                {sessions.map((s) => {
-                  const people = Object.values(workspace.participants).filter((p) => p.sessionId === s.id).length;
-                  const consent = consentSummary(workspace, s.id);
-                  return (
-                    <li key={s.id}>
-                      <a className="ws-row" href={`${companyHref}/e/${engagement.id}/s/${s.id}`}>
-                        <span className="ws-row-main">
-                          <span className="ws-row-title">{s.title}</span>
-                          <span className="ws-row-sub">
-                            {formatWhen(s.startsAt)} · {count(people, 'participant')}
+              {sessions.length === 0 ? (
+                <div className="ws-empty is-small">
+                  <p>No sessions yet. Add one for each meeting with the client, before or after it happens.</p>
+                  {!readOnly && (
+                    <button type="button" className="button primary" onClick={() => setDialog('session')}>
+                      <Icon name="plus" size={14} /> New session
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <ul className="ws-list is-compact" aria-label="Sessions">
+                  {sessions.map((s) => {
+                    const people = Object.values(workspace.participants).filter((p) => p.sessionId === s.id).length;
+                    const consent = consentSummary(workspace, s.id);
+                    return (
+                      <li key={s.id}>
+                        <a className="ws-row" href={`${companyHref}/e/${engagement.id}/s/${s.id}`}>
+                          <span className="ws-row-main">
+                            <span className="ws-row-title">{s.title}</span>
+                            <span className="ws-row-sub">
+                              {formatWhen(s.startsAt)} · {count(people, 'participant')}
+                            </span>
                           </span>
-                        </span>
-                        <span className={`ws-badge${consent === 'given' ? ' is-active' : ''}`}>{CONSENT_TEXT[consent]}</span>
-                        <Icon name="chevronRight" size={14} className="ws-row-go" />
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+                          <span className={`ws-badge${consent === 'given' ? ' is-active' : ''}`}>{CONSENT_TEXT[consent]}</span>
+                          <Icon name="chevronRight" size={14} className="ws-row-go" />
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+            <FilesCard view={view} owner={{ kind: 'engagement', engagementId: engagement.id }} />
+          </div>
           <section className="ws-card" aria-labelledby="details-title">
             <h2 id="details-title">Engagement</h2>
             <TextField
