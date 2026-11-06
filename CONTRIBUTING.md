@@ -1,6 +1,8 @@
 # Contributing to StyleCode
 
-Thanks for helping. StyleCode is a small codebase with a few firm principles; this page explains how to work on it and what a change needs before it is merged.
+StyleCode doesn't take outside contributions: pull requests from outside the project aren't merged. Reporting a bug is still welcome (see the end of this page).
+
+This page describes how StyleCode is worked on: its few firm principles, the layout of the code, and what a change needs before it is merged. StyleCode is released under the [PolyForm Strict License 1.0.0](LICENSE), which doesn't allow changing or redistributing it.
 
 ## Principles
 
