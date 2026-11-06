@@ -10,6 +10,7 @@ import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { Missing } from './EngagementPage';
 import { ConsentPanel } from './consent/ConsentPanel';
+import { NotesCard } from './NotesCard';
 import { now, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
@@ -73,31 +74,12 @@ function SessionView({ view, engagement, meeting }: { view: ClientView; engageme
       >
         <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
         <div className="ws-columns">
-          <section className="ws-card" aria-labelledby="participants-title">
-            <div className="ws-card-head">
-              <h2 id="participants-title">Participants</h2>
-              {!readOnly && people.length > 0 && (
-                <button
-                  type="button"
-                  className="button primary"
-                  onClick={() => setDialog({ kind: 'participant', participant: null })}
-                >
-                  <Icon name="plus" size={14} /> Add participant
-                </button>
-              )}
-            </div>
-            {error && (
-              <p className="ws-error" role="alert">
-                {error}
-              </p>
-            )}
-            {people.length === 0 ? (
-              <div className="ws-empty is-small">
-                <p>
-                  No participants yet. Add who took part, on the client’s side and yours. At least one person from the client is
-                  needed to record their consent.
-                </p>
-                {!readOnly && (
+          <div className="ws-stack">
+            <NotesCard view={view} meeting={meeting} />
+            <section className="ws-card" aria-labelledby="participants-title">
+              <div className="ws-card-head">
+                <h2 id="participants-title">Participants</h2>
+                {!readOnly && people.length > 0 && (
                   <button
                     type="button"
                     className="button primary"
@@ -107,43 +89,67 @@ function SessionView({ view, engagement, meeting }: { view: ClientView; engageme
                   </button>
                 )}
               </div>
-            ) : (
-              <ul className="ws-list is-compact" aria-label="Participants">
-                {people.map((p) => (
-                  <li key={p.id} className="ws-row is-static">
-                    <span className="ws-row-main">
-                      <span className="ws-row-title">{p.name}</span>
-                      <span className="ws-row-sub">{[p.role, p.organisation].filter(Boolean).join(', ') || 'No role given'}</span>
-                    </span>
-                    <span className={`ws-badge${p.side === 'client' ? ' is-active' : ''}`}>{SIDE_TEXT[p.side]}</span>
-                    {!readOnly && (
-                      <>
-                        <button
-                          type="button"
-                          className="icon-button"
-                          aria-label={`Edit ${p.name}`}
-                          data-tip="Edit"
-                          onClick={() => setDialog({ kind: 'participant', participant: p })}
-                        >
-                          <Icon name="pencil" size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="icon-button"
-                          aria-label={`Remove ${p.name}`}
-                          data-tip="Remove"
-                          data-tip-side="left"
-                          onClick={() => setError(step(session, `Remove ${p.name}`, (ws) => removeParticipant(ws, p.id)))}
-                        >
-                          <Icon name="trash" size={14} />
-                        </button>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+              {error && (
+                <p className="ws-error" role="alert">
+                  {error}
+                </p>
+              )}
+              {people.length === 0 ? (
+                <div className="ws-empty is-small">
+                  <p>
+                    No participants yet. Add who took part, on the client’s side and yours. At least one person from the client is
+                    needed to record their consent.
+                  </p>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => setDialog({ kind: 'participant', participant: null })}
+                    >
+                      <Icon name="plus" size={14} /> Add participant
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <ul className="ws-list is-compact" aria-label="Participants">
+                  {people.map((p) => (
+                    <li key={p.id} className="ws-row is-static">
+                      <span className="ws-row-main">
+                        <span className="ws-row-title">{p.name}</span>
+                        <span className="ws-row-sub">
+                          {[p.role, p.organisation].filter(Boolean).join(', ') || 'No role given'}
+                        </span>
+                      </span>
+                      <span className={`ws-badge${p.side === 'client' ? ' is-active' : ''}`}>{SIDE_TEXT[p.side]}</span>
+                      {!readOnly && (
+                        <>
+                          <button
+                            type="button"
+                            className="icon-button"
+                            aria-label={`Edit ${p.name}`}
+                            data-tip="Edit"
+                            onClick={() => setDialog({ kind: 'participant', participant: p })}
+                          >
+                            <Icon name="pencil" size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-button"
+                            aria-label={`Remove ${p.name}`}
+                            data-tip="Remove"
+                            data-tip-side="left"
+                            onClick={() => setError(step(session, `Remove ${p.name}`, (ws) => removeParticipant(ws, p.id)))}
+                          >
+                            <Icon name="trash" size={14} />
+                          </button>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
           <section className="ws-card" aria-labelledby="details-title">
             <h2 id="details-title">Session</h2>
             <TextField
