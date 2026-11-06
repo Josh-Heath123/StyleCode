@@ -112,6 +112,9 @@ export function editSession(
   if (!session) return fail('The session does not exist.');
   const issue = sessionIssue(changes);
   if (issue) return fail(issue);
+  // The consent record takes its date and time from the session; a locked record changes only by amendments (C4).
+  if (changes.startsAt !== undefined && changes.startsAt !== session.startsAt && consentFor(ws, id)?.lockedAt)
+    return fail('The consent record for this session is locked, and it gives the session’s date and time, so they can’t change.');
   const next: Session = {
     ...session,
     ...(changes.title !== undefined && { title: changes.title.trim() }),
@@ -179,6 +182,15 @@ export function editParticipant(ws: CompanyWorkspace, id: string, changes: Parti
   const named =
     changes.side === 'consultant' && participant.side === 'client' && namedOnConsent(ws, participant, 'move them to your side');
   if (named) return fail(named);
+  // A locked record says who was asked by name, role and organisation; it changes only by amendments (C4).
+  const record = consentFor(ws, participant.sessionId);
+  const identity = (['name', 'role', 'organisation'] as const).some(
+    (k) => changes[k] !== undefined && changes[k].trim() !== participant[k],
+  );
+  if (identity && record?.lockedAt && record.askedParticipantIds.includes(participant.id))
+    return fail(
+      `${participant.name} is named on the consent record as asked, and the record can no longer be changed, so their details stay.`,
+    );
   const next: Participant = {
     ...participant,
     ...(changes.name !== undefined && { name: changes.name.trim() }),

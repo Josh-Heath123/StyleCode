@@ -9,7 +9,7 @@ import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { StatusField } from './status';
-import { now, step } from './steps';
+import { NOT_APPLIED, now, step } from './steps';
 
 /** An engagement: its sessions, and its name, goal and status (MVP 2.1 to 2.3). */
 export function EngagementPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
@@ -174,7 +174,7 @@ function NewSessionDialog({ view, engagement, onClose }: { view: ClientView; eng
         if (!start) return setError('Give the date and time the session starts.');
         const result = createSession(view.workspace, engagement.id, { title, startsAt: start }, now());
         if (!result.ok) return setError(result.error);
-        view.session.apply('Add a session', () => result.value.workspace);
+        if (!view.session.apply('Add a session', () => result.value.workspace)) return setError(NOT_APPLIED);
         location.hash = `#/c/${view.workspace.company.id}/e/${engagement.id}/s/${result.value.id}`;
       }}
     >

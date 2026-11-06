@@ -9,7 +9,7 @@ import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatDay, formatWhen, Id, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { StatusField } from './status';
-import { now, step } from './steps';
+import { NOT_APPLIED, now, step } from './steps';
 import { closeCompany } from './useCompanySession';
 
 const PROFILE: { field: ProfileField; label: string; multiline?: boolean; step: string }[] = [
@@ -150,7 +150,7 @@ function NewEngagementDialog({ view, onClose }: { view: ClientView; onClose: () 
       onSubmit={() => {
         const result = createEngagement(view.workspace, { name, goal, status }, now());
         if (!result.ok) return setError(result.error);
-        view.session.apply('Add an engagement', () => result.value.workspace);
+        if (!view.session.apply('Add an engagement', () => result.value.workspace)) return setError(NOT_APPLIED);
         location.hash = `#/c/${view.workspace.company.id}/e/${result.value.id}`;
       }}
     >
@@ -175,8 +175,12 @@ function DeleteClientDialog({ view, onClose }: { view: ClientView; onClose: () =
       typeToConfirm={ws.company.name}
       onClose={onClose}
       onDelete={async () => {
-        await deleteCompany(ws.company.id, ws.company.name);
-        closeCompany(view.session.companyId);
+        // The folder this page was opened from: for a copied folder, the id inside its file is the original's.
+        const folderId = view.session.companyId;
+        // The server checks the name in the file on disk: save a waiting rename first, and send the saved name.
+        await view.session.saveNow();
+        await deleteCompany(folderId, view.session.saved.company.name);
+        closeCompany(folderId);
         location.hash = '#/';
       }}
       what={

@@ -19,6 +19,7 @@ import {
   type ConsentTerms,
 } from './consent.ts';
 import { isInRecord } from './findings.ts';
+import { wordingFor } from './wording.ts';
 import {
   AI_PROVENANCES,
   ENTITY_MAPS,
@@ -258,6 +259,20 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
     }
     if (!isNonEmptyText(c.wordingVersion))
       report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
+    // The record must be able to say exactly what the client heard (rule C9).
+    else if (!wordingFor(c.wordingVersion))
+      report(
+        'consent.wording',
+        `The consent record names a wording this StyleCode doesn't know (${c.wordingVersion}).`,
+        'consents',
+        c.id,
+      );
+    // Consent given, or given with limits, to nothing at all contradicts itself.
+    const given = c.given as Partial<ConsentRecord['given']> | null;
+    if (c.confirmed && given && typeof given === 'object' && c.outcome?.kind !== 'declined') {
+      if (!['audioRecording', 'transcription', 'aiLocal', 'aiExternal'].some((k) => given[k as keyof typeof given] === true))
+        report('consent.nothing', 'A confirmed consent record that isn’t declined agrees to something.', 'consents', c.id);
+    }
     const terms: ConsentTerms = { given: c.given, retention: c.retention, outcome: c.outcome };
     for (const issue of termsIssues(terms)) report(issue.code, issue.message, 'consents', c.id);
     if (c.confirmed !== null && (!c.confirmed || !isNonEmptyText(c.confirmed.by) || !isTimestamp(c.confirmed.at))) {

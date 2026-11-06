@@ -145,3 +145,22 @@ describe('autosave', () => {
     expect(saves).toHaveLength(1);
   });
 });
+
+describe('a final step (a withdrawal of consent)', () => {
+  it('clears undo and redo, but its save isn’t a permanent deletion', async () => {
+    const { session, saves } = open();
+    session.apply('Rename the client', rename('A'));
+    session.apply('Record the withdrawal', rename('B'), { final: true });
+    expect(session.getState()).toMatchObject({ undoLabel: null, redoLabel: null });
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(saves.at(-1)?.permanent).toBe(false);
+  });
+
+  it('says whether a failed save is worth trying again', async () => {
+    const { session, failures } = open();
+    failures.push(new WorkspaceApiError('Changed in another window.', 409));
+    session.apply('Rename the client', rename('A'));
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(session.getState()).toMatchObject({ status: 'error', retryable: false });
+  });
+});

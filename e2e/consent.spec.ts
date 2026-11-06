@@ -144,12 +144,15 @@ test('the consent form from the keyboard alone: filled in, confirmed, edited, co
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Withdraw consent' });
   await expect(dialog.getByLabel('Reason')).toBeFocused();
+  await expect(dialog).toContainText('This can’t be undone, and the undo history is cleared.');
   await page.keyboard.type('Alex asked us to stop after the meeting.');
   await dialog.getByRole('button', { name: 'Record the withdrawal' }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: /^Consent: withdrawn on/ })).toBeVisible();
   await expect(page.getByText('Reason: Alex asked us to stop after the meeting.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Withdraw consent…' })).toHaveCount(0);
+  // A withdrawal is final (C4): undo can't bring the consent back.
+  await expect(page.getByRole('button', { name: 'Nothing to undo' })).toBeDisabled();
   await saved(page);
   [record] = consentOnDisk(id);
   expect(record.lockedAt).not.toBeNull();

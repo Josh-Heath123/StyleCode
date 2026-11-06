@@ -64,6 +64,18 @@ function Consent({ view, engagement, meeting }: { view: ClientView; engagement: 
   ];
   const title = `Consent for “${meeting.title}”`;
   const lede = formatWhen(meeting.startsAt);
+  if (view.readOnly && !record) {
+    return (
+      <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
+        <p>This session has no consent record, and this client is read-only, so none can be filled in.</p>
+        <p>
+          <a className="button" href={sessionHref}>
+            Back to the session
+          </a>
+        </p>
+      </Page>
+    );
+  }
   if (record && (record.lockedAt || view.readOnly)) {
     return (
       <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
@@ -118,7 +130,8 @@ function ConsentForm({
   // The external provider: the one this record already names, or the one set up in AI settings (rule C6).
   const provider = existing?.given.externalProvider ?? existing?.told.externalProvider ?? context.externalProvider;
   const clients = Object.values(ws.participants).filter((p) => p.sessionId === meeting.id && p.side === 'client');
-  const askedBy = context.consultant ?? (name.trim() || null);
+  // An existing record keeps who asked; a new one is asked by the consultant in settings (or the name given here).
+  const askedBy = existing?.askedBy || context.consultant || name.trim() || null;
   const declined = values.outcome.kind === 'declined';
 
   /** Any change to what the record says needs confirming again (rule C3). */
@@ -195,8 +208,8 @@ function ConsentForm({
       </Section>
 
       <Section title="Asked by" issues={at('confirm').filter((i) => i.message.startsWith('Give your name'))}>
-        {context.consultant ? (
-          <p className="ws-value">{context.consultant}</p>
+        {askedBy && (existing?.askedBy || context.consultant) ? (
+          <p className="ws-value">{askedBy}</p>
         ) : (
           <label className="ws-field">
             <span className="ws-label">Your name (kept in settings)</span>

@@ -22,6 +22,8 @@ export interface WorkspaceSessionState {
   status: SaveStatus;
   /** Why the last save failed, while it is failing. */
   error: string | null;
+  /** Whether trying the failed save again may work; a refusal (a stale revision, a taken name) won't. */
+  retryable: boolean;
   undoLabel: string | null;
   redoLabel: string | null;
 }
@@ -66,6 +68,7 @@ export class WorkspaceSession {
       problems: opened.problems,
       status: 'saved',
       error: null,
+      retryable: false,
       undoLabel: null,
       redoLabel: null,
     };
@@ -92,19 +95,35 @@ export class WorkspaceSession {
     return this.state.access !== 'editable';
   }
 
+  /** Whether this session has been closed (the client was deleted or reloaded): it takes no more changes. */
+  get closed(): boolean {
+    return this.disposed;
+  }
+
+  /** The workspace as last saved to disk. */
+  get saved(): CompanyWorkspace {
+    return this.lastSaved;
+  }
+
   /**
    * Applies one change as an undoable step. Returns false, changing nothing,
    * when the client is read-only or the change made no difference. A
    * permanent deletion clears undo and redo (MVP Q6), and its save is marked
-   * permanent so no previous copy keeps the deleted data.
+   * permanent so no previous copy keeps the deleted data. A final step (a
+   * withdrawal of consent, rule C4) clears undo and redo too, but deletes
+   * nothing, so its save keeps the previous copy as usual.
    */
-  apply(label: string, change: (ws: CompanyWorkspace) => CompanyWorkspace, options: { permanent?: boolean } = {}): boolean {
+  apply(
+    label: string,
+    change: (ws: CompanyWorkspace) => CompanyWorkspace,
+    options: { permanent?: boolean; final?: boolean } = {},
+  ): boolean {
     if (this.readOnly || this.disposed) return false;
     const before = this.state.workspace;
     const after = change(before);
     if (after === before) return false;
-    if (options.permanent) {
-      this.permanent = true;
+    if (options.permanent || options.final) {
+      if (options.permanent) this.permanent = true;
       this.undoStack = [];
     } else {
       this.undoStack = [...this.undoStack, { label, before, after }].slice(-MAX_UNDO);
@@ -169,6 +188,8 @@ export class WorkspaceSession {
       await write;
     } finally {
       this.inFlight = null;
+      // Tell listeners once the save has fully finished: until now it still counted as unsaved work.
+      if (!this.disposed) this.set({});
     }
   }
 
@@ -188,7 +209,7 @@ export class WorkspaceSession {
     } catch (error) {
       const failure = error instanceof WorkspaceApiError ? error : new WorkspaceApiError(String(error), 0);
       if (this.disposed) return;
-      this.set({ status: 'error', error: failure.message });
+      this.set({ status: 'error', error: failure.message, retryable: failure.retryable });
       // A refusal (a stale revision, a name another client has, problems) won't change by itself:
       // the next change tries again. Anything else is retried with backoff.
       if (!failure.retryable) return;

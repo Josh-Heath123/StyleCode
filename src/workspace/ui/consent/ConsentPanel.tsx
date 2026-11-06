@@ -93,7 +93,10 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
   );
 }
 
-/** Records that the client withdrew consent, with the reason (rule C8). It can be undone like any change. */
+/**
+ * Records that the client withdrew consent, with the reason (rule C8). A
+ * withdrawal is final (C4): it can't be undone, and it clears the undo history.
+ */
 function WithdrawDialog({ view, meeting, onClose }: { view: ClientView; meeting: Session; onClose: () => void }) {
   const context = useConsentContext();
   const [reason, setReason] = useState('');
@@ -115,8 +118,11 @@ function WithdrawDialog({ view, meeting, onClose }: { view: ClientView; meeting:
           if (!name.trim()) return setError('Give your name, as the person recording the withdrawal.');
           by = await context.saveConsultant(name);
         }
-        const problem = step(view.session, 'Record the withdrawal of consent', (ws) =>
-          withdrawConsent(ws, meeting.id, reason, by, now()),
+        const problem = step(
+          view.session,
+          'Record the withdrawal of consent',
+          (ws) => withdrawConsent(ws, meeting.id, reason, by, now()),
+          { final: true },
         );
         if (problem) return setError(problem);
         onClose();
@@ -124,7 +130,8 @@ function WithdrawDialog({ view, meeting, onClose }: { view: ClientView; meeting:
     >
       <p className="ws-dialog-text">
         From now on nothing more is captured or processed by the AI for <strong>{meeting.title}</strong>. A withdrawal is final:
-        if the client agrees again, that is a new session with its own consent form.
+        if the client agrees again, that is a new session with its own consent form. <strong>This can’t be undone,</strong> and
+        the undo history is cleared.
       </p>
       <DialogField label="Reason">
         {(id) => <textarea id={id} className="ws-input" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />}

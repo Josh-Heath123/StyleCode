@@ -169,3 +169,33 @@ describe('the wording shown (draft-1)', () => {
     expect(wordingFor('constructor')).toBeNull();
   });
 });
+
+describe('the review of Slice B', () => {
+  it('keeps who asked when an existing record is saved again under another name in settings (finding 6)', () => {
+    const ws = value(saveConsentForm(blank(), 'se_1', filled(blank(), { confirm: true }), 'Sam Consultant', AT));
+    // Nothing edited, a new name in settings: nothing changes.
+    expect(saveConsentForm(ws, 'se_1', consentFormFor(ws, 'se_1'), 'Samantha Consultant', LATER)).toEqual({
+      ok: true,
+      value: ws,
+    });
+    const edited = value(
+      saveConsentForm(
+        ws,
+        'se_1',
+        { ...consentFormFor(ws, 'se_1'), method: { kind: 'written-before' } },
+        'Samantha Consultant',
+        LATER,
+      ),
+    );
+    expect(Object.values(edited.consents)[0].askedBy).toBe('Sam Consultant');
+  });
+
+  it('refuses a wording version it doesn’t know, and a confirmed record that agrees to nothing (finding 9)', () => {
+    const ws = value(saveConsentForm(blank(), 'se_1', filled(blank(), { confirm: true }), 'Sam', AT));
+    const record = Object.values(ws.consents)[0];
+    expect(codes({ ...ws, consents: { [record.id]: { ...record, wordingVersion: 'draft-9' } } })).toEqual(['consent.wording']);
+    const nothing = { ...record, given: { ...record.given, transcription: false, aiLocal: false } };
+    expect(codes({ ...ws, consents: { [record.id]: nothing } })).toEqual(['consent.nothing']);
+    expect(codes({ ...ws, consents: { [record.id]: { ...nothing, outcome: { kind: 'declined' as const } } } })).toEqual([]);
+  });
+});

@@ -1,4 +1,4 @@
-import { cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_WORKSPACE } from './workspaceFolder';
@@ -114,6 +114,10 @@ test('a client whose file has problems opens read-only, with the problems listed
       updatedAt: 'x',
     },
   };
+  const at = new Date().toISOString();
+  ws.sessions = {
+    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: at, audioFileIds: [], createdAt: at, updatedAt: at },
+  };
   writeFileSync(file, JSON.stringify(ws));
 
   await page.goto('/');
@@ -132,6 +136,14 @@ test('a client whose file has problems opens read-only, with the problems listed
   await expect(problems).toHaveCount(2);
   for (const problem of await problems.all())
     await expect(problem).toContainText('What to do: restore the client’s folder from a backup');
+
+  // Its consent form can't be filled in either, even reached directly.
+  await page.goto(`/#/c/${id}/e/en_1/s/se_1/consent`);
+  await expect(
+    page.getByText('This session has no consent record, and this client is read-only, so none can be filled in.'),
+  ).toBeVisible();
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Save/ })).toHaveCount(0);
 });
 
 test('a copied client folder opens read-only, saying to rename it back or remove the copy', async ({ page }) => {
@@ -141,10 +153,23 @@ test('a copied client folder opens read-only, saying to rename it back or remove
   await page.goto(`/#/c/${copy}`);
   const problem = page.locator('.ws-problems li');
   await expect(problem).toContainText(`The folder is named ${copy}, but the file inside it belongs to the client ${id}.`);
-  await expect(problem).toContainText(`rename it back to ${id}. If it is a copy of that client’s folder, remove the copy.`);
+  await expect(problem).toContainText(
+    `rename it back to ${id}. If it is a copy of that client’s folder, remove the copy: Delete client… on this page removes this folder, ${copy}, and leaves the original alone.`,
+  );
   // Ids are monospace, so an "x" stays an "x".
   await expect(problem.locator('code.ws-id').first()).toHaveText(copy);
   await expect(problem.locator('code.ws-id').first()).toHaveCSS('font-family', /monospace|Cascadia|Consolas|Menlo/);
+
+  // Deleting the copy removes the copy's folder, never the original's.
+  await page.getByRole('button', { name: 'Delete client…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete client…' });
+  await expect(dialog).toContainText(`(folder ${copy})`);
+  const clientName = (await page.getByRole('heading', { level: 1 }).textContent()) ?? '';
+  await dialog.getByLabel(`Type ${clientName} to confirm`).fill(clientName);
+  await dialog.getByRole('button', { name: 'Delete client' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Clients' })).toBeVisible();
+  expect(existsSync(join(E2E_WORKSPACE, 'companies', copy))).toBe(false);
+  expect(existsSync(join(E2E_WORKSPACE, 'companies', id, 'workspace.json'))).toBe(true);
 });
 
 test('the design editor is one click away, and Clients leads back to the page that was open', async ({ page }) => {

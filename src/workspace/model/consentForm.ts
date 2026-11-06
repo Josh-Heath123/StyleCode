@@ -168,7 +168,8 @@ export function saveConsentForm(
   if (existing?.lockedAt) return fail('This consent record is locked. It changes only by amendments.');
   const fields = {
     askedParticipantIds: v.askedParticipantIds,
-    askedBy: askedBy?.trim() ?? existing?.askedBy ?? '',
+    // An existing record keeps who asked: re-saving it later, under another name in settings, mustn't rewrite that.
+    askedBy: existing?.askedBy || askedBy?.trim() || '',
     method: v.method,
     told: v.told,
     given: v.given,

@@ -140,9 +140,11 @@ function SaveProblem({ session, error, onReload }: { session: WorkspaceSession; 
       <p>
         <strong>Your latest changes aren’t saved.</strong> {error}
       </p>
-      <button type="button" className="button" onClick={() => void session.retry()}>
-        Try again
-      </button>
+      {session.getState().retryable && (
+        <button type="button" className="button" onClick={() => void session.retry()}>
+          Try again
+        </button>
+      )}
       <button type="button" className="button" onClick={reload}>
         Reload from disk
       </button>
@@ -192,7 +194,8 @@ function problemAndFix(p: Problem, folderId: string, fileId: unknown): ReactNode
         </p>
         <p className="ws-fix">
           <strong>What to do:</strong> if you renamed the folder, rename it back to <Id>{owner}</Id>. If it is a copy of that
-          client’s folder, remove the copy.
+          client’s folder, remove the copy: <strong>Delete client…</strong> on this page removes this folder, <Id>{folderId}</Id>,
+          and leaves the original alone.
         </p>
       </>
     );

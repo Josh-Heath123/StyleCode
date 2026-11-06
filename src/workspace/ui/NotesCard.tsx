@@ -182,7 +182,8 @@ function NewNote({ view, meeting, onClose }: { view: ClientView; meeting: Sessio
         const written = startedAt.current ?? now();
         const result = addNote(view.workspace, meeting.id, text, written);
         if (!result.ok) return;
-        view.session.apply('Add a note', () => result.value.workspace);
+        // Not added (the client was closed): the text stays, so nothing typed is lost.
+        if (!view.session.apply('Add a note', () => result.value.workspace)) return;
         startedAt.current = null;
         setKey((k) => k + 1);
       }}

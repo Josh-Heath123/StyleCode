@@ -116,3 +116,19 @@ describe('consent in a word, for the session list', () => {
     expect(consentSummary(ws, 'se_1')).toBe('not filled in');
   });
 });
+
+describe('a locked consent record keeps who was asked, and when (review of Slice B, finding 2)', () => {
+  it('refuses changes to an asked participant’s details, or the session’s time, while the record is locked', () => {
+    const ws = sampleWorkspace(); // Its record is locked: a transcript was imported.
+    expect(editParticipant(ws, 'pa_client', { name: 'Jo Baker' })).toMatchObject({ ok: false });
+    expect(editParticipant(ws, 'pa_client', { role: 'Manager' })).toMatchObject({ ok: false });
+    expect(editSession(ws, 'se_1', { startsAt: '2026-11-05T09:00:00.000Z' }, AT)).toMatchObject({ ok: false });
+    // Someone not asked, and the session's title, can still change.
+    expect(editParticipant(ws, 'pa_me', { role: 'Lead consultant' }).ok).toBe(true);
+    expect(editSession(ws, 'se_1', { title: 'Kick-off meeting' }, AT).ok).toBe(true);
+    // While the record isn't locked, the details can change.
+    const unlocked = structuredClone(ws);
+    unlocked.consents.cr_1.lockedAt = null;
+    expect(editParticipant(unlocked, 'pa_client', { name: 'Alex Owner-Baker' }).ok).toBe(true);
+  });
+});

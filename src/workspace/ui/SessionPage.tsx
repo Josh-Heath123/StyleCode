@@ -11,7 +11,7 @@ import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { Missing } from './EngagementPage';
 import { ConsentPanel } from './consent/ConsentPanel';
 import { NotesCard } from './NotesCard';
-import { now, step } from './steps';
+import { NOT_APPLIED, now, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
 export function SessionPage({
@@ -273,7 +273,7 @@ function ParticipantDialog({
         } else {
           const result = addParticipant(view.workspace, sessionId, fields);
           if (!result.ok) return setError(result.error);
-          view.session.apply(`Add ${fields.name.trim()}`, () => result.value.workspace);
+          if (!view.session.apply(`Add ${fields.name.trim()}`, () => result.value.workspace)) return setError(NOT_APPLIED);
         }
         onClose();
       }}
