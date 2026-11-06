@@ -121,7 +121,25 @@ export function editSession(
     ...(changes.startsAt !== undefined && { startsAt: changes.startsAt }),
   };
   if (same(next, session)) return ok(ws);
-  return ok({ ...ws, sessions: { ...ws.sessions, [id]: { ...next, updatedAt: at } } });
+  const changed = { ...ws, sessions: { ...ws.sessions, [id]: { ...next, updatedAt: at } } };
+  // The confirmation covers the session's date and time too (C3): changing them means confirming again.
+  return ok(next.startsAt !== session.startsAt ? unconfirm(changed, id, at) : changed);
+}
+
+/**
+ * Whether changing the session's date or time would clear its consent
+ * record's confirmation (C3), so the app can warn before the change.
+ */
+export function sessionTimeClearsConfirmation(ws: CompanyWorkspace, sessionId: string): boolean {
+  const record = consentFor(ws, sessionId);
+  return !!record?.confirmed && !record.lockedAt;
+}
+
+/** Clears the confirmation of the session's consent record, if it is confirmed and not locked (C3). */
+function unconfirm(ws: CompanyWorkspace, sessionId: string, at: Timestamp): CompanyWorkspace {
+  const record = consentFor(ws, sessionId);
+  if (!record?.confirmed || record.lockedAt) return ws;
+  return { ...ws, consents: { ...ws.consents, [record.id]: { ...record, confirmed: null, updatedAt: at } } };
 }
 
 export interface ParticipantFields {
@@ -174,7 +192,12 @@ function namedOnConsent(ws: CompanyWorkspace, participant: Participant, action: 
 }
 
 /** Changes a participant's name, role, organisation or side. */
-export function editParticipant(ws: CompanyWorkspace, id: string, changes: Partial<ParticipantFields>): Result<CompanyWorkspace> {
+export function editParticipant(
+  ws: CompanyWorkspace,
+  id: string,
+  changes: Partial<ParticipantFields>,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
   const participant = get(ws.participants, id);
   if (!participant) return fail('The participant does not exist.');
   const issue = participantIssue(changes);
@@ -184,9 +207,7 @@ export function editParticipant(ws: CompanyWorkspace, id: string, changes: Parti
   if (named) return fail(named);
   // A locked record says who was asked by name, role and organisation; it changes only by amendments (C4).
   const record = consentFor(ws, participant.sessionId);
-  const identity = (['name', 'role', 'organisation'] as const).some(
-    (k) => changes[k] !== undefined && changes[k].trim() !== participant[k],
-  );
+  const identity = changesIdentity(participant, changes);
   if (identity && record?.lockedAt && record.askedParticipantIds.includes(participant.id))
     return fail(
       `${participant.name} is named on the consent record as asked, and the record can no longer be changed, so their details stay.`,
@@ -199,7 +220,28 @@ export function editParticipant(ws: CompanyWorkspace, id: string, changes: Parti
     ...(changes.side !== undefined && { side: changes.side }),
   };
   if (same(next, participant)) return ok(ws);
-  return ok({ ...ws, participants: { ...ws.participants, [id]: next } });
+  const changed = { ...ws, participants: { ...ws.participants, [id]: next } };
+  // "I asked for consent as recorded above" covers who was asked (C3): changing them means confirming again.
+  return ok(identity && record?.askedParticipantIds.includes(id) ? unconfirm(changed, participant.sessionId, at) : changed);
+}
+
+const changesIdentity = (p: Participant, changes: Partial<ParticipantFields>) =>
+  (['name', 'role', 'organisation'] as const).some((k) => changes[k] !== undefined && changes[k].trim() !== p[k]);
+
+/**
+ * Whether these changes to a participant would clear the confirmation of
+ * the consent record that names them as asked (C3), so the app can warn
+ * before the change.
+ */
+export function participantChangeClearsConfirmation(
+  ws: CompanyWorkspace,
+  id: string,
+  changes: Partial<ParticipantFields>,
+): boolean {
+  const participant = get(ws.participants, id);
+  if (!participant || !changesIdentity(participant, changes)) return false;
+  const record = consentFor(ws, participant.sessionId);
+  return !!record?.confirmed && !record.lockedAt && record.askedParticipantIds.includes(id);
 }
 
 /** Removes a participant, unless the session's consent record names them as asked. */

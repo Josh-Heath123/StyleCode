@@ -1,6 +1,14 @@
 import { useId, useState } from 'react';
 import { Icon } from '../../ui/Icon';
-import { addParticipant, editParticipant, editSession, removeParticipant, type ParticipantFields } from '../model/entities';
+import {
+  addParticipant,
+  editParticipant,
+  editSession,
+  participantChangeClearsConfirmation,
+  removeParticipant,
+  sessionTimeClearsConfirmation,
+  type ParticipantFields,
+} from '../model/entities';
 import { removeSession } from '../model/findings';
 import type { Engagement, Participant, Session, Side } from '../model/types';
 import { get } from '../model/util';
@@ -164,6 +172,11 @@ function SessionView({ view, engagement, meeting }: { view: ClientView; engageme
               value={toLocalInput(meeting.startsAt)}
               display={formatWhen(meeting.startsAt)}
               readOnly={readOnly}
+              help={
+                sessionTimeClearsConfirmation(workspace, meeting.id)
+                  ? 'This session’s consent form is confirmed. Changing its date or time clears the confirmation, so confirm the form again afterwards.'
+                  : undefined
+              }
               onCommit={(value) => {
                 const startsAt = fromLocalInput(value);
                 return startsAt
@@ -268,7 +281,9 @@ function ParticipantDialog({
       onClose={onClose}
       onSubmit={() => {
         if (participant) {
-          const problem = step(view.session, `Change ${participant.name}`, (ws) => editParticipant(ws, participant.id, fields));
+          const problem = step(view.session, `Change ${participant.name}`, (ws) =>
+            editParticipant(ws, participant.id, fields, now()),
+          );
           if (problem) return setError(problem);
         } else {
           const result = addParticipant(view.workspace, sessionId, fields);
@@ -278,6 +293,12 @@ function ParticipantDialog({
         onClose();
       }}
     >
+      {participant && participantChangeClearsConfirmation(view.workspace, participant.id, fields) && (
+        <p className="ws-help ws-caution" role="status">
+          {participant.name} is named on the confirmed consent form. Changing this clears the confirmation, so confirm the form
+          again afterwards.
+        </p>
+      )}
       <fieldset className="ws-field ws-fieldset">
         <legend className="ws-label">Side</legend>
         <div className="ws-choices">

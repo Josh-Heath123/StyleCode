@@ -18,6 +18,7 @@ export function TextField({
   type = 'text',
   empty = 'Not given',
   display,
+  help,
   onCommit,
 }: {
   label: string;
@@ -29,6 +30,8 @@ export function TextField({
   empty?: string;
   /** How the value reads as plain text, when that differs from what is typed. */
   display?: string;
+  /** A line under the field, read with it: what changing it does. */
+  help?: string;
   onCommit: (value: string) => CommitResult;
 }) {
   const id = useId();
@@ -60,7 +63,7 @@ export function TextField({
     className: 'ws-input',
     value: draft,
     'aria-invalid': error ? true : undefined,
-    'aria-describedby': error ? `${id}-error` : undefined,
+    'aria-describedby': [error && `${id}-error`, help && `${id}-help`].filter(Boolean).join(' ') || undefined,
     onBlur: () => void commit(),
   };
   return (
@@ -85,6 +88,11 @@ export function TextField({
             if (e.key === 'Escape') revert();
           }}
         />
+      )}
+      {help && (
+        <p className="ws-help ws-caution" id={`${id}-help`}>
+          {help}
+        </p>
       )}
       {error && (
         <p className="ws-error" id={`${id}-error`} role="alert">

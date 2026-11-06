@@ -279,3 +279,44 @@ test('someone named on the consent form as asked can’t be removed from the ses
   );
   await expect(page.getByRole('list', { name: 'Participants' }).getByRole('listitem')).toHaveCount(3);
 });
+
+test('changing who was asked, or when, warns first and clears the confirmation (C3)', async ({ page }) => {
+  const { id, href } = await sessionWithPeople(page);
+  await page.goto(`${href}/consent`);
+  await page.getByLabel(/^Alex Owner/).check();
+  await page.getByLabel(/written transcript/).check();
+  await page.getByLabel(/can ask me to stop/).check();
+  await page.getByRole('group', { name: 'Transcription' }).getByLabel('Yes').check();
+  await page.getByLabel('I asked for consent as recorded above.').check();
+  await page.getByRole('button', { name: 'Save and confirm' }).click();
+  await expect(page.getByRole('heading', { name: 'Consent: given · transcription' })).toBeVisible();
+
+  // Changing someone not asked says nothing.
+  await page.getByRole('button', { name: 'Edit Jo Baker' }).click();
+  const jo = page.getByRole('dialog', { name: 'Edit Jo Baker' });
+  await jo.getByLabel(/Role/).fill('Manager');
+  await expect(jo.getByText(/named on the confirmed consent form/)).toHaveCount(0);
+  await jo.getByRole('button', { name: 'Cancel' }).click();
+
+  // Changing Alex warns before the change, then clears the confirmation.
+  await page.getByRole('button', { name: 'Edit Alex Owner' }).click();
+  const alex = page.getByRole('dialog', { name: 'Edit Alex Owner' });
+  await alex.getByLabel(/Role/).fill('Founder');
+  await expect(alex).toContainText(
+    'Alex Owner is named on the confirmed consent form. Changing this clears the confirmation, so confirm the form again afterwards.',
+  );
+  await alex.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('heading', { name: 'Consent: not confirmed' })).toBeVisible();
+  await saved(page);
+  expect(consentOnDisk(id)[0].confirmed).toBeNull();
+
+  // Confirmed again, the session's time warns under its field, and changing it clears the confirmation too.
+  await page.getByRole('link', { name: 'Continue consent form' }).click();
+  await page.getByLabel('I asked for consent as recorded above.').check();
+  await page.getByRole('button', { name: 'Save and confirm' }).click();
+  const starts = page.getByLabel('Starts');
+  await expect(starts).toHaveAccessibleDescription(/Changing its date or time clears the confirmation/);
+  await starts.fill('2026-11-04T10:30');
+  await starts.blur();
+  await expect(page.getByRole('heading', { name: 'Consent: not confirmed' })).toBeVisible();
+});

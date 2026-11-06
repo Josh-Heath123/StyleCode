@@ -3773,3 +3773,7 @@ a.ws-row:focus-visible {
   background: rgba(255, 255, 255, 0.18);
   font-size: 11px;
 }
+
+.ws-caution {
+  color: var(--caution);
+}

@@ -7,6 +7,8 @@ import {
   editEngagement,
   editParticipant,
   editSession,
+  participantChangeClearsConfirmation,
+  sessionTimeClearsConfirmation,
   removeParticipant,
 } from './entities';
 import { consentRecord, sampleWorkspace, T3 } from './fixtures';
@@ -73,7 +75,7 @@ describe('participants (MVP 2.2)', () => {
     );
     expect(workspace.participants[id]).toMatchObject({ name: 'Jo Baker', side: 'client', speakerLabels: [] });
     expect(codes(workspace)).toEqual([]);
-    expect(value(editParticipant(workspace, id, { role: 'Head baker' })).participants[id].role).toBe('Head baker');
+    expect(value(editParticipant(workspace, id, { role: 'Head baker' }, AT)).participants[id].role).toBe('Head baker');
     expect(addParticipant(workspace, 'se_1', { name: '', role: '', organisation: '', side: 'client' }).ok).toBe(false);
   });
 
@@ -91,7 +93,7 @@ describe('participants (MVP 2.2)', () => {
       error:
         'Alex Owner is named on the consent form as asked. To remove them, untick them under “Who was asked” on the consent form first.',
     });
-    expect(editParticipant(unlocked, 'pa_client', { side: 'consultant' })).toMatchObject({
+    expect(editParticipant(unlocked, 'pa_client', { side: 'consultant' }, AT)).toMatchObject({
       ok: false,
       error: expect.stringContaining('To move them to your side, untick them'),
     });
@@ -120,15 +122,58 @@ describe('consent in a word, for the session list', () => {
 describe('a locked consent record keeps who was asked, and when (review of Slice B, finding 2)', () => {
   it('refuses changes to an asked participant’s details, or the session’s time, while the record is locked', () => {
     const ws = sampleWorkspace(); // Its record is locked: a transcript was imported.
-    expect(editParticipant(ws, 'pa_client', { name: 'Jo Baker' })).toMatchObject({ ok: false });
-    expect(editParticipant(ws, 'pa_client', { role: 'Manager' })).toMatchObject({ ok: false });
+    expect(editParticipant(ws, 'pa_client', { name: 'Jo Baker' }, AT)).toMatchObject({ ok: false });
+    expect(editParticipant(ws, 'pa_client', { role: 'Manager' }, AT)).toMatchObject({ ok: false });
     expect(editSession(ws, 'se_1', { startsAt: '2026-11-05T09:00:00.000Z' }, AT)).toMatchObject({ ok: false });
     // Someone not asked, and the session's title, can still change.
-    expect(editParticipant(ws, 'pa_me', { role: 'Lead consultant' }).ok).toBe(true);
+    expect(editParticipant(ws, 'pa_me', { role: 'Lead consultant' }, AT).ok).toBe(true);
     expect(editSession(ws, 'se_1', { title: 'Kick-off meeting' }, AT).ok).toBe(true);
     // While the record isn't locked, the details can change.
     const unlocked = structuredClone(ws);
     unlocked.consents.cr_1.lockedAt = null;
-    expect(editParticipant(unlocked, 'pa_client', { name: 'Alex Owner-Baker' }).ok).toBe(true);
+    expect(editParticipant(unlocked, 'pa_client', { name: 'Alex Owner-Baker' }, AT).ok).toBe(true);
+  });
+});
+
+describe('changing who was asked, or when, on a confirmed record clears its confirmation (C3)', () => {
+  /** The sample, with its record confirmed but not locked (no transcript yet). */
+  const confirmed = () => {
+    const ws = sampleWorkspace();
+    ws.transcripts = {};
+    ws.segments = {};
+    ws.findings = {};
+    ws.relations = {};
+    ws.consents.cr_1.lockedAt = null;
+    return ws;
+  };
+
+  it('for an asked participant’s name, role or organisation, in the same step, and says so beforehand', () => {
+    const ws = confirmed();
+    expect(participantChangeClearsConfirmation(ws, 'pa_client', { role: 'Founder' })).toBe(true);
+    expect(participantChangeClearsConfirmation(ws, 'pa_client', { role: 'Owner' })).toBe(false);
+    expect(participantChangeClearsConfirmation(ws, 'pa_me', { role: 'Lead' })).toBe(false);
+    const edited = value(editParticipant(ws, 'pa_client', { role: 'Founder' }, AT));
+    expect(edited.participants.pa_client.role).toBe('Founder');
+    expect(edited.consents.cr_1).toMatchObject({ confirmed: null, updatedAt: AT });
+    expect(codes(edited)).toEqual([]);
+    // Someone not asked changes nothing on the record.
+    expect(value(editParticipant(ws, 'pa_me', { role: 'Lead' }, AT)).consents.cr_1.confirmed).not.toBeNull();
+  });
+
+  it('for the session’s date or time, but not its title', () => {
+    const ws = confirmed();
+    expect(sessionTimeClearsConfirmation(ws, 'se_1')).toBe(true);
+    const moved = value(editSession(ws, 'se_1', { startsAt: '2026-11-05T09:00:00.000Z' }, AT));
+    expect(moved.consents.cr_1.confirmed).toBeNull();
+    expect(value(editSession(ws, 'se_1', { title: 'Kick-off meeting' }, AT)).consents.cr_1.confirmed).not.toBeNull();
+  });
+
+  it('not for a draft, and a locked record keeps refusing', () => {
+    const draft = confirmed();
+    draft.consents.cr_1.confirmed = null;
+    expect(participantChangeClearsConfirmation(draft, 'pa_client', { role: 'Founder' })).toBe(false);
+    expect(sessionTimeClearsConfirmation(draft, 'se_1')).toBe(false);
+    expect(sessionTimeClearsConfirmation(sampleWorkspace(), 'se_1')).toBe(false);
+    expect(editParticipant(sampleWorkspace(), 'pa_client', { role: 'Founder' }, AT).ok).toBe(false);
   });
 });
