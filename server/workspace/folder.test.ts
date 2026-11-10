@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   claimDataFolder,
   cloudServiceFor,
@@ -11,7 +11,10 @@ import {
   gitRepositoryAround,
   isInside,
   LOCK_FILE,
+  LOCK_REFRESH_MS,
+  LOCK_STALE_MS,
   prepareDataFolder,
+  refreshLock,
   resolveDataFolder,
   type FolderEnvironment,
 } from './folder.ts';
@@ -131,36 +134,119 @@ describe('cloud-synced folders get a warning', () => {
 });
 
 describe('one StyleCode per data folder', () => {
+  const lockOf = (folder: string) =>
+    JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')) as { pid: number; startedAt: string; refreshedAt: string };
+  const T = Date.parse('2026-11-10T09:00:00.000Z');
+
   it('refuses a second server while the first is running, and takes over a lock left by one that stopped', () => {
     const folder = join(base, 'data');
     mkdirSync(folder);
     const alive = new Set([111]);
-    claimDataFolder(folder, 111, (pid) => alive.has(pid));
-    expect(() => claimDataFolder(folder, 222, (pid) => alive.has(pid))).toThrow(/already running .*process 111/);
+    const running = (pid: number) => alive.has(pid);
+    claimDataFolder(folder, { pid: 111, running });
+    expect(() => claimDataFolder(folder, { pid: 222, running })).toThrow(/already running .*process 111/);
     // The same process again (the dev server restarting) keeps it.
-    expect(() => claimDataFolder(folder, 111, (pid) => alive.has(pid))).not.toThrow();
+    expect(() => claimDataFolder(folder, { pid: 111, running })).not.toThrow();
     alive.delete(111);
-    claimDataFolder(folder, 222, (pid) => alive.has(pid));
-    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(222);
+    claimDataFolder(folder, { pid: 222, running });
+    expect(lockOf(folder).pid).toBe(222);
   });
 
   it('takes over a lock written before the computer last started, even if its process number is in use now', () => {
     const folder = join(base, 'data');
     mkdirSync(folder);
     const bootedAt = Date.parse('2026-11-05T08:00:00.000Z');
-    writeFileSync(join(folder, LOCK_FILE), JSON.stringify({ pid: 111, startedAt: '2026-11-04T17:00:00.000Z' }));
-    claimDataFolder(folder, 222, () => true, bootedAt);
-    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(222);
+    const now = Date.parse('2026-11-05T08:01:00.000Z');
+    writeFileSync(
+      join(folder, LOCK_FILE),
+      JSON.stringify({ pid: 111, startedAt: '2026-11-05T07:59:30.000Z', refreshedAt: '2026-11-05T07:59:30.000Z' }),
+    );
+    claimDataFolder(folder, { pid: 222, running: () => true, bootedAt, now });
+    expect(lockOf(folder).pid).toBe(222);
     // One written since then still counts while its process runs.
-    expect(() => claimDataFolder(folder, 333, () => true, bootedAt)).toThrow(/already running .*process 222/);
+    expect(() => claimDataFolder(folder, { pid: 333, running: () => true, bootedAt, now })).toThrow(
+      /already running .*process 222/,
+    );
   });
 
-  it('takes over a lock file it cannot read', () => {
+  it('takes over a lock not refreshed for 2 minutes, even if its process number is in use now', () => {
     const folder = join(base, 'data');
     mkdirSync(folder);
-    writeFileSync(join(folder, LOCK_FILE), 'not json');
-    claimDataFolder(folder, 333, () => true);
-    expect(JSON.parse(readFileSync(join(folder, LOCK_FILE), 'utf8')).pid).toBe(333);
+    claimDataFolder(folder, { pid: 111, now: T });
+    const inUse = () => true; // Windows reused the number, perhaps for another Node program.
+    expect(() => claimDataFolder(folder, { pid: 222, running: inUse, bootedAt: 0, now: T + LOCK_STALE_MS })).toThrow(
+      /already running .*process 111.*try again in 2 minutes/,
+    );
+    claimDataFolder(folder, { pid: 222, running: inUse, bootedAt: 0, now: T + LOCK_STALE_MS + 1 });
+    expect(lockOf(folder).pid).toBe(222);
+  });
+
+  it('keeps a lock that is refreshed, whatever its age', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    claimDataFolder(folder, { pid: 111, now: T });
+    for (let t = T; t <= T + 10 * LOCK_STALE_MS; t += LOCK_REFRESH_MS) expect(refreshLock(folder, 111, t)).toBe(true);
+    const last = T + 10 * LOCK_STALE_MS;
+    expect(lockOf(folder)).toEqual({
+      pid: 111,
+      startedAt: new Date(T).toISOString(),
+      refreshedAt: new Date(last).toISOString(),
+    });
+    expect(() => claimDataFolder(folder, { pid: 222, running: () => true, bootedAt: 0, now: last + LOCK_REFRESH_MS })).toThrow(
+      /process 111/,
+    );
+    expect(readdirSync(folder)).toEqual([LOCK_FILE]); // No temporary file left behind.
+  });
+
+  it('stops refreshing a lock another StyleCode has taken over, and leaves it alone', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    claimDataFolder(folder, { pid: 111, now: T });
+    claimDataFolder(folder, { pid: 222, running: () => true, bootedAt: 0, now: T + LOCK_STALE_MS + 1 });
+    const taken = readFileSync(join(folder, LOCK_FILE), 'utf8');
+    expect(refreshLock(folder, 111, T + LOCK_STALE_MS + 2)).toBe(false);
+    expect(readFileSync(join(folder, LOCK_FILE), 'utf8')).toBe(taken);
+  });
+
+  it('takes over a lock from before the refresh existed once its start is 2 minutes old', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    writeFileSync(join(folder, LOCK_FILE), JSON.stringify({ pid: 111, startedAt: new Date(T).toISOString() }));
+    const options = { running: () => true, bootedAt: 0 };
+    expect(() => claimDataFolder(folder, { ...options, pid: 222, now: T + 60_000 })).toThrow(/process 111/);
+    claimDataFolder(folder, { ...options, pid: 222, now: T + LOCK_STALE_MS + 1 });
+    expect(lockOf(folder).pid).toBe(222);
+  });
+
+  it('waits for a lock file it cannot read while it is recent, then takes it over', () => {
+    const folder = join(base, 'data');
+    mkdirSync(folder);
+    const lock = join(folder, LOCK_FILE);
+    writeFileSync(lock, 'not json');
+    const changed = statSync(lock).mtimeMs;
+    expect(() => claimDataFolder(folder, { pid: 333, running: () => true, now: changed + 1000 })).toThrow(
+      /already running with the data folder .*\. Use the window/,
+    );
+    claimDataFolder(folder, { pid: 333, running: () => true, now: changed + LOCK_STALE_MS + 1 });
+    expect(lockOf(folder).pid).toBe(333);
+  });
+
+  it('this process rewrites its lock every 30 seconds', () => {
+    vi.useFakeTimers({ now: T });
+    try {
+      const folder = join(base, 'data');
+      mkdirSync(folder);
+      claimDataFolder(folder);
+      vi.advanceTimersByTime(LOCK_REFRESH_MS);
+      expect(lockOf(folder)).toMatchObject({ pid: process.pid, refreshedAt: new Date(T + LOCK_REFRESH_MS).toISOString() });
+      vi.advanceTimersByTime(LOCK_REFRESH_MS);
+      expect(lockOf(folder).refreshedAt).toBe(new Date(T + 2 * LOCK_REFRESH_MS).toISOString());
+      rmSync(join(folder, LOCK_FILE)); // Taken over, or gone: the refresh stops and writes nothing.
+      vi.advanceTimersByTime(LOCK_REFRESH_MS);
+      expect(existsSync(join(folder, LOCK_FILE))).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

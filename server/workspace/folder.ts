@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { constants, homedir, uptime } from 'node:os';
 import { dirname, isAbsolute, join, parse, resolve, sep } from 'node:path';
 
@@ -169,6 +169,20 @@ export function prepareDataFolder(
 /** The lock file that keeps a second StyleCode from using the same data folder. */
 export const LOCK_FILE = '.stylecode.lock';
 
+/** How often the StyleCode holding the lock rewrites its time. */
+export const LOCK_REFRESH_MS = 30_000;
+
+/** A lock not refreshed for this long is taken over, whatever its process number. */
+export const LOCK_STALE_MS = 2 * 60_000;
+
+interface LockContents {
+  pid: number;
+  startedAt: string;
+  refreshedAt: string;
+}
+
+type ReadLock = Partial<Record<keyof LockContents, unknown>>;
+
 /** Whether a process is still running. */
 function isRunning(pid: number): boolean {
   try {
@@ -184,30 +198,74 @@ function bootTime(): number {
   return Date.now() - uptime() * 1000;
 }
 
+function readLock(lock: string): ReadLock | null {
+  try {
+    const value: unknown = JSON.parse(readFileSync(lock, 'utf8'));
+    return value && typeof value === 'object' ? (value as ReadLock) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Removes a lock file if this process still holds it. */
 function release(lock: string, pid: number): void {
   try {
-    if ((JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown }).pid === pid) unlinkSync(lock);
+    if (readLock(lock)?.pid === pid) unlinkSync(lock);
   } catch {
     // Already gone.
   }
 }
 
 /**
- * The locks this process holds, kept on `process` rather than in this module:
- * a dev-server restart loads the module again, and must not register the
- * signal handlers a second time.
+ * Rewrites the lock's time if `pid` still holds it. The new contents go to a
+ * temporary file that replaces the lock in one step, so another StyleCode
+ * reading it never sees half a lock. Returns false once the lock is gone or
+ * held by another process (it was taken over); then nothing is written.
+ */
+export function refreshLock(path: string, pid: number = process.pid, now: number = Date.now()): boolean {
+  const lock = join(path, LOCK_FILE);
+  const current = readLock(lock);
+  if (current?.pid !== pid) return false;
+  const at = new Date(now).toISOString();
+  const contents: LockContents = {
+    pid,
+    startedAt: typeof current.startedAt === 'string' ? current.startedAt : at,
+    refreshedAt: at,
+  };
+  const temporary = `${lock}.${pid}.tmp`;
+  try {
+    writeFileSync(temporary, `${JSON.stringify(contents)}\n`, { mode: 0o600 });
+    renameSync(temporary, lock);
+  } catch {
+    // The folder can't be written just now: the next refresh tries again.
+    try {
+      unlinkSync(temporary);
+    } catch {
+      // Not written.
+    }
+  }
+  return true;
+}
+
+/**
+ * The locks this process holds, with the timer that keeps each fresh. They are
+ * kept on `process` rather than in this module: a dev-server restart loads
+ * the module again, and must not register the signal handlers or start the
+ * refresh a second time.
  */
 const HELD = Symbol.for('stylecode.dataFolderLocks');
-type Held = { locks: Set<string> };
+type Held = { locks: Map<string, ReturnType<typeof setInterval>> };
 
 function held(): Held {
   const owner = process as unknown as { [HELD]?: Held };
   if (owner[HELD]) return owner[HELD];
-  const state: Held = { locks: new Set() };
+  const state: Held = { locks: new Map() };
   owner[HELD] = state;
   const releaseAll = () => {
-    for (const lock of state.locks) release(lock, process.pid);
+    for (const [lock, timer] of state.locks) {
+      clearInterval(timer);
+      release(lock, process.pid);
+    }
     state.locks.clear();
   };
   // Node doesn't run 'exit' listeners when a signal stops it, so Ctrl+C
@@ -225,50 +283,100 @@ function held(): Held {
   return state;
 }
 
+/** Keeps this process's lock fresh until the process stops, or another StyleCode takes the lock over. */
+function keepFresh(path: string, lock: string): void {
+  const state = held();
+  if (state.locks.has(lock)) return;
+  const timer = setInterval(() => {
+    if (refreshLock(path)) return;
+    clearInterval(timer);
+    state.locks.delete(lock);
+  }, LOCK_REFRESH_MS);
+  timer.unref(); // The refresh alone doesn't keep the process running.
+  state.locks.set(lock, timer);
+}
+
+export interface ClaimOptions {
+  /** The claiming process; tests pass made-up numbers. Only the real process keeps its lock fresh. */
+  pid?: number;
+  running?: (pid: number) => boolean;
+  bootedAt?: number;
+  now?: number;
+}
+
 /**
  * Claims the data folder for this process, so two StyleCode servers (a second
  * `npm start`, or `npm run dev` pointed at the same folder) can't both save to
  * it: each keeps its own queue of saves, and one could overwrite the other's.
- * The lock is released when the process exits or is stopped by a signal. A
- * lock is taken over when it was left by a process that has stopped, or was
- * written before the computer last started (its process number may since
- * belong to another program). Throws a `DataFolderError` if another StyleCode
- * holds it.
+ *
+ * The holder rewrites the lock's time every 30 seconds (`LOCK_REFRESH_MS`)
+ * and releases it when the process exits or is stopped by a signal. Another
+ * process's lock is taken over when:
+ * - it hasn't been refreshed for 2 minutes (`LOCK_STALE_MS`), whatever its
+ *   process number: Windows reuses process numbers, even for other Node
+ *   programs, so a running number proves nothing;
+ * - its process has stopped;
+ * - it was written before the computer last started.
+ *
+ * Throws a `DataFolderError` if another StyleCode holds it.
  */
-export function claimDataFolder(
-  path: string,
-  pid: number = process.pid,
-  running: (pid: number) => boolean = isRunning,
-  bootedAt: number = bootTime(),
-): void {
+export function claimDataFolder(path: string, options: ClaimOptions = {}): void {
+  const { pid = process.pid, running = isRunning, bootedAt = bootTime(), now = Date.now() } = options;
   const lock = join(path, LOCK_FILE);
   for (let attempt = 0; attempt < 2; attempt++) {
+    const at = new Date(now).toISOString();
+    const contents: LockContents = { pid, startedAt: at, refreshedAt: at };
     try {
-      writeFileSync(lock, `${JSON.stringify({ pid, startedAt: new Date().toISOString() })}\n`, { flag: 'wx', mode: 0o600 });
-      if (pid === process.pid) held().locks.add(lock);
+      writeFileSync(lock, `${JSON.stringify(contents)}\n`, { flag: 'wx', mode: 0o600 });
+      if (pid === process.pid) keepFresh(path, lock);
       return;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
         throw new DataFolderError(`StyleCode can't lock its data folder ${path}: ${(error as Error).message}`);
       }
     }
-    let holder: number | null = null;
-    let startedAt = Number.NaN;
-    try {
-      const value = JSON.parse(readFileSync(lock, 'utf8')) as { pid?: unknown; startedAt?: unknown };
-      holder = typeof value.pid === 'number' ? value.pid : null;
-      startedAt = typeof value.startedAt === 'string' ? Date.parse(value.startedAt) : Number.NaN;
-    } catch {
-      // Unreadable: treat as left behind.
+    const value = readLock(lock);
+    const holder = typeof value?.pid === 'number' ? value.pid : null;
+    if (holder === pid) {
+      // This process already holds it (the dev server restarted).
+      if (pid === process.pid) keepFresh(path, lock);
+      return;
     }
-    if (holder === pid) return; // This process already holds it (the dev server restarted).
-    const beforeBoot = startedAt < bootedAt; // False when startedAt is missing (NaN): then the process number decides.
-    if (holder !== null && !beforeBoot && running(holder)) {
+    if (!mayTakeOver(lock, value, holder, { running, bootedAt, now })) {
       throw new DataFolderError(
-        `StyleCode is already running with the data folder ${path} (process ${holder}). Use the window where it is running, or close it first. If StyleCode isn't running, delete ${lock}.`,
+        `StyleCode is already running with the data folder ${path}${holder === null ? '' : ` (process ${holder})`}. Use the window where it is running, or close it first. If StyleCode isn't running, try again in 2 minutes, or delete ${lock}.`,
       );
     }
-    unlinkSync(lock); // Left by a StyleCode that has stopped.
+    try {
+      unlinkSync(lock); // Left by a StyleCode that has stopped.
+    } catch {
+      // Gone already.
+    }
   }
   throw new DataFolderError(`StyleCode can't lock its data folder ${path}.`);
+}
+
+/** Whether another process's lock may be taken over (see `claimDataFolder`). */
+function mayTakeOver(
+  lock: string,
+  value: ReadLock | null,
+  holder: number | null,
+  context: { running: (pid: number) => boolean; bootedAt: number; now: number },
+): boolean {
+  const startedAt = typeof value?.startedAt === 'string' ? Date.parse(value.startedAt) : Number.NaN;
+  // When it was last refreshed: its own time; else when it started (a lock from before the
+  // refresh existed); else when the file last changed (a lock that can't be read, perhaps
+  // because it is being written).
+  let refreshedAt = typeof value?.refreshedAt === 'string' ? Date.parse(value.refreshedAt) : startedAt;
+  if (Number.isNaN(refreshedAt)) {
+    try {
+      refreshedAt = statSync(lock).mtimeMs;
+    } catch {
+      return true; // Gone.
+    }
+  }
+  if (context.now - refreshedAt > LOCK_STALE_MS) return true;
+  if (holder === null) return false; // Recent but unreadable: perhaps being written, so wait.
+  const beforeBoot = startedAt < context.bootedAt; // False when startedAt is missing (NaN).
+  return beforeBoot || !context.running(holder);
 }
