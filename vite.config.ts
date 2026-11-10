@@ -11,6 +11,6 @@ export default defineConfig({
   preview: { cors: false },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'server/**/*.test.ts', 'scripts/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'server/**/*.test.ts', 'scripts/**/*.test.ts', 'eval/**/*.test.ts'],
   },
 });

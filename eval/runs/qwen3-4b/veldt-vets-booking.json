@@ -1,0 +1,267 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-10T16:51:43.541Z",
+  "durationMs": 255582,
+  "unreadableReplies": 0,
+  "hardware": "12th Gen Intel(R) Core(TM) i7-12700H, 16 GB RAM",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with double bookings because someone rubs out a booking and someone else writes over it",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with no-shows, with about twenty per week across three clinics, each costing a thirty-minute slot",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "And no-shows. We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants fewer missed calls, no double bookings, and fewer no-shows",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "So if I'm hearing you right, the goals are fewer missed calls, no double bookings, and fewer no-shows?"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce the number of bookings from about one hundred and twenty to one hundred and sixty per day across three clinics",
+      "evidence": [
+        {
+          "segmentId": "s41",
+          "quote": "I've just opened last week's diaries. It's more like a hundred and sixty a day. I forgot that Olievenhoutbosch does a full Saturday morning now, and Centurion has two vets, not one."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to have a website where pet owners can book appointments online and receive reminders",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to have automatic vaccination reminders sent via WhatsApp instead of SMS",
+      "evidence": [
+        {
+          "segmentId": "s32",
+          "quote": "I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk, anyway. We'd need to check, maybe ask people in the waiting room for a week."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to have a system that records consent for personal information under POPIA",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pet's appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to have a system that allows owners to see their pet's medical history online while they're there",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "No. Definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them. Bookings and reminders only."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has a budget of one hundred and eighty thousand rand to build the system and a monthly running cost limit of two and a half thousand rand for all three clinics",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client wants the website to have a green color scheme with big buttons for easy use",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand. And no app to download, just a web page."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client wants the system to be simple with one screen if possible",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client wants the system to be live by the first of February at the latest",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client wants the system to be live by mid-January ideally",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with receptionists burning out due to high phone call volumes",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client currently uses VetDesk Pro for clinical records, owners' details, vaccination history, and billing",
+      "evidence": [
+        {
+          "segmentId": "s10",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live, the owners' details, vaccination history, billing."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client currently uses paper diaries at reception for booking appointments",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhone, have their own landline and their own paper diary at reception."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with phone calls not being handled properly due to one receptionist per clinic also checking people in and taking payments",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with missed calls due to high phone call volumes",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with no-shows, with about twenty per week across three clinics",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "And no-shows. We have maybe twenty no-shows a week across the three clinics."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with double bookings because someone rubs out a booking and someone else writes over it",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with receptionists burning out due to high phone call volumes",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with no-shows, with about twenty per week across three clinics, each costing a thirty-minute slot",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "And no-shows. We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 6
+  },
+  "shown": 15
+}
