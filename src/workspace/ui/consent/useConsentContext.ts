@@ -28,7 +28,7 @@ export function useConsentContext(): ConsentContext | null {
       if (!current) return;
       let externalProvider: string | null = null;
       if (ai && ai.provider !== 'off') {
-        const processing = classifyProvider({ provider: ai.provider, baseUrl: ai.providers[ai.provider].baseUrl });
+        const processing = classifyProvider({ provider: ai.provider, ...ai.providers[ai.provider] });
         if (processing.kind === 'external') externalProvider = processing.provider;
       }
       setContext({ consultant: settings.consultantName, externalProvider });

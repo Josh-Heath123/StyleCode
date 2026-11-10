@@ -1,4 +1,4 @@
-import { rename } from 'node:fs/promises';
+import { readFile, rename } from 'node:fs/promises';
 
 /**
  * Error codes Windows gives when antivirus, search indexing or backup software
@@ -26,6 +26,26 @@ export async function renameWithRetry(from: string, to: string, options: RetryOp
   for (let attempt = 1; ; attempt++) {
     try {
       return await renameFile(from, to);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (attempt >= attempts || !code || !TRANSIENT.has(code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delayMs * 2 ** (attempt - 1)));
+    }
+  }
+}
+
+/**
+ * Reads a file, retrying as `renameWithRetry` does when Windows reports it
+ * busy, as it can while another request is renaming a new copy over it.
+ */
+export async function readWithRetry(
+  path: string,
+  options: { attempts?: number; delayMs?: number; readFile?: (path: string) => Promise<Buffer> } = {},
+): Promise<Buffer> {
+  const { attempts = 6, delayMs = 100, readFile: read = readFile } = options;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await read(path);
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       if (attempt >= attempts || !code || !TRANSIENT.has(code)) throw error;

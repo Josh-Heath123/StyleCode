@@ -118,7 +118,7 @@ const pendingAiFinding: Finding = {
 export function sampleWorkspace(): CompanyWorkspace {
   return structuredClone({
     format: 'stylecode-workspace',
-    version: 1,
+    version: 2,
     company: {
       id: 'co_bakery',
       name: 'Harbour Bakery',
@@ -145,7 +145,16 @@ export function sampleWorkspace(): CompanyWorkspace {
       de_1: { id: 'de_1', engagementId: 'en_1', name: 'Order page', documentId: 'doc_abc123', createdAt: T3 },
     },
     sessions: {
-      se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: T0, audioFileIds: [], createdAt: T0, updatedAt: T0 },
+      se_1: {
+        id: 'se_1',
+        engagementId: 'en_1',
+        title: 'Kick-off',
+        startsAt: T0,
+        timeZone: 'Africa/Johannesburg',
+        audioFileIds: [],
+        createdAt: T0,
+        updatedAt: T0,
+      },
     },
     participants: {
       pa_client: {

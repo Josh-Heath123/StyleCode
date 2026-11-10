@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { consentFor, consentState } from '../../model/consent';
 import { withdrawConsent } from '../../model/consentForm';
+import { keptFromSession } from '../../model/findings';
+import { transcriptOf } from '../../model/transcripts';
 import type { ConsentRecord, Retention, Session } from '../../model/types';
 import type { ClientView } from '../ClientFrame';
 import { formatWhen } from '../chrome';
 import { DialogField, FormDialog } from '../fields';
-import { now, step } from '../steps';
+import { finalStep, now } from '../steps';
+import { DeleteTranscriptDialog } from '../TranscriptCard';
+import { KeptDialog } from './KeptDialog';
 import { useConsentContext } from './useConsentContext';
 
 export function retentionSummary(r: Retention): string {
@@ -36,6 +40,10 @@ function agreedSummary(record: ConsentRecord): string {
 export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; meeting: Session; formHref: string }) {
   const record = consentFor(view.workspace, meeting.id);
   const [withdrawing, setWithdrawing] = useState(false);
+  /** After a withdrawal (decision 11): first the offer to delete the transcript, then the review. */
+  const [after, setAfter] = useState<{ step: 'delete' } | { step: 'review'; factIds: string[] } | null>(null);
+  const kept = keptFromSession(view.workspace, meeting.id);
+  const hasTranscript = transcriptOf(view.workspace, meeting.id) !== null;
   const state = record?.confirmed ? consentState(record) : null;
   const withdrawal = record?.amendments.find((a) => a.kind === 'withdrawal');
 
@@ -82,13 +90,46 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
             </a>
           )
         )}
+        {withdrawal && !view.readOnly && kept.findings.length + kept.facts.length > 0 && (
+          <button type="button" className="button" onClick={() => setAfter({ step: 'review', factIds: [] })}>
+            Review what keeps a statement…
+          </button>
+        )}
         {canWithdraw && (
           <button type="button" className="button danger" onClick={() => setWithdrawing(true)}>
             Withdraw consent…
           </button>
         )}
       </div>
-      {withdrawing && <WithdrawDialog view={view} meeting={meeting} onClose={() => setWithdrawing(false)} />}
+      {withdrawing && (
+        <WithdrawDialog
+          view={view}
+          meeting={meeting}
+          onClose={() => setWithdrawing(false)}
+          onWithdrawn={() => {
+            setWithdrawing(false);
+            if (hasTranscript) setAfter({ step: 'delete' });
+            else if (kept.findings.length + kept.facts.length > 0) setAfter({ step: 'review', factIds: [] });
+          }}
+        />
+      )}
+      {after?.step === 'delete' && (
+        <DeleteTranscriptDialog
+          view={view}
+          meeting={meeting}
+          intro={
+            <p>
+              Consent is withdrawn. If the client asks, delete the transcript too. Otherwise it stays, and what was imported
+              before the withdrawal can still be used.
+            </p>
+          }
+          onDeleted={(factIds) => setAfter({ step: 'review', factIds })}
+          onClose={() => setAfter(kept.findings.length + kept.facts.length > 0 ? { step: 'review', factIds: [] } : null)}
+        />
+      )}
+      {after?.step === 'review' && (
+        <KeptDialog view={view} meeting={meeting} factIds={after.factIds} onClose={() => setAfter(null)} />
+      )}
     </section>
   );
 }
@@ -97,7 +138,17 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
  * Records that the client withdrew consent, with the reason (rule C8). A
  * withdrawal is final (C4): it can't be undone, and it clears the undo history.
  */
-function WithdrawDialog({ view, meeting, onClose }: { view: ClientView; meeting: Session; onClose: () => void }) {
+function WithdrawDialog({
+  view,
+  meeting,
+  onClose,
+  onWithdrawn,
+}: {
+  view: ClientView;
+  meeting: Session;
+  onClose: () => void;
+  onWithdrawn: () => void;
+}) {
   const context = useConsentContext();
   const [reason, setReason] = useState('');
   const [name, setName] = useState('');
@@ -118,14 +169,11 @@ function WithdrawDialog({ view, meeting, onClose }: { view: ClientView; meeting:
           if (!name.trim()) return setError('Give your name, as the person recording the withdrawal.');
           by = await context.saveConsultant(name);
         }
-        const problem = step(
-          view.session,
-          'Record the withdrawal of consent',
-          (ws) => withdrawConsent(ws, meeting.id, reason, by, now()),
-          { final: true },
+        const problem = await finalStep(view.session, 'Record the withdrawal of consent', (ws) =>
+          withdrawConsent(ws, meeting.id, reason, by, now()),
         );
         if (problem) return setError(problem);
-        onClose();
+        onWithdrawn();
       }}
     >
       <p className="ws-dialog-text">

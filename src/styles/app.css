@@ -3707,6 +3707,19 @@ a.ws-row:focus-visible {
   gap: 6px;
 }
 
+/* A consent record's amendments, oldest first. */
+.ws-amendments {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ws-amendments p {
+  margin: 0 0 4px;
+}
+
 /* Notes on a session. */
 .ws-stack {
   display: flex;
@@ -3931,4 +3944,106 @@ a.ws-row:focus-visible {
 .ws-heading-actions {
   display: flex;
   gap: 8px;
+}
+
+/* A session's transcript (Workspace Phase 2): turns by speaker, the cited passage, speaker matching. */
+.ws-transcript {
+  display: flex;
+  flex-direction: column;
+  max-height: 560px;
+  overflow-y: auto;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.ws-turn {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ws-turn-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ws-turn-speaker {
+  font-weight: 600;
+}
+
+.ws-turn-time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-segment {
+  margin: 0;
+  padding: 2px 8px;
+  border-left: 2px solid transparent;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+.ws-segment.is-cited,
+.ws-note.is-cited {
+  background: var(--blue-soft);
+  border-left-color: var(--blue);
+}
+
+.ws-segment:focus-visible,
+.ws-note:focus-visible {
+  outline: 2px solid var(--blue-hi);
+  outline-offset: 2px;
+}
+
+.ws-speakers {
+  margin-top: 12px;
+}
+
+.ws-speakers summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+.ws-speaker-table {
+  width: 100%;
+  margin: 8px 0;
+  border-collapse: collapse;
+}
+
+.ws-speaker-table th,
+.ws-speaker-table td {
+  padding: 6px 8px 6px 0;
+  text-align: left;
+  font-weight: normal;
+}
+
+.ws-speaker-table thead th {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.ws-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.ws-preview h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.ws-preview .ws-alert {
+  margin: 0;
+  border-color: rgba(242, 201, 76, 0.35);
+  background: var(--caution-soft);
+}
+
+.ws-preview-speakers {
+  margin: 0;
+  padding-left: 18px;
 }

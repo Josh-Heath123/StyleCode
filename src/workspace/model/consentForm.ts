@@ -3,10 +3,23 @@
  * stops it being saved or confirmed, and saving it as the session's consent
  * record. Pure, so saving is one undoable step.
  */
-import { amendConsent, consentFor, missingFor, termsIssues, toldIssues, type ToldSoFar } from './consent.ts';
+import {
+  addTold,
+  amendConsent,
+  consentFor,
+  consentState,
+  missingFor,
+  retentionTold,
+  retentionToldIssue,
+  termsIssues,
+  toldIssues,
+  toldSoFar,
+  type ToldSoFar,
+} from './consent.ts';
 import {
   CONSENT_STATEMENTS,
   type CompanyWorkspace,
+  type ConsentAmendment,
   type ConsentGiven,
   type ConsentMethod,
   type ConsentOutcome,
@@ -233,6 +246,129 @@ export function withdrawConsent(
     at,
     reason: reason.trim(),
   });
+  if (!amended.ok) return amended;
+  return ok({ ...ws, consents: { ...ws.consents, [record.id]: amended.value } });
+}
+
+/**
+ * The Amend… form for a locked record (Phase 2 brief, decision 10): what the
+ * record allows now, which the consultant changes, the statements newly told
+ * in the current wording, and why.
+ */
+export interface AmendValues {
+  /** Only the statements newly told; what the client heard before stays told. */
+  told: ConsentTold;
+  given: ConsentGiven;
+  retention: Retention;
+  outcome: ConsentOutcome;
+  reason: string;
+}
+
+/** The Amend… form's starting values: the record as it stands, with nothing newly told. */
+export function amendFormFor(record: ConsentRecord): AmendValues {
+  const { given, retention, outcome } = consentState(record);
+  return { told: NOTHING_TOLD, given, retention, outcome, reason: '' };
+}
+
+/** Whether a statement may be ticked on the Amend… form: one not told yet, or the retention in new words. */
+export function canTellOnAmend(record: ConsentRecord, values: AmendValues, s: ConsentStatement): boolean {
+  if (!toldSoFar(record).statements.has(s)) return true;
+  const told = retentionTold(record, record.amendments.length);
+  return s === 'retention' && values.given.audioRecording && told !== null && !sameJson(values.retention, told);
+}
+
+const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** The amendment the form describes: only what differs from the record as it stands. */
+export function amendmentFrom(
+  record: ConsentRecord,
+  values: AmendValues,
+  by: string,
+  at: Timestamp,
+): Result<Extract<ConsentAmendment, { kind: 'change' }>> {
+  const current = consentState(record);
+  const given: Partial<ConsentGiven> = {};
+  for (const key of Object.keys(NOTHING_GIVEN) as (keyof ConsentGiven)[])
+    if (values.given[key] !== current.given[key]) Object.assign(given, { [key]: values.given[key] });
+  const told: Partial<ConsentTold> = {};
+  for (const s of CONSENT_STATEMENTS) if (values.told[s]) told[s] = true;
+  if (told.processingExternal) told.externalProvider = values.told.externalProvider;
+  const amendment: Extract<ConsentAmendment, { kind: 'change' }> = {
+    id: createId(ID_PREFIX.amendment),
+    kind: 'change',
+    by: by.trim(),
+    at,
+    reason: values.reason.trim(),
+    ...(Object.keys(told).length > 0 && { told, wordingVersion: CURRENT_WORDING }),
+    ...(Object.keys(given).length > 0 && { given }),
+    ...(!sameJson(values.retention, current.retention) && { retention: values.retention }),
+    ...(!sameJson(values.outcome, current.outcome) && { outcome: values.outcome }),
+  };
+  if (!amendment.told && !amendment.given && !amendment.retention && !amendment.outcome)
+    return fail('Nothing has changed. Change an answer, or tick what you newly told them.');
+  if (!isNonEmptyText(by)) return fail('Give your name, as the person recording the change.');
+  return ok(amendment);
+}
+
+/**
+ * Problems shown on the Amend… form as it is filled in, checked like the form
+ * (rule C2): each "yes" against everything told so far, including what is
+ * newly ticked, and a new retention told in its new words.
+ */
+export function amendIssues(record: ConsentRecord, values: AmendValues): FormIssue[] {
+  const issues: FormIssue[] = [];
+  for (const i of toldIssues(values.told)) issues.push({ place: 'told', message: i.message });
+  for (const i of termsIssues(values))
+    issues.push({
+      place: i.code === 'consent.limits' ? 'outcome' : i.code === 'consent.retention' ? 'retention' : 'given',
+      message: i.message,
+    });
+  const before = toldSoFar(record);
+  const after = addTold(before, values.told);
+  const current = consentState(record);
+  const alreadyNamed = new Set<ConsentStatement>();
+  for (const answer of ANSWERS) {
+    if (!values.given[answer]) continue;
+    const one = (given: ConsentGiven) => ({ ...NOTHING_GIVEN, [answer]: true, externalProvider: given.externalProvider });
+    const missingBefore = new Set(missingFor(before, one(current.given)));
+    const missing = missingFor(after, one(values.given)).filter(
+      (s) => !alreadyNamed.has(s) && !(current.given[answer] && missingBefore.has(s)),
+    );
+    missing.forEach((s) => alreadyNamed.add(s));
+    if (missing.length)
+      issues.push({ place: answer, message: `Tick what you told them: ${missing.map(statementName).join(', ')}.` });
+  }
+  const retention = retentionToldIssue(record, record.amendments.length, {
+    id: 'check',
+    kind: 'change',
+    by: '',
+    at: record.updatedAt,
+    reason: '',
+    retention: values.retention,
+    given: values.given,
+    told: values.told.retention ? { retention: true } : undefined,
+  });
+  if (retention)
+    issues.push({
+      place: 'retention',
+      message: 'The audio is now kept for a different time: tell them, and tick the statement in its new words.',
+    });
+  return issues;
+}
+
+/** Amends a locked consent record with the Amend… form (decision 10), checked as `amendConsent` does. */
+export function amendConsentForm(
+  ws: CompanyWorkspace,
+  sessionId: string,
+  values: AmendValues,
+  by: string,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  const record = consentFor(ws, sessionId);
+  if (!record) return fail('This session has no consent record.');
+  const amendment = amendmentFrom(record, values, by, at);
+  if (!amendment.ok) return amendment;
+  const amended = amendConsent(record, amendment.value);
   if (!amended.ok) return amended;
   return ok({ ...ws, consents: { ...ws.consents, [record.id]: amended.value } });
 }

@@ -9,7 +9,7 @@ These replace "the user provides role-played sample exports" (MVP Q7). The user 
 - **Sam Naidoo:** the consultant.
 - **Thandi Mokoena:** operations manager, Karoo Freight. Asked for consent.
 - **Pieter van Wyk:** Bloemfontein depot manager. Asked for consent.
-- **Lerato Dlamini:** IT contractor. Joins late (T20) and **was not asked for consent**, so the C11 check must list her. Teams labels her `Lerato Dlamini (Guest)`, which doesn't equal a participant's name, so she isn't matched automatically.
+- **Lerato Dlamini:** IT contractor. Joins late (T20) and **was not asked for consent**, so the C11 check must list her. Teams labels her `Lerato Dlamini (Guest)`. StyleCode matches her to her participant automatically, because Teams adds " (Guest)" or " (External)" to people outside the organiser's company, but C11 still lists her: matching says who spoke, not who was asked.
 
 It covers most finding kinds:
 - requirements and constraints (offline use);

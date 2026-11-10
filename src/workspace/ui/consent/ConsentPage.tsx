@@ -1,5 +1,5 @@
-import { useId, useMemo, useState, type ReactNode } from 'react';
-import { consentFor } from '../../model/consent';
+import { useMemo, useState } from 'react';
+import { consentFor, consentState } from '../../model/consent';
 import {
   confirmIssues,
   consentFormFor,
@@ -7,16 +7,18 @@ import {
   saveConsentForm,
   saveIssues,
   type ConsentFormValues,
-  type FormIssue,
   type FormPlace,
 } from '../../model/consentForm';
-import type { ConsentGiven, ConsentRecord, ConsentStatement, Engagement, Session } from '../../model/types';
+import type { ConsentAmendment, ConsentRecord, Engagement, Session } from '../../model/types';
 import { get } from '../../model/util';
 import { CURRENT_WORDING, wordingFor } from '../../model/wording';
 import { ClientFrame, Missing, type ClientView } from '../ClientFrame';
 import { formatWhen, Page } from '../chrome';
 import { now, step } from '../steps';
 import { retentionSummary } from './ConsentPanel';
+import { AmendForm } from './AmendForm';
+import { ConsentAttachment } from './ConsentAttachment';
+import { Choice, Section, STATEMENTS, YesNo } from './formParts';
 import { useConsentContext, type ConsentContext } from './useConsentContext';
 
 /** A session's consent form (MVP story 3.1; docs/spec/CONSENT.md). */
@@ -51,6 +53,7 @@ export function ConsentPage({
 
 function Consent({ view, engagement, meeting }: { view: ClientView; engagement: Engagement; meeting: Session }) {
   const context = useConsentContext();
+  const [amending, setAmending] = useState(false);
   const company = view.workspace.company;
   const folder = view.session.companyId;
   const sessionHref = `#/c/${folder}/e/${engagement.id}/s/${meeting.id}`;
@@ -76,11 +79,26 @@ function Consent({ view, engagement, meeting }: { view: ClientView; engagement: 
       </Page>
     );
   }
+  const attachment = record && context && <ConsentAttachment view={view} meeting={meeting} record={record} context={context} />;
   if (record && (record.lockedAt || view.readOnly)) {
+    const withdrawn = record.amendments.some((a) => a.kind === 'withdrawal');
+    const canAmend = !view.readOnly && !!record.confirmed && !withdrawn;
+    if (amending && canAmend && context)
+      return (
+        <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
+          <AmendForm view={view} meeting={meeting} record={record} context={context} onDone={() => setAmending(false)} />
+        </Page>
+      );
     return (
       <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
         <RecordView view={view} record={record} />
-        <p>
+        {attachment}
+        <p className="ws-actions">
+          {canAmend && (
+            <button type="button" className="button primary" onClick={() => setAmending(true)}>
+              Amend…
+            </button>
+          )}
           <a className="button" href={sessionHref}>
             Back to the session
           </a>
@@ -91,23 +109,16 @@ function Consent({ view, engagement, meeting }: { view: ClientView; engagement: 
   return (
     <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
       {context ? (
-        <ConsentForm view={view} meeting={meeting} context={context} sessionHref={sessionHref} />
+        <>
+          <ConsentForm view={view} meeting={meeting} context={context} sessionHref={sessionHref} />
+          {attachment}
+        </>
       ) : (
         <p className="ws-muted">Loading…</p>
       )}
     </Page>
   );
 }
-
-const STATEMENTS: ConsentStatement[] = [
-  'recorded',
-  'transcribed',
-  'aiExtraction',
-  'processingLocal',
-  'processingExternal',
-  'retention',
-  'canStopOrDelete',
-];
 
 function ConsentForm({
   view,
@@ -379,106 +390,6 @@ function ConsentForm({
   );
 }
 
-function Issues({ issues }: { issues: FormIssue[] }) {
-  if (!issues.length) return null;
-  return (
-    <ul className="ws-issues">
-      {issues.map((i, n) => (
-        <li key={n}>{i.message}</li>
-      ))}
-    </ul>
-  );
-}
-
-function Section({ title, issues, children }: { title: string; issues: FormIssue[]; children: ReactNode }) {
-  const id = useId();
-  return (
-    <fieldset className="ws-card ws-form-section" aria-labelledby={id}>
-      <h2 id={id}>{title}</h2>
-      {children}
-      <Issues issues={issues} />
-    </fieldset>
-  );
-}
-
-function Choice<T extends string>({
-  title,
-  value,
-  options,
-  issues,
-  onChange,
-  children,
-}: {
-  title: string;
-  value: T;
-  options: [T, string][];
-  issues: FormIssue[];
-  onChange: (value: T) => void;
-  children?: ReactNode;
-}) {
-  const name = useId();
-  return (
-    <Section title={title} issues={issues}>
-      <div className="ws-choices">
-        {options.map(([v, label]) => (
-          <label key={v} className="ws-choice">
-            <input type="radio" name={name} checked={value === v} onChange={() => onChange(v)} />
-            {label}
-          </label>
-        ))}
-      </div>
-      {children}
-    </Section>
-  );
-}
-
-/** One yes-or-no answer, with C2 shown next to it when it is "yes" and the client wasn't told. */
-function YesNo({
-  label,
-  answer,
-  provider,
-  values,
-  update,
-  issues,
-}: {
-  label: string;
-  answer: Exclude<keyof ConsentGiven, 'externalProvider'>;
-  provider?: string;
-  values: ConsentFormValues;
-  update: (changes: Partial<ConsentFormValues>) => void;
-  issues: FormIssue[];
-}) {
-  const name = useId();
-  const issueId = `${name}-issues`;
-  const declined = values.outcome.kind === 'declined';
-  const set = (yes: boolean) =>
-    update({
-      given: {
-        ...values.given,
-        [answer]: yes,
-        ...(answer === 'aiExternal' && { externalProvider: yes ? (provider ?? null) : null }),
-      },
-    });
-  return (
-    <fieldset className="ws-yesno" aria-describedby={issues.length ? issueId : undefined}>
-      <legend>{label}</legend>
-      <label className="ws-choice">
-        <input type="radio" name={name} checked={values.given[answer]} disabled={declined} onChange={() => set(true)} />
-        Yes
-      </label>
-      <label className="ws-choice">
-        <input type="radio" name={name} checked={!values.given[answer]} disabled={declined} onChange={() => set(false)} />
-        No
-      </label>
-      {issues.length > 0 && (
-        <p className="ws-c2" id={issueId}>
-          {issues.map((i) => i.message).join(' ')}
-        </p>
-      )}
-    </fieldset>
-  );
-}
-
 const METHOD_TEXT = {
   'verbal-at-start': 'Verbally at the start of the meeting',
   'written-before': 'In writing beforehand',
@@ -540,16 +451,84 @@ function RecordView({ view, record }: { view: ClientView; record: ConsentRecord 
         {record.amendments.length > 0 && (
           <>
             <h2>Changes since</h2>
-            <ul className="ws-told">
+            <ol className="ws-amendments" aria-label="Changes since">
               {record.amendments.map((a) => (
                 <li key={a.id}>
-                  {a.kind === 'withdrawal' ? 'Consent withdrawn' : 'Changed'} by {a.by}, {formatWhen(a.at)}. Reason: {a.reason}
+                  <p>
+                    <strong>{a.kind === 'withdrawal' ? 'Consent withdrawn' : 'Amended'}</strong> by {a.by}, {formatWhen(a.at)}.
+                    Reason: {a.reason}
+                  </p>
+                  {a.kind === 'change' && <AmendmentDetail record={record} amendment={a} />}
                 </li>
               ))}
-            </ul>
+            </ol>
+            <h2>What it allows now</h2>
+            <p>{nowAllowed(record)}</p>
           </>
         )}
       </section>
     </div>
   );
+}
+
+/** What an amendment changed, and what the client was newly told, in the wording it names. */
+function AmendmentDetail({
+  record,
+  amendment: a,
+}: {
+  record: ConsentRecord;
+  amendment: Extract<ConsentAmendment, { kind: 'change' }>;
+}) {
+  const wording = a.wordingVersion ? wordingFor(a.wordingVersion) : null;
+  const provider = a.told?.externalProvider ?? record.told.externalProvider ?? null;
+  const changes: string[] = [];
+  const answer = (label: string, yes: boolean | undefined) =>
+    yes !== undefined && changes.push(`${label}: ${yes ? 'yes' : 'no'}`);
+  answer('Audio recording', a.given?.audioRecording);
+  answer('Transcription', a.given?.transcription);
+  answer('AI on this computer', a.given?.aiLocal);
+  answer(`AI by ${a.given?.externalProvider ?? provider ?? 'an external provider'}`, a.given?.aiExternal);
+  if (a.retention) changes.push(capitalise(retentionSummary(a.retention)));
+  if (a.outcome)
+    changes.push(
+      a.outcome.kind === 'limited'
+        ? `Given with limits: ${a.outcome.limits}`
+        : a.outcome.kind === 'declined'
+          ? 'Declined'
+          : 'Given',
+    );
+  const told = STATEMENTS.filter((s) => a.told?.[s]);
+  return (
+    <>
+      {changes.length > 0 && <p>{changes.join(' · ')}</p>}
+      {told.length > 0 && (
+        <>
+          <p>Newly told (wording {a.wordingVersion}):</p>
+          <ul className="ws-told">
+            {told.map((s) => (
+              <li key={s}>
+                <q>{wording ? wording.statement(s, { provider, retention: a.retention ?? record.retention }) : s}</q>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
+
+const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** What the record allows after its amendments, in a line. */
+function nowAllowed(record: ConsentRecord): string {
+  const state = consentState(record);
+  if (state.withdrawn) return 'Nothing: consent was withdrawn.';
+  if (state.outcome.kind === 'declined') return 'Nothing: consent was declined.';
+  const items = [
+    state.given.audioRecording && `audio recording (${retentionSummary(state.retention)})`,
+    state.given.transcription && 'transcription',
+    state.given.aiLocal && 'AI on this computer',
+    state.given.aiExternal && `AI by ${state.given.externalProvider}`,
+  ].filter(Boolean);
+  return items.length ? capitalise(items.join(', ')) + '.' : 'Nothing.';
 }

@@ -222,6 +222,12 @@ export interface FactSource {
   statement: string;
   /** Its evidence when it was promoted. */
   quotes: FactQuote[];
+  /**
+   * The sessions its statement came from (its finding's evidence), kept when
+   * a quote is removed, as ids only, so a fact can still be traced to a
+   * session after its transcript is deleted (rule C8; decision 11).
+   */
+  sessionIds: string[];
 }
 
 export interface FactQuote {
@@ -260,6 +266,12 @@ export interface Session {
   engagementId: string;
   title: string;
   startsAt: Timestamp;
+  /**
+   * The IANA time zone the session was created in, from the computer, such as
+   * "Africa/Johannesburg". The session's times are shown and exported in it,
+   * and a transcript's times of day are read in it (Phase 2 brief, decision 18).
+   */
+  timeZone: string;
   /** Audio recordings of the session (Phase 3): FileRefs owned by this session. */
   audioFileIds: string[];
   createdAt: Timestamp;
@@ -286,9 +298,17 @@ export interface Participant {
 export const TRANSCRIPT_PLATFORMS = ['teams', 'zoom', 'meet', 'other'] as const;
 export type TranscriptPlatform = (typeof TRANSCRIPT_PLATFORMS)[number];
 
-/** Where a transcript came from. Recording (Phase 3) will add `{ kind: 'recording'; audioFileId }`. */
+export const TRANSCRIPT_FORMATS = ['vtt', 'docx', 'txt'] as const;
+export type TranscriptFormat = (typeof TRANSCRIPT_FORMATS)[number];
+
+/**
+ * Where a transcript came from. The file itself isn't kept: its segments are
+ * the transcript, so deleting them leaves no copy of the client's words
+ * (Phase 2 brief, decision 4). Recording (Phase 3) will add
+ * `{ kind: 'recording'; audioFileId }`.
+ */
 export type TranscriptSource =
-  { kind: 'file'; fileName: string; format: 'vtt' | 'docx'; platform: TranscriptPlatform } | { kind: 'pasted' };
+  { kind: 'file'; fileName: string; format: TranscriptFormat; platform: TranscriptPlatform } | { kind: 'pasted' };
 
 /** A session's transcript (one per session, MVP Q10). Its segments are kept exactly as imported (MVP Q9). */
 export interface Transcript {
@@ -448,8 +468,11 @@ export interface ConsentRecord {
 // ---------------------------------------------------------------------------
 
 export const WORKSPACE_FORMAT = 'stylecode-workspace';
-/** 1: the first version of the domain model (Phase 0). */
-export const WORKSPACE_VERSION = 1;
+/**
+ * 1: the first version of the domain model (Phase 0).
+ * 2: sessions keep their time zone; transcripts can come from `.txt` files (Workspace Phase 2).
+ */
+export const WORKSPACE_VERSION = 2;
 
 /** One company and everything that belongs to it. */
 export interface CompanyWorkspace {

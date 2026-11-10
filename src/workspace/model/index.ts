@@ -11,3 +11,4 @@ export * from './wording.ts';
 export * from './labels.ts';
 export * from './record.ts';
 export * from './files.ts';
+export * from './transcripts.ts';

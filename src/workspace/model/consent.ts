@@ -151,6 +151,44 @@ export function applyAmendment(terms: ConsentTerms, a: ConsentAmendment): Consen
   return { given, retention: a.retention ?? terms.retention, outcome: a.outcome ?? terms.outcome };
 }
 
+/**
+ * The retention the client was last told about, once the record and its first
+ * `count` amendments were made: the retention in force each time the
+ * retention statement was told. Null if it never was.
+ */
+export function retentionTold(record: ConsentRecord, count: number): Retention | null {
+  let terms = termsOf(record);
+  let told = record.told?.retention === true ? terms.retention : null;
+  for (const a of (Array.isArray(record.amendments) ? record.amendments : []).slice(0, count)) {
+    if (!a || typeof a !== 'object' || a.kind !== 'change') continue;
+    terms = applyAmendment(terms, a);
+    if (a.told?.retention === true) told = terms.retention;
+  }
+  return told;
+}
+
+/**
+ * While audio recording is agreed, the client must have been told the
+ * retention in force in its own words (Phase 2 brief, decision 10). So an
+ * amendment that leaves audio agreed with a retention other than the one last
+ * told needs the retention statement told again, whether it changes the
+ * retention or turns audio on after an earlier change. `count` is the number
+ * of amendments before this one. (Never told at all is rule C2's to report.)
+ */
+export function retentionToldIssue(record: ConsentRecord, count: number, a: ConsentAmendment): ConsentIssue | null {
+  if (a.kind !== 'change' || a.told?.retention === true) return null;
+  let before = termsOf(record);
+  for (const earlier of (Array.isArray(record.amendments) ? record.amendments : []).slice(0, count))
+    if (earlier && typeof earlier === 'object') before = applyAmendment(before, earlier);
+  const after = applyAmendment(before, a);
+  const told = retentionTold(record, count);
+  if (!after.given.audioRecording || told === null || JSON.stringify(after.retention) === JSON.stringify(told)) return null;
+  return {
+    code: 'consent.told',
+    message: 'The client was told how long audio is kept in the old words. Tell them the new retention, and record it.',
+  };
+}
+
 function termsOf(record: ConsentRecord): ConsentTerms {
   return { given: record.given, retention: record.retention, outcome: record.outcome };
 }
@@ -263,7 +301,7 @@ export interface ToldSoFar {
 const TOLD_NOTHING: ToldSoFar = { statements: new Set(), providers: [] };
 
 /** Adds what the client was told (on the form, or newly in an amendment) to what they had been told before. */
-function addTold(before: ToldSoFar, told: Partial<ConsentTold> | null | undefined): ToldSoFar {
+export function addTold(before: ToldSoFar, told: Partial<ConsentTold> | null | undefined): ToldSoFar {
   if (!told || typeof told !== 'object') return before;
   const statements = new Set(before.statements);
   for (const s of CONSENT_STATEMENTS) if (told[s] === true) statements.add(s);
@@ -339,15 +377,26 @@ export function sameProvider(a: string | null | undefined, b: string | null | un
 }
 
 const LOOPBACK = /^(localhost|127(\.\d{1,3}){3}|\[::1\]|::1)$/i;
+/** Ollama's cloud models, such as "gpt-oss:120b-cloud" or "kimi-k2:cloud". */
+const OLLAMA_CLOUD = /[-:]cloud$/i;
 
 /**
  * Where a configured AI provider runs, for the consent rules (MVP Q16,
  * CONSENT.md rule C6). Local only if it is Ollama or an OpenAI-compatible
  * server at a loopback address; Ollama on another computer counts as
- * external. External providers are named by company and host, for example
+ * external, and so does an Ollama cloud model (its name ends in "-cloud" or
+ * ":cloud"): Ollama sends it to ollama.com even from a local address.
+ * External providers are named by company and host, for example
  * "Anthropic (api.anthropic.com)", and the consent form offers that name.
  */
-export function classifyProvider(settings: { provider: 'ollama' | 'openai' | 'anthropic'; baseUrl: string }): AiProcessing {
+export function classifyProvider(settings: {
+  provider: 'ollama' | 'openai' | 'anthropic';
+  baseUrl: string;
+  model?: string;
+}): AiProcessing {
+  if (settings.provider === 'ollama' && OLLAMA_CLOUD.test(settings.model?.trim() ?? '')) {
+    return { kind: 'external', provider: 'Ollama Cloud (ollama.com)' };
+  }
   let host: string;
   try {
     host = new URL(settings.baseUrl).hostname.toLowerCase();
@@ -427,7 +476,8 @@ export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment)
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
   const before = record.amendments.reduce(applyAmendment, termsOf(record));
   const after = applyAmendment(before, amendment);
-  const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0];
+  const issue =
+    amendmentIssues(amendment)[0] ?? termsIssues(after)[0] ?? retentionToldIssue(record, record.amendments.length, amendment);
   if (issue) return fail(issue.message);
   // Rule C2 holds for amendments too: each "yes" is checked against everything the client has been told so far.
   const toldBefore = toldSoFar(record);

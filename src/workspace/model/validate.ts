@@ -9,6 +9,7 @@
 import {
   amendmentIssues,
   applyAmendment,
+  retentionToldIssue,
   canUseAi,
   consentState,
   missingFor,
@@ -28,6 +29,7 @@ import {
   FINDING_STATUSES,
   RELATION_TYPES,
   TRACKED_FIELDS,
+  TRANSCRIPT_FORMATS,
   TRANSCRIPT_PLATFORMS,
   WORKSPACE_FORMAT,
   WORKSPACE_VERSION,
@@ -36,6 +38,7 @@ import {
   type ConsentRecord,
   type EntityMap,
   type Evidence,
+  type FactQuote,
   type FactSource,
   type Finding,
   type FindingChange,
@@ -50,6 +53,7 @@ import {
   isQuoteLongEnough,
   MIN_QUOTE_WORDS,
   isText,
+  isTimeZone,
   isTimestamp,
   quoteAppearsIn,
   time,
@@ -141,6 +145,12 @@ function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, r
     );
   if (!isNonEmptyText(s.statement) || !isText(s.engagementName) || !quotesOk)
     report('fact.source', "A company fact keeps a copy of its source's statement and quotes.", 'knowledge', id);
+  else if (
+    !Array.isArray(s.sessionIds) ||
+    !s.sessionIds.every(isId) ||
+    !(s.quotes as FactQuote[]).every((q) => (s.sessionIds as string[]).includes(q.sessionId))
+  )
+    report('fact.source', 'A company fact keeps the sessions its statement came from.', 'knowledge', id);
   if (s.findingId === null) {
     if (!isTimestamp(s.deletedAt)) report('fact.source', 'A deleted source says when it was deleted.', 'knowledge', id);
     return;
@@ -180,6 +190,7 @@ function checkSessions(ws: CompanyWorkspace, report: Report) {
       report('ref.missing', 'A session belongs to an engagement that is not in this workspace.', 'sessions', s.id);
     if (!isNonEmptyText(s.title)) report('session.title', 'A session needs a title.', 'sessions', s.id);
     if (!isTimestamp(s.startsAt)) report('field.time', 'A session has an invalid start time.', 'sessions', s.id);
+    if (!isTimeZone(s.timeZone)) report('field.value', 'A session has an unknown time zone.', 'sessions', s.id);
     if (!Array.isArray(s.audioFileIds)) report('field.type', "A session's audio must be a list.", 'sessions', s.id);
     else {
       for (const fileId of s.audioFileIds) {
@@ -334,6 +345,8 @@ function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report
       // Report only what the amendment introduced, so a problem in the record isn't repeated for each amendment.
       const known = new Set(termsIssues(terms).map((i) => i.message));
       const missingBefore = missingFor(toldSoFar(c, index), terms.given);
+      const retentionIssue = retentionToldIssue(c, index, a);
+      if (retentionIssue) report(retentionIssue.code, retentionIssue.message, 'consents', c.id);
       terms = applyAmendment(terms, a);
       // Rule C2 holds for amendments too, against everything the client had been told by then (decision 3).
       const untold = missingFor(toldSoFar(c, index + 1), terms.given).filter((s) => !missingBefore.includes(s));
@@ -365,7 +378,7 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
       src?.kind === 'pasted' ||
       (src?.kind === 'file' &&
         isNonEmptyText(src.fileName) &&
-        (src.format === 'vtt' || src.format === 'docx') &&
+        oneOf(TRANSCRIPT_FORMATS, src.format) &&
         oneOf(TRANSCRIPT_PLATFORMS, src.platform));
     if (!sourceOk) report('field.value', 'A transcript has an invalid source.', 'transcripts', t.id);
     if (!Array.isArray(t.unaskedSpeakers) || !t.unaskedSpeakers.every(isNonEmptyText) || typeof t.unnamedSpeakers !== 'boolean')
@@ -435,7 +448,12 @@ function checkFiles(ws: CompanyWorkspace, report: Report) {
       (owner?.kind === 'session' && !!get(ws.sessions, owner.sessionId));
     if (!ownerOk) report('ref.missing', 'A file is attached to something that is not in this workspace.', 'files', f.id);
     if (!oneOf(FILE_PURPOSES, f.purpose)) report('field.value', 'A file has an unknown purpose.', 'files', f.id);
-    else if (f.purpose === 'audio') {
+    else if (f.purpose === 'consent-attachment') {
+      // One file per consent record (Phase 2 brief, decision 12): an attachment no record names is left behind.
+      const records = Object.values(ws.consents).filter((c) => c.attachmentFileId === f.id).length;
+      if (records !== 1)
+        report('consent.attachment', 'A consent attachment belongs to exactly one consent record.', 'files', f.id);
+    } else if (f.purpose === 'audio') {
       // Rule C1: audio needs consent to recording, given when the audio was added (Phase 3).
       const sessionId = owner?.kind === 'session' ? (owner.sessionId as string) : null;
       const consent = sessionId ? Object.values(ws.consents).find((c) => c.sessionId === sessionId) : undefined;
@@ -546,6 +564,10 @@ function checkFindings(ws: CompanyWorkspace, report: Report) {
         'findings',
         f.id,
       );
+    }
+    // Provenance follows the evidence (Phase 2 brief, decision 9): quoting what was said makes a finding "said in a session".
+    if (citesSegment && (f.provenance?.kind === 'consultant' || f.provenance?.kind === 'ai-suggested')) {
+      report('finding.provenance', 'A finding that quotes a transcript is said in a session.', 'findings', f.id);
     }
   }
 }
@@ -744,7 +766,7 @@ export function sharedIds(workspaces: CompanyWorkspace[]): string[] {
   for (const ws of workspaces) {
     // Ids kept after their entity is deleted (copied quotes, deleted evidence, AI inputs) count too.
     const kept = [
-      ...Object.values(ws.knowledge).flatMap((k) => k.source?.quotes.map((q) => q.sessionId) ?? []),
+      ...Object.values(ws.knowledge).flatMap((k) => k.source?.sessionIds ?? []),
       ...Object.values(ws.findings).flatMap((f) => [
         ...f.evidence.flatMap((e) => (e.kind === 'deleted' ? [e.sessionId] : [])),
         ...(f.origin.kind === 'ai' ? f.origin.inputSessionIds : []),

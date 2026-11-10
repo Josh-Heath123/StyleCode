@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Icon } from '../../ui/Icon';
 import { useDialogFocus } from '../../ui/useDialogFocus';
+import type { Consultant } from './useConsultant';
 
 /** What a commit returns: null when it was applied, or why it wasn't. */
 export type CommitResult = string | null | Promise<string | null>;
@@ -263,4 +264,30 @@ export function DeleteDialog({
       )}
     </FormDialog>
   );
+}
+
+/** Asks for the consultant's name, only while settings don't have it yet. */
+export function NameField({
+  consultant,
+  value,
+  onChange,
+}: {
+  consultant: Consultant;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  if (consultant.name !== null) return null;
+  return (
+    <DialogField label="Your name (kept in settings)">
+      {(id) => <input id={id} className="ws-input" value={value} onChange={(e) => onChange(e.target.value)} />}
+    </DialogField>
+  );
+}
+
+/** The consultant's name: from settings, or as typed, which is then kept in settings. */
+export async function nameFor(consultant: Consultant, typed: string): Promise<string | null> {
+  const known = await consultant.current();
+  if (known) return known;
+  if (!typed.trim()) return null;
+  return consultant.save(typed);
 }

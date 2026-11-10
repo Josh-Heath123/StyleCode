@@ -11,7 +11,7 @@ import {
   type Problem,
 } from '../../src/workspace/model/index.ts';
 import { createId, isValidId } from '../../src/model/ids.ts';
-import { renameWithRetry, type RetryOptions } from '../shared/rename.ts';
+import { readWithRetry, renameWithRetry, type RetryOptions } from '../shared/rename.ts';
 import { RequestError } from '../shared/requests.ts';
 
 /**
@@ -475,8 +475,16 @@ export class WorkspaceStore {
   }
 
   async readSettings(): Promise<Settings> {
+    let text: string;
     try {
-      const raw = JSON.parse(await readFile(join(this.root, 'settings.json'), 'utf8')) as Record<string, unknown>;
+      // Retried while busy: another request may be saving settings, and a failed read isn't "no name".
+      text = (await readWithRetry(join(this.root, 'settings.json'))).toString('utf8');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { consultantName: null };
+      throw error;
+    }
+    try {
+      const raw = JSON.parse(text) as Record<string, unknown>;
       const name = raw?.format === SETTINGS_FORMAT && typeof raw.consultantName === 'string' ? raw.consultantName.trim() : '';
       return { consultantName: name || null };
     } catch {

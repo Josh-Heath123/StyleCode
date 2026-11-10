@@ -82,8 +82,7 @@ export function FilesCard({ view, owner }: { view: ClientView; owner: NewFile['o
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if (consultant.name) void add(file, consultant.name);
-                else setAskName(file);
+                void consultant.current().then((name) => (name ? add(file, name) : setAskName(file)));
               }}
             />
           </>

@@ -33,6 +33,7 @@ async function engagementWithNotes(page: Page): Promise<string> {
     engagementId: 'en_1',
     title,
     startsAt,
+    timeZone: 'Africa/Johannesburg',
     audioFileIds: [],
     createdAt: at,
     updatedAt: at,
@@ -157,7 +158,7 @@ test('findings added by hand, from the keyboard, land in their group with status
   await expect(peak.getByRole('list', { name: 'Evidence' })).toContainText(
     /Orders peak in December note at \d\d:\d\d( [AP]M)?, in Kick-off/,
   );
-  await expect(peak.getByRole('link', { name: 'Kick-off' })).toHaveAttribute('href', `#/c/${id}/e/en_1/s/se_1`);
+  await expect(peak.getByRole('link', { name: 'Kick-off' })).toHaveAttribute('href', `#/c/${id}/e/en_1/s/se_1/p/no_1`);
 
   // A future consideration, suggested, lands in its own group; only groups with findings show.
   await addFinding(page, 'Stock across all three shops, next year.', 'Future consideration', 'Suggested (not agreed yet)');
