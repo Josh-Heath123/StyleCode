@@ -25,7 +25,7 @@ import {
   type TranscriptPlatform,
   type TranscriptSegment,
 } from '../model/types';
-import { get, type Result } from '../model/util';
+import { currentTimeZone, get, type Result } from '../model/util';
 import { formatTimeOfDay } from '../time';
 import { useConsultant } from './useConsultant';
 import type { ClientView } from './ClientFrame';
@@ -472,7 +472,8 @@ function Preview({
   const platformId = useId();
   const labels = [...new Set(read.segments.map((s) => s.speakerLabel).filter((l): l is string => l !== null))];
   const timed = read.segments.filter((s) => s.startMs !== null);
-  const startsAt = formatTimeOfDay(meeting.startsAt);
+  // In the session's own zone, the one the file's times of day are read in (decision 18), named if it isn't this computer's.
+  const startsAt = `${formatTimeOfDay(meeting.startsAt, meeting.timeZone)}${meeting.timeZone === currentTimeZone() ? '' : ` ${meeting.timeZone} time`}`;
   return (
     <section className="ws-preview" aria-label="What will be imported">
       <h3>What will be imported</h3>

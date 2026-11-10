@@ -130,7 +130,10 @@ test('every sample layout imports; a Google Meet transcript without times, Zoomâ
     const dialog = await importFile(page, file);
     await expect(dialog.getByRole('region', { name: 'What will be imported' })).toContainText(label);
     if (file.startsWith('zoom'))
-      await expect(dialog).toContainText('the first words at 10:00:03, and the session starts at 10:00');
+      // The session's start in its own zone, Johannesburg, whatever this computer's zone is (decision 18).
+      await expect(dialog).toContainText(
+        /the first words at 10:00:03, and the session starts at 10:00( AM)?( Africa\/Johannesburg time)?\./,
+      );
     // Google Meet marks the time only every few minutes, so no span is claimed.
     if (file.startsWith('google'))
       await expect(dialog).toContainText('Segments31 segments; Google Meet gives a time only every few minutes');

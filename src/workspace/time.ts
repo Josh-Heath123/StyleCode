@@ -48,8 +48,11 @@ export function sinceStart(startsAt: string, writtenAt: string): string {
 
 const timeOfDay = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
 
-/** A time of day, such as "09:12". */
-export function formatTimeOfDay(iso: string): string {
+/** A time of day, such as "09:12": on this computer's clock, or in `timeZone` if given. */
+export function formatTimeOfDay(iso: string, timeZone?: string): string {
   const t = Date.parse(iso);
-  return Number.isNaN(t) ? '' : timeOfDay.format(t);
+  if (Number.isNaN(t)) return '';
+  return timeZone
+    ? new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', timeZone }).format(t)
+    : timeOfDay.format(t);
 }
