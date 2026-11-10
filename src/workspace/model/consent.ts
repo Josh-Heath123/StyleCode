@@ -356,15 +356,26 @@ export function sameProvider(a: string | null | undefined, b: string | null | un
 }
 
 const LOOPBACK = /^(localhost|127(\.\d{1,3}){3}|\[::1\]|::1)$/i;
+/** Ollama's cloud models, such as "gpt-oss:120b-cloud" or "kimi-k2:cloud". */
+const OLLAMA_CLOUD = /[-:]cloud$/i;
 
 /**
  * Where a configured AI provider runs, for the consent rules (MVP Q16,
  * CONSENT.md rule C6). Local only if it is Ollama or an OpenAI-compatible
  * server at a loopback address; Ollama on another computer counts as
- * external. External providers are named by company and host, for example
+ * external, and so does an Ollama cloud model (its name ends in "-cloud" or
+ * ":cloud"): Ollama sends it to ollama.com even from a local address.
+ * External providers are named by company and host, for example
  * "Anthropic (api.anthropic.com)", and the consent form offers that name.
  */
-export function classifyProvider(settings: { provider: 'ollama' | 'openai' | 'anthropic'; baseUrl: string }): AiProcessing {
+export function classifyProvider(settings: {
+  provider: 'ollama' | 'openai' | 'anthropic';
+  baseUrl: string;
+  model?: string;
+}): AiProcessing {
+  if (settings.provider === 'ollama' && OLLAMA_CLOUD.test(settings.model?.trim() ?? '')) {
+    return { kind: 'external', provider: 'Ollama Cloud (ollama.com)' };
+  }
   let host: string;
   try {
     host = new URL(settings.baseUrl).hostname.toLowerCase();

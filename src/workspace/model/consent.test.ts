@@ -78,6 +78,22 @@ describe('C5 and C6: AI processing, local or external', () => {
       kind: 'external',
       provider: 'Ollama (192.168.1.20)',
     });
+    // Ollama's cloud models run on ollama.com, even through Ollama on this computer.
+    for (const model of ['gpt-oss:120b-cloud', 'kimi-k2:cloud', 'Qwen3-Coder:480B-CLOUD']) {
+      expect(classifyProvider({ provider: 'ollama', baseUrl: 'http://localhost:11434', model })).toEqual({
+        kind: 'external',
+        provider: 'Ollama Cloud (ollama.com)',
+      });
+    }
+    expect(classifyProvider({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: 'llama3.1:8b' })).toEqual({
+      kind: 'local',
+    });
+    expect(classifyProvider({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: 'cloudy:7b' })).toEqual({
+      kind: 'local',
+    });
+    expect(classifyProvider({ provider: 'openai', baseUrl: 'http://localhost:1234/v1', model: 'some-cloud' })).toEqual({
+      kind: 'local',
+    });
     expect(classifyProvider({ provider: 'anthropic', baseUrl: 'https://api.anthropic.com' })).toEqual({
       kind: 'external',
       provider: ANTHROPIC,

@@ -477,8 +477,12 @@ function Preview({
         )}
         <dt>Segments</dt>
         <dd>
-          {read.segments.length}
+          {timed.length > 0 && timed.length < read.segments.length
+            ? // Only now and then, as in Google Meet's: a span from them would mislead.
+              `${count(read.segments.length, 'segment')}; ${isFile ? PLATFORM_LABELS[platform] : 'the transcript'} gives a time only every few minutes`
+            : read.segments.length}
           {timed.length > 0 &&
+            timed.length === read.segments.length &&
             `, from ${formatOffset(timed[0].startMs!)} to ${formatOffset(timed.at(-1)!.endMs ?? timed.at(-1)!.startMs!)}`}
         </dd>
         <dt>Speakers</dt>

@@ -74,9 +74,17 @@ export function speakerOf(ws: CompanyWorkspace, sessionId: string, label: string
   return Object.values(ws.participants).find((p) => p.sessionId === sessionId && p.speakerLabels.includes(label)) ?? null;
 }
 
-/** Names compared the way people read them: spacing and letter case don't count. */
-const sameName = (a: string, b: string) =>
-  a.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en') === b.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en');
+/** A name the way people read it: spacing and letter case don't count. */
+const nameKey = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en');
+
+/**
+ * Whether a speaker label is a participant's name. Teams adds " (Guest)" or
+ * " (External)" to people outside the organiser's company, usually the
+ * client, so a label is also their name without it. Who was asked for
+ * consent (C11) doesn't depend on this.
+ */
+const isNameOf = (name: string, label: string) =>
+  nameKey(name) === nameKey(label) || nameKey(name) === nameKey(label).replace(/\s*\((guest|external)\)$/, '');
 
 function segmentIssue(s: ParsedSegment): string | null {
   const time = (v: number | null) => v === null || (Number.isFinite(v) && v >= 0);
@@ -123,7 +131,7 @@ export function importTranscript(
   const matched: string[] = [];
   for (const label of new Set(segments.map((s) => s.speakerLabel).filter((l): l is string => l !== null))) {
     if (inSession().some((p) => p.speakerLabels.includes(label))) continue;
-    const named = inSession().filter((p) => sameName(p.name, label));
+    const named = inSession().filter((p) => isNameOf(p.name, label));
     if (named.length !== 1) continue;
     participants[named[0].id] = { ...named[0], speakerLabels: [...named[0].speakerLabels, label] };
     matched.push(label);

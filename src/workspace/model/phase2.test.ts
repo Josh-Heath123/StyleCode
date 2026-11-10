@@ -174,10 +174,10 @@ describe('importing a transcript', () => {
 
   it('matches labels equal to a participant’s name, and keeps the speakers who weren’t asked as a warning (C11)', () => {
     const { workspace, speakers, matched } = imported();
-    expect(matched).toEqual(['Sam Naidoo', 'Thandi Mokoena', 'Pieter van Wyk']);
+    expect(matched).toEqual(['Sam Naidoo', 'Thandi Mokoena', 'Pieter van Wyk', 'Lerato Dlamini (Guest)']);
     expect(speakerOf(workspace, 'se_2', 'Thandi Mokoena')?.id).toBe('pa_thandi');
-    // Teams calls her "(Guest)", which isn't her name, so she isn't matched, and she wasn't asked anyway.
-    expect(speakerOf(workspace, 'se_2', 'Lerato Dlamini (Guest)')).toBeNull();
+    // Teams adds "(Guest)" to people from outside, so she is matched; but she wasn't asked, so C11 still lists her.
+    expect(speakerOf(workspace, 'se_2', 'Lerato Dlamini (Guest)')?.id).toBe('pa_lerato');
     expect(speakers).toEqual({ unaskedSpeakers: ['Lerato Dlamini (Guest)'], unnamedSpeakers: false });
     expect(transcriptOf(workspace, 'se_2')).toMatchObject({
       unaskedSpeakers: ['Lerato Dlamini (Guest)'],
@@ -208,6 +208,22 @@ describe('importing a transcript', () => {
     expect(result.matched).toEqual(['sam naidoo']); // Trimmed; Thandi's label is Pieter's already; two Leratos.
     expect(speakerOf(result.workspace, 'se_2', 'THANDI  mokoena')?.id).toBe('pa_pieter');
     expect(speakerOf(result.workspace, 'se_2', 'lerato dlamini')).toBeNull();
+  });
+
+  it('matches a name Teams marked “(Guest)” or “(External)”, but nothing else added to it', () => {
+    const input: TranscriptInput = {
+      source: { kind: 'pasted' },
+      segments: [
+        seg('Pieter van Wyk (External)', 'Words one two.'),
+        seg('thandi mokoena  (GUEST)', 'Words three four.'),
+        seg('Lerato Dlamini (Visitor)', 'Words five six.'),
+        seg('(Guest)', 'Words seven eight.'),
+      ],
+    };
+    const { workspace, matched, speakers } = value(importTranscript(withKickoff(), 'se_2', input, 'Sam Naidoo', T5));
+    expect(matched).toEqual(['Pieter van Wyk (External)', 'thandi mokoena  (GUEST)']);
+    expect(speakerOf(workspace, 'se_2', 'Pieter van Wyk (External)')?.id).toBe('pa_pieter');
+    expect(speakers.unaskedSpeakers).toEqual(['Lerato Dlamini (Visitor)', '(Guest)']);
   });
 
   it('notes segments without a speaker, so they can’t be checked', () => {

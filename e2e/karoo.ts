@@ -90,7 +90,8 @@ export async function kickoff(page: Page, options: { confirmed?: boolean } = {})
     data: { workspace: ws, baseRevision: opened.revision },
   });
   expect(saved.status()).toBe(200);
-  await page.request.put('/api/workspace/settings', { headers: HEADERS, data: { consultantName: 'Sam Naidoo' } });
+  // The same name as the other specs: settings are shared by tests running alongside.
+  await page.request.put('/api/workspace/settings', { headers: HEADERS, data: { consultantName: 'Sam Consultant' } });
   await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
   await expect(page.getByRole('heading', { level: 1, name: 'Kick-off' })).toBeVisible();
   return id;

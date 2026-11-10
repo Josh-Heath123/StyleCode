@@ -54,7 +54,8 @@ test('importing a Teams transcript: the preview, then the meeting by speaker, wi
   await expect(preview.getByLabel('Platform')).toHaveValue('teams');
   await expect(preview).toContainText('Segments31, from 0:03 to 4:38');
   await expect(preview).toContainText('Thandi Mokoena · Thandi Mokoena');
-  await expect(preview).toContainText('Lerato Dlamini (Guest) · not matched');
+  // Teams adds “(Guest)” to people from outside, so she is matched; she still wasn't asked.
+  await expect(preview).toContainText('Lerato Dlamini (Guest) · Lerato Dlamini');
   await expect(preview).toContainText('Not asked for consent: Lerato Dlamini (Guest)');
   await expect(preview).toContainText('Importing locks the consent record, and can’t be undone.');
   await dialog.getByRole('button', { name: 'Import transcript' }).click();
@@ -81,21 +82,23 @@ test('matching a speaker changes who said what, survives a reload, and undoes', 
   const dialog = await importFile(page, 'teams-transcript.vtt');
   await dialog.getByRole('button', { name: 'Import transcript' }).click();
   await expect(dialog).toHaveCount(0);
-  const lerato = page.getByLabel('Who “Lerato Dlamini (Guest)” is');
-  await expect(lerato).toHaveValue('');
-  await lerato.selectOption({ label: 'Lerato Dlamini (client)' });
-  await expect(page.locator('.ws-turn').filter({ hasText: 'stuck in another call' }).first()).toContainText('Lerato Dlamini');
-  await expect.poll(() => onDisk(id).participants.pa_lerato.speakerLabels).toEqual(['Lerato Dlamini (Guest)']);
+  // Everyone was matched on import, so the list starts closed.
+  await page.getByText('Speakers: 4 of 4 matched to participants').click();
+  const thandi = page.getByLabel('Who “Thandi Mokoena” is');
+  await expect(thandi).toHaveValue('pa_thandi');
+  await thandi.selectOption({ label: 'Pieter van Wyk (client)' });
+  const turn = page.locator('.ws-turn').filter({ hasText: 'We run forty trucks' }).first();
+  await expect(turn).toContainText('Pieter van Wyk');
+  await expect.poll(() => onDisk(id).participants.pa_pieter.speakerLabels).toEqual(['Pieter van Wyk', 'Thandi Mokoena']);
   // The C11 warning is about consent, which matching doesn't change.
   await expect(card(page).getByRole('note')).toContainText('Not asked for consent: Lerato Dlamini (Guest)');
   await page.reload();
-  // Everyone is matched now, so the list opens closed.
   await page.getByText('Speakers: 4 of 4 matched to participants').click();
-  await expect(page.getByLabel('Who “Lerato Dlamini (Guest)” is')).toHaveValue('pa_lerato');
-  await page.getByLabel('Who “Lerato Dlamini (Guest)” is').selectOption('');
-  await expect.poll(() => onDisk(id).participants.pa_lerato.speakerLabels).toEqual([]);
+  await expect(page.getByLabel('Who “Thandi Mokoena” is')).toHaveValue('pa_pieter');
+  await page.getByLabel('Who “Thandi Mokoena” is').selectOption('');
+  await expect.poll(() => onDisk(id).participants.pa_pieter.speakerLabels).toEqual(['Pieter van Wyk']);
   await page.keyboard.press('Control+z');
-  await expect(page.getByLabel('Who “Lerato Dlamini (Guest)” is')).toHaveValue('pa_lerato');
+  await expect(page.getByLabel('Who “Thandi Mokoena” is')).toHaveValue('pa_pieter');
 });
 
 test('a file that isn’t a transcript is refused with the reason, and nothing changes', async ({ page }) => {
@@ -128,6 +131,9 @@ test('every sample layout imports; a Google Meet transcript without times, Zoom�
     await expect(dialog.getByRole('region', { name: 'What will be imported' })).toContainText(label);
     if (file.startsWith('zoom'))
       await expect(dialog).toContainText('the first words at 10:00:03, and the session starts at 10:00');
+    // Google Meet marks the time only every few minutes, so no span is claimed.
+    if (file.startsWith('google'))
+      await expect(dialog).toContainText('Segments31 segments; Google Meet gives a time only every few minutes');
     await dialog.getByRole('button', { name: 'Cancel' }).click();
   }
 });
