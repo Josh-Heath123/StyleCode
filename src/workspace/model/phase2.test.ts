@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { amendConsent } from './consent.ts';
+import { amendConsent, consentState } from './consent.ts';
+import { amendConsentForm, amendFormFor, amendIssues, canTellOnAmend, withdrawConsent } from './consentForm.ts';
 import { createSession } from './entities.ts';
 import { attachToConsent, removeConsentAttachment, removeFileRef } from './files.ts';
-import { acceptProposal, promoteToKnowledge, removeFinding } from './findings.ts';
+import { acceptProposal, isInRecord, keptFromSession, promoteToKnowledge, removeFact, removeFinding } from './findings.ts';
 import { consentRecord, sampleWorkspace, T0, T2, T3 } from './fixtures.ts';
 import { createFinding, updateFinding } from './record.ts';
 import {
@@ -20,6 +21,7 @@ import {
 } from './transcripts.ts';
 import type { CompanyWorkspace, ConsentAmendment, Finding } from './types.ts';
 import { validateWorkspace } from './validate.ts';
+import { CURRENT_WORDING } from './wording.ts';
 import { parseWorkspace } from './workspace.ts';
 
 /**
@@ -533,5 +535,110 @@ describe('the consent attachment (decision 12)', () => {
     const ws = value(attachToConsent(sampleWorkspace(), 'se_1', file('fi_consent1'), 'Sam Consultant', T5)).workspace;
     ws.consents.cr_1 = { ...ws.consents.cr_1, attachmentFileId: null };
     expect(validateWorkspace(ws).map((p) => p.code)).toEqual(['consent.attachment']);
+  });
+});
+
+describe('the Amend… form (decision 10)', () => {
+  const PROVIDER = 'Anthropic (api.anthropic.com)';
+  const T6 = '2026-11-06T08:00:00.000Z';
+
+  it('starts from the record as it stands, with nothing newly told', () => {
+    const values = amendFormFor(sampleWorkspace().consents.cr_1);
+    expect(values.given).toEqual(consentRecord().given);
+    expect(Object.values(values.told).some((v) => v === true)).toBe(false);
+    expect(values.reason).toBe('');
+  });
+
+  it('checks each new “yes” against what the client has been told, then records only what changed', () => {
+    const ws = sampleWorkspace();
+    const record = ws.consents.cr_1;
+    let values = amendFormFor(record);
+    values = {
+      ...values,
+      given: { ...values.given, aiExternal: true, externalProvider: PROVIDER },
+      reason: 'They agreed by email.',
+    };
+    expect(amendIssues(record, values)).toEqual([
+      { place: 'aiExternal', message: 'Tick what you told them: the external AI provider.' },
+    ]);
+    expect(amendConsentForm(ws, 'se_1', values, 'Sam Consultant', T6).ok).toBe(false);
+    expect(canTellOnAmend(record, values, 'processingExternal')).toBe(true);
+    expect(canTellOnAmend(record, values, 'transcribed')).toBe(false); // Told already.
+    values = { ...values, told: { ...values.told, processingExternal: true, externalProvider: PROVIDER } };
+    expect(amendIssues(record, values)).toEqual([]);
+    const after = value(amendConsentForm(ws, 'se_1', values, 'Sam Consultant', T6));
+    const [amendment] = after.consents.cr_1.amendments;
+    expect(amendment).toMatchObject({
+      kind: 'change',
+      by: 'Sam Consultant',
+      at: T6,
+      reason: 'They agreed by email.',
+      told: { processingExternal: true, externalProvider: PROVIDER },
+      wordingVersion: CURRENT_WORDING,
+      given: { aiExternal: true, externalProvider: PROVIDER },
+    });
+    expect(amendment).not.toHaveProperty('retention');
+    expect(amendment).not.toHaveProperty('outcome');
+    // The original stays as it was; what it allows now follows the amendment.
+    expect(after.consents.cr_1.given).toEqual(record.given);
+    expect(consentState(after.consents.cr_1).given.aiExternal).toBe(true);
+    expect(after.consents.cr_1.confirmed).toEqual(record.confirmed);
+    clean(after);
+  });
+
+  it('asks for a new retention to be told in its new words', () => {
+    const ws = sampleWorkspace();
+    ws.consents.cr_1 = { ...ws.consents.cr_1, given: { ...ws.consents.cr_1.given, audioRecording: true } };
+    const record = ws.consents.cr_1;
+    let values = { ...amendFormFor(record), retention: { kind: 'days', days: 30 } as const, reason: 'A shorter time.' };
+    expect(canTellOnAmend(record, values, 'retention')).toBe(true);
+    expect(amendIssues(record, values).map((i) => i.place)).toEqual(['retention']);
+    expect(amendConsentForm(ws, 'se_1', values, 'Sam Consultant', T6)).toMatchObject({ ok: false, error: /old words/ });
+    values = { ...values, told: { ...values.told, retention: true } };
+    expect(amendIssues(record, values)).toEqual([]);
+    const after = value(amendConsentForm(ws, 'se_1', values, 'Sam Consultant', T6));
+    expect(consentState(after.consents.cr_1).retention).toEqual({ kind: 'days', days: 30 });
+    clean(after);
+  });
+
+  it('refuses a change that changes nothing, one without a reason or a name, and one after a withdrawal', () => {
+    const ws = sampleWorkspace();
+    const values = amendFormFor(ws.consents.cr_1);
+    expect(amendConsentForm(ws, 'se_1', { ...values, reason: 'No reason' }, 'Sam Consultant', T6)).toMatchObject({
+      ok: false,
+      error: /Nothing has changed/,
+    });
+    const off = { ...values, given: { ...values.given, aiLocal: false } };
+    expect(amendConsentForm(ws, 'se_1', off, 'Sam Consultant', T6)).toMatchObject({ ok: false, error: /Say why/ });
+    expect(amendConsentForm(ws, 'se_1', { ...off, reason: 'No AI.' }, ' ', T6)).toMatchObject({
+      ok: false,
+      error: /Give your name/,
+    });
+    const withdrawn = value(withdrawConsent(ws, 'se_1', 'They changed their mind.', 'Sam Consultant', T5));
+    expect(amendConsentForm(withdrawn, 'se_1', { ...off, reason: 'No AI.' }, 'Sam Consultant', T6)).toMatchObject({
+      ok: false,
+      error: /withdrawn/,
+    });
+  });
+});
+
+describe('what keeps a statement from a session (decision 11)', () => {
+  it('lists the findings with evidence from the session, and the facts quoting it or promoted from them', () => {
+    const ws = sampleWorkspace();
+    ws.knowledge.kf_1 = value(promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3));
+    const kept = keptFromSession(ws, 'se_1');
+    expect(kept.findings.map((f) => f.id)).toContain('fd_peak');
+    expect(kept.findings.every(isInRecord)).toBe(true); // Proposals under review aren't in the record.
+    expect(kept.facts.map((f) => f.id)).toEqual(['kf_1']);
+    expect(keptFromSession(ws, 'se_none')).toEqual({ findings: [], facts: [] });
+  });
+
+  it('removes a fact as an ordinary step', () => {
+    const ws = sampleWorkspace();
+    ws.knowledge.kf_1 = value(promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3));
+    const after = value(removeFact(ws, 'kf_1'));
+    expect(after.knowledge.kf_1).toBeUndefined();
+    expect(removeFact(after, 'kf_1').ok).toBe(false);
+    clean(after);
   });
 });

@@ -5,11 +5,12 @@ import { expect, type Page } from '@playwright/test';
  * client with one engagement and one session, Sam Naidoo on the consultant's
  * side, Thandi and Pieter asked for consent, Lerato not. The consent record
  * allows transcription and local AI, and is confirmed unless `confirmed` is
- * false. Opens the session page and returns the client's id.
+ * false. With `note`, the session has that note, written at 10:10 there.
+ * Opens the session page and returns the client's id.
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
-export async function kickoff(page: Page, options: { confirmed?: boolean } = {}) {
+export async function kickoff(page: Page, options: { confirmed?: boolean; note?: string } = {}) {
   const res = await page.request.post('/api/workspace/companies', {
     headers: HEADERS,
     data: { profile: { name: `Karoo Freight ${Math.random().toString(36).slice(2, 8)}` } },
@@ -85,6 +86,10 @@ export async function kickoff(page: Page, options: { confirmed?: boolean } = {})
       updatedAt: at,
     },
   };
+  if (options.note)
+    ws.notes = {
+      no_1: { id: 'no_1', sessionId: 'se_1', text: options.note, writtenAt: '2026-11-05T08:10:00.000Z', updatedAt: at },
+    };
   const saved = await page.request.put(`/api/workspace/companies/${id}`, {
     headers: HEADERS,
     data: { workspace: ws, baseRevision: opened.revision },

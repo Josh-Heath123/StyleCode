@@ -280,7 +280,7 @@ export interface ToldSoFar {
 const TOLD_NOTHING: ToldSoFar = { statements: new Set(), providers: [] };
 
 /** Adds what the client was told (on the form, or newly in an amendment) to what they had been told before. */
-function addTold(before: ToldSoFar, told: Partial<ConsentTold> | null | undefined): ToldSoFar {
+export function addTold(before: ToldSoFar, told: Partial<ConsentTold> | null | undefined): ToldSoFar {
   if (!told || typeof told !== 'object') return before;
   const statements = new Set(before.statements);
   for (const s of CONSENT_STATEMENTS) if (told[s] === true) statements.add(s);

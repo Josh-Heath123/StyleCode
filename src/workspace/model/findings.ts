@@ -422,3 +422,38 @@ export function removeEngagement(ws: CompanyWorkspace, engagementId: string, at:
   };
   return ok({ workspace, removedFindingIds: findingIds, keptFindingIds: [], factIds, removedFileIds });
 }
+
+/**
+ * Findings in the record and company facts that keep a statement from a
+ * session (rule C8; Phase 2 brief, decision 11): findings with evidence from
+ * it, including passages since deleted, and facts that quote it or were
+ * promoted from one of those findings. After a withdrawal, the consultant
+ * reviews them, to remove any the client asks to have removed.
+ */
+export function keptFromSession(ws: CompanyWorkspace, sessionId: string): { findings: Finding[]; facts: CompanyFact[] } {
+  const transcriptIds = new Set(
+    Object.values(ws.transcripts)
+      .filter((t) => t.sessionId === sessionId)
+      .map((t) => t.id),
+  );
+  const fromSession = (e: Evidence) =>
+    e.kind === 'deleted'
+      ? e.sessionId === sessionId
+      : e.kind === 'note'
+        ? get(ws.notes, e.noteId)?.sessionId === sessionId
+        : transcriptIds.has(get(ws.segments, e.segmentId)?.transcriptId ?? '');
+  const findings = Object.values(ws.findings).filter((f) => isInRecord(f) && f.evidence.some(fromSession));
+  const ids = new Set(findings.map((f) => f.id));
+  const facts = Object.values(ws.knowledge).filter(
+    (fact) => fact.source && (fact.source.quotes.some((q) => q.sessionId === sessionId) || ids.has(fact.source.findingId ?? '')),
+  );
+  return { findings, facts };
+}
+
+/** Removes a company fact (Phase 2 brief, WP8 and decision 11), as an ordinary undoable step. */
+export function removeFact(ws: CompanyWorkspace, factId: string): Result<CompanyWorkspace> {
+  if (!get(ws.knowledge, factId)) return fail('The company fact does not exist.');
+  const knowledge = { ...ws.knowledge };
+  delete knowledge[factId];
+  return ok({ ...ws, knowledge });
+}

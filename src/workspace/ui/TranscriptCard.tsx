@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../../ui/Icon';
 import { LAYOUT_LABELS, PLATFORM_LABELS, readPastedTranscript, readTranscriptFile, type TranscriptRead } from '../import/read';
 import { canCapture } from '../model/consent';
@@ -536,8 +536,25 @@ function Preview({
   );
 }
 
-/** Deleting the transcript (decision 6; rule C8): permanent, and it says what goes and what keeps a statement. */
-function DeleteTranscriptDialog({ view, meeting, onClose }: { view: ClientView; meeting: Session; onClose: () => void }) {
+/**
+ * Deleting the transcript (decision 6; rule C8): permanent, and it says what
+ * goes and what keeps a statement. After a withdrawal it is offered first,
+ * with `intro` saying why (decision 11), and `onDeleted` gets the company
+ * facts that lost their quotes, for the review that follows.
+ */
+export function DeleteTranscriptDialog({
+  view,
+  meeting,
+  intro,
+  onDeleted,
+  onClose,
+}: {
+  view: ClientView;
+  meeting: Session;
+  intro?: ReactNode;
+  onDeleted?: (factIds: string[]) => void;
+  onClose: () => void;
+}) {
   const ws = view.workspace;
   const result = deleteTranscript(ws, meeting.id, now());
   const findings = (ids: string[]) => ids.map((id) => get(ws.findings, id)?.statement).filter(Boolean) as string[];
@@ -547,15 +564,19 @@ function DeleteTranscriptDialog({ view, meeting, onClose }: { view: ClientView; 
       title="Delete transcript…"
       onClose={onClose}
       onDelete={async () => {
+        let factIds: string[] = [];
         await permanentStep(view.session, 'Delete the transcript', (w) => {
           const removal = deleteTranscript(w, meeting.id, now());
+          if (removal.ok) factIds = removal.value.factIds;
           return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
         });
-        onClose();
+        if (onDeleted) onDeleted(factIds);
+        else onClose();
       }}
       what={
         result.ok && segments ? (
           <>
+            {intro}
             <p>
               Every word of <strong>{meeting.title}</strong>’s transcript ({count(segmentsOf(ws, segments.id).length, 'segment')})
               is deleted, including the quotes taken from it. <strong>This can’t be undone.</strong>
@@ -576,7 +597,8 @@ function DeleteTranscriptDialog({ view, meeting, onClose }: { view: ClientView; 
             {result.value.keptFindingIds.length + result.value.factIds.length > 0 && (
               <p>
                 {count(result.value.keptFindingIds.length, 'finding')} and {count(result.value.factIds.length, 'company fact')}{' '}
-                keep a statement from this session, without its quotes. Review them afterwards.
+                keep a statement from this session, without its quotes.{' '}
+                {onDeleted ? 'You can review them next.' : 'Review them afterwards.'}
               </p>
             )}
           </>

@@ -3707,6 +3707,19 @@ a.ws-row:focus-visible {
   gap: 6px;
 }
 
+/* A consent record's amendments, oldest first. */
+.ws-amendments {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ws-amendments p {
+  margin: 0 0 4px;
+}
+
 /* Notes on a session. */
 .ws-stack {
   display: flex;
