@@ -6,7 +6,7 @@ import {
   type CompanyWorkspace,
   type Timestamp,
 } from './types.ts';
-import { createId, fail, isNonEmptyText, ok, type Result } from './util.ts';
+import { createId, currentTimeZone, fail, isNonEmptyText, ok, type Result } from './util.ts';
 import { validateWorkspace, type Problem } from './validate.ts';
 
 /** Prefixes for new ids, so an id says what it is when it turns up in a log or a test. */
@@ -117,23 +117,58 @@ export type ParseWorkspaceResult =
   | { ok: false; error: string };
 
 /**
- * Reads untrusted workspace data (from disk, or an import). Nothing is
- * repaired: a workspace with problems opens read-only, and is never saved as
- * it is. Version 1 is the first, so there are no migrations yet.
+ * Brings a workspace from an older version up to this one, one version at a
+ * time (DOMAIN-MODEL.md, "Versioning"). Entries it can't read are left as
+ * they are, for the checks to report.
+ *
+ * - 1 to 2: each session gets `timeZone`, the computer's zone at migration
+ *   (the zone it was most likely created in). The `txt` source format needs
+ *   no change.
  */
-export function parseWorkspace(input: unknown): ParseWorkspaceResult {
+function migrate(raw: Record<string, unknown>, timeZone: string): Record<string, unknown> {
+  let ws = raw;
+  if (ws.version === 1) {
+    const sessions = ws.sessions;
+    ws = {
+      ...ws,
+      version: 2,
+      sessions:
+        sessions && typeof sessions === 'object' && !Array.isArray(sessions)
+          ? Object.fromEntries(
+              Object.entries(sessions as Record<string, unknown>).map(([id, s]) => [
+                id,
+                s && typeof s === 'object' && !Array.isArray(s) && !('timeZone' in s) ? { ...s, timeZone } : s,
+              ]),
+            )
+          : sessions,
+    };
+  }
+  return ws;
+}
+
+/**
+ * Reads untrusted workspace data (from disk, or an import), migrating an
+ * older version first. Nothing is repaired: a workspace with problems opens
+ * read-only, and is never saved as it is.
+ *
+ * `timeZone` is the zone a version 1 workspace's sessions are given; it
+ * defaults to the computer's.
+ */
+export function parseWorkspace(input: unknown, options: { timeZone?: string } = {}): ParseWorkspaceResult {
   const refuse = (error: string): ParseWorkspaceResult => ({ ok: false, error });
   if (!input || typeof input !== 'object') return refuse('This is not a StyleCode workspace.');
-  const raw = input as Record<string, unknown>;
+  let raw = input as Record<string, unknown>;
   if (raw.format !== WORKSPACE_FORMAT) return refuse('This is not a StyleCode workspace.');
   if (typeof raw.version !== 'number') return refuse('The workspace has no version.');
   if (raw.version > WORKSPACE_VERSION)
     return refuse(
       `This workspace was saved by a newer version of StyleCode (version ${raw.version}). Update StyleCode to open it.`,
     );
-  if (raw.version < 1) return refuse(`Unsupported workspace version ${raw.version}.`);
+  if (raw.version < 1 || !Number.isInteger(raw.version)) return refuse(`Unsupported workspace version ${raw.version}.`);
   if (!raw.company || typeof raw.company !== 'object' || Array.isArray(raw.company))
     return refuse('The workspace has no company.');
+
+  raw = migrate(raw, options.timeZone ?? currentTimeZone());
 
   const unreadable: Problem[] = [];
   const view: Record<string, unknown> = { ...raw };
@@ -162,7 +197,7 @@ export function parseWorkspace(input: unknown): ParseWorkspaceResult {
     return refuse('The workspace could not be read.');
   }
   if (problems.length) return { ok: true, access: 'read-only', workspace, problems };
-  return { ok: true, access: 'editable', workspace: input as CompanyWorkspace, problems: [] };
+  return { ok: true, access: 'editable', workspace: raw as unknown as CompanyWorkspace, problems: [] };
 }
 
 /**

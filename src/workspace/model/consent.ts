@@ -151,6 +151,23 @@ export function applyAmendment(terms: ConsentTerms, a: ConsentAmendment): Consen
   return { given, retention: a.retention ?? terms.retention, outcome: a.outcome ?? terms.outcome };
 }
 
+/**
+ * An amendment that changes how long audio is kept, while audio recording is
+ * agreed, must tell the client the retention statement in its new words
+ * (Phase 2 brief, decision 10). The form unticks that statement when the
+ * retention changes; this is the same rule for the model.
+ */
+export function retentionToldIssue(before: ConsentTerms, a: ConsentAmendment): ConsentIssue | null {
+  if (a.kind !== 'change' || a.retention === undefined) return null;
+  const after = applyAmendment(before, a);
+  if (!after.given.audioRecording || JSON.stringify(after.retention) === JSON.stringify(before.retention)) return null;
+  if (a.told?.retention === true) return null;
+  return {
+    code: 'consent.told',
+    message: 'The client was told how long audio is kept in the old words. Tell them the new retention, and record it.',
+  };
+}
+
 function termsOf(record: ConsentRecord): ConsentTerms {
   return { given: record.given, retention: record.retention, outcome: record.outcome };
 }
@@ -427,7 +444,7 @@ export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment)
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
   const before = record.amendments.reduce(applyAmendment, termsOf(record));
   const after = applyAmendment(before, amendment);
-  const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0];
+  const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0] ?? retentionToldIssue(before, amendment);
   if (issue) return fail(issue.message);
   // Rule C2 holds for amendments too: each "yes" is checked against everything the client has been told so far.
   const toldBefore = toldSoFar(record);

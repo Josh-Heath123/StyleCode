@@ -14,6 +14,7 @@ import {
   type FindingChange,
   type FindingKind,
   type FindingStatus,
+  type Provenance,
   type Timestamp,
 } from './types.ts';
 import { fail, get, isNonEmptyText, ok, time, type Result } from './util.ts';
@@ -39,6 +40,21 @@ export interface FindingEdits {
 
 const sameValue = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
+/**
+ * A finding's provenance for the evidence it has (Phase 2 brief, decision 9;
+ * MVP 6.4). Citing at least one transcript segment makes it "said in a
+ * session". Citing none, it is what it was created as: "entered by the
+ * consultant", or "AI-suggested" for an AI proposal. Verified and calculated
+ * information keep their provenance. The evidence changes in the history
+ * explain each change, so provenance has no history of its own.
+ */
+export function provenanceFor(finding: Pick<Finding, 'provenance' | 'origin'>, evidence: readonly Evidence[]): Provenance {
+  const kind = finding.provenance?.kind;
+  if (kind === 'verified' || kind === 'calculated') return finding.provenance;
+  if (evidence.some((e) => e.kind === 'segment')) return { kind: 'said-in-session' };
+  return finding.origin.kind === 'ai' ? { kind: 'ai-suggested' } : { kind: 'consultant' };
+}
+
 /** Applies edits, adding one history entry for each field that actually changes. */
 function applyEdits(finding: Finding, edits: FindingEdits, consultant: string, at: Timestamp): Result<Finding> {
   if (edits.statement !== undefined && !isNonEmptyText(edits.statement)) return fail('A finding needs a statement.');
@@ -49,6 +65,7 @@ function applyEdits(finding: Finding, edits: FindingEdits, consultant: string, a
     next.history.push({ field, from: finding[field], to, by: consultant, at } as FindingChange);
     (next as unknown as Record<string, unknown>)[field] = to;
     if (field === 'status') next.statusSet = { by: { kind: 'consultant', name: consultant }, at };
+    if (field === 'evidence') next.provenance = provenanceFor(finding, next.evidence);
   }
   next.updatedAt = at;
   return ok(next);
@@ -185,6 +202,19 @@ export function removeFindings(ws: CompanyWorkspace, findingIds: readonly string
 }
 
 /**
+ * Deletes a finding from the record (Phase 2 brief, decision 15), as an
+ * ordinary undoable step. Its links go with it, and company facts promoted
+ * from it stay, marked "source deleted". A proposal still under review is
+ * rejected instead, so it isn't proposed again (MVP Q11).
+ */
+export function removeFinding(ws: CompanyWorkspace, findingId: string, at: Timestamp): Result<CompanyWorkspace> {
+  const finding = get(ws.findings, findingId);
+  if (!finding) return fail('The finding does not exist.');
+  if (!isInRecord(finding)) return fail('Only a finding in the record can be deleted. Reject a proposal instead.');
+  return ok(removeFindings(ws, [findingId], at));
+}
+
+/**
  * What removing a transcript, a session or an engagement did, so the
  * consultant can be shown what goes and review what is left.
  */
@@ -212,8 +242,9 @@ export type TranscriptRemoval = Omit<Removal, 'removedFileIds'>;
  * Removes passages of one session (transcript segments and notes) from every
  * finding. Each cited passage becomes deleted evidence, in the finding, in
  * what the AI proposed and in its history, so none of its words are left. A
- * finding is removed when nothing it rested on is left, or when it was said
- * in a session and no transcript segment is left.
+ * finding is removed when nothing it rested on is left. One that keeps other
+ * evidence stays, and its provenance follows what is left (decision 9): no
+ * transcript segment left means it is no longer "said in a session".
  */
 function scrubPassages(
   ws: CompanyWorkspace,
@@ -246,11 +277,8 @@ function scrubPassages(
         : f.origin;
     const evidence = scrub(f.evidence);
     const live = evidence.filter((e) => e.kind !== 'deleted');
-    const lostItsBasis =
-      (cites(f.evidence) && live.length === 0) ||
-      (f.provenance.kind === 'said-in-session' && !live.some((e) => e.kind === 'segment'));
-    if (lostItsBasis) removed.push(id);
-    findings[id] = { ...f, evidence, origin, history, updatedAt: at };
+    if (cites(f.evidence) && live.length === 0) removed.push(id);
+    findings[id] = { ...f, evidence, provenance: provenanceFor(f, evidence), origin, history, updatedAt: at };
   }
   return { workspace: { ...ws, findings }, touched, removed };
 }

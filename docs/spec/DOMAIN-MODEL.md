@@ -42,10 +42,10 @@ CompanyWorkspace (format "stylecode-workspace", version 1)
 | CompanyFact | statement, kind, provenance, source (or none), who and when | Company knowledge (vision §3). Modelled now; the interface comes after extraction (MVP Q3). Only a finding in the record can be promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
 | Engagement | company, name, goal, status (active, or ended on a date) | The end date is what "keep until the engagement ends" in the consent form refers to (MVP Q5). |
 | DesignLink | engagement, name, StyleCode document id | A design belongs to one company: `sharedIds` also reports a document linked from two companies' workspaces. WP4 stores each design inside its company's data. |
-| Session | engagement, title, start time, audio files (Phase 3) | |
+| Session | engagement, title, start time, time zone, audio files (Phase 3) | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. |
 | Participant | session, name, role, organisation, side (client or consultant), speaker labels | A speaker label belongs to at most one participant in a session. A person can have several labels ("Alex", "Alex (Guest)"). |
 | ConsentRecord | see "Consent" below | One per session, with amendments. |
-| Transcript | session, source (file: name, `vtt` or `docx`, platform; or pasted), who imported it and when | One per session (MVP Q10). Recording (Phase 3) adds a third source. |
+| Transcript | session, source (file: name, `vtt`, `docx` or `txt`, platform; or pasted), who imported it and when | One per session (MVP Q10). The file itself isn't kept: the segments are the transcript. Recording (Phase 3) adds a third source. |
 | TranscriptSegment | transcript, position, speaker label, start and end (ms), text, confidence | Kept exactly as imported (MVP Q9). Times and confidence only where the source has them; an end needs a start. Positions run from 0 without gaps. |
 | Note | session, text, when written, when changed | Shown as a time of day and as time since the session started (MVP 5.1). |
 | FileRef | owner (company, engagement or session), purpose (document, audio, or consent attachment), name, media type, size, who added it and when | Audio belongs to a session and needs consent to recording (CONSENT.md, C1); a consent record's attachment must be a consent attachment. Stored in the company's folder by id (ADR-0006). |
@@ -103,6 +103,7 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 | Rule | Code | Where |
 | --- | --- | --- |
 | A finding said in a session cites at least one transcript segment, from its own engagement | `finding.saidNeedsSegment`, `evidence.engagement` | `validate.ts` |
+| Provenance follows the evidence: a finding that quotes a transcript is said in a session | `finding.provenance` | `validate.ts`, `provenanceFor` |
 | Every cited segment or note exists, and the quoted words appear in it | `evidence.missing`, `evidence.invented` | `validate.ts`, `quoteAppearsIn` |
 | A quote is at least three words, unless it is the whole passage | `evidence.short` | `validate.ts`, `isQuoteLongEnough` |
 | An AI proposal becomes confirmed only through the consultant's action, recording who and when | `finding.confirmedByAi`, `finding.review`, `finding.statusSet` | `validate.ts`, `acceptProposal`, `setStatus` |
@@ -117,10 +118,13 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 | Importing a transcript locks the consent record | `consent.lock` | `validate.ts`, `lockConsent` |
 | A locked record changes only by dated amendments, in order, each with who and why; nothing follows a withdrawal | `consent.amendment` | `validate.ts`, `editConsent`, `amendConsent` |
 | Each amendment, and the terms after it, pass the same checks as the record | `consent.provider`, `consent.limits`, `consent.declined`, `consent.retention`, `field.*` | `validate.ts`, `amendmentIssues`, `termsIssues` |
+| An amendment that changes how long audio is kept, while recording is agreed, tells the retention statement in its new words | `consent.told` | `validate.ts`, `retentionToldIssue` |
 | Recording needs consent to recording; declined consent allows only notes | | `canCapture` |
 | The client was told each statement for what they agreed to, external AI naming the same provider, counting what amendments newly told (CONSENT.md C2) | `consent.told`, `consent.provider`, `consent.wording` | `validate.ts`, `missingFor`, `toldSoFar`, `toldIssues` |
 | External AI only if the client agreed, with the provider named; AI processing covers the session's notes too (MVP Q15) | `consent.provider` | `aiPermission`, `validate.ts` |
 | One consent record and one transcript per session; a speaker label belongs to one participant | `consent.duplicate`, `transcript.duplicate`, `participant.label` | `validate.ts` |
+| A consent attachment belongs to exactly one consent record | `consent.attachment` | `validate.ts`, `attachToConsent` |
+| A session's time zone is one JavaScript knows | `field.value` | `validate.ts`, `isTimeZone` |
 
 **Nothing is repaired, and one bad entry doesn't lock a client out.** The editor's project loader repairs what it safely can. The workspace loader doesn't, because dropping a piece of evidence or a consent amendment would quietly change what the record says. Instead:
 
@@ -130,11 +134,16 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 
 The validator reads entries of any shape without failing, which the tests check by damaging every map and the nested values in turn.
 
-**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `removeSession`, `removeEngagement`, `editConsent`, `lockConsent`, `amendConsent`, and in `entities.ts` `createEngagement`, `editEngagement`, `createSession`, `editSession`, `addParticipant`, `editParticipant`, `removeParticipant`), so Phase 1 can make each one an undoable step, as the editor does with operations.
+**Changes are pure functions** that return a new value (`acceptProposal`, `rejectProposal`, `editFinding`, `setStatus`, `promoteToKnowledge`, `removeFindings`, `removeTranscript`, `removeSession`, `removeEngagement`, `editConsent`, `lockConsent`, `amendConsent`, and in `entities.ts` `createEngagement`, `editEngagement`, `createSession`, `editSession`, `addParticipant`, `editParticipant`, `removeParticipant`, and from Workspace Phase 2 `importTranscript`, `replaceTranscript`, `deleteTranscript`, `matchSpeaker`, `removeFinding`, `attachToConsent` and `removeConsentAttachment`), so Phase 1 can make each one an undoable step, as the editor does with operations.
 
 ## Versioning
 
-The workspace carries `format: "stylecode-workspace"` and `version: 1`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do.
+The workspace carries `format: "stylecode-workspace"` and `version: 2`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
+
+| Version | Since | Changes |
+| --- | --- | --- |
+| 1 | Phase 0 | The first model. |
+| 2 | Workspace Phase 2 | Sessions keep their time zone (`timeZone`); a version 1 session gets the computer's zone at migration. Transcripts can come from `.txt` files (the source format `txt`), which needs no migration. |
 
 ## Decisions
 
@@ -192,3 +201,21 @@ Made from the user's decisions before Phase 1 (`docs/phase-1/PHASE-1-BRIEF.md`),
 - **Deleting an engagement** (`removeEngagement`): its findings and their links, its sessions (as above), its design links and its files. Company knowledge from its findings stays, marked "source deleted".
 - Both return what they removed (findings, files) and the company facts affected, so the confirmation can name them.
 - **Engagements, sessions and participants** (WP6, `entities.ts`): create and edit each. A participant the session's consent record names as asked can't be removed or moved to the consultant's side until the record changes. `consentSummary` gives a session's consent in a word for lists.
+
+## Changes from Workspace Phase 2 (WP1)
+
+Made from the decisions in `docs/phase-2/PHASE-2-BRIEF.md`, each with a test in `src/workspace/model/phase2.test.ts`. They raise the workspace to version 2 (see "Versioning").
+
+- **Time zones** (decision 18): each session keeps the IANA zone it was created in (`timeZone`). `createSession` takes the computer's zone unless given one; editing a session doesn't change it.
+- **Transcripts** (decisions 3, 4 and 6; `transcripts.ts`):
+  - `importTranscript` keeps the segments as given, in order, leaving out segments with no words; a blank speaker name counts as none. It checks consent to transcription (C1), matches each label equal to exactly one participant's name (spacing and case aside) if no one has that label yet, keeps the C11 warning and locks the consent record (C4).
+  - `.txt` is a source format, and the original file isn't kept.
+  - `deleteTranscript` removes proposals under review that quote it, then every copy of its words (`removeTranscript`), and says which findings and facts keep a statement from the session.
+  - `replaceTranscript` works only while no finding in the record quotes the transcript; proposals under review that quote it go.
+  - Importing, replacing and deleting are permanent, like files.
+- **Matching speakers** (decision 13): `matchSpeaker` gives a label to one participant, or to no one, taking it from anyone who had it. It changes only speaker labels, so it works on a locked record. The transcript's C11 warning stays as it was at import.
+- **Provenance follows the evidence** (decision 9; `provenanceFor`): citing a transcript segment makes a finding "said in a session"; without one, it is "entered by the consultant", or "AI-suggested" for an AI proposal. Every evidence change sets it, including a transcript's deletion. So a finding that keeps other evidence after its transcript is deleted now stays, with its provenance changed, where Phase 1 removed one that had been said in a session. The validator checks it (`finding.provenance`).
+- **Deleting a finding** (decision 15): `removeFinding` deletes a finding in the record, with its links; facts promoted from it say "source deleted". A proposal under review is rejected instead.
+- **Retention in amendments** (decision 10): an amendment that changes how long audio is kept, while recording is agreed, must record the retention statement as newly told, in the new words (`retentionToldIssue`).
+- **The consent attachment** (decision 12): `attachToConsent` adds one file per record (purpose `consent-attachment`, owned by the session), replacing any earlier one; `removeConsentAttachment` takes it off. Neither changes the record's confirmation, and both work on a locked record. An attachment no record names is reported (`consent.attachment`).
+

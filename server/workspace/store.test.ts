@@ -152,6 +152,27 @@ describe('saving', () => {
     expect(JSON.parse(readFileSync(companyFile(id), 'utf8'))).toEqual(damaged);
   });
 
+  it('opens a version 1 file as version 2, and writes version 2 on the next save (Workspace Phase 2)', async () => {
+    const opened = await bakery();
+    const id = opened.workspace.company.id;
+    const session = { ...sampleWorkspace().sessions.se_1, engagementId: 'en_x' } as Record<string, unknown>;
+    delete session.timeZone;
+    const v1 = {
+      ...opened.workspace,
+      version: 1,
+      engagements: { en_x: { ...sampleWorkspace().engagements.en_1, id: 'en_x', companyId: id } },
+      sessions: { se_1: session },
+    };
+    writeFileSync(companyFile(id), JSON.stringify(v1));
+    const reopened = await store.read(id);
+    expect(reopened.access).toBe('editable');
+    expect(reopened.workspace.version).toBe(2);
+    expect(reopened.workspace.sessions.se_1.timeZone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    expect(readJson(companyFile(id)).version).toBe(1); // Reading changes nothing on disk.
+    await store.save(id, reopened.workspace, reopened.revision, false);
+    expect(readJson(companyFile(id))).toMatchObject({ version: 2, sessions: { se_1: { timeZone: expect.any(String) } } });
+  });
+
   it('survives an interrupted write: the last good file is untouched and no temporary file is left', async () => {
     const opened = await bakery();
     const id = opened.workspace.company.id;

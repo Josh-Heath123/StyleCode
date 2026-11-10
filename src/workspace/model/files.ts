@@ -8,6 +8,7 @@
  * undo history, so no undo or redo can drop a file's entry, which would
  * have the server delete its bytes.
  */
+import { consentFor } from './consent.ts';
 import type { CompanyWorkspace, FileOwner, FileRef, Timestamp } from './types.ts';
 import { fail, get, isNonEmptyText, isValidId, ok, type Result } from './util.ts';
 
@@ -53,6 +54,61 @@ export function removeFileRef(ws: CompanyWorkspace, fileId: string): Result<Comp
   const files = { ...ws.files };
   delete files[fileId];
   return ok({ ...ws, files });
+}
+
+/**
+ * Attaches a file to a session's consent record, such as a signed form or an
+ * email (Phase 2 brief, decision 12). A record has one attachment, so a new
+ * one replaces the old, whose entry goes and whose bytes the server deletes
+ * when the save is written. Attaching doesn't change what the record says, so
+ * it keeps its confirmation (rule C3), and it is allowed on a locked record.
+ * Like adding any file, it is permanent.
+ */
+export function attachToConsent(
+  ws: CompanyWorkspace,
+  sessionId: string,
+  file: Omit<NewFile, 'owner'>,
+  addedBy: string,
+  at: Timestamp,
+): Result<{ workspace: CompanyWorkspace; replacedFileId: string | null }> {
+  const record = consentFor(ws, sessionId);
+  if (!record) return fail('Fill in the consent form for this session first.');
+  if (!isValidId(file.id) || get(ws.files, file.id)) return fail('The file can’t be added: its id is missing or already used.');
+  if (!isNonEmptyText(file.name)) return fail('A file needs a name.');
+  if (!isNonEmptyText(addedBy)) return fail('Give your name in Settings first: a file records who added it.');
+  const ref: FileRef = {
+    id: file.id,
+    owner: { kind: 'session', sessionId },
+    purpose: 'consent-attachment',
+    name: file.name.trim(),
+    mediaType: file.mediaType.trim() || 'application/octet-stream',
+    sizeBytes: file.sizeBytes,
+    addedBy: addedBy.trim(),
+    addedAt: at,
+  };
+  const replacedFileId = record.attachmentFileId;
+  const files = { ...ws.files, [ref.id]: ref };
+  if (replacedFileId) delete files[replacedFileId];
+  return ok({
+    workspace: { ...ws, files, consents: { ...ws.consents, [record.id]: { ...record, attachmentFileId: ref.id } } },
+    replacedFileId,
+  });
+}
+
+/** Removes a consent record's attachment (decision 12). The record keeps its confirmation; removing is permanent. */
+export function removeConsentAttachment(
+  ws: CompanyWorkspace,
+  sessionId: string,
+): Result<{ workspace: CompanyWorkspace; removedFileId: string }> {
+  const record = consentFor(ws, sessionId);
+  const fileId = record?.attachmentFileId;
+  if (!record || !fileId) return fail('The consent record has no attachment.');
+  const files = { ...ws.files };
+  delete files[fileId];
+  return ok({
+    workspace: { ...ws, files, consents: { ...ws.consents, [record.id]: { ...record, attachmentFileId: null } } },
+    removedFileId: fileId,
+  });
 }
 
 /** The documents of a company (its own, not its engagements') or of one engagement, newest first. */

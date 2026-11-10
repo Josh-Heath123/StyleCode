@@ -7,7 +7,7 @@
  */
 import { consentFor, consentState } from './consent.ts';
 import type { CompanyWorkspace, Engagement, EngagementStatus, Participant, Session, Side, Timestamp } from './types.ts';
-import { createId, fail, get, isCalendarDate, isTimestamp, ok, type Result } from './util.ts';
+import { createId, currentTimeZone, fail, get, isCalendarDate, isTimeZone, isTimestamp, ok, type Result } from './util.ts';
 import { ID_PREFIX } from './workspace.ts';
 
 export interface EngagementFields {
@@ -70,11 +70,14 @@ export function editEngagement(
 export interface SessionFields {
   title: string;
   startsAt: Timestamp;
+  /** The IANA time zone the session is in; the computer's when not given (decision 18). */
+  timeZone?: string;
 }
 
 function sessionIssue(fields: Partial<SessionFields>): string | null {
   if (fields.title !== undefined && !fields.title.trim()) return 'Give the session a title.';
   if (fields.startsAt !== undefined && !isTimestamp(fields.startsAt)) return 'Give the date and time the session starts.';
+  if (fields.timeZone !== undefined && !isTimeZone(fields.timeZone)) return 'The time zone isn’t one StyleCode knows.';
   return null;
 }
 
@@ -94,6 +97,7 @@ export function createSession(
     engagementId,
     title: fields.title.trim(),
     startsAt: fields.startsAt,
+    timeZone: fields.timeZone ?? currentTimeZone(),
     audioFileIds: [],
     createdAt: at,
     updatedAt: at,
@@ -105,7 +109,7 @@ export function createSession(
 export function editSession(
   ws: CompanyWorkspace,
   id: string,
-  changes: Partial<SessionFields>,
+  changes: Partial<Omit<SessionFields, 'timeZone'>>,
   at: Timestamp,
 ): Result<CompanyWorkspace> {
   const session = get(ws.sessions, id);

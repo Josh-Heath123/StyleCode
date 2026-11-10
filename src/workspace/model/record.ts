@@ -3,7 +3,7 @@
  * hand, edited, filtered, and linked. Pure, so each change is one undoable
  * step; every edit to a finding is in its history, with who and when.
  */
-import { editFinding, isInRecord, recordGroups, type FindingEdits, type RecordGroups } from './findings.ts';
+import { editFinding, isInRecord, provenanceFor, recordGroups, type FindingEdits, type RecordGroups } from './findings.ts';
 import {
   type CompanyWorkspace,
   type Evidence,
@@ -43,8 +43,9 @@ function evidenceIssue(ws: CompanyWorkspace, engagementId: string, e: Evidence):
   const sessionId = evidenceSession(ws, e);
   if (!sessionId || get(ws.sessions, sessionId)?.engagementId !== engagementId)
     return 'Evidence comes from this engagement’s sessions.';
-  if (!quoteAppearsIn(passage.text, e.quote)) return 'A quote must be words that appear in the note, as written.';
-  if (!isQuoteLongEnough(passage.text, e.quote)) return `A quote is at least ${MIN_QUOTE_WORDS} words, or the whole note.`;
+  const what = e.kind === 'note' ? 'note' : 'passage';
+  if (!quoteAppearsIn(passage.text, e.quote)) return `A quote must be words that appear in the ${what}, as written.`;
+  if (!isQuoteLongEnough(passage.text, e.quote)) return `A quote is at least ${MIN_QUOTE_WORDS} words, or the whole ${what}.`;
   return null;
 }
 
@@ -82,7 +83,10 @@ export function createFinding(
     statement: fields.statement.trim(),
     status: fields.status,
     statusSet: { by: { kind: 'consultant', name: consultant.trim() }, at },
-    provenance: fields.evidence.some((e) => e.kind === 'segment') ? { kind: 'said-in-session' } : { kind: 'consultant' },
+    provenance: provenanceFor(
+      { provenance: { kind: 'consultant' }, origin: { kind: 'consultant', by: consultant, at } },
+      fields.evidence,
+    ),
     evidence: fields.evidence,
     origin: { kind: 'consultant', by: consultant.trim(), at },
     history: [],

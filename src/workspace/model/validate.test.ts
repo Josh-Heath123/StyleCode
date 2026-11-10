@@ -50,7 +50,7 @@ describe('loading', () => {
   it('refuses data that is not a workspace, or from a newer version', () => {
     expect(parseWorkspace(null).ok).toBe(false);
     expect(parseWorkspace({ format: 'stylecode', version: 1 }).ok).toBe(false);
-    const newer = parseWorkspace({ ...sampleWorkspace(), version: 2 });
+    const newer = parseWorkspace({ ...sampleWorkspace(), version: 3 });
     expect(newer.ok).toBe(false);
     if (!newer.ok) expect(newer.error).toMatch(/newer version/);
   });

@@ -33,6 +33,23 @@ export function time(value: Timestamp): number {
   return Date.parse(value);
 }
 
+/** Whether a value names an IANA time zone this JavaScript knows, such as "Africa/Johannesburg". */
+export function isTimeZone(value: unknown): value is string {
+  if (!isNonEmptyText(value)) return false;
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** The computer's time zone, or UTC if it can't say. */
+export function currentTimeZone(): string {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return isTimeZone(zone) ? zone : 'UTC';
+}
+
 export function isNonEmptyText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }

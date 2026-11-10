@@ -47,7 +47,16 @@ async function session(page: Page, options: { minutesAgo: number; quoted?: boole
     },
   };
   ws.sessions = {
-    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt, audioFileIds: [], createdAt: at, updatedAt: at },
+    se_1: {
+      id: 'se_1',
+      engagementId: 'en_1',
+      title: 'Kick-off',
+      startsAt,
+      timeZone: 'Africa/Johannesburg',
+      audioFileIds: [],
+      createdAt: at,
+      updatedAt: at,
+    },
   };
   ws.participants = {
     pa_alex: {

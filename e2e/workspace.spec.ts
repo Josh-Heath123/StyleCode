@@ -116,7 +116,16 @@ test('a client whose file has problems opens read-only, with the problems listed
   };
   const at = new Date().toISOString();
   ws.sessions = {
-    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: at, audioFileIds: [], createdAt: at, updatedAt: at },
+    se_1: {
+      id: 'se_1',
+      engagementId: 'en_1',
+      title: 'Kick-off',
+      startsAt: at,
+      timeZone: 'Africa/Johannesburg',
+      audioFileIds: [],
+      createdAt: at,
+      updatedAt: at,
+    },
   };
   writeFileSync(file, JSON.stringify(ws));
 
@@ -234,7 +243,16 @@ test('in a copied folder, every link stays in the copy, never the original clien
     },
   };
   ws.sessions = {
-    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: at, audioFileIds: [], createdAt: at, updatedAt: at },
+    se_1: {
+      id: 'se_1',
+      engagementId: 'en_1',
+      title: 'Kick-off',
+      startsAt: at,
+      timeZone: 'Africa/Johannesburg',
+      audioFileIds: [],
+      createdAt: at,
+      updatedAt: at,
+    },
   };
   writeFileSync(file, JSON.stringify(ws));
   const copy = `co_${Math.random().toString(36).slice(2, 8)}x2`;

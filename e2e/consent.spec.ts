@@ -60,7 +60,16 @@ async function sessionWithPeople(page: Page): Promise<{ id: string; href: string
     },
   };
   ws.sessions = {
-    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: at, audioFileIds: [], createdAt: at, updatedAt: at },
+    se_1: {
+      id: 'se_1',
+      engagementId: 'en_1',
+      title: 'Kick-off',
+      startsAt: at,
+      timeZone: 'Africa/Johannesburg',
+      audioFileIds: [],
+      createdAt: at,
+      updatedAt: at,
+    },
   };
   const person = (pid: string, name: string, role: string, side: string) => ({
     id: pid,

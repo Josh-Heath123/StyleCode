@@ -33,6 +33,7 @@ async function engagementWithNotes(page: Page): Promise<string> {
     engagementId: 'en_1',
     title,
     startsAt,
+    timeZone: 'Africa/Johannesburg',
     audioFileIds: [],
     createdAt: at,
     updatedAt: at,
