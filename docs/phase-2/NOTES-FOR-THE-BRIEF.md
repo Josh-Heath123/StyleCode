@@ -26,5 +26,4 @@ These were Phase 0's open questions, kept out of Phase 1 on purpose (Phase 1 bri
 
 - **Sample exports** from Teams, Zoom and Google Meet, from the user, at the start of Phase 2 (MVP Q7).
 - **The POPIA review** of the consent wording (`docs/spec/CONSENT.md`). It stays `draft-1` until then.
-- **The data-folder lock heartbeat:** a small pull request after Slice B, as the user decided. The lock is refreshed every 30 seconds, and a lock not refreshed for 2 minutes is taken over, whatever its process number.
 - **The demo GIFs** in `docs/media` still show "Projects"; re-recording them needs ffmpeg (`npm run demos`).

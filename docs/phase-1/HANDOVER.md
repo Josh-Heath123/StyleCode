@@ -86,7 +86,7 @@ The brief's decisions 1 to 10 were all followed. These came after it, all from t
 | Before Slice C | Changing the name, role or organisation of someone named as asked on a confirmed record, or the session's date or time, clears the confirmation (C3), with a warning first. |
 | WP10 | Adding a file is permanent, like removing one: it saves at once and clears the undo history. The action is labelled "Download". |
 | Licence | StyleCode is under the PolyForm Strict License 1.0.0 from #12. Versions up to `0fdbdcd` were MIT. |
-| Lock follow-up | A small pull request after Slice B replaces the process-number check with a heartbeat (refreshed every 30 s; taken over after 2 min). Not built yet. |
+| Lock follow-up | A small pull request after Slice B replaces the process-number check with a heartbeat (refreshed every 30 s; taken over after 2 min). Built in its own pull request after this phase. |
 
 ## What the reviews found
 
@@ -121,7 +121,6 @@ Measured on the user's Windows machine, at the commit this pull request ends wit
 - **Unreadable clients:** a client whose file can't be read at all is listed, but the app offers no way to delete it. Delete its folder by hand.
 - **Exports can be ahead of the disk:** the export uses what the page shows, so while a save is failing it can include changes that aren't saved yet.
 - **Evidence links** open the note's session, not the note itself.
-- **The data-folder lock** still decides by process number, so a reused process number can block a start. The heartbeat pull request fixes this.
 - **The demo GIFs** in `docs/media` still show "Projects" (re-record with `npm run demos`, which needs ffmpeg).
 - **The consent wording** is a draft until the POPIA review (`CONSENT.md`).
 
