@@ -198,10 +198,12 @@ function consentLines(ws: CompanyWorkspace, r: ConsentRecord): string[] {
     `- **Asked by:** ${md(r.askedBy) || 'not given'}`,
     `- **How:** ${r.method.kind === 'other' ? md(r.method.description) : METHOD[r.method.kind]}`,
     `- **Agreed to:** audio recording ${yesNo(r.given.audioRecording)}; transcription ${yesNo(r.given.transcription)}; AI on this computer ${yesNo(r.given.aiLocal)}; AI by an external provider ${r.given.aiExternal ? `yes (${md(r.given.externalProvider ?? '')})` : 'no'}`,
-    `- **Retention:** ${retentionText(r.retention)}`,
     `- **Outcome:** ${r.outcome.kind === 'given' ? 'given' : r.outcome.kind === 'declined' ? 'declined' : `given with limits: ${md(r.outcome.limits)}`}`,
     `- **Confirmed:** ${r.confirmed ? `by ${md(r.confirmed.by)}, ${utc(r.confirmed.at)}` : 'no (a draft, which allows nothing)'}`,
   ];
+  // How long audio is kept means something only once audio recording was agreed, as on the form.
+  if (r.given.audioRecording || r.amendments.some((a) => a.kind === 'change' && a.given?.audioRecording))
+    out.splice(4, 0, `- **Retention:** ${retentionText(r.retention)}`);
   if (r.lockedAt) out.push(`- **Locked:** ${utc(r.lockedAt)}`);
   // What the record allows now, after its amendments (consentState): the answer a reader is looking for.
   const state = consentState(r);

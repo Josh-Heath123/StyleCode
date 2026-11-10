@@ -145,7 +145,7 @@ StyleCode opens on your clients. This is one consultation from start to end, wit
 
 **During the meeting**
 
-5. **Take notes.** Press <kbd>N</kbd> anywhere on the session's page and type; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds the note and starts the next one, so you never need the mouse. Each note keeps when you started typing it, shown as a time of day and as how far into the meeting it was ("before the start" for one written beforehand). Notes can be changed (they keep their time and say when they changed) and deleted, and both can be undone. A note that a finding quotes asks first, listing the findings, and one undo puts both back.
+5. **Take notes.** Press <kbd>N</kbd> anywhere on the session's page and type; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds the note and starts the next one, so you never need the mouse. Each note keeps when you started typing it, shown as a time of day and as how far into the meeting it was ("before the start" for one written beforehand). A note you haven't added yet waits for you if you leave the session's page, and StyleCode asks before you close the page with one. Notes can be changed (they keep their time and say when they changed) and deleted, and both can be undone. A note that a finding quotes asks first, listing the findings, and one undo puts both back.
 
 **After the meeting**
 

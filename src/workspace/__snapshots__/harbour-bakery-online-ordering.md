@@ -65,7 +65,6 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 - **Asked by:** Sam Consultant
 - **How:** verbally at the start of the meeting
 - **Agreed to:** audio recording no; transcription yes; AI on this computer yes; AI by an external provider no
-- **Retention:** audio kept until the engagement ends
 - **Outcome:** given
 - **Confirmed:** by Sam Consultant, 2026-11-04 09:00 UTC
 - **Locked:** 2026-11-04 10:30 UTC

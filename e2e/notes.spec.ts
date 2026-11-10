@@ -158,6 +158,59 @@ test('notes from the keyboard: N starts one, Ctrl+Enter adds it and starts the n
   expect(stored.map((n) => n.text)).toEqual(['Orders peak in December.', 'Stock is in a spreadsheet.']);
 });
 
+test('an unfinished note is kept when the session page is left, and closing the page with one asks first', async ({ page }) => {
+  const id = await session(page, { minutesAgo: 5 });
+  const box = page.getByRole('textbox', { name: 'New note' });
+  await page.getByRole('button', { name: /New note/ }).click();
+  await page.keyboard.type('Delivery is by bike');
+  const typedBy = new Date().toISOString();
+
+  // Leaving for the client's page and coming back finds the note as it was left.
+  await page.evaluate((c) => (location.hash = `#/c/${c}`), id);
+  await expect(box).toHaveCount(0);
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Kick-off' })).toBeVisible();
+  await expect(box).toHaveValue('Delivery is by bike');
+  await box.focus();
+  await page.keyboard.press('Control+End');
+  // Escape doesn't close a note with words in it, even one opened again.
+  await page.keyboard.press('Escape');
+  await expect(box).toHaveValue('Delivery is by bike');
+
+  // Closing the page with it unfinished asks first.
+  const asked: string[] = [];
+  page.on('dialog', (dialog) => {
+    asked.push(dialog.type());
+    void dialog.dismiss();
+  });
+  await page.close({ runBeforeUnload: true });
+  await expect.poll(() => asked).toEqual(['beforeunload']);
+  expect(page.isClosed()).toBe(false);
+
+  // Added, it keeps the time typing started, and isn't kept any more.
+  await page.keyboard.type(' in town.');
+  await page.keyboard.press('Control+Enter');
+  await expect(notes(page)).toHaveCount(1);
+  await saved(page);
+  const [stored] = Object.values(onDisk(id).notes);
+  expect(stored.text).toBe('Delivery is by bike in town.');
+  expect(stored.writtenAt <= typedBy).toBe(true);
+  await page.evaluate((c) => (location.hash = `#/c/${c}`), id);
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Kick-off' })).toBeVisible();
+  await expect(box).toHaveCount(0);
+
+  // Closed, it isn't kept either.
+  await page.getByRole('button', { name: /New note/ }).click();
+  await page.keyboard.type('Not needed');
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.evaluate((c) => (location.hash = `#/c/${c}`), id);
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Kick-off' })).toBeVisible();
+  await expect(box).toHaveCount(0);
+  await expect(notes(page)).toHaveCount(1);
+});
+
 test('a note written before the session started says so', async ({ page }) => {
   await session(page, { minutesAgo: -30 });
   await page.getByRole('button', { name: /New note/ }).click();

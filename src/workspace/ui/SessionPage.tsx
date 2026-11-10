@@ -98,7 +98,7 @@ function SessionView({
         <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
         <div className="ws-columns">
           <div className="ws-stack">
-            <NotesCard view={view} meeting={meeting} />
+            <NotesCard key={meeting.id} view={view} meeting={meeting} />
             <section className="ws-card" aria-labelledby="participants-title">
               <div className="ws-card-head">
                 <h2 id="participants-title">Participants</h2>

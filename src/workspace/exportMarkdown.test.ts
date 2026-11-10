@@ -101,4 +101,21 @@ describe('the export, from the Phase 1 review', () => {
     expect(out).toContain('### (unreadable)');
     expect(out).not.toContain('undefined');
   });
+
+  it('gives how long audio is kept only when audio recording was agreed, as the form does', () => {
+    const ws = record();
+    expect(exportEngagementMarkdown(ws, 'en_1')).not.toContain('**Retention:**');
+    ws.consents.cr_1.amendments.push({
+      id: 'am_2',
+      kind: 'change',
+      by: 'Sam Consultant',
+      at: '2026-11-06T08:00:00.000Z',
+      reason: 'The client agreed to recording.',
+      given: { audioRecording: true },
+    });
+    expect(exportEngagementMarkdown(ws, 'en_1')).toContain('- **Retention:** audio kept until the engagement ends');
+    const given = record();
+    given.consents.cr_1.given.audioRecording = true;
+    expect(exportEngagementMarkdown(given, 'en_1')).toContain('- **Retention:**');
+  });
 });

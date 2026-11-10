@@ -20,7 +20,7 @@ These were Phase 0's open questions, kept out of Phase 1 on purpose (Phase 1 bri
 9. **AI proposals that quote a note.** Editing or deleting such a note is refused while the proposal is under review ("Review it first", `notes.ts`). The review interface should make that one step away.
 10. **Deleting a finding.** No story asks for it, so Phase 1 doesn't offer it (undo covers a finding added by mistake). Rejected proposals are kept hidden (MVP Q11). Decide whether accepted or hand-entered findings can be deleted.
 11. **Evidence links** open the quoted note's session, not the note itself. With transcripts, a link should land on the passage.
-12. **A half-typed note** is lost if the page is left before it is added.
+12. **Time zone in the export.** The export writes times in UTC, so it gives the same file every time, but a 10:00 meeting in South Africa shows as 08:00 UTC. Phase 2 should store a time zone in the workspace, so the export can use local time and still give the same file every time.
 
 ## Still open from earlier
 

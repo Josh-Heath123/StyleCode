@@ -46,6 +46,7 @@ Workspace Phase 1, the "workspace spine", is built: a consultant can run a real 
 - <kbd>N</kbd> starts a note; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds it and starts the next.
 - Each note shows its time of day and how far into the session it was written.
 - Notes can be edited and deleted.
+- A note not yet added is kept while the tab is open, so leaving the session page and coming back finds it; closing the page with one asks first.
 - A note that findings quote lists them first, and one undo restores both (decision 6).
 
 **The record** (Slice C, MVP stories 6.4 and 7)
@@ -119,7 +120,6 @@ Measured on the user's Windows machine, at the commit this pull request ends wit
 - **No restart test:** see the definition of done above.
 - **Unreadable clients:** a client whose file can't be read at all is listed, but the app offers no way to delete it. Delete its folder by hand.
 - **Exports can be ahead of the disk:** the export uses what the page shows, so while a save is failing it can include changes that aren't saved yet.
-- **Half-typed notes:** a note is lost if the page is left before it is added.
 - **Evidence links** open the note's session, not the note itself.
 - **The data-folder lock** still decides by process number, so a reused process number can block a start. The heartbeat pull request fixes this.
 - **The demo GIFs** in `docs/media` still show "Projects" (re-record with `npm run demos`, which needs ffmpeg).
@@ -134,7 +134,8 @@ Phase 2 is extraction: transcript import, AI proposals and their review, then co
 - the consent attachment;
 - speaker labels;
 - AI proposals that quote notes;
-- whether findings can be deleted.
+- whether findings can be deleted;
+- a time zone for the export, which writes times in UTC.
 
 It also needs the sample exports from Teams, Zoom and Google Meet (MVP Q7). Before it, the lock heartbeat pull request.
 
