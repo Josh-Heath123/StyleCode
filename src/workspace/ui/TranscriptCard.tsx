@@ -1,8 +1,10 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../../ui/Icon';
 import { LAYOUT_LABELS, PLATFORM_LABELS, readPastedTranscript, readTranscriptFile, type TranscriptRead } from '../import/read';
 import { canCapture } from '../model/consent';
+import { isInRecord, keptFromSession } from '../model/findings';
 import {
+  canReplaceTranscript,
   deleteTranscript,
   findingsQuotingTranscript,
   importTranscript,
@@ -29,6 +31,7 @@ import { useConsultant } from './useConsultant';
 import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, NameField, nameFor } from './fields';
+import { KeptDialog } from './consent/KeptDialog';
 import { now, permanentStep, step } from './steps';
 
 /** "0:03", "12:40" or "1:02:03": time from the start of the meeting. */
@@ -62,7 +65,10 @@ export function TranscriptCard({ view, meeting, passageId }: { view: ClientView;
   const { workspace, readOnly } = view;
   const transcript = transcriptOf(workspace, meeting.id);
   const [dialog, setDialog] = useState<'import' | 'replace' | 'delete' | null>(null);
+  /** After deleting: what keeps a statement from the session (decision 11), with the facts that lost their quotes. */
+  const [review, setReview] = useState<string[] | null>(null);
   const allowed = canCapture(workspace, meeting.id, 'transcript-import');
+  const replaceable = canReplaceTranscript(workspace, meeting.id);
 
   return (
     <section className="ws-card" aria-labelledby="transcript-title">
@@ -75,15 +81,20 @@ export function TranscriptCard({ view, meeting, passageId }: { view: ClientView;
         )}
         {!readOnly && transcript && (
           <div className="ws-actions">
-            <button type="button" className="button" onClick={() => setDialog('replace')}>
-              Replace…
-            </button>
+            {replaceable.ok && (
+              <button type="button" className="button" onClick={() => setDialog('replace')}>
+                Replace…
+              </button>
+            )}
             <button type="button" className="button danger" onClick={() => setDialog('delete')}>
               <Icon name="trash" size={14} /> Delete transcript…
             </button>
           </div>
         )}
       </div>
+      {!readOnly && transcript && !replaceable.ok && (
+        <p className="ws-help">Replacing it isn’t available: {lowerFirst(replaceable.error)}</p>
+      )}
       {!transcript ? (
         <div className="ws-empty is-small">
           <p>
@@ -99,8 +110,18 @@ export function TranscriptCard({ view, meeting, passageId }: { view: ClientView;
         <ImportDialog view={view} meeting={meeting} replacing={dialog === 'replace'} onClose={() => setDialog(null)} />
       )}
       {dialog === 'delete' && transcript && (
-        <DeleteTranscriptDialog view={view} meeting={meeting} onClose={() => setDialog(null)} />
+        <DeleteTranscriptDialog
+          view={view}
+          meeting={meeting}
+          onDeleted={(factIds) => {
+            setDialog(null);
+            const kept = keptFromSession(view.session.getState().workspace, meeting.id);
+            if (kept.findings.length + kept.facts.length + factIds.length > 0) setReview(factIds);
+          }}
+          onClose={() => setDialog(null)}
+        />
       )}
+      {review && <KeptDialog view={view} meeting={meeting} factIds={review} onClose={() => setReview(null)} />}
     </section>
   );
 }
@@ -301,17 +322,31 @@ function ImportDialog({
     const result = await readTranscriptFile(file.name, new Uint8Array(await file.arrayBuffer()), context);
     if (attempt === reading.current) show(result);
   };
-  const input: TranscriptInput | null =
-    read?.ok && (source === 'paste' || fileName)
-      ? {
-          source:
-            source === 'paste' || read.value.format === null
-              ? { kind: 'pasted' }
-              : { kind: 'file', fileName: fileName!, format: read.value.format, platform },
-          segments: read.value.segments,
-        }
-      : null;
-  const preview = input ? dryRun(view.workspace, meeting, input, replacing) : null;
+  const input = useMemo<TranscriptInput | null>(
+    () =>
+      read?.ok && (source === 'paste' || fileName)
+        ? {
+            source:
+              source === 'paste' || read.value.format === null
+                ? { kind: 'pasted' }
+                : { kind: 'file', fileName: fileName!, format: read.value.format, platform },
+            segments: read.value.segments,
+          }
+        : null,
+    [read, source, fileName, platform],
+  );
+  // Not on every keystroke in the name field: only when what would be imported changes.
+  const preview = useMemo(
+    () => (input ? dryRun(view.workspace, meeting, input, replacing) : null),
+    [input, view.workspace, meeting, replacing],
+  );
+  /** Switching between a file and pasted text drops what was read, and any file still being read. */
+  const switchTo = (to: 'file' | 'paste') => {
+    reading.current++;
+    setSource(to);
+    setRead(null);
+    setFileName(null);
+  };
 
   return (
     <FormDialog
@@ -348,21 +383,11 @@ function ImportDialog({
             <legend className="ws-label">The transcript</legend>
             <div className="ws-choices">
               <label className="ws-choice">
-                <input
-                  type="radio"
-                  name="transcript-source"
-                  checked={source === 'file'}
-                  onChange={() => (setSource('file'), setRead(null))}
-                />
-                A file from Teams, Zoom or Google Meet
+                <input type="radio" name="transcript-source" checked={source === 'file'} onChange={() => switchTo('file')} />A
+                file from Teams, Zoom or Google Meet
               </label>
               <label className="ws-choice">
-                <input
-                  type="radio"
-                  name="transcript-source"
-                  checked={source === 'paste'}
-                  onChange={() => (setSource('paste'), setRead(null))}
-                />
+                <input type="radio" name="transcript-source" checked={source === 'paste'} onChange={() => switchTo('paste')} />
                 Pasted text
               </label>
             </div>
@@ -556,7 +581,23 @@ export function DeleteTranscriptDialog({
   onClose: () => void;
 }) {
   const ws = view.workspace;
-  const result = deleteTranscript(ws, meeting.id, now());
+  const deletion = deleteTranscript(ws, meeting.id, now());
+  // Rejected proposals are scrubbed too, but aren't part of the record, so they aren't counted.
+  const inRecord = (ids: string[]) =>
+    ids.filter((id) => {
+      const f = get(ws.findings, id);
+      return !!f && isInRecord(f);
+    });
+  const result = deletion.ok
+    ? {
+        ...deletion,
+        value: {
+          ...deletion.value,
+          removedFindingIds: inRecord(deletion.value.removedFindingIds),
+          keptFindingIds: inRecord(deletion.value.keptFindingIds),
+        },
+      }
+    : deletion;
   const findings = (ids: string[]) => ids.map((id) => get(ws.findings, id)?.statement).filter(Boolean) as string[];
   const segments = transcriptOf(ws, meeting.id);
   return (
@@ -597,8 +638,7 @@ export function DeleteTranscriptDialog({
             {result.value.keptFindingIds.length + result.value.factIds.length > 0 && (
               <p>
                 {count(result.value.keptFindingIds.length, 'finding')} and {count(result.value.factIds.length, 'company fact')}{' '}
-                keep a statement from this session, without its quotes.{' '}
-                {onDeleted ? 'You can review them next.' : 'Review them afterwards.'}
+                keep a statement from this session, without its quotes. You can review them next.
               </p>
             )}
           </>

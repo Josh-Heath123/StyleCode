@@ -38,6 +38,7 @@ import {
   type ConsentRecord,
   type EntityMap,
   type Evidence,
+  type FactQuote,
   type FactSource,
   type Finding,
   type FindingChange,
@@ -144,6 +145,12 @@ function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, r
     );
   if (!isNonEmptyText(s.statement) || !isText(s.engagementName) || !quotesOk)
     report('fact.source', "A company fact keeps a copy of its source's statement and quotes.", 'knowledge', id);
+  else if (
+    !Array.isArray(s.sessionIds) ||
+    !s.sessionIds.every(isId) ||
+    !(s.quotes as FactQuote[]).every((q) => (s.sessionIds as string[]).includes(q.sessionId))
+  )
+    report('fact.source', 'A company fact keeps the sessions its statement came from.', 'knowledge', id);
   if (s.findingId === null) {
     if (!isTimestamp(s.deletedAt)) report('fact.source', 'A deleted source says when it was deleted.', 'knowledge', id);
     return;
@@ -338,7 +345,7 @@ function checkLockAndAmendments(c: ConsentRecord, original: ConsentTerms, report
       // Report only what the amendment introduced, so a problem in the record isn't repeated for each amendment.
       const known = new Set(termsIssues(terms).map((i) => i.message));
       const missingBefore = missingFor(toldSoFar(c, index), terms.given);
-      const retentionIssue = retentionToldIssue(terms, a);
+      const retentionIssue = retentionToldIssue(c, index, a);
       if (retentionIssue) report(retentionIssue.code, retentionIssue.message, 'consents', c.id);
       terms = applyAmendment(terms, a);
       // Rule C2 holds for amendments too, against everything the client had been told by then (decision 3).
@@ -759,7 +766,7 @@ export function sharedIds(workspaces: CompanyWorkspace[]): string[] {
   for (const ws of workspaces) {
     // Ids kept after their entity is deleted (copied quotes, deleted evidence, AI inputs) count too.
     const kept = [
-      ...Object.values(ws.knowledge).flatMap((k) => k.source?.quotes.map((q) => q.sessionId) ?? []),
+      ...Object.values(ws.knowledge).flatMap((k) => k.source?.sessionIds ?? []),
       ...Object.values(ws.findings).flatMap((f) => [
         ...f.evidence.flatMap((e) => (e.kind === 'deleted' ? [e.sessionId] : [])),
         ...(f.origin.kind === 'ai' ? f.origin.inputSessionIds : []),

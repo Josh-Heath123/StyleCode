@@ -221,6 +221,24 @@ export function deleteTranscript(ws: CompanyWorkspace, sessionId: string, at: Ti
 }
 
 /**
+ * Whether a session's transcript can be replaced now (MVP Q10; rule C7): it
+ * has one, no finding in the record quotes it, and consent allows importing
+ * another. Otherwise, why not, so the action can say so.
+ */
+export function canReplaceTranscript(ws: CompanyWorkspace, sessionId: string): Result<true> {
+  const transcript = transcriptOf(ws, sessionId);
+  if (!transcript) return fail('This session has no transcript to replace.');
+  const quoting = findingsQuotingTranscript(ws, sessionId).length;
+  if (quoting)
+    return fail(
+      `${quoting === 1 ? 'A finding in the record quotes' : `${quoting} findings in the record quote`} this transcript, so it can’t be replaced. Change their evidence first.`,
+    );
+  const transcripts = { ...ws.transcripts };
+  delete transcripts[transcript.id];
+  return canCapture({ ...ws, transcripts }, sessionId, 'transcript-import');
+}
+
+/**
  * Replaces a session's transcript with another (MVP Q10; decision 6): only
  * while no finding in the record quotes it. Proposals under review that quote
  * it are removed. The new transcript is imported as `importTranscript` does,
@@ -233,12 +251,8 @@ export function replaceTranscript(
   importedBy: string,
   at: Timestamp,
 ): Result<Imported & { removedProposalIds: string[] }> {
-  if (!transcriptOf(ws, sessionId)) return fail('This session has no transcript to replace.');
-  const quoting = findingsQuotingTranscript(ws, sessionId).length;
-  if (quoting)
-    return fail(
-      `${quoting === 1 ? 'A finding in the record quotes' : `${quoting} findings in the record quote`} this transcript, so it can’t be replaced. Change their evidence first.`,
-    );
+  const allowed = canReplaceTranscript(ws, sessionId);
+  if (!allowed.ok) return allowed;
   const deleted = deleteTranscript(ws, sessionId, at);
   if (!deleted.ok) return deleted;
   const imported = importTranscript(deleted.value.workspace, sessionId, input, importedBy, at);

@@ -118,6 +118,19 @@ describe('workspace version 2', () => {
     expect(v1).toEqual(before); // The input isn't changed.
   });
 
+  it('migrates version 1 company facts: they keep the sessions their quotes name', () => {
+    const ws = sampleWorkspace();
+    ws.knowledge.kf_1 = value(promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3));
+    const v1 = structuredClone(ws) as unknown as Record<string, unknown> & {
+      knowledge: Record<string, { source: Record<string, unknown> }>;
+    };
+    v1.version = 1;
+    delete v1.knowledge.kf_1.source.sessionIds;
+    const parsed = parseWorkspace(v1, { timeZone: 'Africa/Johannesburg' });
+    expect(parsed.ok && parsed.access).toBe('editable');
+    if (parsed.ok) expect(parsed.workspace.knowledge.kf_1.source?.sessionIds).toEqual(['se_1']);
+  });
+
   it('migrates a version 1 workspace with problems too, so it opens read-only with only its real problems', () => {
     const v1 = sampleWorkspace() as unknown as Record<string, unknown> & { sessions: Record<string, Record<string, unknown>> };
     v1.version = 1;
@@ -484,6 +497,28 @@ describe('amendments that change how long audio is kept (decision 10)', () => {
     expect(amendConsent(recorded(), change({ retention: { kind: 'until-engagement-ends' } })).ok).toBe(true);
   });
 
+  it('needs it when audio is agreed after the retention changed while it wasn’t (review of Slice A)', () => {
+    // Told "7 days"; the retention changes while audio is off, then audio is turned on.
+    const record = consentRecord({ retention: { kind: 'days', days: 7 } });
+    const first = change({ retention: { kind: 'until-engagement-ends' } });
+    const amended = value(amendConsent(record, first));
+    const audioOn = change({ id: 'am_2', at: '2026-11-05T10:00:00.000Z', given: { audioRecording: true } });
+    expect(amendConsent(amended, audioOn)).toMatchObject({ ok: false, error: /old words/ });
+    const toldAgain = { ...audioOn, told: { retention: true }, wordingVersion: 'draft-1' };
+    expect(amendConsent(amended, toldAgain).ok).toBe(true);
+    const ws = sampleWorkspace();
+    ws.consents.cr_1 = { ...amended, amendments: [...amended.amendments, audioOn] };
+    expect(validateWorkspace(ws).map((p) => p.code)).toEqual(['consent.told']);
+    // Back to the retention they were told needs nothing new.
+    const back = change({
+      id: 'am_2',
+      at: '2026-11-05T10:00:00.000Z',
+      given: { audioRecording: true },
+      retention: { kind: 'days', days: 7 },
+    });
+    expect(amendConsent(amended, back).ok).toBe(true);
+  });
+
   it('is checked when a workspace is read', () => {
     const ws = sampleWorkspace();
     ws.consents.cr_1 = { ...recorded(), amendments: [change({ retention: { kind: 'days', days: 30 } })] };
@@ -631,6 +666,16 @@ describe('what keeps a statement from a session (decision 11)', () => {
     expect(kept.findings.every(isInRecord)).toBe(true); // Proposals under review aren't in the record.
     expect(kept.facts.map((f) => f.id)).toEqual(['kf_1']);
     expect(keptFromSession(ws, 'se_none')).toEqual({ findings: [], facts: [] });
+  });
+
+  it('still lists a fact after the transcript its finding rested on is deleted (review of Slice A)', () => {
+    const ws = sampleWorkspace();
+    ws.knowledge.kf_1 = value(promoteToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3));
+    expect(ws.knowledge.kf_1.source?.sessionIds).toEqual(['se_1']);
+    const after = value(deleteTranscript(ws, 'se_1', T5)).workspace;
+    expect(after.knowledge.kf_1.source).toMatchObject({ findingId: null, quotes: [], sessionIds: ['se_1'] });
+    expect(keptFromSession(after, 'se_1').facts.map((f) => f.id)).toEqual(['kf_1']);
+    clean(after);
   });
 
   it('removes a fact as an ordinary step', () => {

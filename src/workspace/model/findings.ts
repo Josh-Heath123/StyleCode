@@ -151,7 +151,9 @@ export function promoteToKnowledge(
   if (!isInRecord(finding)) return fail('Only findings in the record can become company knowledge.');
   if (!consultant.trim()) return fail('Adding company knowledge needs the consultant’s name.');
   const quotes: FactQuote[] = [];
+  const sessionIds = new Set<string>();
   for (const e of finding.evidence) {
+    if (e.kind === 'deleted') sessionIds.add(e.sessionId);
     if (e.kind === 'segment') {
       const segment = get(ws.segments, e.segmentId);
       const transcript = segment && get(ws.transcripts, segment.transcriptId);
@@ -175,6 +177,7 @@ export function promoteToKnowledge(
       engagementName: get(ws.engagements, finding.engagementId)?.name ?? '',
       statement: finding.statement,
       quotes,
+      sessionIds: [...new Set([...quotes.map((q) => q.sessionId), ...sessionIds])],
     },
     createdBy: consultant,
     createdAt: at,
@@ -445,7 +448,7 @@ export function keptFromSession(ws: CompanyWorkspace, sessionId: string): { find
   const findings = Object.values(ws.findings).filter((f) => isInRecord(f) && f.evidence.some(fromSession));
   const ids = new Set(findings.map((f) => f.id));
   const facts = Object.values(ws.knowledge).filter(
-    (fact) => fact.source && (fact.source.quotes.some((q) => q.sessionId === sessionId) || ids.has(fact.source.findingId ?? '')),
+    (fact) => fact.source && (fact.source.sessionIds.includes(sessionId) || ids.has(fact.source.findingId ?? '')),
   );
   return { findings, facts };
 }

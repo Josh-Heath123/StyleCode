@@ -152,16 +152,37 @@ export function applyAmendment(terms: ConsentTerms, a: ConsentAmendment): Consen
 }
 
 /**
- * An amendment that changes how long audio is kept, while audio recording is
- * agreed, must tell the client the retention statement in its new words
- * (Phase 2 brief, decision 10). The form unticks that statement when the
- * retention changes; this is the same rule for the model.
+ * The retention the client was last told about, once the record and its first
+ * `count` amendments were made: the retention in force each time the
+ * retention statement was told. Null if it never was.
  */
-export function retentionToldIssue(before: ConsentTerms, a: ConsentAmendment): ConsentIssue | null {
-  if (a.kind !== 'change' || a.retention === undefined) return null;
+export function retentionTold(record: ConsentRecord, count: number): Retention | null {
+  let terms = termsOf(record);
+  let told = record.told?.retention === true ? terms.retention : null;
+  for (const a of (Array.isArray(record.amendments) ? record.amendments : []).slice(0, count)) {
+    if (!a || typeof a !== 'object' || a.kind !== 'change') continue;
+    terms = applyAmendment(terms, a);
+    if (a.told?.retention === true) told = terms.retention;
+  }
+  return told;
+}
+
+/**
+ * While audio recording is agreed, the client must have been told the
+ * retention in force in its own words (Phase 2 brief, decision 10). So an
+ * amendment that leaves audio agreed with a retention other than the one last
+ * told needs the retention statement told again, whether it changes the
+ * retention or turns audio on after an earlier change. `count` is the number
+ * of amendments before this one. (Never told at all is rule C2's to report.)
+ */
+export function retentionToldIssue(record: ConsentRecord, count: number, a: ConsentAmendment): ConsentIssue | null {
+  if (a.kind !== 'change' || a.told?.retention === true) return null;
+  let before = termsOf(record);
+  for (const earlier of (Array.isArray(record.amendments) ? record.amendments : []).slice(0, count))
+    if (earlier && typeof earlier === 'object') before = applyAmendment(before, earlier);
   const after = applyAmendment(before, a);
-  if (!after.given.audioRecording || JSON.stringify(after.retention) === JSON.stringify(before.retention)) return null;
-  if (a.told?.retention === true) return null;
+  const told = retentionTold(record, count);
+  if (!after.given.audioRecording || told === null || JSON.stringify(after.retention) === JSON.stringify(told)) return null;
   return {
     code: 'consent.told',
     message: 'The client was told how long audio is kept in the old words. Tell them the new retention, and record it.',
@@ -455,7 +476,8 @@ export function amendConsent(record: ConsentRecord, amendment: ConsentAmendment)
   if (record.amendments.some((a) => a.kind === 'withdrawal')) return fail('Consent for this session was withdrawn.');
   const before = record.amendments.reduce(applyAmendment, termsOf(record));
   const after = applyAmendment(before, amendment);
-  const issue = amendmentIssues(amendment)[0] ?? termsIssues(after)[0] ?? retentionToldIssue(before, amendment);
+  const issue =
+    amendmentIssues(amendment)[0] ?? termsIssues(after)[0] ?? retentionToldIssue(record, record.amendments.length, amendment);
   if (issue) return fail(issue.message);
   // Rule C2 holds for amendments too: each "yes" is checked against everything the client has been told so far.
   const toldBefore = toldSoFar(record);

@@ -9,6 +9,7 @@ import {
   consentFor,
   consentState,
   missingFor,
+  retentionTold,
   retentionToldIssue,
   termsIssues,
   toldIssues,
@@ -272,8 +273,8 @@ export function amendFormFor(record: ConsentRecord): AmendValues {
 /** Whether a statement may be ticked on the Amend… form: one not told yet, or the retention in new words. */
 export function canTellOnAmend(record: ConsentRecord, values: AmendValues, s: ConsentStatement): boolean {
   if (!toldSoFar(record).statements.has(s)) return true;
-  const now = consentState(record);
-  return s === 'retention' && values.given.audioRecording && JSON.stringify(values.retention) !== JSON.stringify(now.retention);
+  const told = retentionTold(record, record.amendments.length);
+  return s === 'retention' && values.given.audioRecording && told !== null && !sameJson(values.retention, told);
 }
 
 const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -337,7 +338,7 @@ export function amendIssues(record: ConsentRecord, values: AmendValues): FormIss
     if (missing.length)
       issues.push({ place: answer, message: `Tick what you told them: ${missing.map(statementName).join(', ')}.` });
   }
-  const retention = retentionToldIssue(current, {
+  const retention = retentionToldIssue(record, record.amendments.length, {
     id: 'check',
     kind: 'change',
     by: '',

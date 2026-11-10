@@ -11,7 +11,7 @@ import {
 import type { ConsentRecord, Session } from '../../model/types';
 import { CURRENT_WORDING, wordingFor } from '../../model/wording';
 import type { ClientView } from '../ClientFrame';
-import { now, step } from '../steps';
+import { finalStep, now } from '../steps';
 import { Choice, Section, STATEMENTS, YesNo } from './formParts';
 import type { ConsentContext } from './useConsentContext';
 
@@ -66,9 +66,9 @@ export function AmendForm({
       if (!name.trim()) return setError('Give your name, as the person recording the change.');
       by = await context.saveConsultant(name);
     }
-    const problem = step(view.session, 'Amend the consent record', (ws) => amendConsentForm(ws, meeting.id, values, by, now()), {
-      final: true,
-    });
+    const problem = await finalStep(view.session, 'Amend the consent record', (ws) =>
+      amendConsentForm(ws, meeting.id, values, by, now()),
+    );
     if (problem) return setError(problem);
     onDone();
   };

@@ -286,7 +286,8 @@ export function NameField({
 
 /** The consultant's name: from settings, or as typed, which is then kept in settings. */
 export async function nameFor(consultant: Consultant, typed: string): Promise<string | null> {
-  if (consultant.name) return consultant.name;
+  const known = await consultant.current();
+  if (known) return known;
   if (!typed.trim()) return null;
   return consultant.save(typed);
 }

@@ -222,6 +222,12 @@ export interface FactSource {
   statement: string;
   /** Its evidence when it was promoted. */
   quotes: FactQuote[];
+  /**
+   * The sessions its statement came from (its finding's evidence), kept when
+   * a quote is removed, as ids only, so a fact can still be traced to a
+   * session after its transcript is deleted (rule C8; decision 11).
+   */
+  sessionIds: string[];
 }
 
 export interface FactQuote {

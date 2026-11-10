@@ -4,7 +4,7 @@ import { readZoomTxt } from './layouts.ts';
 import { readPastedTranscript, readTranscriptFile } from './read.ts';
 import { clockMs, decodeText, splitSpeaker } from './text.ts';
 import { readVtt } from './vtt.ts';
-import { readZipEntry } from './zip.ts';
+import { readZipEntry, ZipError } from './zip.ts';
 import { fromWallClock, wallClock } from './zone.ts';
 
 /** The edge cases `docs/phase-2/samples/README.md` lists, and refusals (Phase 2 brief, WP2). */
@@ -159,6 +159,27 @@ describe('WebVTT', () => {
     ]);
   });
 
+  it('keeps utterances from separate runs of the transcription apart, though their numbers repeat (review of Slice A)', () => {
+    const run = (uuid: string, start: string, end: string, words: string) => [
+      `${uuid}/5-0`,
+      `${start} --> ${end}`,
+      `<v Thandi>${words}</v>`,
+      '',
+    ];
+    const vtt = readVtt(
+      [
+        'WEBVTT',
+        '',
+        ...run('aaaaaaaa-93d5-4f0e-8a61-2b5d9c0e7f14', '00:00:01.000', '00:00:03.000', 'First run words.'),
+        ...run('bbbbbbbb-93d5-4f0e-8a61-2b5d9c0e7f14', '00:30:00.000', '00:30:03.000', 'Second run, much later.'),
+      ].join('\n'),
+    );
+    expect(vtt?.segments.map((s) => [s.startMs, s.text])).toEqual([
+      [1000, 'First run words.'],
+      [1800000, 'Second run, much later.'],
+    ]);
+  });
+
   it('reads the Graph layout, where a timing line and its words are separate blocks', () => {
     const vtt = readVtt(
       'WEBVTT\n\n00:00:01.000 --> 00:00:02.000\n\n<v Ana>Hello there.</v>\n\n00:00:03.000 --> 00:00:04.000\n\n<v Ben>Hi.</v>\n',
@@ -191,6 +212,12 @@ describe('Word documents', () => {
     const archive = await zip({ 'a.txt': 'stored' }, false);
     expect(new TextDecoder().decode((await readZipEntry(archive, 'a.txt'))!)).toBe('stored');
     expect(await readZipEntry(archive, 'b.txt')).toBeNull();
+  });
+
+  it('refuses an entry that unpacks to more than the limit, as a zip bomb would (review of Slice A)', async () => {
+    const archive = await zip({ 'a.txt': '0'.repeat(100_000) });
+    expect((await readZipEntry(archive, 'a.txt', 100_000))?.length).toBe(100_000);
+    await expect(readZipEntry(archive, 'a.txt', 99_999)).rejects.toThrow(ZipError);
   });
 
   it('reads the current Teams layout with spaces instead of the tab, and times after the first hour', async () => {
@@ -230,6 +257,24 @@ describe('Zoom’s times of day (the reviewer’s answer to the WP0 check-in)', 
     const read = readZoomTxt(lines(['23:59:50', '00:00:10']), late)!;
     expect(read.timesFrom).toBe('session-start');
     expect(read.segments.map((s) => s.startMs)).toEqual([590000, 610000]);
+  });
+
+  it('measures from the start of a session that runs past midnight, the first words after it (review of Slice A)', () => {
+    const late = { startsAt: '2026-11-05T21:30:00.000Z', timeZone: 'Africa/Johannesburg' }; // 23:30 there.
+    const read = readZoomTxt(lines(['00:10:05', '00:10:30']), late)!;
+    expect(read.timesFrom).toBe('session-start');
+    expect(read.segments.map((s) => s.startMs)).toEqual([2405000, 2430000]);
+  });
+
+  it('reads a time the clock shows twice as the earlier, and one it skips as after the change (review of Slice A)', () => {
+    // London's clocks go back at 02:00 BST on 25 October 2026, and forward at 01:00 GMT on 29 March 2026.
+    const at = (month: number, day: number, hour: number, minute: number) =>
+      fromWallClock({ year: 2026, month, day, hour, minute, second: 0 }, 'Europe/London');
+    expect(at(10, 25, 1, 30)).toBe(Date.parse('2026-10-25T00:30:00Z'));
+    expect(at(3, 29, 1, 30)).toBe(Date.parse('2026-03-29T01:30:00Z'));
+    expect(fromWallClock({ year: 2026, month: 11, day: 1, hour: 1, minute: 30, second: 0 }, 'America/New_York')).toBe(
+      Date.parse('2026-11-01T05:30:00Z'),
+    );
   });
 
   it('uses the session’s zone, summer time included', () => {

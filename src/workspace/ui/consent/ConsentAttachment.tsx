@@ -8,7 +8,7 @@ import type { ClientView } from '../ClientFrame';
 import { formatWhen } from '../chrome';
 import { saveAs } from '../download';
 import { DeleteDialog } from '../fields';
-import { now, permanentStep, step } from '../steps';
+import { finalStep, now, permanentStep } from '../steps';
 import type { ConsentContext } from './useConsentContext';
 
 /**
@@ -44,25 +44,17 @@ export function ConsentAttachment({
     setBusy(`Attaching ${picked.name}…`);
     try {
       const stored = await uploadFile(session.companyId, picked);
-      const problem = step(
-        session,
-        `Attach ${picked.name} to the consent record`,
-        (ws) => {
-          const result = attachToConsent(
-            ws,
-            meeting.id,
-            { id: stored.id, name: picked.name, mediaType: picked.type, sizeBytes: stored.sizeBytes },
-            context.consultant!,
-            now(),
-          );
-          return result.ok ? { ok: true, value: result.value.workspace } : result;
-        },
-        { final: true },
-      );
-      if (problem) return setError(problem);
-      await session.saveNow();
-      const state = session.getState();
-      if (state.status === 'error') setError(state.error ?? 'The change couldn’t be saved.');
+      const problem = await finalStep(session, `Attach ${picked.name} to the consent record`, (ws) => {
+        const result = attachToConsent(
+          ws,
+          meeting.id,
+          { id: stored.id, name: picked.name, mediaType: picked.type, sizeBytes: stored.sizeBytes },
+          context.consultant!,
+          now(),
+        );
+        return result.ok ? { ok: true, value: result.value.workspace } : result;
+      });
+      if (problem) setError(problem);
     } catch (e) {
       setError((e as Error).message);
     } finally {

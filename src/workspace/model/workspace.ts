@@ -125,6 +125,17 @@ export type ParseWorkspaceResult =
  *   (the zone it was most likely created in). The `txt` source format needs
  *   no change.
  */
+/** Maps each object in a record, leaving anything that isn't one as it is. */
+function mapRecord(value: unknown, map: (item: Record<string, unknown>) => unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([id, item]) => [
+      id,
+      item && typeof item === 'object' && !Array.isArray(item) ? map(item as Record<string, unknown>) : item,
+    ]),
+  );
+}
+
 function migrate(raw: Record<string, unknown>, timeZone: string): Record<string, unknown> {
   let ws = raw;
   if (ws.version === 1) {
@@ -141,6 +152,13 @@ function migrate(raw: Record<string, unknown>, timeZone: string): Record<string,
               ]),
             )
           : sessions,
+      // Facts keep the sessions their statement came from: in version 1, those their quotes name.
+      knowledge: mapRecord(ws.knowledge, (fact) => {
+        const source = fact.source as Record<string, unknown> | null | undefined;
+        if (!source || typeof source !== 'object' || 'sessionIds' in source || !Array.isArray(source.quotes)) return fact;
+        const ids = source.quotes.map((q: { sessionId?: unknown } | null) => q?.sessionId).filter((x) => typeof x === 'string');
+        return { ...fact, source: { ...source, sessionIds: [...new Set(ids)] } };
+      }),
     };
   }
   return ws;

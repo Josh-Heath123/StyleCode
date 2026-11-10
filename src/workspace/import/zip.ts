@@ -12,7 +12,7 @@ const u16 = (b: Uint8Array, at: number) => b[at] | (b[at + 1] << 8);
 const u32 = (b: Uint8Array, at: number) => (b[at] | (b[at + 1] << 8) | (b[at + 2] << 16) | (b[at + 3] << 24)) >>> 0;
 
 /** The bytes of the named entry, or null if the archive has no such entry. Throws `ZipError` if it isn't a zip. */
-export async function readZipEntry(bytes: Uint8Array, name: string): Promise<Uint8Array | null> {
+export async function readZipEntry(bytes: Uint8Array, name: string, maxBytes = MAX_INFLATED_BYTES): Promise<Uint8Array | null> {
   // The end-of-central-directory record sits in the last 22 bytes plus up to 64 KB of comment.
   let end = -1;
   for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 0xffff); i--) {
@@ -43,16 +43,38 @@ export async function readZipEntry(bytes: Uint8Array, name: string): Promise<Uin
     if (data.length !== compressedSize) throw new ZipError('truncated zip entry');
     if (method === 0) return data;
     if (method !== 8) throw new ZipError(`unsupported compression (${method})`);
-    return inflate(data);
+    return inflate(data, maxBytes);
   }
   return null;
 }
 
-async function inflate(data: Uint8Array): Promise<Uint8Array> {
+/** The most an entry may inflate to: far more than any transcript, far less than a zip bomb (review of Slice A). */
+export const MAX_INFLATED_BYTES = 200 * 1024 * 1024;
+
+async function inflate(data: Uint8Array, maxBytes: number): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  let size = 0;
   try {
     const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-    return new Uint8Array(await new Response(stream).arrayBuffer());
-  } catch {
-    throw new ZipError('damaged compressed data');
+    const reader = stream.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw new ZipError('the document is too large once unpacked');
+      }
+      chunks.push(value);
+    }
+  } catch (e) {
+    throw e instanceof ZipError ? e : new ZipError('damaged compressed data');
   }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, at);
+    at += chunk.length;
+  }
+  return out;
 }

@@ -30,7 +30,7 @@ interface Cue {
 }
 
 const TIMING = /^(\S+)\s+-->\s+(\S+)/;
-const TEAMS_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(\d+)-(\d+)$/i;
+const TEAMS_ID = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/\d+)-(\d+)$/i;
 
 /** The cues of a WebVTT file, or null if it isn't one. Text is `\n`-separated (see `decodeText`). */
 export function vttCues(text: string): Cue[] | null {
@@ -93,7 +93,7 @@ export function readVtt(text: string): VttRead | null {
   const utterances = new Map<string, { segment: ParsedSegment; parts: { n: number; text: string }[] }>();
   for (const c of read) {
     const id = teamsIds ? TEAMS_ID.exec(c.cue.id!)! : null;
-    const key = id ? `${id[1]}\u0000${c.speaker ?? ''}` : null;
+    const key = id ? `${id[1].toLowerCase()}\u0000${c.speaker ?? ''}` : null;
     const joined = key !== null ? utterances.get(key) : undefined;
     if (joined) {
       joined.parts.push({ n: Number(id![2]), text: c.text });

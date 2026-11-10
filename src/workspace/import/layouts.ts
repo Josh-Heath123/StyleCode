@@ -162,9 +162,18 @@ export function readZoomTxt(lines: readonly string[], session: { startsAt: strin
   const start = Date.parse(session.startsAt);
   const day = wallClock(start, session.timeZone);
   const [h, m, s] = spoken[0].time.split(':').map(Number);
-  const firstAt = fromWallClock({ ...day, hour: h, minute: m, second: s }, session.timeZone) - start;
-  const fromSession = firstAt >= 0 && firstAt < DAY_MS;
-  let offset = fromSession ? firstAt : 0;
+  const at = (later: number) => {
+    const date = new Date(Date.UTC(day.year, day.month - 1, day.day + later));
+    const on = { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+    return fromWallClock({ ...on, hour: h, minute: m, second: s }, session.timeZone) - start;
+  };
+  // On the session's start date; a time more than 12 hours before the start is just after midnight, the next day
+  // (a session starting at 23:30 whose first words are at 00:10). An earlier time otherwise isn't the session's clock.
+  let firstAt: number | undefined = at(0);
+  if (firstAt < -DAY_MS / 2) firstAt = at(1);
+  if (firstAt < 0 || firstAt >= DAY_MS) firstAt = undefined;
+  const fromSession = firstAt !== undefined;
+  let offset = firstAt ?? 0;
   let previous = seconds(spoken[0].time);
   const segments = spoken.map((t, i) => {
     if (i > 0) {

@@ -40,6 +40,42 @@ async function importTeams(page: Page) {
   await expect(dialog).toHaveCount(0);
 }
 
+/** Two findings: one rests only on the transcript, one also on the note. */
+async function twoFindings(page: Page, id: string) {
+  await page.goto(`/#/c/${id}/e/en_1/record`);
+  const addFinding = async (statement: string, withNote: boolean) => {
+    await page
+      .getByRole('button', { name: /Add finding/ })
+      .first()
+      .click();
+    const add = page.getByRole('dialog', { name: 'Add a finding' });
+    await add.getByLabel('Statement').fill(statement);
+    await add.getByLabel('Kind').selectOption({ label: 'Constraint' });
+    if (withNote) await add.getByLabel(/Signal drops between Colesberg/).check();
+    await add.getByRole('searchbox', { name: 'Find words in the transcripts' }).fill('Colesberg');
+    await add.getByRole('checkbox', { name: /Pieter van Wyk: Accept the job/ }).check();
+    await add.getByRole('button', { name: 'Add finding' }).click();
+    await expect(add).toHaveCount(0);
+  };
+  await addFinding('Drivers lose signal on the N1.', true);
+  await addFinding('Dispatch must work offline near Colesberg.', false);
+}
+
+test('deleting a transcript with consent still given is followed by the same review (decision 11)', async ({ page }) => {
+  const id = await kickoff(page, { note: 'Signal drops between Colesberg and Beaufort West.' });
+  await importTeams(page);
+  await twoFindings(page, id);
+  await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
+  // A finding in the record quotes it, so it can't be replaced, and says why.
+  await expect(page.getByText(/Replacing it isn’t available: 2 findings in the record quote this transcript/)).toBeVisible();
+  await page.getByRole('button', { name: 'Delete transcript…' }).click();
+  await page.getByRole('dialog', { name: 'Delete transcript…' }).getByRole('button', { name: 'Delete transcript' }).click();
+  const dialog = page.getByRole('dialog', { name: 'What keeps a statement from this session' });
+  await expect(dialog.getByRole('list', { name: 'Findings' })).toContainText('Drivers lose signal on the N1.');
+  await dialog.getByRole('button', { name: 'Done' }).click();
+  await expect.poll(() => Object.values(onDisk(id).findings).map((f) => f.statement)).toEqual(['Drivers lose signal on the N1.']);
+});
+
 test('a locked record is amended: what changed, what was newly told and why, checked like the form (C2)', async ({ page }) => {
   const id = await kickoff(page);
   await importTeams(page);
@@ -140,24 +176,7 @@ test('after a withdrawal: delete the transcript, then review and remove what kee
   const id = await kickoff(page, { note: 'Signal drops between Colesberg and Beaufort West.' });
   await importTeams(page);
 
-  // Two findings: one rests only on the transcript, one also on a note.
-  await page.goto(`/#/c/${id}/e/en_1/record`);
-  const addFinding = async (statement: string, withNote: boolean) => {
-    await page
-      .getByRole('button', { name: /Add finding/ })
-      .first()
-      .click();
-    const add = page.getByRole('dialog', { name: 'Add a finding' });
-    await add.getByLabel('Statement').fill(statement);
-    await add.getByLabel('Kind').selectOption({ label: 'Constraint' });
-    if (withNote) await add.getByLabel(/Signal drops between Colesberg/).check();
-    await add.getByRole('searchbox', { name: 'Find words in the transcripts' }).fill('Colesberg');
-    await add.getByRole('checkbox', { name: /Pieter van Wyk: Accept the job/ }).check();
-    await add.getByRole('button', { name: 'Add finding' }).click();
-    await expect(add).toHaveCount(0);
-  };
-  await addFinding('Drivers lose signal on the N1.', true);
-  await addFinding('Dispatch must work offline near Colesberg.', false);
+  await twoFindings(page, id);
   await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
 
   await page.getByRole('button', { name: 'Withdraw consent…' }).click();
@@ -208,6 +227,9 @@ test('after a withdrawal the transcript can be kept, and the review is still off
   await expect(page.getByRole('region', { name: 'What was said' })).toContainText('About a hundred and twenty a day.');
   await expect.poll(() => Object.keys(onDisk(id).transcripts).length).toBe(1);
   await expect(page.getByRole('button', { name: 'Delete transcript…' })).toBeVisible();
+  // Replacing it would import again, which consent no longer allows (C7): it says why instead.
+  await expect(page.getByRole('button', { name: 'Replace…' })).toHaveCount(0);
+  await expect(page.getByText('Replacing it isn’t available: the client withdrew consent for this session.')).toBeVisible();
   // Nothing from the session is in the record yet, so there is nothing to review.
   await expect(page.getByRole('button', { name: 'Review what keeps a statement…' })).toHaveCount(0);
 });

@@ -7,7 +7,7 @@ import type { ConsentRecord, Retention, Session } from '../../model/types';
 import type { ClientView } from '../ClientFrame';
 import { formatWhen } from '../chrome';
 import { DialogField, FormDialog } from '../fields';
-import { now, step } from '../steps';
+import { finalStep, now } from '../steps';
 import { DeleteTranscriptDialog } from '../TranscriptCard';
 import { KeptDialog } from './KeptDialog';
 import { useConsentContext } from './useConsentContext';
@@ -169,11 +169,8 @@ function WithdrawDialog({
           if (!name.trim()) return setError('Give your name, as the person recording the withdrawal.');
           by = await context.saveConsultant(name);
         }
-        const problem = step(
-          view.session,
-          'Record the withdrawal of consent',
-          (ws) => withdrawConsent(ws, meeting.id, reason, by, now()),
-          { final: true },
+        const problem = await finalStep(view.session, 'Record the withdrawal of consent', (ws) =>
+          withdrawConsent(ws, meeting.id, reason, by, now()),
         );
         if (problem) return setError(problem);
         onWithdrawn();

@@ -221,6 +221,7 @@ describe('5: company knowledge outlives its source', () => {
           speakerLabel: 'Alex Owner',
         },
       ],
+      sessionIds: ['se_1'],
     });
     expect(validateWorkspace(ws)).toEqual([]);
     expect(promoteToKnowledge(ws, 'fd_risk', 'kf_2', 'Sam', T3).ok).toBe(false);

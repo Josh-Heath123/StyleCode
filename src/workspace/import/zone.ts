@@ -46,10 +46,28 @@ export function offsetMs(ms: number, timeZone: string): number {
   return Date.UTC(c.year, c.month - 1, c.day, c.hour, c.minute, c.second) - Math.floor(ms / 1000) * 1000;
 }
 
-/** The instant a clock in the zone shows this date and time (the earlier one, if the clock shows it twice). */
+const HALF_DAY_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * The instant a clock in the zone shows this date and time: the earlier one
+ * if the clock shows it twice (when it goes back), and the same time after
+ * the change if it never shows it (when it goes forward).
+ */
 export function fromWallClock(c: WallClock, timeZone: string): number {
   const asUtc = Date.UTC(c.year, c.month - 1, c.day, c.hour, c.minute, c.second);
-  const first = asUtc - offsetMs(asUtc, timeZone);
-  const second = asUtc - offsetMs(first, timeZone);
-  return Math.min(first, second);
+  // The zone's offsets either side of the time; at most one change of clock lies between them.
+  const offsets = [offsetMs(asUtc - HALF_DAY_MS, timeZone), offsetMs(asUtc + HALF_DAY_MS, timeZone)];
+  const shows = (ms: number) => {
+    const w = wallClock(ms, timeZone);
+    return (
+      w.year === c.year &&
+      w.month === c.month &&
+      w.day === c.day &&
+      w.hour === c.hour &&
+      w.minute === c.minute &&
+      w.second === c.second
+    );
+  };
+  const instants = offsets.map((o) => asUtc - o).filter(shows);
+  return instants.length ? Math.min(...instants) : asUtc - offsets[0];
 }

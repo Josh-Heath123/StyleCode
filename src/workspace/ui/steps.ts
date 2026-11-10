@@ -49,3 +49,24 @@ export async function permanentStep(
   session.rollBack(before);
   throw new Error(`Not saved: ${reason}`);
 }
+
+/**
+ * A final step (one that clears the undo history, such as a consent
+ * amendment, a withdrawal or attaching a file): applied, then saved straight
+ * away, rolled back if the save fails, as `permanentStep` does. Returns null
+ * once saved, or why it wasn't, so a form never says it is done before it is.
+ */
+export async function finalStep(
+  session: WorkspaceSession,
+  label: string,
+  change: (ws: CompanyWorkspace) => Result<CompanyWorkspace>,
+): Promise<string | null> {
+  const before = session.getState().workspace;
+  const problem = step(session, label, change, { final: true });
+  if (problem) return problem;
+  await session.saveNow();
+  const state = session.getState();
+  if (state.status !== 'error') return null;
+  session.rollBack(before);
+  return `Not saved: ${state.error ?? 'the change couldn’t be saved.'}`;
+}
