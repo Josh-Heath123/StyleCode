@@ -18,6 +18,7 @@ import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { ConsentPanel } from './consent/ConsentPanel';
 import { NotesCard } from './NotesCard';
+import { TranscriptCard, usePassage } from './TranscriptCard';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
@@ -25,10 +26,13 @@ export function SessionPage({
   companyId,
   engagementId,
   sessionId,
+  passageId = null,
 }: {
   companyId: string;
   engagementId: string;
   sessionId: string;
+  /** A quoted segment or note to show, from an evidence link (decision 16). */
+  passageId?: string | null;
 }) {
   // While its deletion is being saved, the page keeps showing the session, so its dialog stays open
   // to say if the save fails (and the deletion is rolled back).
@@ -40,7 +44,8 @@ export function SessionPage({
         const engagement = get(view.workspace.engagements, engagementId);
         const session = get(view.workspace.sessions, sessionId);
         if (engagement && session && session.engagementId === engagementId) shown.current = { engagement, meeting: session };
-        else if (deleting && shown.current) return <SessionView view={view} {...shown.current} onDeleting={setDeleting} />;
+        else if (deleting && shown.current)
+          return <SessionView view={view} {...shown.current} passageId={null} onDeleting={setDeleting} />;
         if (!engagement) return <Missing view={view} what="engagement" />;
         if (!session || session.engagementId !== engagementId)
           return (
@@ -50,7 +55,9 @@ export function SessionPage({
               back={{ href: `#/c/${companyId}/e/${engagementId}`, label: `Back to ${engagement.name}` }}
             />
           );
-        return <SessionView view={view} engagement={engagement} meeting={session} onDeleting={setDeleting} />;
+        return (
+          <SessionView view={view} engagement={engagement} meeting={session} passageId={passageId} onDeleting={setDeleting} />
+        );
       }}
     </ClientFrame>
   );
@@ -62,13 +69,16 @@ function SessionView({
   view,
   engagement,
   meeting,
+  passageId,
   onDeleting,
 }: {
   view: ClientView;
   engagement: Engagement;
   meeting: Session;
+  passageId: string | null;
   onDeleting: (deleting: boolean) => void;
 }) {
+  usePassage(passageId);
   const { workspace, readOnly, session, notices } = view;
   const companyHref = `#/c/${session.companyId}`;
   const engagementHref = `${companyHref}/e/${engagement.id}`;
@@ -98,7 +108,7 @@ function SessionView({
         <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
         <div className="ws-columns">
           <div className="ws-stack">
-            <NotesCard key={meeting.id} view={view} meeting={meeting} />
+            <NotesCard key={meeting.id} view={view} meeting={meeting} passageId={passageId} />
             <section className="ws-card" aria-labelledby="participants-title">
               <div className="ws-card-head">
                 <h2 id="participants-title">Participants</h2>
@@ -208,6 +218,7 @@ function SessionView({
             )}
           </section>
         </div>
+        <TranscriptCard key={meeting.id} view={view} meeting={meeting} passageId={passageId} />
       </Page>
       {dialog?.kind === 'participant' && (
         <ParticipantDialog view={view} sessionId={meeting.id} participant={dialog.participant} onClose={() => setDialog(null)} />

@@ -16,7 +16,15 @@ import { noteDraft, setNoteDraft } from './useCompanySession';
  * next. Each note keeps when it was written (when typing started), shown as
  * a time of day and as the time into the session.
  */
-export function NotesCard({ view, meeting }: { view: ClientView; meeting: Session }) {
+export function NotesCard({
+  view,
+  meeting,
+  passageId = null,
+}: {
+  view: ClientView;
+  meeting: Session;
+  passageId?: string | null;
+}) {
   const { workspace, readOnly, session } = view;
   const notes = notesOf(workspace, meeting.id);
   // A note left unfinished on this session is open again, as it was left.
@@ -87,7 +95,12 @@ export function NotesCard({ view, meeting }: { view: ClientView; meeting: Sessio
       {notes.length > 0 && (
         <ol className="ws-notes" aria-label="Notes">
           {notes.map((note) => (
-            <li key={note.id} className="ws-note">
+            <li
+              key={note.id}
+              id={`passage-${note.id}`}
+              tabIndex={-1}
+              className={`ws-note${note.id === passageId ? ' is-cited' : ''}`}
+            >
               <div className="ws-note-time">
                 <span>{formatTimeOfDay(note.writtenAt)}</span>
                 <span className="ws-muted">{sinceStart(meeting.startsAt, note.writtenAt)}</span>

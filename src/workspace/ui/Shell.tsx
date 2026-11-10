@@ -117,6 +117,7 @@ function renderPage(route: Route): ReactNode {
           companyId={route.companyId}
           engagementId={route.engagementId}
           sessionId={route.sessionId}
+          passageId={route.passageId ?? null}
         />
       );
     case 'settings':

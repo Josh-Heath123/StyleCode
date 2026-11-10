@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from '../model/labels';
 import { notesOf } from '../model/notes';
+import { segmentsOf, speakerOf, transcriptOf } from '../model/transcripts';
 import { addRelation, createFinding, filteredRecord, linksOf, removeRelation, updateFinding } from '../model/record';
 import { isInRecord, type RecordGroups } from '../model/findings';
 import {
@@ -16,12 +17,13 @@ import {
   type FindingKind,
   type FindingStatus,
   type RelationType,
+  type Session,
 } from '../model/types';
 import { get } from '../model/util';
 import { formatTimeOfDay } from '../time';
 import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
-import { DialogField, FormDialog } from './fields';
+import { DialogField, FormDialog, NameField, nameFor } from './fields';
 import { NOT_APPLIED, now, step } from './steps';
 import { useConsultant, type Consultant } from './useConsultant';
 import { saveAs } from './download';
@@ -281,6 +283,11 @@ function FindingCard({
   );
 }
 
+/** Who a speaker label is: the matched participant's name, or the label. */
+function speakerName(ws: CompanyWorkspace, sessionId: string | null | undefined, label: string): string {
+  return (sessionId && speakerOf(ws, sessionId, label)?.name) || label;
+}
+
 function EvidenceLine({
   workspace,
   evidence: e,
@@ -306,9 +313,16 @@ function EvidenceLine({
     <>
       <q>{e.quote}</q>{' '}
       <span className="ws-muted">
-        {e.kind === 'note' ? `note at ${note ? formatTimeOfDay(note.writtenAt) : '?'}` : 'transcript'}, in{' '}
+        {e.kind === 'note'
+          ? `note at ${note ? formatTimeOfDay(note.writtenAt) : '?'}`
+          : `said${segment?.speakerLabel ? ` by ${speakerName(workspace, sessionId, segment.speakerLabel)}` : ''}`}
+        , in{' '}
       </span>
-      {s ? <a href={`${engagementHref}/s/${s.id}`}>{s.title}</a> : <span className="ws-muted">a session that is gone</span>}
+      {s ? (
+        <a href={`${engagementHref}/s/${s.id}/p/${e.kind === 'note' ? e.noteId : e.segmentId}`}>{s.title}</a>
+      ) : (
+        <span className="ws-muted">a session that is gone</span>
+      )}
     </>
   );
 }
@@ -353,21 +367,6 @@ function History({ changes }: { changes: FindingChange[] }) {
 }
 
 /** Asks for the consultant's name once, the first time something records it. */
-function NameField({ consultant, value, onChange }: { consultant: Consultant; value: string; onChange: (v: string) => void }) {
-  if (consultant.name !== null) return null;
-  return (
-    <DialogField label="Your name (kept in settings)">
-      {(id) => <input id={id} className="ws-input" value={value} onChange={(e) => onChange(e.target.value)} />}
-    </DialogField>
-  );
-}
-
-async function nameFor(consultant: Consultant, typed: string): Promise<string | null> {
-  if (consultant.name) return consultant.name;
-  if (!typed.trim()) return null;
-  return consultant.save(typed);
-}
-
 /** Adds a finding by hand (MVP 6.4), or changes one in the record (7.1). Notes can be quoted as evidence. */
 function FindingDialog({
   view,
@@ -494,8 +493,92 @@ function FindingDialog({
           </div>
         )}
       </fieldset>
+      <TranscriptEvidence ws={ws} sessions={sessions} evidence={evidence} setEvidence={setEvidence} />
       <NameField consultant={consultant} value={name} onChange={setName} />
     </FormDialog>
+  );
+}
+
+/**
+ * Quotes from the engagement's transcripts (MVP 6.4): find a passage by its
+ * words, tick it, and cut the quote down if needed. Quoting one makes the
+ * finding "said in a session" (decision 9).
+ */
+function TranscriptEvidence({
+  ws,
+  sessions,
+  evidence,
+  setEvidence,
+}: {
+  ws: CompanyWorkspace;
+  sessions: Session[];
+  evidence: Evidence[];
+  setEvidence: (update: (list: Evidence[]) => Evidence[]) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const passages = sessions.flatMap((session) => {
+    const t = transcriptOf(ws, session.id);
+    return t ? segmentsOf(ws, t.id).map((segment) => ({ segment, session })) : [];
+  });
+  if (!passages.length) return null;
+  const quoteFor = (segmentId: string) =>
+    evidence.find((e): e is Extract<Evidence, { kind: 'segment' }> => e.kind === 'segment' && e.segmentId === segmentId);
+  const setQuote = (segmentId: string, quote: string | null) =>
+    setEvidence((list) => {
+      const rest = list.filter((e) => !(e.kind === 'segment' && e.segmentId === segmentId));
+      return quote === null ? rest : [...rest, { kind: 'segment', segmentId, quote }];
+    });
+  const words = query.trim().toLocaleLowerCase();
+  const found =
+    words.length >= 2
+      ? passages.filter((p) => !quoteFor(p.segment.id) && p.segment.text.toLocaleLowerCase().includes(words))
+      : [];
+  const shown = [...passages.filter((p) => quoteFor(p.segment.id)), ...found.slice(0, 12)];
+  return (
+    <fieldset className="ws-field ws-fieldset">
+      <legend className="ws-label">Evidence from the transcripts (optional)</legend>
+      <input
+        className="ws-input"
+        type="search"
+        aria-label="Find words in the transcripts"
+        placeholder="Find words in the transcripts"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      {words.length >= 2 && !found.length && <p className="ws-help">No passage has those words.</p>}
+      {found.length > 12 && <p className="ws-help">Showing the first 12 of {found.length}. Add words to narrow it down.</p>}
+      {shown.length > 0 && (
+        <div className="ws-evidence-pick">
+          {shown.map(({ segment, session }) => {
+            const picked = quoteFor(segment.id);
+            const who = segment.speakerLabel ? speakerName(ws, session.id, segment.speakerLabel) : 'No speaker given';
+            return (
+              <div key={segment.id} className="ws-evidence-note">
+                <label className="ws-choice">
+                  <input
+                    type="checkbox"
+                    checked={!!picked}
+                    onChange={(e) => setQuote(segment.id, e.target.checked ? segment.text : null)}
+                  />
+                  <span>
+                    {who}: {segment.text} <span className="ws-muted">({session.title})</span>
+                  </span>
+                </label>
+                {picked && (
+                  <input
+                    className="ws-input"
+                    aria-label={`The words quoted from “${segment.text.slice(0, 40)}”`}
+                    value={picked.quote}
+                    onChange={(e) => setQuote(segment.id, e.target.value)}
+                  />
+                )}
+              </div>
+            );
+          })}
+          <p className="ws-help">Quote the whole passage, or cut it down to at least three of its words, as said.</p>
+        </div>
+      )}
+    </fieldset>
   );
 }
 

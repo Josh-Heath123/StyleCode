@@ -57,14 +57,17 @@ test('a failed save says so, offers ways out, and saves when tried again', async
   await expect(page.locator('.notice')).toContainText('Browser storage is full');
   await expect(saveStatus(page)).toContainText('Not saved');
 
-  await page.evaluate(() => {
-    const proto = IDBObjectStore.prototype as unknown as { put: unknown; realPut?: unknown };
-    proto.put = proto.realPut;
-  });
+  // Storage stays full while the menu is checked: freed any earlier, the editor's own retry
+  // could save first, and the menu would rightly offer no way out.
   await saveStatus(page).click();
   await expect(page.getByRole('menuitem', { name: 'Save to file…' })).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Free up space in Designs…' })).toBeVisible();
-  await page.getByRole('menuitem', { name: 'Try saving again' }).click();
+  // Freeing storage and trying again in one step, so the editor's own retry can't come between them.
+  await page.evaluate(() => {
+    const proto = IDBObjectStore.prototype as unknown as { put: unknown; realPut?: unknown };
+    proto.put = proto.realPut;
+    [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find((b) => b.textContent === 'Try saving again')!.click();
+  });
   await expect(saveStatus(page)).toHaveText('Saved on this device');
 });
 
