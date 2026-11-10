@@ -8,6 +8,7 @@ import { formatTimeOfDay, sinceStart } from '../time';
 import type { ClientView } from './ClientFrame';
 import { FormDialog } from './fields';
 import { now, step } from './steps';
+import { noteDraft, setNoteDraft } from './useCompanySession';
 
 /**
  * A session's notes (MVP story 5.1): written while the meeting happens,
@@ -18,7 +19,8 @@ import { now, step } from './steps';
 export function NotesCard({ view, meeting }: { view: ClientView; meeting: Session }) {
   const { workspace, readOnly, session } = view;
   const notes = notesOf(workspace, meeting.id);
-  const [writing, setWriting] = useState(false);
+  // A note left unfinished on this session is open again, as it was left.
+  const [writing, setWriting] = useState(() => !readOnly && !!noteDraft(session.companyId, meeting.id));
   const [editing, setEditing] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ note: Note; text: string | null; findings: Finding[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +96,7 @@ export function NotesCard({ view, meeting }: { view: ClientView; meeting: Sessio
                 <NoteEditor
                   label="Change the note"
                   initial={note.text}
+                  original={note.text}
                   submitLabel="Save"
                   onSubmit={(text) => {
                     if (change(note, text)) setEditing(null);
@@ -163,20 +166,28 @@ export function NotesCard({ view, meeting }: { view: ClientView; meeting: Sessio
   );
 }
 
-/** The note being written. Its time is when typing started; Ctrl+Enter adds it and starts the next one. */
+/**
+ * The note being written. Its time is when typing started; Ctrl+Enter adds it
+ * and starts the next one. Until it is added or closed it is kept for the
+ * session, so leaving the page and coming back doesn't lose it.
+ */
 function NewNote({ view, meeting, onClose }: { view: ClientView; meeting: Session; onClose: () => void }) {
-  const startedAt = useRef<string | null>(null);
+  const companyId = view.session.companyId;
+  const [restored] = useState(() => noteDraft(companyId, meeting.id));
+  const startedAt = useRef<string | null>(restored?.startedAt ?? null);
   const [key, setKey] = useState(0);
   return (
     <NoteEditor
       key={key}
       label="New note"
-      initial=""
+      initial={key === 0 ? (restored?.text ?? '') : ''}
+      original=""
       submitLabel="Add note"
       hint="Ctrl+Enter adds it and starts the next one."
       onType={(text) => {
         if (text && !startedAt.current) startedAt.current = now();
         if (!text) startedAt.current = null;
+        setNoteDraft(companyId, meeting.id, text && startedAt.current ? { text, startedAt: startedAt.current } : null);
       }}
       onSubmit={(text) => {
         const written = startedAt.current ?? now();
@@ -184,10 +195,14 @@ function NewNote({ view, meeting, onClose }: { view: ClientView; meeting: Sessio
         if (!result.ok) return;
         // Not added (the client was closed): the text stays, so nothing typed is lost.
         if (!view.session.apply('Add a note', () => result.value.workspace)) return;
+        setNoteDraft(companyId, meeting.id, null);
         startedAt.current = null;
         setKey((k) => k + 1);
       }}
-      onCancel={onClose}
+      onCancel={() => {
+        setNoteDraft(companyId, meeting.id, null);
+        onClose();
+      }}
     />
   );
 }
@@ -195,6 +210,7 @@ function NewNote({ view, meeting, onClose }: { view: ClientView; meeting: Sessio
 function NoteEditor({
   label,
   initial,
+  original,
   submitLabel,
   hint,
   onType,
@@ -202,7 +218,10 @@ function NoteEditor({
   onCancel,
 }: {
   label: string;
+  /** The text the box opens with. */
   initial: string;
+  /** The note's text before this change: empty for a new note, even one opened again unfinished. */
+  original: string;
   submitLabel: string;
   hint?: string;
   onType?: (text: string) => void;
@@ -234,7 +253,7 @@ function NoteEditor({
             submit();
           }
           // Escape leaves a note only while it's empty or unchanged, so a stray key can't lose what was typed.
-          if (e.key === 'Escape' && (!text.trim() || text === initial)) {
+          if (e.key === 'Escape' && (!text.trim() || text === original)) {
             e.preventDefault();
             onCancel();
           }
@@ -245,7 +264,7 @@ function NoteEditor({
           {submitLabel}
         </button>
         <button type="button" className="button" onClick={onCancel}>
-          {initial ? 'Cancel' : 'Close'}
+          {original ? 'Cancel' : 'Close'}
         </button>
         {hint && <span className="ws-help">{hint}</span>}
       </div>

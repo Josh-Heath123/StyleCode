@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { openCompany, saveCompany } from '../api';
-import { SessionRegistry } from '../registry';
+import { SessionRegistry, type NoteDraft } from '../registry';
 import { WorkspaceSession } from '../session';
 
 /** The clients open in this tab (`SessionRegistry` says which stay open, and for how long). */
@@ -12,7 +12,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flushAll());
   window.addEventListener('beforeunload', (e) => {
     flushAll();
-    if (!registry.hasUnsavedWork()) return;
+    if (!registry.hasUnsavedWork() && !registry.hasUnfinishedNotes()) return;
     e.preventDefault();
     e.returnValue = '';
   });
@@ -29,6 +29,17 @@ export async function saveOpenClients(): Promise<void> {
 /** Closes a client straight away, dropping anything not saved: after it has been deleted. */
 export function closeCompany(companyId: string): void {
   registry.close(companyId);
+  registry.forgetNoteDrafts(companyId);
+}
+
+/** A session's unfinished note, kept while this tab is open. */
+export function noteDraft(companyId: string, sessionId: string): NoteDraft | undefined {
+  return registry.noteDraft(companyId, sessionId);
+}
+
+/** Keeps a session's unfinished note, or with `null` (the note was added or closed) lets it go. */
+export function setNoteDraft(companyId: string, sessionId: string, draft: NoteDraft | null): void {
+  registry.setNoteDraft(companyId, sessionId, draft);
 }
 
 export type CompanyLoad =

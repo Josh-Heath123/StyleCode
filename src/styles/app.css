@@ -3773,3 +3773,162 @@ a.ws-row:focus-visible {
   background: rgba(255, 255, 255, 0.18);
   font-size: 11px;
 }
+
+.ws-caution {
+  color: var(--caution);
+}
+
+/* The record: findings in groups. */
+.ws-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 18px 0 8px;
+}
+
+.ws-select {
+  width: auto;
+  padding: 5px 8px;
+}
+
+.ws-group {
+  margin-top: 26px;
+}
+
+.ws-group h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ws-group > .ws-help {
+  margin: 2px 0 10px;
+}
+
+.ws-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ws-finding {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+
+.ws-finding:focus-visible {
+  outline: 2px solid var(--blue);
+}
+
+.ws-finding-statement {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ws-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ws-badge.is-status[data-status='confirmed'] {
+  background: var(--blue-faint);
+  color: var(--blue-hi);
+}
+
+.ws-badge.is-status[data-status='suggested'],
+.ws-badge.is-status[data-status='unresolved'] {
+  background: var(--caution-soft);
+  color: var(--caution);
+}
+
+.ws-badge.is-provenance {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+}
+
+.ws-evidence,
+.ws-links {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ws-evidence q {
+  color: var(--text);
+}
+
+.ws-links li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ws-link-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--blue-hi);
+  text-align: left;
+  text-decoration: underline;
+}
+
+.ws-finding-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.ws-finding-foot .ws-actions {
+  margin-left: auto;
+}
+
+.ws-history summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+.ws-history ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--text-2);
+}
+
+.ws-evidence-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ws-evidence-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ws-evidence-note .ws-choice {
+  align-items: flex-start;
+}
+
+.ws-record-empty ul {
+  margin: 0 0 14px;
+  padding-left: 18px;
+}
+
+.ws-heading-actions {
+  display: flex;
+  gap: 8px;
+}

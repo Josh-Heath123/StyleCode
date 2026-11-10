@@ -1,4 +1,11 @@
+import type { Timestamp } from './model/types.ts';
 import type { WorkspaceSession } from './session.ts';
+
+/** A note being written and not yet added: its text, and when typing started (the note's time). */
+export interface NoteDraft {
+  text: string;
+  startedAt: Timestamp;
+}
 
 /**
  * The clients open in the browser, by id.
@@ -11,11 +18,16 @@ import type { WorkspaceSession } from './session.ts';
  *   opening it again shows those changes rather than the older copy on disk.
  *   Opening it again before then calls off its release, so a save finishing
  *   later can never close the client being worked on.
+ *
+ * It also keeps each session's unfinished note, in memory only, so leaving a
+ * session page and coming back finds the note as it was left.
  */
 export class SessionRegistry {
   private readonly live = new Map<string, WorkspaceSession>();
   private readonly releasing = new Map<WorkspaceSession, () => void>();
   private current: WorkspaceSession | null = null;
+  /** Unfinished notes by client, then by session. */
+  private readonly drafts = new Map<string, Map<string, NoteDraft>>();
 
   get(companyId: string): WorkspaceSession | undefined {
     return this.live.get(companyId);
@@ -27,6 +39,39 @@ export class SessionRegistry {
 
   hasUnsavedWork(): boolean {
     return this.all().some((s) => s.hasUnsavedWork());
+  }
+
+  noteDraft(companyId: string, sessionId: string): NoteDraft | undefined {
+    return this.drafts.get(companyId)?.get(sessionId);
+  }
+
+  /** Keeps a session's unfinished note, or with `null` (the note was added or closed) lets it go. */
+  setNoteDraft(companyId: string, sessionId: string, draft: NoteDraft | null): void {
+    const company = this.drafts.get(companyId) ?? new Map<string, NoteDraft>();
+    if (draft) company.set(sessionId, draft);
+    else company.delete(sessionId);
+    if (company.size) this.drafts.set(companyId, company);
+    else this.drafts.delete(companyId);
+  }
+
+  /** Whether a note is being written somewhere and not yet added, so closing the page would lose it. */
+  hasUnfinishedNotes(): boolean {
+    for (const session of this.live.values()) this.dropDraftsOfDeletedSessions(session);
+    return this.drafts.size > 0;
+  }
+
+  /** Lets a client's unfinished notes go: after the client has been deleted. */
+  forgetNoteDrafts(companyId: string): void {
+    this.drafts.delete(companyId);
+  }
+
+  /** A session deleted with its note unfinished takes the note with it. */
+  private dropDraftsOfDeletedSessions(session: WorkspaceSession): void {
+    const company = this.drafts.get(session.companyId);
+    if (!company) return;
+    const sessions = session.getState().workspace.sessions;
+    for (const id of [...company.keys()]) if (!(id in sessions)) company.delete(id);
+    if (!company.size) this.drafts.delete(session.companyId);
   }
 
   /** Makes a client the one kept open; the one open before it goes once it has saved. */
@@ -46,6 +91,7 @@ export class SessionRegistry {
 
   private forget(session: WorkspaceSession): void {
     this.releasing.get(session)?.();
+    this.dropDraftsOfDeletedSessions(session);
     session.dispose();
     if (this.live.get(session.companyId) === session) this.live.delete(session.companyId);
     if (this.current === session) this.current = null;

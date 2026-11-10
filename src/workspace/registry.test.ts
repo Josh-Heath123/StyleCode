@@ -71,3 +71,40 @@ describe('which clients stay open', () => {
     expect(registry.get('co_a')).toBeUndefined();
   });
 });
+
+describe('unfinished notes', () => {
+  const draft = { text: 'Orders peak in Dec', startedAt: '2026-11-04T09:00:00.000Z' };
+
+  it('keeps a session’s unfinished note until it is added or closed', () => {
+    const registry = new SessionRegistry();
+    registry.open(client('co_a', { value: false }));
+    registry.setNoteDraft('co_a', 'se_1', draft);
+    expect(registry.noteDraft('co_a', 'se_1')).toEqual(draft);
+    expect(registry.noteDraft('co_a', 'se_2')).toBeUndefined();
+    expect(registry.hasUnfinishedNotes()).toBe(true);
+    registry.setNoteDraft('co_a', 'se_1', null);
+    expect(registry.noteDraft('co_a', 'se_1')).toBeUndefined();
+    expect(registry.hasUnfinishedNotes()).toBe(false);
+  });
+
+  it('keeps it while another client is open, and lets it go with its session or client', () => {
+    const registry = new SessionRegistry();
+    registry.open(client('co_a', { value: false }));
+    registry.setNoteDraft('co_a', 'se_1', draft);
+    registry.open(client('co_b', { value: false }));
+    expect(registry.get('co_a')).toBeUndefined();
+    expect(registry.noteDraft('co_a', 'se_1')).toEqual(draft);
+
+    const a = client('co_a', { value: false });
+    registry.open(a);
+    a.apply('Delete the session', (ws) => {
+      const { se_1: _gone, ...sessions } = ws.sessions;
+      return { ...ws, sessions };
+    });
+    expect(registry.hasUnfinishedNotes()).toBe(false);
+
+    registry.setNoteDraft('co_b', 'se_1', draft);
+    registry.forgetNoteDrafts('co_b');
+    expect(registry.noteDraft('co_b', 'se_1')).toBeUndefined();
+  });
+});

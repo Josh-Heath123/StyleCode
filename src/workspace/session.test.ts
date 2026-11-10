@@ -164,3 +164,20 @@ describe('a final step (a withdrawal of consent)', () => {
     expect(session.getState()).toMatchObject({ status: 'error', retryable: false });
   });
 });
+
+describe('rolling back a permanent step whose save failed', () => {
+  it('puts the workspace back as it was on disk, and the next save isn’t permanent', async () => {
+    const { session, saves, failures } = open();
+    const before = session.getState().workspace;
+    failures.push(new WorkspaceApiError('Changed in another window.', 409));
+    session.apply('Delete the engagement', (ws) => ({ ...ws, engagements: {} }), { permanent: true });
+    await session.saveNow();
+    expect(session.getState().status).toBe('error');
+    session.rollBack(before);
+    expect(session.getState()).toMatchObject({ workspace: before, status: 'saved', error: null });
+    expect(session.hasUnsavedWork()).toBe(false);
+    session.apply('Rename the client', rename('A'));
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(saves.at(-1)?.permanent).toBe(false);
+  });
+});

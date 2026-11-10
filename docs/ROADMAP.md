@@ -117,7 +117,9 @@ The editor phases above are complete (v0.5.0). StyleCode is now growing into a w
 
 Decisions and specs, with no interface: ADR-0001 to ADR-0009, the first-version spec (`docs/spec/MVP.md`), the domain model with its rules and tests (`docs/spec/DOMAIN-MODEL.md`, `src/workspace/model/`), the consent form (`docs/spec/CONSENT.md`), and this roadmap. See `docs/phase-0/HANDOVER.md`.
 
-### Workspace Phase 1: Workspace spine
+### Workspace Phase 1: Workspace spine ✅
+
+Built in three slices (pull requests #9 and #10 for Slice A, #11 for Slice B, and the Slice C pull request): the workspace server, clients, engagements, sessions and participants, the consent form, notes, the hand-entered record with links, files, and the Markdown export, all with AI off. Future considerations (vision §8) are a finding kind. See `docs/phase-1/HANDOVER.md`.
 
 **Scope:** MVP steps 1 to 3 and 5, plus the hand-entered record and its export (stories 1, 2, 3, 5, 6.4, 7 and 8 of `docs/spec/MVP.md`).
 
@@ -197,35 +199,40 @@ Decisions and specs, with no interface: ADR-0001 to ADR-0009, the first-version 
 
 **Depends on:** Workspace Phase 1; better after Phase 2, when the record has extracted findings.
 
-### Workspace Phase 5: Technology catalogue and rules engine
+### Workspace Phase 5: Technology catalogue, rules engine and architecture
 
-**Scope:** a catalogue of technologies with sourced, dated facts, and a deterministic engine that checks compatibility and constraints against the record (ADR-0004).
+**Scope:** a catalogue of technologies with sourced, dated facts, and a deterministic engine that checks compatibility and constraints against the record (ADR-0004). **Then a coherent architecture, not just a list of compatible options** (vision §5): a proposed set of choices that work together across the parts of the system (front end, back end, data, hosting, integrations), each with the findings and rules behind it, and the trade-offs between alternatives.
 
 **Acceptance criteria:**
 
 - Every catalogue fact shows its source and the date it was checked; the AI can't mark anything as verified.
 - Given the record's constraints, the engine lists compatible and incompatible options, with the rule behind each, and gives the same result every time.
+- A proposed architecture names a choice for each part of the system, shows that the choices are compatible with each other and with the record, and links each choice to the findings and rules it rests on.
 
 **Depends on:** Workspace Phase 2 (a record worth checking).
 
-### Workspace Phase 6: Cost engine
+### Workspace Phase 6: Cost and capacity engine
 
-**Scope:** cost estimates computed by code from sourced, dated pricing (ADR-0004). The AI never supplies a price.
+**Scope:** cost estimates computed by code from sourced, dated pricing (ADR-0004). The AI never supplies a price. **Also capacity and performance calculations** (vision §7), from the record's numbers (such as "orders peak at five times the usual volume in December"), and **comparing alternatives on cost** (vision §6): the same needs priced on two or more architectures, side by side.
 
 **Acceptance criteria:**
 
 - Every price shows its source and date; an estimate shows how it was calculated, and the same inputs give the same total.
 - Prices older than a set age are flagged.
+- A capacity estimate shows the findings it starts from and each step of the calculation.
+- Two alternatives can be compared on cost for the same needs, each total traceable to its prices.
 
 **Depends on:** Workspace Phase 5.
 
-### Workspace Phase 7: Specification export and live follow-up questions
+### Workspace Phase 7: Specification export, live transcription and follow-up questions
 
-**Scope:** a full specification export from the record, designs and analyses; and follow-up questions suggested during a meeting from what is still open.
+**Scope:** a full specification export from the record, designs and analyses; **live transcription** during a meeting (vision §9.4), building on Phase 3's local transcription; and follow-up questions suggested during a meeting from what is still open, drawing on **company knowledge as AI context** (vision §3), what is already known about the client from earlier engagements, each fact checked against the consent of the sessions it came from.
 
 **Acceptance criteria:**
 
 - The export includes the record, designs, technology and cost analysis, each with status and provenance.
+- With consent to recording and transcription, the transcript appears as the meeting goes, on this computer.
 - During a session, open questions and gaps in the record are suggested as follow-ups, only with consent to AI processing.
+- A follow-up that draws on company knowledge says which facts, and leaves out any whose sessions don't allow AI processing.
 
 **Depends on:** Workspace Phases 3 to 6.

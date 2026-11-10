@@ -123,6 +123,50 @@ Inside it, `companies` holds one folder per client, named by the client's id:
 - **Who can open the folder.** On macOS and Linux, StyleCode creates the folder so only you can open it. On Windows it relies on your home folder's default Windows permissions.
 - **The consent wording is a draft** until a POPIA review (`docs/spec/CONSENT.md`). Check it with your own adviser before using it with clients.
 
+## Running a consultation
+
+StyleCode opens on your clients. This is one consultation from start to end, with no AI: everything here works with AI off.
+
+**Before the meeting**
+
+1. **Add the client.** On **Clients**, choose **New client**: a name (no two clients may share one, whatever the capitals) and, if you like, an industry. The client opens on its own page, where you fill in the rest of its profile: what they do, their existing systems, your notes. Each change saves on its own, and <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes it.
+2. **Add an engagement**: one piece of work for this client, such as a new ordering system. Give it a name and, if you like, a goal. Its status is **Active** until you mark it **Ended on** a date.
+3. **Add a session** for each meeting: a title and when it starts (it defaults to now). On the session's page, **Add participant** for each person: their name, role and organisation, and whether they are on the client's side or yours. At least one person from the client is needed for the consent form.
+
+**At the start of the meeting**
+
+4. **Ask for consent, then fill in the consent form** (**Fill in consent form** at the top of the session). In the order the conversation went: tick who you asked, how you asked, and each statement you said or sent to them, as it is written on the form (wording `draft-1`). Then answer what they agreed to.
+   - Each "yes" needs the statements behind it ticked. If one is missing, the form says which beside that answer, and the form can be saved as a draft but not confirmed.
+   - Choosing how long audio is kept changes the words of that statement, so its tick is cleared: tick it again if those are the words you said.
+   - **Declined** sets every answer to no: the session can have notes, and nothing else.
+   - Tick **I asked for consent as recorded above** and **Save and confirm**. A draft allows nothing.
+   - Changing a confirmed form, or the name, role or organisation of someone you asked, or when the session started, clears the confirmation: confirm it again afterwards. StyleCode warns you before such a change.
+   - If the client withdraws consent, **Withdraw consent…** records it with their reason. A withdrawal is final: it can't be undone, and if they agree again, that's a new session.
+
+**During the meeting**
+
+5. **Take notes.** Press <kbd>N</kbd> anywhere on the session's page and type; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds the note and starts the next one, so you never need the mouse. Each note keeps when you started typing it, shown as a time of day and as how far into the meeting it was ("before the start" for one written beforehand). A note you haven't added yet waits for you if you leave the session's page, and StyleCode asks before you close the page with one. Notes can be changed (they keep their time and say when they changed) and deleted, and both can be undone. A note that a finding quotes asks first, listing the findings, and one undo puts both back.
+
+**After the meeting**
+
+6. **Write up the record.** On the engagement's page, **Open the record**, then **Add finding**: what was established, its kind (requirement, constraint, risk, decision, open question, future consideration…), and its status:
+   - **Confirmed**: agreed with the client;
+   - **Assumption**: taken as true for now, to be checked;
+   - **Unresolved**: still open (every open question is in the Open group whatever its status);
+   - **Suggested (not agreed yet)**: an idea, yours or the client's.
+
+   You can quote your notes as evidence: tick a note, and keep the whole note or cut the quote down to at least three of its words, as written. Each finding shows its status and where it came from as two separate labels, and **Change** records each change with who made it and when (open **changes** on a finding to see them). Filter the record by kind or by session.
+7. **Link findings** that affect each other (**Link…**): one influences, depends on, conflicts with or refines another. Each finding lists its links from its own side; choose one to go to the other finding.
+8. **Attach documents** to the client or to the engagement with **Add file…**: a brief, a contract, a menu. Adding or removing a file saves straight away and can't be undone. **Download** saves a copy; StyleCode never opens a file itself.
+9. **Export the record** with **Export as Markdown**: the client and engagement, the sessions and who took part, the findings by group with their evidence, the links, and every consent record with the exact words the client was told. The same record always gives the same file.
+
+**Finishing with a client**
+
+- **Delete** a session or an engagement from its page: the confirmation says what goes with it, and it can't be undone. To delete a client, type its name.
+- A client whose file has a problem (damaged, or a folder copied under another name) opens **read-only**: you can see and download everything, but nothing changes. The page says what's wrong and what to do about it.
+
+Not yet: transcripts and AI extraction come in Workspace Phase 2, and recording in Phase 3 ([roadmap](ROADMAP.md)).
+
 ## Large documents
 
 StyleCode stays responsive with thousands of layers: a 5,000-layer document (ten pages of cards) opens in a second or two, and dragging, editing and panning keep up with the pointer. Pages scrolled out of view aren't drawn, the layer list only draws the rows in view, and edits only re-lay out the frames they affect. If a very large document feels slow, splitting it into several designs helps more than anything else.

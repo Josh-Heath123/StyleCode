@@ -7,6 +7,7 @@ import { isValidId } from '../model/ids.ts';
  *   #/                                  the list of clients (the front door)
  *   #/c/<company>                       a client
  *   #/c/<company>/e/<engagement>        an engagement
+ *   #/c/<company>/e/<engagement>/record   its record of findings
  *   #/c/<company>/e/<engagement>/s/<session>   a session
  *   #/c/<company>/e/<engagement>/s/<session>/consent   its consent form
  *   #/settings                          the consultant's settings
@@ -16,6 +17,7 @@ export type Route =
   | { page: 'clients' }
   | { page: 'company'; companyId: string }
   | { page: 'engagement'; companyId: string; engagementId: string }
+  | { page: 'record'; companyId: string; engagementId: string }
   | { page: 'session'; companyId: string; engagementId: string; sessionId: string }
   | { page: 'consent'; companyId: string; engagementId: string; sessionId: string }
   | { page: 'settings' }
@@ -31,6 +33,7 @@ export function parseRoute(hash: string): Route {
   if (e === undefined) return { page: 'company', companyId };
   if (e !== 'e' || !isValidId(engagementId)) return { page: 'clients' };
   if (s === undefined) return { page: 'engagement', companyId, engagementId };
+  if (s === 'record' && sessionId === undefined) return { page: 'record', companyId, engagementId };
   if (s !== 's' || !isValidId(sessionId)) return { page: 'clients' };
   if (sub === undefined) return { page: 'session', companyId, engagementId, sessionId };
   if (sub === 'consent') return { page: 'consent', companyId, engagementId, sessionId };
@@ -46,6 +49,8 @@ export function routeHref(route: Route): string {
       return `#/c/${route.companyId}`;
     case 'engagement':
       return `#/c/${route.companyId}/e/${route.engagementId}`;
+    case 'record':
+      return `#/c/${route.companyId}/e/${route.engagementId}/record`;
     case 'session':
       return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}`;
     case 'consent':

@@ -13,6 +13,7 @@ import { ClientsPage } from './ClientsPage';
 import { CompanyPage } from './CompanyPage';
 import { EngagementPage } from './EngagementPage';
 import { SessionPage } from './SessionPage';
+import { RecordPage } from './RecordPage';
 import { ConsentPage } from './consent/ConsentPage';
 import { SettingsPage } from './SettingsPage';
 
@@ -98,6 +99,8 @@ function renderPage(route: Route): ReactNode {
       return <CompanyPage key={route.companyId} companyId={route.companyId} />;
     case 'engagement':
       return <EngagementPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
+    case 'record':
+      return <RecordPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
     case 'consent':
       return (
         <ConsentPage

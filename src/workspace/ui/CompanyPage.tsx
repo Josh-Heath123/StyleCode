@@ -8,6 +8,7 @@ import { today } from '../time';
 import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatDay, formatWhen, Id, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
+import { FilesCard } from './FilesCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, step } from './steps';
 import { closeCompany } from './useCompanySession';
@@ -38,17 +39,25 @@ function Company({ view }: { view: ClientView }) {
         notices={notices}
       >
         <div className="ws-columns">
-          <section className="ws-card" aria-labelledby="engagements-title">
-            <div className="ws-card-head">
-              <h2 id="engagements-title">Engagements</h2>
-              {!readOnly && Object.keys(workspace.engagements).length > 0 && (
-                <button type="button" className="button primary" onClick={() => setDialog('engagement')}>
-                  <Icon name="plus" size={14} /> New engagement
-                </button>
-              )}
-            </div>
-            <Engagements workspace={workspace} readOnly={readOnly} onAdd={() => setDialog('engagement')} />
-          </section>
+          <div className="ws-stack">
+            <section className="ws-card" aria-labelledby="engagements-title">
+              <div className="ws-card-head">
+                <h2 id="engagements-title">Engagements</h2>
+                {!readOnly && Object.keys(workspace.engagements).length > 0 && (
+                  <button type="button" className="button primary" onClick={() => setDialog('engagement')}>
+                    <Icon name="plus" size={14} /> New engagement
+                  </button>
+                )}
+              </div>
+              <Engagements
+                workspace={workspace}
+                folderId={view.session.companyId}
+                readOnly={readOnly}
+                onAdd={() => setDialog('engagement')}
+              />
+            </section>
+            <FilesCard view={view} owner={{ kind: 'company' }} />
+          </div>
           <section className="ws-card" aria-labelledby="profile-title">
             <h2 id="profile-title">Profile</h2>
             {PROFILE.map((p) => (
@@ -95,7 +104,18 @@ async function commitProfile(view: ClientView, field: ProfileField, label: strin
 }
 
 /** The client's engagements, newest first (MVP 2.1). */
-function Engagements({ workspace, readOnly, onAdd }: { workspace: CompanyWorkspace; readOnly: boolean; onAdd: () => void }) {
+function Engagements({
+  workspace,
+  folderId,
+  readOnly,
+  onAdd,
+}: {
+  workspace: CompanyWorkspace;
+  /** The folder the page was opened from, for links: for a copied folder, the id in its file is the original's. */
+  folderId: string;
+  readOnly: boolean;
+  onAdd: () => void;
+}) {
   const engagements = Object.values(workspace.engagements).sort(
     (a, b) => b.createdAt.localeCompare(a.createdAt) || a.name.localeCompare(b.name),
   );
@@ -119,7 +139,7 @@ function Engagements({ workspace, readOnly, onAdd }: { workspace: CompanyWorkspa
     <ul className="ws-list is-compact" aria-label="Engagements">
       {engagements.map((e) => (
         <li key={e.id}>
-          <a className="ws-row" href={`#/c/${workspace.company.id}/e/${e.id}`}>
+          <a className="ws-row" href={`#/c/${folderId}/e/${e.id}`}>
             <span className="ws-row-main">
               <span className="ws-row-title">{e.name}</span>
               {e.goal && <span className="ws-row-sub">{e.goal}</span>}
@@ -151,7 +171,7 @@ function NewEngagementDialog({ view, onClose }: { view: ClientView; onClose: () 
         const result = createEngagement(view.workspace, { name, goal, status }, now());
         if (!result.ok) return setError(result.error);
         if (!view.session.apply('Add an engagement', () => result.value.workspace)) return setError(NOT_APPLIED);
-        location.hash = `#/c/${view.workspace.company.id}/e/${result.value.id}`;
+        location.hash = `#/c/${view.session.companyId}/e/${result.value.id}`;
       }}
     >
       <DialogField label="Name">
@@ -169,25 +189,27 @@ function NewEngagementDialog({ view, onClose }: { view: ClientView; onClose: () 
 function DeleteClientDialog({ view, onClose }: { view: ClientView; onClose: () => void }) {
   const ws = view.workspace;
   const n = (map: Record<string, unknown>) => Object.keys(map).length;
+  // What must be typed, as the server checks it: the client's name, or the folder's id when the name can't be read.
+  const confirmOf = (name: unknown) => (typeof name === 'string' ? name : view.session.companyId);
   return (
     <DeleteDialog
       title="Delete client…"
-      typeToConfirm={ws.company.name}
+      typeToConfirm={confirmOf(ws.company.name)}
       onClose={onClose}
       onDelete={async () => {
         // The folder this page was opened from: for a copied folder, the id inside its file is the original's.
         const folderId = view.session.companyId;
         // The server checks the name in the file on disk: save a waiting rename first, and send the saved name.
         await view.session.saveNow();
-        await deleteCompany(folderId, view.session.saved.company.name);
+        await deleteCompany(folderId, confirmOf(view.session.saved.company.name));
         closeCompany(folderId);
         location.hash = '#/';
       }}
       what={
         <>
           <p>
-            This deletes <strong>{ws.company.name}</strong> (folder <Id>{view.session.companyId}</Id>) and everything in it:{' '}
-            {count(n(ws.engagements), 'engagement')}, {count(n(ws.sessions), 'session')},{' '}
+            This deletes <strong>{confirmOf(ws.company.name)}</strong> (folder <Id>{view.session.companyId}</Id>) and everything
+            in it: {count(n(ws.engagements), 'engagement')}, {count(n(ws.sessions), 'session')},{' '}
             {count(n(ws.consents), 'consent record')}, {count(n(ws.notes), 'note')}, {count(n(ws.findings), 'finding')} and{' '}
             {count(n(ws.files), 'file')}. The folder is removed from the data folder.
           </p>

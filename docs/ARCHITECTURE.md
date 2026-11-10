@@ -413,7 +413,7 @@ Snapshot tests pin the generated HTML, CSS, TSX and CSS module for a test page, 
 
 ## 12. The consulting workspace: runtime and storage
 
-*Status: decided in Phase 0 (WP4). Each decision has its own ADR (0005 to 0009), all Accepted. Nothing here is built yet; Phase 1 builds it.*
+*Status: decided in Phase 0 (WP4), each decision in its own ADR (0005 to 0009), all Accepted, and built in Workspace Phase 1 (`docs/phase-1/HANDOVER.md`). The last part, "The workspace in the browser", describes what Phase 1 added on the page.*
 
 The workspace's data is described in `docs/spec/DOMAIN-MODEL.md`: one `CompanyWorkspace` value per company, validated, versioned, never saved with problems, and opened read-only when it has them. This section is about where that value lives and what runs it.
 
@@ -501,3 +501,23 @@ As built in Workspace Phase 1 (`server/workspace/store.ts`):
 - **Why not app-level encryption now:** with everything on one computer behind the user's login and disk encryption, it adds a passphrase that, if forgotten, loses every client's data, and it complicates search and backups. It becomes worth it when data leaves the computer: export to share, sync (out of scope), or backups to a cloud folder. A new ADR decides it then.
 - **Cloud-synced folders:** the app warns if the workspace folder is inside OneDrive, Dropbox or Google Drive, because syncing sends client data off the computer (ADR-0002).
 - **Also:** the workspace folder is readable only by the user on macOS and Linux, and relies on the home folder's default permissions on Windows; deleting a company deletes its folder (MVP 1.4); logs never contain client data.
+
+### The workspace in the browser (built in Workspace Phase 1)
+
+**One app, two halves.** `src/workspace/ui/Shell.tsx` reads the hash route (`#/c/<client>/e/<engagement>/s/<session>`, `…/record`, `…/consent`, `#/settings`, `#/editor`; no router library) and shows either a workspace page or the editor. The editor is mounted only while it shows, so its keyboard shortcuts never act on workspace pages, and it keeps its view when it comes back. Without the workspace server (`getWorkspaceInfo` finds none, as on GitHub Pages), the app opens on the editor and says what client work needs.
+
+**The model stays the single source of truth.** Every change a page makes is a pure function from `src/workspace/model/` (`editCompany`, `createEngagement`, `saveConsentForm`, `withdrawConsent`, `addNote`, `createFinding`, `addRelation`, `addFileRef`…) that returns a new `CompanyWorkspace` or a reason it refuses. `ui/steps.ts` turns one into one undoable step, and reports a refusal instead of passing as done.
+
+**One session per open client** (`src/workspace/session.ts`), with its own undo and redo (separate from the editor's) and the editor's autosave behaviour: a short wait after a change, one save at a time on the revision it was based on, retries with backoff when the server can't be reached, no retry for a refusal (a stale revision, a taken name), a visible status, and a warning before closing with changes not saved. Steps come in three strengths:
+
+- **ordinary**: undoable;
+- **final** (a withdrawal of consent, C4; adding a file): clears undo and redo, so no undo can take it back;
+- **permanent** (deleting an engagement, a session or a file): clears undo and redo, and marks the save permanent, so the server keeps no previous copy and deletes unlisted bytes (decision 5).
+
+`src/workspace/registry.ts` decides which clients stay open: the one opened last, while other pages and the editor show, so its undo history survives the trip; any other only until its changes are saved. Opening a client again calls off its release, so a save finishing late never closes the client being worked on.
+
+**Read-only clients** (a file with problems) open with each problem and what to do about it; every field is plain text, every action is hidden, and `apply`, undo and redo refuse, so nothing is ever saved over the file.
+
+**Files** upload as raw bytes (`POST …/files`), are listed as `FileRef`s, and download through `fetch` with the workspace header, saved as `application/octet-stream` with `<a download>`, so a stored HTML or SVG file never runs as StyleCode's page.
+
+**The Markdown export** (`src/workspace/exportMarkdown.ts`) is pure and deterministic: no export time, UTC dates, a fixed order, and text escaped so it can't become Markdown structure. Labels for kinds, statuses, provenance and links come from `model/labels.ts`, shared with the pages.

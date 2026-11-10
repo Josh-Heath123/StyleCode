@@ -215,3 +215,55 @@ test('settings keep the consultant’s name and show the data folder', async ({ 
   await page.reload();
   await expect(page.getByLabel('Your name')).toHaveValue(consultant);
 });
+
+test('in a copied folder, every link stays in the copy, never the original client (Phase 1 review)', async ({ page }) => {
+  const id = await createClient(page, unique('Linked Copy'));
+  // The original has an engagement with a session, then its folder is copied.
+  const file = join(E2E_WORKSPACE, 'companies', id, 'workspace.json');
+  const ws = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+  const at = new Date().toISOString();
+  ws.engagements = {
+    en_1: {
+      id: 'en_1',
+      companyId: id,
+      name: 'Online ordering',
+      goal: '',
+      status: { state: 'active' },
+      createdAt: at,
+      updatedAt: at,
+    },
+  };
+  ws.sessions = {
+    se_1: { id: 'se_1', engagementId: 'en_1', title: 'Kick-off', startsAt: at, audioFileIds: [], createdAt: at, updatedAt: at },
+  };
+  writeFileSync(file, JSON.stringify(ws));
+  const copy = `co_${Math.random().toString(36).slice(2, 8)}x2`;
+  cpSync(join(E2E_WORKSPACE, 'companies', id), join(E2E_WORKSPACE, 'companies', copy), { recursive: true });
+
+  await page.goto(`/#/c/${copy}`);
+  await page.getByRole('link', { name: /Online ordering/ }).click();
+  await expect(page).toHaveURL(new RegExp(`#/c/${copy}/e/en_1$`));
+  await page.getByRole('link', { name: /Kick-off/ }).click();
+  await expect(page).toHaveURL(new RegExp(`#/c/${copy}/e/en_1/s/se_1$`));
+  await expect(page.getByRole('heading', { name: 'This client opens read-only' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Online ordering' }).click();
+  await expect(page).toHaveURL(new RegExp(`#/c/${copy}/e/en_1$`));
+  await page.getByRole('link', { name: 'Open the record' }).click();
+  await expect(page).toHaveURL(new RegExp(`#/c/${copy}/e/en_1/record$`));
+});
+
+test('a data folder inside a cloud-synced folder shows a warning on every workspace page, and settings say what to do', async ({
+  page,
+}) => {
+  await page.route('**/api/workspace/info', async (route) => {
+    const real = (await (await route.fetch()).json()) as Record<string, unknown>;
+    await route.fulfill({ json: { ...real, cloudService: 'OneDrive' } });
+  });
+  await page.goto('/');
+  const warning = page.getByRole('note').filter({ hasText: 'Your data folder is inside OneDrive' });
+  await expect(warning).toContainText('so client data is copied to OneDrive’s servers.');
+  await warning.getByRole('link', { name: 'What to do' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+  await expect(page.getByText(/This folder is inside OneDrive\./)).toBeVisible();
+  await expect(page.getByText(/This warning stays until the folder moves\./)).toBeVisible();
+});

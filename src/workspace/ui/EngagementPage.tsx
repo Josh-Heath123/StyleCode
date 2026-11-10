@@ -1,47 +1,37 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { consentSummary, createSession, editEngagement } from '../model/entities';
-import { removeEngagement } from '../model/findings';
+import { recordGroups, removeEngagement } from '../model/findings';
+import { ExportButton, RecordSummary } from './RecordPage';
 import type { CompanyWorkspace, Engagement } from '../model/types';
 import { get } from '../model/util';
 import { fromLocalInput, nowToTheMinute, toLocalInput, today } from '../time';
-import { ClientFrame, type ClientView } from './ClientFrame';
+import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
+import { FilesCard } from './FilesCard';
 import { StatusField } from './status';
-import { NOT_APPLIED, now, step } from './steps';
+import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** An engagement: its sessions, and its name, goal and status (MVP 2.1 to 2.3). */
 export function EngagementPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
+  // While its deletion is being saved, the page keeps showing the engagement, so its dialog stays open
+  // to say if the save fails (and the deletion is rolled back).
+  const shown = useRef<Engagement | null>(null);
+  const [deleting, setDeleting] = useState(false);
   return (
     <ClientFrame companyId={companyId}>
       {(view) => {
         const engagement = get(view.workspace.engagements, engagementId);
-        return engagement ? <EngagementView view={view} engagement={engagement} /> : <Missing view={view} what="engagement" />;
+        if (engagement) shown.current = engagement;
+        const keep = engagement ?? (deleting ? shown.current : null);
+        return keep ? (
+          <EngagementView view={view} engagement={keep} onDeleting={setDeleting} />
+        ) : (
+          <Missing view={view} what="engagement" />
+        );
       }}
     </ClientFrame>
-  );
-}
-
-/** A link to something that isn't there (deleted, or never was), with the way back. */
-export function Missing({ view, what, back }: { view: ClientView; what: string; back?: { href: string; label: string } }) {
-  const company = view.workspace.company;
-  const to = back ?? { href: `#/c/${company.id}`, label: `Back to ${company.name}` };
-  return (
-    <Page
-      title={`There is no ${what} here`}
-      crumbs={[
-        { label: 'Clients', href: '#/' },
-        { label: company.name, href: `#/c/${company.id}` },
-      ]}
-    >
-      <div className="ws-alert" role="alert">
-        <p>It may have been deleted.</p>
-        <a className="button" href={to.href}>
-          {to.label}
-        </a>
-      </div>
-    </Page>
   );
 }
 
@@ -54,9 +44,18 @@ const CONSENT_TEXT = {
   withdrawn: 'Consent withdrawn',
 } as const;
 
-function EngagementView({ view, engagement }: { view: ClientView; engagement: Engagement }) {
+function EngagementView({
+  view,
+  engagement,
+  onDeleting,
+}: {
+  view: ClientView;
+  engagement: Engagement;
+  onDeleting: (deleting: boolean) => void;
+}) {
   const { workspace, readOnly, session, notices } = view;
-  const companyHref = `#/c/${workspace.company.id}`;
+  // The folder the page was opened from: for a copied folder, the id in its file is the original's.
+  const companyHref = `#/c/${session.companyId}`;
   const [dialog, setDialog] = useState<'session' | 'delete' | null>(null);
   const sessions = Object.values(workspace.sessions)
     .filter((s) => s.engagementId === engagement.id)
@@ -76,48 +75,65 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
         lede={engagement.goal || undefined}
         notices={notices}
       >
+        <section className="ws-consent" aria-labelledby="record-line" data-state="confirmed">
+          <div className="ws-consent-text">
+            <h2 id="record-line">Record</h2>
+            <p>
+              <RecordSummary groups={recordGroups(workspace, engagement.id)} />
+            </p>
+          </div>
+          <div className="ws-consent-actions">
+            <ExportButton workspace={workspace} engagement={engagement} />
+            <a className="button" href={`${companyHref}/e/${engagement.id}/record`}>
+              Open the record
+            </a>
+          </div>
+        </section>
         <div className="ws-columns">
-          <section className="ws-card" aria-labelledby="sessions-title">
-            <div className="ws-card-head">
-              <h2 id="sessions-title">Sessions</h2>
-              {!readOnly && sessions.length > 0 && (
-                <button type="button" className="button primary" onClick={() => setDialog('session')}>
-                  <Icon name="plus" size={14} /> New session
-                </button>
-              )}
-            </div>
-            {sessions.length === 0 ? (
-              <div className="ws-empty is-small">
-                <p>No sessions yet. Add one for each meeting with the client, before or after it happens.</p>
-                {!readOnly && (
+          <div className="ws-stack">
+            <section className="ws-card" aria-labelledby="sessions-title">
+              <div className="ws-card-head">
+                <h2 id="sessions-title">Sessions</h2>
+                {!readOnly && sessions.length > 0 && (
                   <button type="button" className="button primary" onClick={() => setDialog('session')}>
                     <Icon name="plus" size={14} /> New session
                   </button>
                 )}
               </div>
-            ) : (
-              <ul className="ws-list is-compact" aria-label="Sessions">
-                {sessions.map((s) => {
-                  const people = Object.values(workspace.participants).filter((p) => p.sessionId === s.id).length;
-                  const consent = consentSummary(workspace, s.id);
-                  return (
-                    <li key={s.id}>
-                      <a className="ws-row" href={`${companyHref}/e/${engagement.id}/s/${s.id}`}>
-                        <span className="ws-row-main">
-                          <span className="ws-row-title">{s.title}</span>
-                          <span className="ws-row-sub">
-                            {formatWhen(s.startsAt)} · {count(people, 'participant')}
+              {sessions.length === 0 ? (
+                <div className="ws-empty is-small">
+                  <p>No sessions yet. Add one for each meeting with the client, before or after it happens.</p>
+                  {!readOnly && (
+                    <button type="button" className="button primary" onClick={() => setDialog('session')}>
+                      <Icon name="plus" size={14} /> New session
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <ul className="ws-list is-compact" aria-label="Sessions">
+                  {sessions.map((s) => {
+                    const people = Object.values(workspace.participants).filter((p) => p.sessionId === s.id).length;
+                    const consent = consentSummary(workspace, s.id);
+                    return (
+                      <li key={s.id}>
+                        <a className="ws-row" href={`${companyHref}/e/${engagement.id}/s/${s.id}`}>
+                          <span className="ws-row-main">
+                            <span className="ws-row-title">{s.title}</span>
+                            <span className="ws-row-sub">
+                              {formatWhen(s.startsAt)} · {count(people, 'participant')}
+                            </span>
                           </span>
-                        </span>
-                        <span className={`ws-badge${consent === 'given' ? ' is-active' : ''}`}>{CONSENT_TEXT[consent]}</span>
-                        <Icon name="chevronRight" size={14} className="ws-row-go" />
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+                          <span className={`ws-badge${consent === 'given' ? ' is-active' : ''}`}>{CONSENT_TEXT[consent]}</span>
+                          <Icon name="chevronRight" size={14} className="ws-row-go" />
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+            <FilesCard view={view} owner={{ kind: 'engagement', engagementId: engagement.id }} />
+          </div>
           <section className="ws-card" aria-labelledby="details-title">
             <h2 id="details-title">Engagement</h2>
             <TextField
@@ -153,7 +169,13 @@ function EngagementView({ view, engagement }: { view: ClientView; engagement: En
       </Page>
       {dialog === 'session' && <NewSessionDialog view={view} engagement={engagement} onClose={() => setDialog(null)} />}
       {dialog === 'delete' && (
-        <DeleteEngagementDialog view={view} engagement={engagement} onClose={() => setDialog(null)} companyHref={companyHref} />
+        <DeleteEngagementDialog
+          view={view}
+          engagement={engagement}
+          onClose={() => setDialog(null)}
+          companyHref={companyHref}
+          onDeleting={onDeleting}
+        />
       )}
     </>
   );
@@ -175,7 +197,7 @@ function NewSessionDialog({ view, engagement, onClose }: { view: ClientView; eng
         const result = createSession(view.workspace, engagement.id, { title, startsAt: start }, now());
         if (!result.ok) return setError(result.error);
         if (!view.session.apply('Add a session', () => result.value.workspace)) return setError(NOT_APPLIED);
-        location.hash = `#/c/${view.workspace.company.id}/e/${engagement.id}/s/${result.value.id}`;
+        location.hash = `#/c/${view.session.companyId}/e/${engagement.id}/s/${result.value.id}`;
       }}
     >
       <DialogField label="Title">
@@ -230,11 +252,13 @@ function DeleteEngagementDialog({
   view,
   engagement,
   companyHref,
+  onDeleting,
   onClose,
 }: {
   view: ClientView;
   engagement: Engagement;
   companyHref: string;
+  onDeleting: (deleting: boolean) => void;
   onClose: () => void;
 }) {
   const c = engagementContents(view.workspace, engagement.id);
@@ -242,18 +266,17 @@ function DeleteEngagementDialog({
     <DeleteDialog
       title="Delete engagement…"
       onClose={onClose}
-      onDelete={() => {
-        const error = step(
-          view.session,
-          'Delete the engagement',
-          (ws) => {
+      onDelete={async () => {
+        onDeleting(true);
+        try {
+          await permanentStep(view.session, 'Delete the engagement', (ws) => {
             const removal = removeEngagement(ws, engagement.id, now());
             return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
-          },
-          { permanent: true },
-        );
-        if (error) throw new Error(error);
-        location.hash = companyHref;
+          });
+          location.hash = companyHref;
+        } finally {
+          onDeleting(false);
+        }
       }}
       what={
         <>
