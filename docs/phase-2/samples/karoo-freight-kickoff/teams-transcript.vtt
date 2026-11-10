@@ -1,0 +1,177 @@
+WEBVTT
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/17-0
+00:00:03.100 --> 00:00:06.024
+<v Sam Naidoo>Morning, everyone. Thanks for making the time.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/17-1
+00:00:06.024 --> 00:00:17.212
+<v Sam Naidoo>Before we start, I'd like to confirm what we agreed by email. I'm using the meeting's transcript to write up the requirements, and the AI that helps me runs on my own computer.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/17-2
+00:00:17.212 --> 00:00:19.500
+<v Sam Naidoo>Is that still fine with both of you?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/18-0
+00:00:20.200 --> 00:00:22.400
+<v Thandi Mokoena>Yes, that's fine with me.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/19-0
+00:00:22.900 --> 00:00:24.600
+<v Pieter van Wyk>Ja, fine.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/20-0
+00:00:26.800 --> 00:00:33.763
+<v Sam Naidoo>Thank you. So the goal today is to understand how dispatch works now and what the app has to do.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/20-1
+00:00:33.763 --> 00:00:37.100
+<v Sam Naidoo>Thandi, do you want to start with the problem?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/21-0
+00:00:38.000 --> 00:00:46.876
+<v Thandi Mokoena>Sure. We run forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/21-1
+00:00:46.876 --> 00:01:00.355
+<v Thandi Mokoena>Dispatch happens on WhatsApp. The controller posts the collections in a group, the drivers reply, and then somebody types it all into a shared spreadsheet at night.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/21-2
+00:01:00.355 --> 00:01:04.300
+<v Thandi Mokoena>We miss collections because messages get buried.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/22-0
+00:01:05.100 --> 00:01:08.000
+<v Sam Naidoo>How many collections is that on a normal day?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/23-0
+00:01:09.200 --> 00:01:15.400
+<v Thandi Mokoena>About a hundred and twenty a day. In November and December it roughly doubles.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/24-0
+00:01:16.000 --> 00:01:20.600
+<v Pieter van Wyk>On the bad days in December we've had two hundred and sixty.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/25-0
+00:01:21.300 --> 00:01:24.200
+<v Sam Naidoo>And what does a missed collection cost you?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/26-0
+00:01:25.000 --> 00:01:37.600
+<v Thandi Mokoena>A re-delivery is about eighteen hundred rand, and we lose the client's trust, which is worse. Last December we lost one retail account over it.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/27-0
+00:01:38.400 --> 00:01:45.200
+<v Sam Naidoo>So the app has to make sure every collection is assigned and confirmed. What does a driver need to do on the road?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/28-0
+00:01:46.000 --> 00:02:02.473
+<v Pieter van Wyk>Accept the job, mark it collected, take a photo of the waybill, and get a signature. But you must understand, between Colesberg and Beaufort West there's no signal for hours.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/28-1
+00:02:02.473 --> 00:02:09.100
+<v Pieter van Wyk>It has to work offline and send everything when they're back in range.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/29-0
+00:02:10.000 --> 00:02:14.600
+<v Sam Naidoo>That's an important constraint. Do the drivers all have smartphones?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/30-0
+00:02:15.200 --> 00:02:21.877
+<v Pieter van Wyk>Most have Android phones, their own. I think they all do, but I'd have to check.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/30-1
+00:02:21.877 --> 00:02:25.800
+<v Pieter van Wyk>A few of the older guys still use basic phones.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/31-0
+00:02:26.300 --> 00:02:30.400
+<v Thandi Mokoena>We'd rather not buy phones for everyone if we can avoid it.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/32-0
+00:02:31.000 --> 00:02:35.200
+<v Sam Naidoo>Understood. Which systems would this have to work with?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/33-0
+00:02:36.000 --> 00:02:43.571
+<v Thandi Mokoena>Our trucks have a tracking system from a vendor, so we can see where they are. And invoicing runs on Sage.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/33-1
+00:02:43.571 --> 00:02:51.500
+<v Thandi Mokoena>It would be nice if the app could pull positions from the tracking system, but it's not essential at the start.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/34-0
+00:02:52.200 --> 00:02:55.000
+<v Sam Naidoo>Who decides on the budget for this?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/35-0
+00:02:55.800 --> 00:03:09.000
+<v Thandi Mokoena>Our MD signs off anything above two hundred thousand rand. I'd want to show her a figure by the end of January.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/36-0
+00:03:08.400 --> 00:03:15.600
+<v Lerato Dlamini (Guest)>Sorry I'm late, I was stuck in another call. I look after their network and the depot computers.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/37-0
+00:03:16.200 --> 00:03:19.198
+<v Sam Naidoo>Welcome, Lerato. We were just talking about offline use.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/37-1
+00:03:19.198 --> 00:03:21.500
+<v Sam Naidoo>How reliable is the internet at the depots?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/38-0
+00:03:22.300 --> 00:03:31.557
+<v Lerato Dlamini (Guest)>Midrand is fine. Bloemfontein goes down during load-shedding because the router isn't on the backup battery.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/39-0
+00:03:32.357 --> 00:03:34.700
+<v Pieter van Wyk>And when it's down, the controller can't see anything.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/38-1
+00:03:31.557 --> 00:03:34.900
+<v Lerato Dlamini (Guest)>That should be fixed, but it isn't yet.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/40-0
+00:03:40.000 --> 00:03:45.769
+<v Sam Naidoo>Then the controller's screen needs to cope with the depot being offline too. One more thing.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/40-1
+00:03:45.769 --> 00:03:51.600
+<v Sam Naidoo>Drivers' locations are personal information. Have you checked how you're allowed to use them?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/41-0
+00:03:52.400 --> 00:03:59.100
+<v Thandi Mokoena>Not yet. HR would have to look at that with the drivers' union.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/42-0
+00:04:00.000 --> 00:04:06.800
+<v Sam Naidoo>I'll note it as an open question. Last thing: is there anything you'd want later, but not in the first version?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/43-0
+00:04:07.500 --> 00:04:13.600
+<v Thandi Mokoena>Eventually our clients should get a tracking link, like a courier. But not now.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/44-0
+00:04:14.200 --> 00:04:19.400
+<v Pieter van Wyk>And Afrikaans in the app. Half my drivers would prefer it.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/45-0
+00:04:20.000 --> 00:04:26.761
+<v Sam Naidoo>Good. My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/45-1
+00:04:26.761 --> 00:04:27.700
+<v Sam Naidoo>Does that work?</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/46-0
+00:04:28.300 --> 00:04:31.500
+<v Thandi Mokoena>Yes, let's do Bloemfontein first.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/47-0
+00:04:32.000 --> 00:04:36.335
+<v Sam Naidoo>Great. I'll send a summary this afternoon.</v>
+
+7c1e4b2a-93d5-4f0e-8a61-2b5d9c0e7f14/47-1
+00:04:36.335 --> 00:04:38.400
+<v Sam Naidoo>Thank you, everyone.</v>

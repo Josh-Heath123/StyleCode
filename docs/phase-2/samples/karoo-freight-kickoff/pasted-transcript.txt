@@ -1,0 +1,32 @@
+[00:03] Sam Naidoo: Morning, everyone. Thanks for making the time. Before we start, I'd like to confirm what we agreed by email. I'm using the meeting's transcript to write up the requirements, and the AI that helps me runs on my own computer. Is that still fine with both of you?
+Thandi Mokoena: Yes, that's fine with me.
+Pieter van Wyk: Ja, fine.
+[00:26] Sam Naidoo: Thank you. So the goal today is to understand how dispatch works now and what the app has to do. Thandi, do you want to start with the problem?
+Thandi Mokoena: Sure. We run forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein. Dispatch happens on WhatsApp. The controller posts the collections in a group, the drivers reply, and then somebody types it all into a shared spreadsheet at night. We miss collections because messages get buried.
+Sam Naidoo: How many collections is that on a normal day?
+[01:09] Thandi Mokoena: About a hundred and twenty a day. In November and December it roughly doubles.
+Pieter van Wyk: On the bad days in December we've had two hundred and sixty.
+Sam Naidoo: And what does a missed collection cost you?
+[01:25] Thandi Mokoena: A re-delivery is about eighteen hundred rand, and we lose the client's trust, which is worse. Last December we lost one retail account over it.
+Sam Naidoo: So the app has to make sure every collection is assigned and confirmed. What does a driver need to do on the road?
+Pieter van Wyk: Accept the job, mark it collected, take a photo of the waybill, and get a signature. But you must understand, between Colesberg and Beaufort West there's no signal for hours. It has to work offline and send everything when they're back in range.
+[02:10] Sam Naidoo: That's an important constraint. Do the drivers all have smartphones?
+Pieter van Wyk: Most have Android phones, their own. I think they all do, but I'd have to check. A few of the older guys still use basic phones.
+Thandi Mokoena: We'd rather not buy phones for everyone if we can avoid it.
+[02:31] Sam Naidoo: Understood. Which systems would this have to work with?
+Thandi Mokoena: Our trucks have a tracking system from a vendor, so we can see where they are. And invoicing runs on Sage. It would be nice if the app could pull positions from the tracking system, but it's not essential at the start.
+Sam Naidoo: Who decides on the budget for this?
+[02:55] Thandi Mokoena: Our MD signs off anything above two hundred thousand rand. I'd want to show her a figure by the end of January.
+Lerato Dlamini: Sorry I'm late, I was stuck in another call. I look after their network and the depot computers.
+(Lerato joined late; her camera was off.)
+Sam Naidoo: Welcome, Lerato. We were just talking about offline use. How reliable is the internet at the depots?
+[03:22] Lerato Dlamini: Midrand is fine. Bloemfontein goes down during load-shedding because the router isn't on the backup battery. That should be fixed, but it isn't yet.
+Pieter van Wyk: And when it's down, the controller can't see anything.
+Sam Naidoo: Then the controller's screen needs to cope with the depot being offline too. One more thing. Drivers' locations are personal information. Have you checked how you're allowed to use them?
+[03:52] Thandi Mokoena: Not yet. HR would have to look at that with the drivers' union.
+Sam Naidoo: I'll note it as an open question. Last thing: is there anything you'd want later, but not in the first version?
+Thandi Mokoena: Eventually our clients should get a tracking link, like a courier. But not now.
+[04:14] Pieter van Wyk: And Afrikaans in the app. Half my drivers would prefer it.
+Sam Naidoo: Good. My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions. Does that work?
+Thandi Mokoena: Yes, let's do Bloemfontein first.
+[04:32] Sam Naidoo: Great. I'll send a summary this afternoon. Thank you, everyone.

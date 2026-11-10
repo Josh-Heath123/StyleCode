@@ -1,0 +1,277 @@
+WEBVTT
+
+1
+00:00:03.100 --> 00:00:04.253
+Sam Naidoo: Morning, everyone.
+
+2
+00:00:04.253 --> 00:00:05.983
+Sam Naidoo: Thanks for making the time.
+
+3
+00:00:05.983 --> 00:00:09.891
+Sam Naidoo: Before we start, I'd like to confirm what we agreed by email.
+
+4
+00:00:09.891 --> 00:00:17.194
+Sam Naidoo: I'm using the meeting's transcript to write up the requirements, and the AI that helps me runs on my own computer.
+
+5
+00:00:17.194 --> 00:00:19.500
+Sam Naidoo: Is that still fine with both of you?
+
+6
+00:00:20.200 --> 00:00:22.400
+Thandi Mokoena: Yes, that's fine with me.
+
+7
+00:00:22.900 --> 00:00:24.600
+Pieter van Wyk: Ja, fine.
+
+8
+00:00:26.800 --> 00:00:27.530
+Sam Naidoo: Thank you.
+
+9
+00:00:27.530 --> 00:00:33.740
+Sam Naidoo: So the goal today is to understand how dispatch works now and what the app has to do.
+
+10
+00:00:33.740 --> 00:00:37.100
+Sam Naidoo: Thandi, do you want to start with the problem?
+
+11
+00:00:38.000 --> 00:00:38.414
+Thandi Mokoena: Sure.
+
+12
+00:00:38.414 --> 00:00:46.849
+Thandi Mokoena: We run forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein.
+
+13
+00:00:46.849 --> 00:00:49.248
+Thandi Mokoena: Dispatch happens on WhatsApp.
+
+14
+00:00:49.248 --> 00:01:00.330
+Thandi Mokoena: The controller posts the collections in a group, the drivers reply, and then somebody types it all into a shared spreadsheet at night.
+
+15
+00:01:00.330 --> 00:01:04.300
+Thandi Mokoena: We miss collections because messages get buried.
+
+16
+00:01:05.100 --> 00:01:08.000
+Sam Naidoo: How many collections is that on a normal day?
+
+17
+00:01:09.200 --> 00:01:11.857
+Thandi Mokoena: About a hundred and twenty a day.
+
+18
+00:01:11.857 --> 00:01:15.400
+Thandi Mokoena: In November and December it roughly doubles.
+
+19
+00:01:16.000 --> 00:01:20.600
+Pieter van Wyk: On the bad days in December we've had two hundred and sixty.
+
+20
+00:01:21.300 --> 00:01:24.200
+Sam Naidoo: And what does a missed collection cost you?
+
+21
+00:01:25.000 --> 00:01:33.252
+Thandi Mokoena: A re-delivery is about eighteen hundred rand, and we lose the client's trust, which is worse.
+
+22
+00:01:33.252 --> 00:01:37.600
+Thandi Mokoena: Last December we lost one retail account over it.
+
+23
+00:01:38.400 --> 00:01:42.673
+Sam Naidoo: So the app has to make sure every collection is assigned and confirmed.
+
+24
+00:01:42.673 --> 00:01:45.200
+Sam Naidoo: What does a driver need to do on the road?
+
+25
+00:01:46.000 --> 00:01:53.985
+Pieter van Wyk: Accept the job, mark it collected, take a photo of the waybill, and get a signature.
+
+26
+00:01:53.985 --> 00:02:02.446
+Pieter van Wyk: But you must understand, between Colesberg and Beaufort West there's no signal for hours.
+
+27
+00:02:02.446 --> 00:02:09.100
+Pieter van Wyk: It has to work offline and send everything when they're back in range.
+
+28
+00:02:10.000 --> 00:02:12.128
+Sam Naidoo: That's an important constraint.
+
+29
+00:02:12.128 --> 00:02:14.600
+Sam Naidoo: Do the drivers all have smartphones?
+
+30
+00:02:15.200 --> 00:02:18.229
+Pieter van Wyk: Most have Android phones, their own.
+
+31
+00:02:18.229 --> 00:02:21.846
+Pieter van Wyk: I think they all do, but I'd have to check.
+
+32
+00:02:21.846 --> 00:02:25.800
+Pieter van Wyk: A few of the older guys still use basic phones.
+
+33
+00:02:26.300 --> 00:02:30.400
+Thandi Mokoena: We'd rather not buy phones for everyone if we can avoid it.
+
+34
+00:02:31.000 --> 00:02:31.856
+Sam Naidoo: Understood.
+
+35
+00:02:31.856 --> 00:02:35.200
+Sam Naidoo: Which systems would this have to work with?
+
+36
+00:02:36.000 --> 00:02:41.597
+Thandi Mokoena: Our trucks have a tracking system from a vendor, so we can see where they are.
+
+37
+00:02:41.597 --> 00:02:43.535
+Thandi Mokoena: And invoicing runs on Sage.
+
+38
+00:02:43.535 --> 00:02:51.500
+Thandi Mokoena: It would be nice if the app could pull positions from the tracking system, but it's not essential at the start.
+
+39
+00:02:52.200 --> 00:02:55.000
+Sam Naidoo: Who decides on the budget for this?
+
+40
+00:02:55.800 --> 00:03:01.864
+Thandi Mokoena: Our MD signs off anything above two hundred thousand rand.
+
+41
+00:03:01.864 --> 00:03:07.300
+Thandi Mokoena: I'd want to show her a figure by the end of January.
+
+42
+00:03:08.400 --> 00:03:11.735
+Lerato Dlamini: Sorry I'm late, I was stuck in another call.
+
+43
+00:03:11.735 --> 00:03:15.600
+Lerato Dlamini: I look after their network and the depot computers.
+
+44
+00:03:16.200 --> 00:03:17.065
+Sam Naidoo: Welcome, Lerato.
+
+45
+00:03:17.065 --> 00:03:19.174
+Sam Naidoo: We were just talking about offline use.
+
+46
+00:03:19.174 --> 00:03:21.500
+Sam Naidoo: How reliable is the internet at the depots?
+
+47
+00:03:22.300 --> 00:03:23.681
+Lerato Dlamini: Midrand is fine.
+
+48
+00:03:23.681 --> 00:03:31.534
+Lerato Dlamini: Bloemfontein goes down during load-shedding because the router isn't on the backup battery.
+
+49
+00:03:31.534 --> 00:03:34.900
+Lerato Dlamini: That should be fixed, but it isn't yet.
+
+50
+00:03:35.400 --> 00:03:39.200
+Pieter van Wyk: And when it's down, the controller can't see anything.
+
+51
+00:03:40.000 --> 00:03:44.817
+Sam Naidoo: Then the controller's screen needs to cope with the depot being offline too.
+
+52
+00:03:44.817 --> 00:03:45.768
+Sam Naidoo: One more thing.
+
+53
+00:03:45.768 --> 00:03:48.557
+Sam Naidoo: Drivers' locations are personal information.
+
+54
+00:03:48.557 --> 00:03:51.600
+Sam Naidoo: Have you checked how you're allowed to use them?
+
+55
+00:03:52.400 --> 00:03:53.265
+Thandi Mokoena: Not yet.
+
+56
+00:03:53.265 --> 00:03:59.100
+Thandi Mokoena: HR would have to look at that with the drivers' union.
+
+57
+00:04:00.000 --> 00:04:02.040
+Sam Naidoo: I'll note it as an open question.
+
+58
+00:04:02.040 --> 00:04:06.800
+Sam Naidoo: Last thing: is there anything you'd want later, but not in the first version?
+
+59
+00:04:07.500 --> 00:04:12.662
+Thandi Mokoena: Eventually our clients should get a tracking link, like a courier.
+
+60
+00:04:12.662 --> 00:04:13.600
+Thandi Mokoena: But not now.
+
+61
+00:04:14.200 --> 00:04:16.481
+Pieter van Wyk: And Afrikaans in the app.
+
+62
+00:04:16.481 --> 00:04:19.400
+Pieter van Wyk: Half my drivers would prefer it.
+
+63
+00:04:20.000 --> 00:04:20.316
+Sam Naidoo: Good.
+
+64
+00:04:20.316 --> 00:04:26.753
+Sam Naidoo: My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions.
+
+65
+00:04:26.753 --> 00:04:27.700
+Sam Naidoo: Does that work?
+
+66
+00:04:28.300 --> 00:04:31.500
+Thandi Mokoena: Yes, let's do Bloemfontein first.
+
+67
+00:04:32.000 --> 00:04:32.630
+Sam Naidoo: Great.
+
+68
+00:04:32.630 --> 00:04:36.302
+Sam Naidoo: I'll send a summary this afternoon.
+
+69
+00:04:36.302 --> 00:04:38.400
+Sam Naidoo: Thank you, everyone.

@@ -1,0 +1,230 @@
+{
+  "title": "Karoo Freight dispatch app kick-off",
+  "startsAt": "2026-11-05T08:00:00.000Z",
+  "timeZone": "Africa/Johannesburg",
+  "comparing": [
+    "Join consecutive segments by the same speaker before comparing with the turns below.",
+    "In the four Teams files, Lerato's label is 'Lerato Dlamini (Guest)'.",
+    "pasted-transcript.txt has one extra line without a speaker, after T20: '(Lerato joined late; her camera was off.)'.",
+    "Only Thandi Mokoena and Pieter van Wyk are asked for consent; Sam Naidoo is on the consultant's side."
+  ],
+  "turns": [
+    {
+      "id": "T1",
+      "speaker": "Sam Naidoo",
+      "startMs": 3100,
+      "endMs": 19500,
+      "text": "Morning, everyone. Thanks for making the time. Before we start, I'd like to confirm what we agreed by email. I'm using the meeting's transcript to write up the requirements, and the AI that helps me runs on my own computer. Is that still fine with both of you?"
+    },
+    {
+      "id": "T2",
+      "speaker": "Thandi Mokoena",
+      "startMs": 20200,
+      "endMs": 22400,
+      "text": "Yes, that's fine with me."
+    },
+    {
+      "id": "T3",
+      "speaker": "Pieter van Wyk",
+      "startMs": 22900,
+      "endMs": 24600,
+      "text": "Ja, fine."
+    },
+    {
+      "id": "T4",
+      "speaker": "Sam Naidoo",
+      "startMs": 26800,
+      "endMs": 37100,
+      "text": "Thank you. So the goal today is to understand how dispatch works now and what the app has to do. Thandi, do you want to start with the problem?"
+    },
+    {
+      "id": "T5",
+      "speaker": "Thandi Mokoena",
+      "startMs": 38000,
+      "endMs": 64300,
+      "text": "Sure. We run forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein. Dispatch happens on WhatsApp. The controller posts the collections in a group, the drivers reply, and then somebody types it all into a shared spreadsheet at night. We miss collections because messages get buried."
+    },
+    {
+      "id": "T6",
+      "speaker": "Sam Naidoo",
+      "startMs": 65099,
+      "endMs": 68000,
+      "text": "How many collections is that on a normal day?"
+    },
+    {
+      "id": "T7",
+      "speaker": "Thandi Mokoena",
+      "startMs": 69200,
+      "endMs": 75400,
+      "text": "About a hundred and twenty a day. In November and December it roughly doubles."
+    },
+    {
+      "id": "T8",
+      "speaker": "Pieter van Wyk",
+      "startMs": 76000,
+      "endMs": 80600,
+      "text": "On the bad days in December we've had two hundred and sixty."
+    },
+    {
+      "id": "T9",
+      "speaker": "Sam Naidoo",
+      "startMs": 81300,
+      "endMs": 84200,
+      "text": "And what does a missed collection cost you?"
+    },
+    {
+      "id": "T10",
+      "speaker": "Thandi Mokoena",
+      "startMs": 85000,
+      "endMs": 97600,
+      "text": "A re-delivery is about eighteen hundred rand, and we lose the client's trust, which is worse. Last December we lost one retail account over it."
+    },
+    {
+      "id": "T11",
+      "speaker": "Sam Naidoo",
+      "startMs": 98400,
+      "endMs": 105200,
+      "text": "So the app has to make sure every collection is assigned and confirmed. What does a driver need to do on the road?"
+    },
+    {
+      "id": "T12",
+      "speaker": "Pieter van Wyk",
+      "startMs": 106000,
+      "endMs": 129100,
+      "text": "Accept the job, mark it collected, take a photo of the waybill, and get a signature. But you must understand, between Colesberg and Beaufort West there's no signal for hours. It has to work offline and send everything when they're back in range."
+    },
+    {
+      "id": "T13",
+      "speaker": "Sam Naidoo",
+      "startMs": 130000,
+      "endMs": 134600,
+      "text": "That's an important constraint. Do the drivers all have smartphones?"
+    },
+    {
+      "id": "T14",
+      "speaker": "Pieter van Wyk",
+      "startMs": 135200,
+      "endMs": 145800,
+      "text": "Most have Android phones, their own. I think they all do, but I'd have to check. A few of the older guys still use basic phones."
+    },
+    {
+      "id": "T15",
+      "speaker": "Thandi Mokoena",
+      "startMs": 146300,
+      "endMs": 150400,
+      "text": "We'd rather not buy phones for everyone if we can avoid it."
+    },
+    {
+      "id": "T16",
+      "speaker": "Sam Naidoo",
+      "startMs": 151000,
+      "endMs": 155200,
+      "text": "Understood. Which systems would this have to work with?"
+    },
+    {
+      "id": "T17",
+      "speaker": "Thandi Mokoena",
+      "startMs": 156000,
+      "endMs": 171500,
+      "text": "Our trucks have a tracking system from a vendor, so we can see where they are. And invoicing runs on Sage. It would be nice if the app could pull positions from the tracking system, but it's not essential at the start."
+    },
+    {
+      "id": "T18",
+      "speaker": "Sam Naidoo",
+      "startMs": 172200,
+      "endMs": 175000,
+      "text": "Who decides on the budget for this?"
+    },
+    {
+      "id": "T19",
+      "speaker": "Thandi Mokoena",
+      "startMs": 175800,
+      "endMs": 187300,
+      "text": "Our MD signs off anything above two hundred thousand rand. I'd want to show her a figure by the end of January."
+    },
+    {
+      "id": "T20",
+      "speaker": "Lerato Dlamini",
+      "startMs": 188400,
+      "endMs": 195600,
+      "text": "Sorry I'm late, I was stuck in another call. I look after their network and the depot computers."
+    },
+    {
+      "id": "T21",
+      "speaker": "Sam Naidoo",
+      "startMs": 196200,
+      "endMs": 201500,
+      "text": "Welcome, Lerato. We were just talking about offline use. How reliable is the internet at the depots?"
+    },
+    {
+      "id": "T22",
+      "speaker": "Lerato Dlamini",
+      "startMs": 202300,
+      "endMs": 214900,
+      "text": "Midrand is fine. Bloemfontein goes down during load-shedding because the router isn't on the backup battery. That should be fixed, but it isn't yet."
+    },
+    {
+      "id": "T23",
+      "speaker": "Pieter van Wyk",
+      "startMs": 215400,
+      "endMs": 219200,
+      "text": "And when it's down, the controller can't see anything."
+    },
+    {
+      "id": "T24",
+      "speaker": "Sam Naidoo",
+      "startMs": 220000,
+      "endMs": 231600,
+      "text": "Then the controller's screen needs to cope with the depot being offline too. One more thing. Drivers' locations are personal information. Have you checked how you're allowed to use them?"
+    },
+    {
+      "id": "T25",
+      "speaker": "Thandi Mokoena",
+      "startMs": 232400,
+      "endMs": 239100,
+      "text": "Not yet. HR would have to look at that with the drivers' union."
+    },
+    {
+      "id": "T26",
+      "speaker": "Sam Naidoo",
+      "startMs": 240000,
+      "endMs": 246800,
+      "text": "I'll note it as an open question. Last thing: is there anything you'd want later, but not in the first version?"
+    },
+    {
+      "id": "T27",
+      "speaker": "Thandi Mokoena",
+      "startMs": 247500,
+      "endMs": 253600,
+      "text": "Eventually our clients should get a tracking link, like a courier. But not now."
+    },
+    {
+      "id": "T28",
+      "speaker": "Pieter van Wyk",
+      "startMs": 254200,
+      "endMs": 259399,
+      "text": "And Afrikaans in the app. Half my drivers would prefer it."
+    },
+    {
+      "id": "T29",
+      "speaker": "Sam Naidoo",
+      "startMs": 260000,
+      "endMs": 267700,
+      "text": "Good. My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions. Does that work?"
+    },
+    {
+      "id": "T30",
+      "speaker": "Thandi Mokoena",
+      "startMs": 268300,
+      "endMs": 271500,
+      "text": "Yes, let's do Bloemfontein first."
+    },
+    {
+      "id": "T31",
+      "speaker": "Sam Naidoo",
+      "startMs": 272000,
+      "endMs": 278400,
+      "text": "Great. I'll send a summary this afternoon. Thank you, everyone."
+    }
+  ]
+}
