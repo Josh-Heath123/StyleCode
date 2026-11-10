@@ -2,3 +2,5 @@
 *.md
 package-lock.json
 **/__snapshots__/
+# Sample transcripts are kept exactly as the platforms lay them out.
+docs/phase-2/samples/
