@@ -19,6 +19,10 @@ export interface NoteDraft {
  *   Opening it again before then calls off its release, so a save finishing
  *   later can never close the client being worked on.
  *
+ * - A client the AI is working on (`hold`) stays open until the run lets it
+ *   go, so the proposals can be added when it ends, wherever the consultant
+ *   is in StyleCode by then.
+ *
  * It also keeps each session's unfinished note, in memory only, so leaving a
  * session page and coming back finds the note as it was left.
  */
@@ -26,6 +30,10 @@ export class SessionRegistry {
   private readonly live = new Map<string, WorkspaceSession>();
   private readonly releasing = new Map<WorkspaceSession, () => void>();
   private current: WorkspaceSession | null = null;
+  /** Told when a client is closed, before it is disposed: a run on it stops. */
+  private readonly closeListeners = new Set<(session: WorkspaceSession) => void>();
+  /** Clients held open, with how many holds each has. */
+  private readonly holds = new Map<WorkspaceSession, number>();
   /** Unfinished notes by client, then by session. */
   private readonly drafts = new Map<string, Map<string, NoteDraft>>();
 
@@ -74,6 +82,24 @@ export class SessionRegistry {
     if (!company.size) this.drafts.delete(session.companyId);
   }
 
+  /** Keeps a client open, whichever client is opened meanwhile, until the hold returned is let go. */
+  hold(session: WorkspaceSession): () => void {
+    this.holds.set(session, (this.holds.get(session) ?? 0) + 1);
+    let held = true;
+    return () => {
+      if (!held) return;
+      held = false;
+      const left = (this.holds.get(session) ?? 1) - 1;
+      if (left > 0) return void this.holds.set(session, left);
+      this.holds.delete(session);
+      // Let it go now, if it isn't the current client and is still open.
+      if (this.current !== session && this.live.get(session.companyId) === session) {
+        this.releasing.get(session)?.();
+        this.release(session);
+      }
+    };
+  }
+
   /** Makes a client the one kept open; the one open before it goes once it has saved. */
   open(session: WorkspaceSession): void {
     this.live.set(session.companyId, session);
@@ -89,7 +115,14 @@ export class SessionRegistry {
     if (session) this.forget(session);
   }
 
+  /** Calls back whenever a client is closed (deleted, reloaded, or let go). Returns the way to stop. */
+  onClose(listener: (session: WorkspaceSession) => void): () => void {
+    this.closeListeners.add(listener);
+    return () => this.closeListeners.delete(listener);
+  }
+
   private forget(session: WorkspaceSession): void {
+    this.closeListeners.forEach((l) => l(session));
     this.releasing.get(session)?.();
     this.dropDraftsOfDeletedSessions(session);
     session.dispose();
@@ -100,6 +133,7 @@ export class SessionRegistry {
   private release(session: WorkspaceSession): void {
     const done = () => {
       if (this.current === session) return true; // Opened again meanwhile: it stays.
+      if (this.holds.has(session)) return true; // Held: it stays, and is let go when the hold is.
       if (session.hasUnsavedWork()) return false;
       this.forget(session);
       return true;

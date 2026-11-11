@@ -1,0 +1,176 @@
+[Nomvula Khumalo] 14:00:05
+Afternoon, both of you. Thanks for making the time between consults. Before we start, I'd like to confirm what we agreed by email. I'm using this meeting's transcript to write up your requirements, and the AI that helps me with that runs on my own laptop, so nothing goes to an outside service. Are you both still okay with that?
+
+[Hennie Swanepoel] 14:00:31
+Yes, that's fine with me.
+
+[Charmaine Pillay] 14:00:35
+Ja, no problem.
+
+[Nomvula Khumalo] 14:00:38
+Thank you. Hennie, are you at the Centurion clinic today?
+
+[Hennie Swanepoel] 14:00:44
+I am, yes. Sorry about the noise, there's a Great Dane in the waiting room who does not want his injection.
+
+[Charmaine Pillay] 14:00:55
+He's been complaining since one o'clock, shame.
+
+[Nomvula Khumalo] 14:00:59
+Poor thing. Okay, so to start, can you walk me through how bookings work today, from the moment someone wants an appointment?
+
+[Charmaine Pillay] 14:01:10
+So, they phone. All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it.
+
+[Nomvula Khumalo] 14:01:28
+And the practice software? I saw VetDesk on your invoice.
+
+[Hennie Swanepoel] 14:01:34
+VetDesk Pro, yes. That's where all the clinical records live, the owners' details, vaccination history, billing. But it has no proper diary. We tried its calendar years ago and the receptionists hated it, so the paper diary came back.
+
+[Nomvula Khumalo] 14:01:51
+What goes wrong with the phones and the diary?
+
+[Charmaine Pillay] 14:01:57
+Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it.
+
+[Hennie Swanepoel] 14:02:19
+And no-shows. We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone.
+
+[Nomvula Khumalo] 14:02:29
+So if I'm hearing you right, the goals are fewer missed calls, no double bookings, and fewer no-shows?
+
+[Hennie Swanepoel] 14:02:38
+That's it. If I had to pick one, it's the phones. My receptionists are burning out.
+
+[Nomvula Khumalo] 14:02:47
+Okay. Roughly how many appointments do you book in a day, all three together?
+
+[Charmaine Pillay] 14:02:54
+Across all three, I'd say about a hundred and twenty a day.
+
+[Nomvula Khumalo] 14:03:01
+And does that change through the year?
+
+[Hennie Swanepoel] 14:03:06
+Hugely. Annual vaccinations bunch up in February and March, because so many of our clients got their puppies at Christmas, and then there's the rabies drive in March as well. It easily doubles then.
+
+[Nomvula Khumalo] 14:03:21
+Noted. So, what would the new system have to do? Imagine it's working well. What does a pet owner do?
+
+[Charmaine Pillay] 14:03:31
+They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before.
+
+[Hennie Swanepoel] 14:03:50
+And the vaccination reminders. VetDesk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone.
+
+[Nomvula Khumalo] 14:04:08
+That makes sense. And on the reception side?
+
+[Charmaine Pillay] 14:04:13
+They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online.
+
+[Nomvula Khumalo] 14:04:27
+So the phones would stay, but everything goes into one diary instead of paper?
+
+[Hennie Swanepoel] 14:04:34
+Yes. The paper diary goes. That we've decided, the phones stay but the paper goes.
+
+[Nomvula Khumalo] 14:04:42
+Good. Should owners be able to choose a specific vet?
+
+[Charmaine Pillay] 14:04:48
+Some would want to. Dr Mokoena at Irene has her regulars. But it mustn't be required.
+
+[Nomvula Khumalo] 14:04:57
+And emergencies? Should a sick animal be bookable online?
+
+[Hennie Swanepoel] 14:05:02
+Hmm. That's a good question. I don't want someone booking a slot for tomorrow at eleven for a dog that's been hit by a car. But a cat that's been vomiting, maybe. I need to talk to the other vets about where we draw that line.
+
+[Nomvula Khumalo] 14:05:23
+I'll put that down as open. What about the reminders, SMS or WhatsApp?
+
+[Charmaine Pillay] 14:05:30
+I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk, anyway. We'd need to check, maybe ask people in the waiting room for a week.
+
+[Hennie Swanepoel] 14:05:45
+We do already pay for an SMS bundle through VetDesk, for the account statements.
+
+[Nomvula Khumalo] 14:05:53
+Okay. Now, the phone numbers. You mentioned POPIA in your email.
+
+[Hennie Swanepoel] 14:05:59
+Yes. Our attorney went through it with us last year. Owners' phone numbers are personal information. We may use them for their pet's appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes.
+
+[Charmaine Pillay] 14:06:20
+And every client signs the consent bit on the registration form, but that's on paper too, in a file at each clinic.
+
+[Nomvula Khumalo] 14:06:31
+Then whatever we build has to record that consent itself, and anyone who books online has to agree before we send them anything. And the company that sends the messages would be an operator under POPIA, so you'd need a written agreement with them.
+
+[Hennie Swanepoel] 14:06:50
+Agreed, that has to be in from day one.
+
+[Nomvula Khumalo] 14:06:56
+One thing I'd suggest for the no-shows: ask for a small deposit, say a hundred rand, when someone books online for a Saturday, and refund it when they arrive.
+
+[Hennie Swanepoel] 14:07:09
+I see the point, but I'm not sure our clients will like it. Let me talk to the partners before we decide anything.
+
+[Charmaine Pillay] 14:07:21
+Sorry, can I go back to the numbers? I've just opened last week's diaries. It's more like a hundred and sixty a day. I forgot that Olievenhoutbosch does a full Saturday morning now, and Centurion has two vets, not one.
+
+[Nomvula Khumalo] 14:07:39
+Thanks, that's helpful. So a hundred and sixty on a normal day, doubling in vaccination season.
+
+[Hennie Swanepoel] 14:07:47
+That sounds right.
+
+[Nomvula Khumalo] 14:07:50
+Would you want owners to see their pet's medical history online while they're there? Some practices do that.
+
+[Hennie Swanepoel] 14:07:59
+No. Definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them. Bookings and reminders only.
+
+[Nomvula Khumalo] 14:08:11
+Understood. Let's talk about VetDesk. Can it share its data with another system?
+
+[Hennie Swanepoel] 14:08:18
+There is an API. Our rep mentioned it at a conference.
+
+[Charmaine Pillay] 14:08:24
+But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to switch it on.
+
+[Nomvula Khumalo] 14:08:36
+Then that's a risk to the timeline. I'd ask them for the price and a date in writing as soon as possible. When do you need this working?
+
+[Hennie Swanepoel] 14:08:49
+Before vaccination season. So live by the first of February at the latest.
+
+[Charmaine Pillay] 14:08:57
+Ideally mid-January, so the girls have two weeks to get used to it before the rush.
+
+[Nomvula Khumalo] 14:09:05
+And the budget?
+
+[Hennie Swanepoel] 14:09:08
+We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit.
+
+[Nomvula Khumalo] 14:09:25
+Clear. And how should it look? Any preferences?
+
+[Charmaine Pillay] 14:09:31
+Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand. And no app to download, just a web page.
+
+[Hennie Swanepoel] 14:09:44
+And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that.
+
+[Nomvula Khumalo] 14:09:54
+Great. Is there anything you'd want later, but not in the first version?
+
+[Charmaine Pillay] 14:10:01
+Ordering pet food online and paying for it, maybe. Next year.
+
+[Nomvula Khumalo] 14:10:07
+Okay. I'll send a summary with the open questions tomorrow morning. Thank you both, and good luck with the Great Dane.

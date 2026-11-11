@@ -1,0 +1,155 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "provider": "ollama",
+  "model": "qwen3:8b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T08:56:02.400Z",
+  "durationMs": 183169,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The app must ensure every collection is assigned and confirmed to prevent missed collections.",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "The app has to make sure every collection is assigned and confirmed."
+        },
+        {
+          "segmentId": "s13",
+          "quote": "The app has to make sure every collection is assigned and confirmed."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The app must allow drivers to accept jobs, mark collections, take photos of waybills, and get signatures.",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Accept the job, mark it collected, take a photo of the waybill, and get a signature."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The app must work offline and send data when the driver is back in range.",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "It has to work offline and send everything when they're back in range."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The app must work with Android smartphones, as most drivers use them.",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "Most have Android phones, their own. I think they all do, but I'd have to check."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The app must integrate with the tracking system from the vendor and the invoicing system on Sage.",
+      "evidence": [
+        {
+          "segmentId": "s17",
+          "quote": "Our trucks have a tracking system from a vendor, so we can see where they are. And invoicing runs on Sage."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the consultant to show the MD a budget figure by the end of January.",
+      "evidence": [
+        {
+          "segmentId": "s19",
+          "quote": "I'd want to show her a figure by the end of January."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The app must work with the depot's network, which is unreliable in Bloemfontein during load-shedding.",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "Bloemfontein goes down during load-shedding because the router isn't on the backup battery. That should be fixed, but it isn't yet."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "unresolved",
+      "statement": "The use of drivers' locations as personal information is an open question.",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "Have you checked how you're allowed to use them?"
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The app should eventually provide clients with a tracking link, similar to a courier service.",
+      "evidence": [
+        {
+          "segmentId": "s27",
+          "quote": "Eventually our clients should get a tracking link, like a courier. But not now."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The app should support Afrikaans to cater to half of the drivers' language preference.",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "And Afrikaans in the app. Half my drivers would prefer it."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The app will start with a pilot at the Bloemfontein depot due to its challenging conditions.",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions."
+        },
+        {
+          "segmentId": "s30",
+          "quote": "Yes, let's do Bloemfontein first."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 10
+}

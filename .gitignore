@@ -21,3 +21,6 @@ site/
 
 # Claude Code's per-user settings
 .claude/settings.local.json
+
+# Check-in screenshots for the reviewer, not for the repo
+.checkins/

@@ -1,0 +1,6 @@
+proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match
+2,K6,other-kind,functional-requirement,"The app must allow drivers to accept jobs, mark collections, take photos of waybills, and get signatures.",constraint,The driver's app must work offline for hours (no signal between Colesberg and Beaufort West) and send everything when back in range.,no
+3,K5,other-kind,non-functional-requirement,The app must work offline and send data when the driver is back in range.,functional-requirement,"A driver can accept a job, mark it collected, photograph the waybill and capture a signature.",no
+4,K8,other-kind,constraint,"The app must work with Android smartphones, as most drivers use them.",open-question,Do all drivers have smartphones? Pieter to check.,no
+5,K11,other-kind,existing-system,The app must integrate with the tracking system from the vendor and the invoicing system on Sage.,future-consideration,"Pulling truck positions from the tracking system would be useful, but isn't needed at the start.",no
+8,K14,other-kind,security,The use of drivers' locations as personal information is an open question.,non-functional-requirement,The consultant proposed that the controller's screen must cope with the depot being offline.,no

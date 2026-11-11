@@ -28,14 +28,19 @@ export interface ChatRequest {
   schema: Record<string, unknown>;
   /** Upper bound on the reply, in tokens. */
   maxTokens: number;
+  /**
+   * Ollama only: false turns a thinking model's reasoning off, so the whole
+   * reply budget goes to the answer. Left out, the model's default applies.
+   */
+  think?: boolean;
 }
 
 export class ProviderError extends Error {
-  constructor(
-    message: string,
-    readonly status = 502,
-  ) {
+  // A plain field, not a parameter property, so Node can run this file by stripping its types (`eval/run.ts`).
+  readonly status: number;
+  constructor(message: string, status = 502) {
     super(message);
+    this.status = status;
   }
 }
 
@@ -229,6 +234,7 @@ async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, sig
       model: settings.model,
       stream: true,
       format: request.schema,
+      ...(request.think === undefined ? {} : { think: request.think }),
       messages: [{ role: 'system', content: request.system }, ...request.messages],
       options: { temperature: 0.2, num_ctx: settings.contextSize ?? 8192, num_predict: request.maxTokens },
     },

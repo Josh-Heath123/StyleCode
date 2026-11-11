@@ -3,8 +3,39 @@ import { Icon } from '../ui/Icon';
 import { useDialogFocus } from '../ui/useDialogFocus';
 import { ALT_KEY, MOD_KEY, SHORTCUT_LABELS as K } from './actions';
 
-/** Every keyboard shortcut, grouped, with a filter. Opens with ? or from the Help menu. */
-const GROUPS: { title: string; items: [string, string][] }[] = [
+export type ShortcutGroup = { title: string; items: [string, string][] };
+
+/** The client pages' shortcuts: a session's notes, and reviewing the AI's proposals (Phase 2, WP7). */
+export const WORKSPACE_GROUPS: ShortcutGroup[] = [
+  {
+    title: 'A client session',
+    items: [
+      ['New note', 'N'],
+      ['Add the note and start the next', `${MOD_KEY}+Enter`],
+    ],
+  },
+  {
+    title: 'Reviewing the AI’s proposals',
+    items: [
+      ['Next or previous proposal', '↓ ↑, or J K'],
+      ['First or last proposal', 'Home, End'],
+      ['Accept the proposal, with the status chosen', 'A'],
+      ['Edit the proposal, then accept it', 'E'],
+      ['Reject the proposal', 'R'],
+    ],
+  },
+  {
+    title: 'Any client page',
+    items: [
+      ['Undo', `${MOD_KEY}+Z`],
+      ['Redo', `${MOD_KEY}+Shift+Z`],
+      ['Keyboard shortcuts', '?'],
+    ],
+  },
+];
+
+/** Every keyboard shortcut of the design editor, grouped. */
+const EDITOR_GROUPS: ShortcutGroup[] = [
   {
     title: 'Tools',
     items: [
@@ -78,17 +109,29 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
   { title: 'Help', items: [['Keyboard shortcuts', '?']] },
 ];
 
-export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
+/**
+ * Every keyboard shortcut, grouped, with a filter. Opens with ? or from the
+ * Help menu: the editor's, then the client pages'; on a client page, theirs.
+ */
+export function ShortcutsDialog({
+  onClose,
+  groups: shown = [...EDITOR_GROUPS, ...WORKSPACE_GROUPS],
+}: {
+  onClose: () => void;
+  groups?: ShortcutGroup[];
+}) {
   const [filter, setFilter] = useState('');
   const input = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   useDialogFocus(dialog);
   useEffect(() => input.current?.focus(), []);
   const q = filter.trim().toLowerCase();
-  const groups = GROUPS.map((g) => ({
-    ...g,
-    items: g.items.filter(([what, keys]) => !q || what.toLowerCase().includes(q) || keys.toLowerCase().includes(q)),
-  })).filter((g) => g.items.length);
+  const groups = shown
+    .map((g) => ({
+      ...g,
+      items: g.items.filter(([what, keys]) => !q || what.toLowerCase().includes(q) || keys.toLowerCase().includes(q)),
+    }))
+    .filter((g) => g.items.length);
   return (
     <div className="dialog-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div

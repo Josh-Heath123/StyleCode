@@ -70,6 +70,16 @@ export interface ChatInput {
   messages: { role: 'user' | 'assistant'; content: string }[];
   schema: Record<string, unknown>;
   maxTokens?: number;
+  /**
+   * The provider, address and model to use for this request, instead of
+   * whatever is saved when it arrives. A caller that checked consent for one
+   * provider pins it here, so a change in AI settings can't send the request
+   * somewhere else (CONSENT.md, rules C5 and C6).
+   */
+  provider?: ProviderKind;
+  settings?: { baseUrl: string; model: string; contextSize?: number };
+  /** Ollama only: false turns a thinking model's reasoning off. */
+  think?: boolean;
 }
 
 /**

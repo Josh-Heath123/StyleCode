@@ -1,0 +1,233 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:8b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T09:06:25.832Z",
+  "durationMs": 360431,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project aims to reduce missed calls, prevent double bookings, and decrease no-shows.",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "the goals are fewer missed calls, no double bookings, and fewer no-shows?"
+        },
+        {
+          "segmentId": "s15",
+          "quote": "If I had to pick one, it's the phones. My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Pet owners should be able to book appointments online by selecting a clinic, purpose of visit, and available time slots.",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should automatically send reminders to pet owners the day before their appointment.",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow receptionists to manage bookings, move appointments, and handle phone bookings.",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must comply with POPIA regulations regarding the handling of personal information.",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pet's appointments and reminders, but nothing else."
+        },
+        {
+          "segmentId": "s37",
+          "quote": "the company that sends the messages would be an operator under POPIA, so you'd need a written agreement with them."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The system must not require owners to select a specific vet for their appointment.",
+      "evidence": [
+        {
+          "segmentId": "s27",
+          "quote": "Some would want to. Dr Mokoena at Irene has her regulars. But it mustn't be required."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The system must be operational by the first of February at the latest.",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The system must be operational by mid-January to allow receptionists time to adapt before the vaccination rush.",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The budget for building the system is one hundred and eighty thousand rand, with running costs for messages and hosting limited to two and a half thousand rand per month.",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system should use the clinic's green color as the primary color and have big buttons for ease of use.",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system should be a web page rather than a downloadable app.",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "And no app to download, just a web page."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system should have a simple interface with one screen rather than multiple fields like VetDesk.",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client may want to add an online pet food ordering feature in a future phase.",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Ordering pet food online and paying for it, maybe. Next year."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "Should a sick animal be bookable online?",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "Should a sick animal be bookable online?"
+        },
+        {
+          "segmentId": "s30",
+          "quote": "Hmm. That's a good question. I don't want someone booking a slot for tomorrow at eleven for a dog that's been hit by a car. But a cat that's been vomiting, maybe."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "Should the reminders be sent via SMS or WhatsApp?",
+      "evidence": [
+        {
+          "segmentId": "s31",
+          "quote": "And the reminders, SMS or WhatsApp?"
+        },
+        {
+          "segmentId": "s32",
+          "quote": "I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk, anyway."
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "suggested",
+      "statement": "The use of VetDesk's API is a risk to the timeline due to potential delays and costs.",
+      "evidence": [
+        {
+          "segmentId": "s47",
+          "quote": "There is an API. Our rep mentioned it at a conference."
+        },
+        {
+          "segmentId": "s48",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to switch it on."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The paper diary will be replaced with a digital diary, and the phones will remain in use.",
+      "evidence": [
+        {
+          "segmentId": "s26",
+          "quote": "The paper diary goes. That we've decided, the phones stay but the paper goes."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 4,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 2
+  },
+  "shown": 11
+}

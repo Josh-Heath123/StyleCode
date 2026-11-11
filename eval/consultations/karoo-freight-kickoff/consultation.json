@@ -1,0 +1,24 @@
+{
+  "title": "Karoo Freight dispatch app kick-off",
+  "startsAt": "2026-11-05T08:00:00.000Z",
+  "timeZone": "Africa/Johannesburg",
+  "source": "../../../docs/phase-2/samples/karoo-freight-kickoff/teams-transcript.vtt",
+  "participants": [
+    {
+      "name": "Sam Naidoo",
+      "side": "consultant"
+    },
+    {
+      "name": "Thandi Mokoena",
+      "side": "client"
+    },
+    {
+      "name": "Pieter van Wyk",
+      "side": "client"
+    },
+    {
+      "name": "Lerato Dlamini",
+      "side": "client"
+    }
+  ]
+}

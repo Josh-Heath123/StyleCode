@@ -29,7 +29,52 @@ export const FAKE_MODEL = 'fake-designer:1b';
 
 export type FakeReply = { text: string; delay: number } | { status: number; error: string };
 
+/**
+ * Asked for findings (the workspace's extraction prompt), it answers like a
+ * small model: one finding for each passage a client said, or note, with six
+ * words or more, quoting its first five words, plus one whose quote isn't in
+ * the passage, which StyleCode must drop. A meeting titled with "slow" streams
+ * slowly (to test Stop), with "steady" takes a few seconds a part, and with
+ * "fail" the model server returns an error. With "part two" in the title too,
+ * "slow" and "fail" start from the second part; with "both sides", what the
+ * consultant's side said is proposed too.
+ */
+function extractionReply(body: FakeOllama['requests'][number]): FakeReply | null {
+  if (!body.messages[0]?.content.includes('list the findings a careful consultant would record')) return null;
+  const message = body.messages[body.messages.length - 1].content;
+  const title = /^Meeting: (.*)$/m.exec(message)?.[1]?.toLowerCase() ?? '';
+  const part = Number(/This is part (\d+) of/.exec(message)?.[1] ?? 1);
+  const from = (word: string) => title.includes(word) && (!title.includes('part two') || part >= 2);
+  if (from('fail')) return { status: 500, error: 'model runner has unexpectedly stopped' };
+  const own = message.includes('New passages:') ? message.slice(message.indexOf('New passages:')) : message;
+  const findings: unknown[] = [];
+  // With "both sides" in the title, what the consultant's side said is proposed too.
+  const sides = title.includes('both sides') ? 'client|consultant' : 'client';
+  for (const m of own.matchAll(new RegExp(`^\\[([SN]\\d+)\\] (?:([^:\\n]+?) \\((?:${sides})\\): |Note: )?(.*)$`, 'gm'))) {
+    const [, ref, client, text] = m;
+    const speaker = client ?? (ref.startsWith('N') ? 'The note' : null);
+    const words = text.split(/\s+/);
+    if (!speaker || words.length < 6) continue;
+    findings.push({
+      kind: 'operational-challenge',
+      status: 'suggested',
+      statement: `${speaker} said: ${words.slice(0, 8).join(' ')}`,
+      evidence: [{ ref, quote: words.slice(0, 5).join(' ') }],
+    });
+  }
+  if (findings.length)
+    findings.push({
+      kind: 'risk',
+      status: 'suggested',
+      statement: 'Made up.',
+      evidence: [{ ref: 'S1', quote: 'words nobody ever said here' }],
+    });
+  return { text: JSON.stringify({ findings }), delay: from('slow') ? 400 : title.includes('steady') ? 25 : 2 };
+}
+
 function reply(body: FakeOllama['requests'][number]): FakeReply {
+  const extraction = extractionReply(body);
+  if (extraction) return extraction;
   const first = body.messages.find((m) => m.role === 'user')?.content ?? '';
   const last = body.messages[body.messages.length - 1].content;
   const request = (/\nRequest: (.*)$/s.exec(first)?.[1] ?? '').toLowerCase();

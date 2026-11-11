@@ -26,6 +26,9 @@
     "test:e2e": "playwright test",
     "test:all": "npm test && npm run test:e2e",
     "demos": "playwright test -c e2e/demos/demos.config.ts",
+    "eval:build": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/build.ts",
+    "eval:run": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/run.ts",
+    "eval:score": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/score.ts",
     "site": "node --experimental-strip-types scripts/build-site.ts",
     "build:pages": "vite build --base=/StyleCode/app/ --outDir site/app --emptyOutDir && npm run site"
   },

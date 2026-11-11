@@ -251,6 +251,20 @@ describe('providers', () => {
     });
   });
 
+  it('uses the provider and model a request pins, and passes "think" to Ollama only', async () => {
+    fake.respond = (_seen, res) => {
+      res.setHeader('content-type', 'application/x-ndjson');
+      res.end(`${JSON.stringify({ message: { role: 'assistant', content: '{}' }, done: true, done_reason: 'stop' })}\n`);
+    };
+    // Saved: Ollama with another model. The request pins the model it checked consent for.
+    await configure({ provider: 'ollama', providers: { ollama: { baseUrl: fake.url, model: 'saved-model:7b' } } });
+    await chat({ provider: 'ollama', settings: { baseUrl: fake.url, model: 'checked-model:4b' }, think: false });
+    expect(fake.seen.at(-1)!.body).toMatchObject({ model: 'checked-model:4b', think: false });
+    await chat();
+    expect(fake.seen.at(-1)!.body).toMatchObject({ model: 'saved-model:7b' });
+    expect(fake.seen.at(-1)!.body).not.toHaveProperty('think');
+  });
+
   it('explains when Ollama isn’t running', async () => {
     await configure({ provider: 'ollama', providers: { ollama: { baseUrl: 'http://127.0.0.1:9', model: 'x' } } });
     const result = await chat();

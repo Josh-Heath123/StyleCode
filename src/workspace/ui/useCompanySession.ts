@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { openCompany, saveCompany } from '../api';
 import { SessionRegistry, type NoteDraft } from '../registry';
 import { WorkspaceSession } from '../session';
+import { clearCompanyCoverage } from './extraction/coverage';
 
 /** The clients open in this tab (`SessionRegistry` says which stay open, and for how long). */
 const registry = new SessionRegistry();
@@ -30,6 +31,7 @@ export async function saveOpenClients(): Promise<void> {
 export function closeCompany(companyId: string): void {
   registry.close(companyId);
   registry.forgetNoteDrafts(companyId);
+  clearCompanyCoverage(companyId);
 }
 
 /** A session's unfinished note, kept while this tab is open. */
@@ -85,4 +87,17 @@ export function useCompanySession(companyId: string): [CompanyLoad, reload: () =
     setAttempt((n) => n + 1);
   };
   return [load, reload];
+}
+
+/**
+ * Keeps a client open while the AI works on it, whichever client is opened
+ * meanwhile (`SessionRegistry.hold`). Returns the function that lets it go.
+ */
+export function holdCompany(session: WorkspaceSession): () => void {
+  return registry.hold(session);
+}
+
+/** Calls back when a client is closed (deleted, reloaded after a conflict, or let go), so a run on it stops. */
+export function onCompanyClosed(listener: (session: WorkspaceSession) => void): () => void {
+  return registry.onClose(listener);
 }

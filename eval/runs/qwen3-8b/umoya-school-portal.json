@@ -1,0 +1,293 @@
+{
+  "consultation": "umoya-school-portal",
+  "provider": "ollama",
+  "model": "qwen3:8b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T08:59:05.589Z",
+  "durationMs": 440221,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must provide a single platform for parents to access their child's fee information, reports, and school notices.",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "One place where a parent can see what they owe, their child's reports and the school's notices"
+        },
+        {
+          "segmentId": "s16",
+          "quote": "for us to stop printing. That's a real cost, and a lot of hours"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to view their child's current balance, monthly fee statement as a PDF, and the EFT reference for payments.",
+      "evidence": [
+        {
+          "segmentId": "s18",
+          "quote": "The current balance, the monthly statement as a PDF, and the reference to use for EFT"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must provide term reports as PDFs, released on the same day for all parents.",
+      "evidence": [
+        {
+          "segmentId": "s20",
+          "quote": "The term report as a PDF, the same one we print. Released on the same day for everyone"
+        },
+        {
+          "segmentId": "s21",
+          "quote": "the site fell over"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to submit absence notes with the reason, dates, and notify both the class teacher and the office.",
+      "evidence": [
+        {
+          "segmentId": "s25",
+          "quote": "the reason and the dates, and the class teacher and the office both see it straight away"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The school uses SchoolBase 7, hosted on a server in the admin block, to manage learners, parents, fees, and marks.",
+      "evidence": [
+        {
+          "segmentId": "s27",
+          "quote": "On a server in the admin block. It's SchoolBase 7, from about 2014 I think. It holds the learners, the parents, fees and marks"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal must not directly interact with SchoolBase but instead use a nightly CSV export for data synchronization.",
+      "evidence": [
+        {
+          "segmentId": "s30",
+          "quote": "I'd suggest is a nightly CSV export from SchoolBase that the portal picks up, so we never touch SchoolBase itself"
+        },
+        {
+          "segmentId": "s31",
+          "quote": "I'd want to know how out of date the balances would be"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must be lightweight with small pages and only download PDFs when they are opened to accommodate limited data usage.",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "the portal has to be light: small pages, and the PDFs only downloaded when someone actually opens one"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The portal must ensure that only a learner's own parents or guardians can access their information, with exceptions for court-ordered restrictions.",
+      "evidence": [
+        {
+          "segmentId": "s38",
+          "quote": "Only a learner's own parents or guardians may see anything about that learner"
+        },
+        {
+          "segmentId": "s39",
+          "quote": "one of them may not see anything at all. There's a court order on about a dozen files"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The data must be hosted in South Africa as per the board's requirement.",
+      "evidence": [
+        {
+          "segmentId": "s42",
+          "quote": "Does the data have to stay in South Africa?"
+        },
+        {
+          "segmentId": "s43",
+          "quote": "The board said it must be hosted in South Africa"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal must support both English and isiZulu, with large, clear text and the school's maroon color scheme.",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "English is the school's language, but a lot of our grandparents look after the children, and they're more comfortable in isiZulu"
+        },
+        {
+          "segmentId": "s46",
+          "quote": "big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader. Oh, and please use the school's maroon, not some generic blue"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The project has a proposed budget of 250,000 rand for the first year, pending board approval.",
+      "evidence": [
+        {
+          "segmentId": "s48",
+          "quote": "The finance committee has proposed two hundred and fifty thousand rand for the first year, all in."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The portal must be operational by the release of term two reports on June 26th.",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "We'd like parents to get those through the portal"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The current system of sending reports by printing and mailing is inefficient, time-consuming, and prone to errors.",
+      "evidence": [
+        {
+          "segmentId": "s9",
+          "quote": "For about nine hundred learners that's a week of the admin staff's time every term"
+        },
+        {
+          "segmentId": "s13",
+          "quote": "We had a learner marked absent for three days last term and nobody at the office knew why"
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "suggested",
+      "statement": "A risk is that the portal may fail on the first report release day, leading to a loss of parent trust.",
+      "evidence": [
+        {
+          "segmentId": "s52",
+          "quote": "A risk I see is that if the first report day goes badly, parents lose trust in the portal straight away"
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The project may eventually include booking slots for parents' evenings, but this is not required in the first version.",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Eventually, booking slots for parents' evenings. But not now"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal must be designed to accommodate a large number of parent contacts, with the current count being approximately 1,650.",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "It's not fourteen hundred parent contacts, it's about sixteen hundred and fifty"
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "How will the portal get fresh data from SchoolBase if it does not have an API?",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "Does it have any kind of API?"
+        },
+        {
+          "segmentId": "s29",
+          "quote": "Not that I know of. I've asked the supplier and they haven't answered yet"
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "Can the portal be zero-rated for data usage, as some schools have arranged?",
+      "evidence": [
+        {
+          "segmentId": "s36",
+          "quote": "could it be zero-rated? I heard some schools have arranged that with the networks"
+        },
+        {
+          "segmentId": "s37",
+          "quote": "That I'd have to look into. I'll note it as a question"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal must be accessible on smartphones with limited data usage, as most parents use prepaid data.",
+      "evidence": [
+        {
+          "segmentId": "s33",
+          "quote": "Most of our parents have smartphones, but data is expensive, and I'd say most of them are on prepaid"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal must be designed with accessibility in mind, including support for screen readers and large text.",
+      "evidence": [
+        {
+          "segmentId": "s46",
+          "quote": "big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The school has only one IT person who works two days a week, which could pose a risk if the portal fails on report night.",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "Me, honestly. I'm the only IT person, and only two days a week. If something breaks on report night, there's nobody"
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 21
+}

@@ -122,6 +122,7 @@ export function createAiHandler(options: { path?: () => string } = {}) {
           messages: cleanMessages(body.messages),
           schema: body.schema && typeof body.schema === 'object' ? (body.schema as Record<string, unknown>) : {},
           maxTokens: typeof body.maxTokens === 'number' ? Math.min(16_000, Math.max(256, Math.round(body.maxTokens))) : 4096,
+          ...(typeof body.think === 'boolean' && kind === 'ollama' ? { think: body.think } : {}),
         };
         return await relay(req, res, streamChat(kind, settings, key, request, abortOnClose(req, res)));
       }
