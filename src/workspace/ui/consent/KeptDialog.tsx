@@ -44,8 +44,8 @@ export function KeptDialog({
       onClose={onClose}
     >
       <p className="ws-dialog-text">
-        These still say something from <strong>{meeting.title}</strong>. If the client asks, remove them, or open the record to
-        edit a finding. Removing one can be undone.
+        These still say something from <strong>{meeting.title}</strong>. If the client asks, remove them, or edit a finding in the
+        record and a company fact on the client’s page. Removing one can be undone.
       </p>
       {kept.findings.length === 0 && facts.length === 0 && <p className="ws-muted">Nothing keeps a statement from it now.</p>}
       {kept.findings.length > 0 && (
@@ -87,6 +87,14 @@ export function KeptDialog({
                     {f.source?.findingId === null ? ' · source deleted' : ''}
                   </span>
                 </span>
+                <a
+                  className="button"
+                  href={`#/c/${view.session.companyId}`}
+                  onClick={onClose}
+                  aria-label={`Edit “${f.statement}” on the client’s page`}
+                >
+                  Edit on the client’s page
+                </a>
                 <button
                   type="button"
                   className="button danger"

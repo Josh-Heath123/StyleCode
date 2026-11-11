@@ -200,7 +200,7 @@ The AI can read a session and propose findings. It is optional: set it up in **A
 
 On the session's page, **Ask the AI for findings** shows where the AI runs and, after a first run, how long it should take. The AI reads only this session's transcript and notes. A local model can take a while: with qwen3:4b on a laptop, about 25 minutes for an hour of meeting ([measurements](research/EXTRACTION.md)). The run carries on while you work elsewhere in StyleCode, and the top bar shows its progress. StyleCode asks before you close the page during a run.
 
-Before you see anything, StyleCode checks every proposal. A quote must appear word for word in the passage it cites, and be at least three words long. Proposals that fail are never shown, and the summary says how many failed and why. Repeats of a finding already in this engagement, or of one you rejected, are left out, and the summary says how many.
+Before you see anything, StyleCode checks every proposal. A quote must appear word for word in the passage it cites, and be at least three words long, or the whole passage. Proposals that fail are never shown, and the summary says how many failed and why. Repeats of a finding already in this engagement, or of one you rejected, are left out, and the summary says how many.
 
 If you stop a run, or it fails partway, the proposals from the parts it finished stay, and the session says which parts ("parts 1 to 4 of 7"). You can **Discard** them, and undo brings them back.
 
@@ -230,7 +230,7 @@ What you learn about a client can carry into its next engagement. In an engageme
 
 The client's page lists its company knowledge: each fact with its kind, status, where it came from, and its quotes. Every engagement with that client shows the same facts, and no other client's. **Change** edits a fact's statement, kind or status, and **Remove** removes it. Both can be undone.
 
-A fact outlives its source. If the finding, its session or its engagement is deleted, the fact stays and says "source deleted". If a session's transcript is deleted, the fact loses its quotes from that session.
+A fact outlives its source. If the finding or its engagement is deleted, or a deleted session was all the finding rested on, the fact stays and says "source deleted". If a session's transcript is deleted, the fact loses its quotes from that session.
 
 **Delete** removes a finding from the record. Its links go with it, and you can undo it.
 
@@ -239,7 +239,7 @@ A fact outlives its source. If the finding, its session or its engagement is del
 Importing locks the consent record. It can't be edited, but it can be changed in two ways, both kept in the record and in the export:
 
 - **Amend…** records what changed, what you newly told the client (in the words shown on the form), and why. It is checked like the form: a new yes needs its statement told. For example, a longer audio retention needs the retention statement told in its new words.
-- **Withdraw consent…** records the withdrawal and the reason, and nothing more is captured or processed for the session. StyleCode then offers to delete the transcript, saying what goes with it. Afterwards, **Review what keeps a statement…** lists the findings and company facts that still say something from the session, each with a way to edit or remove it, if the client asks.
+- **Withdraw consent…** records the withdrawal and the reason, and nothing more is captured or processed for the session. StyleCode then offers to delete the transcript, saying what goes with it. Afterwards, **Review what keeps a statement…** lists the findings and company facts that still say something from the session, each with a way to remove it, or to edit it in the record or on the client's page, if the client asks.
 
 A signed form or an email can be attached to the consent record (**Attach a file…**). Attaching, replacing or removing it doesn't change the record, and works on a locked record too.
 

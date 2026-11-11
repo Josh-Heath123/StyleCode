@@ -91,6 +91,13 @@ describe('editing a fact', () => {
     expect(updateFact(ws, 'kf_x', { status: 'unresolved' })).toMatchObject({ ok: false, error: /does not exist/ });
   });
 
+  it('keeps the kind and status when a change gives them as undefined', () => {
+    const ws = promoted();
+    const after = value(updateFact(ws, 'kf_1', { statement: 'Orders peak at Easter.', kind: undefined, status: undefined }));
+    expect(after.knowledge.kf_1).toMatchObject({ kind: ws.knowledge.kf_1.kind, status: ws.knowledge.kf_1.status });
+    expect(validateWorkspace(after)).toEqual([]);
+  });
+
   it('a fact without a known status is a problem', () => {
     const ws = promoted();
     (ws.knowledge.kf_1 as { status: string }).status = 'agreed';

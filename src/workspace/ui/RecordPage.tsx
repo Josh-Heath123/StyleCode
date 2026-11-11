@@ -20,6 +20,7 @@ import { EvidenceLine, FindingFields, type FindingDraft } from './FindingForm';
 import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DialogField, FormDialog, NameField, nameFor } from './fields';
+import { focusAfterRemoving } from './focus';
 import { NOT_APPLIED, now, step } from './steps';
 import { useConsultant, type Consultant } from './useConsultant';
 import { saveAs } from './download';
@@ -157,6 +158,14 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
                       onEdit={() => setDialog({ kind: 'finding', finding: f })}
                       onLink={() => setDialog({ kind: 'link', finding: f })}
                       onPromote={() => setDialog({ kind: 'promote', finding: f })}
+                      onDelete={() => {
+                        const problem = step(view.session, 'Delete a finding', (ws) => removeFinding(ws, f.id, now()));
+                        setError(problem);
+                        if (!problem) {
+                          const shownIds = GROUPS.flatMap((g) => groups[g.key].map((x) => x.id));
+                          focusAfterRemoving(shownIds, f.id, (id) => `finding-${id}`);
+                        }
+                      }}
                       onError={setError}
                       onFollow={follow}
                     />
@@ -210,6 +219,7 @@ function FindingCard({
   onEdit,
   onLink,
   onPromote,
+  onDelete,
   onError,
   onFollow,
 }: {
@@ -219,6 +229,7 @@ function FindingCard({
   onEdit: () => void;
   onLink: () => void;
   onPromote: () => void;
+  onDelete: () => void;
   onError: (error: string | null) => void;
   onFollow: (findingId: string) => void;
 }) {
@@ -298,12 +309,7 @@ function FindingCard({
                 Add to company knowledge…
               </button>
             )}
-            <button
-              type="button"
-              className="button danger"
-              aria-label={`Delete “${f.statement}”`}
-              onClick={() => onError(step(session, 'Delete a finding', (ws) => removeFinding(ws, f.id, now())))}
-            >
+            <button type="button" className="button danger" aria-label={`Delete “${f.statement}”`} onClick={onDelete}>
               Delete
             </button>
           </div>
@@ -453,8 +459,9 @@ function PromoteDialog({
       </p>
       <p className="ws-help">
         It will show on {view.workspace.company.name}’s page and in every engagement with them, as{' '}
-        {KIND_LABEL[finding.kind].toLowerCase()}, {STATUS_LABEL[finding.status].toLowerCase()}, with its quotes. You can change it
-        there afterwards. The finding stays in this record as it is.
+        {KIND_LABEL[finding.kind].toLowerCase()}, {STATUS_LABEL[finding.status].toLowerCase()}
+        {finding.evidence.some((e) => e.kind !== 'deleted') ? ', with its quotes' : ''}. You can change it there afterwards. The
+        finding stays in this record as it is.
       </p>
       <NameField consultant={consultant} value={name} onChange={setName} />
     </FormDialog>

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -62,6 +62,8 @@ test('a promoted finding shows on the client’s page and in its next engagement
   await expect(finding.getByRole('link', { name: 'In company knowledge' })).toHaveAttribute('href', `#/c/${id}`);
   // A finding is promoted once.
   await expect(page.getByRole('button', { name: `Add “${OFFLINE}” to company knowledge` })).toHaveCount(0);
+  const record = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(record.violations.map((v) => v.id)).toEqual([]);
   await expect
     .poll(() => Object.values(onDisk(id).knowledge).map((f) => [f.statement, f.status]))
     .toEqual([[OFFLINE, 'confirmed']]);
@@ -161,6 +163,8 @@ test('deleting the transcript takes the fact’s quotes from it, and lists the f
   const facts = dialog.getByRole('list', { name: 'Company facts' });
   await expect(facts).toContainText(OFFLINE);
   await expect(facts).toContainText('source deleted');
+  // A fact can be edited, as well as removed, if the client asks.
+  await expect(dialog.getByRole('link', { name: `Edit “${OFFLINE}” on the client’s page` })).toHaveAttribute('href', `#/c/${id}`);
   await dialog.getByRole('button', { name: 'Done' }).click();
 
   await expect.poll(() => Object.values(onDisk(id).knowledge).map((f) => f.source.quotes.length)).toEqual([0]);
@@ -194,4 +198,42 @@ test('the company page’s knowledge works from the keyboard', async ({ page }) 
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(change).toBeFocused();
+});
+
+test('after Delete or Remove, focus moves to the next item, or to Undo when none is left', async ({ page }) => {
+  const id = await withFinding(page);
+  await promote(page);
+  await page.getByRole('button', { name: `Delete “${OFFLINE}”` }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Undo Delete a finding' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.ws-finding').filter({ hasText: OFFLINE })).toBeVisible();
+  await page.goto(`/#/c/${id}`);
+  await page.getByRole('button', { name: `Remove the company fact “${OFFLINE}”` }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Undo Remove a company fact' })).toBeFocused();
+});
+
+test('a client with a damaged company fact opens read-only, showing its facts without changing them', async ({ page }) => {
+  const id = await withFinding(page);
+  await promote(page);
+  await expect.poll(() => Object.keys(onDisk(id).knowledge).length).toBe(1);
+  await page.goto('/#/');
+  const file = join(E2E_WORKSPACE, 'companies', id, 'workspace.json');
+  const ws = JSON.parse(readFileSync(file, 'utf8')) as { knowledge: Record<string, { source: Record<string, unknown> }> };
+  for (const fact of Object.values(ws.knowledge)) {
+    delete fact.source.quotes;
+    delete fact.source.sessionIds;
+  }
+  writeFileSync(file, JSON.stringify(ws));
+  // A reload, so the client is read from disk again.
+  await page.goto(`/#/c/${id}`);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'This client opens read-only' })).toBeVisible();
+  await expect(knowledge(page)).toContainText(OFFLINE);
+  await expect(page.getByRole('button', { name: /Change the company fact|Remove the company fact/ })).toHaveCount(0);
+  await page.goto(`/#/c/${id}/e/en_1`);
+  await expect(page.getByRole('link', { name: 'See on the client’s page' })).toBeVisible();
+  await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
+  await expect(page.getByRole('heading', { name: 'This client opens read-only' })).toBeVisible();
 });

@@ -212,7 +212,7 @@ export function removeFindings(ws: CompanyWorkspace, findingIds: readonly string
  * Deletes a finding from the record (Phase 2 brief, decision 15), as an
  * ordinary undoable step. Its links go with it, and company facts promoted
  * from it stay, marked "source deleted". A proposal still under review is
- * rejected instead, so it isn't proposed again (MVP Q11).
+ * refused: reject it instead, so it isn't proposed again (MVP Q11).
  */
 export function removeFinding(ws: CompanyWorkspace, findingId: string, at: Timestamp): Result<CompanyWorkspace> {
   const finding = get(ws.findings, findingId);
@@ -452,7 +452,11 @@ export function keptFromSession(ws: CompanyWorkspace, sessionId: string): { find
   const findings = Object.values(ws.findings).filter((f) => isInRecord(f) && f.evidence.some(fromSession));
   const ids = new Set(findings.map((f) => f.id));
   const facts = Object.values(ws.knowledge).filter(
-    (fact) => fact.source && (fact.source.sessionIds.includes(sessionId) || ids.has(fact.source.findingId ?? '')),
+    // A damaged fact (opened read-only) may lack its session ids: it is matched by its finding only.
+    (fact) =>
+      !!fact.source &&
+      ((Array.isArray(fact.source.sessionIds) && fact.source.sessionIds.includes(sessionId)) ||
+        ids.has(fact.source.findingId ?? '')),
   );
   return { findings, facts };
 }
@@ -489,7 +493,13 @@ export function updateFact(ws: CompanyWorkspace, factId: string, changes: FactCh
   if (!statement) return fail('A company fact needs a statement.');
   if (changes.kind !== undefined && !FINDING_KINDS.includes(changes.kind)) return fail('Choose a kind.');
   if (changes.status !== undefined && !FINDING_STATUSES.includes(changes.status)) return fail('Choose a status.');
-  const next: CompanyFact = { ...fact, ...changes, statement };
+  // Field by field, so a change given as undefined keeps the fact's value rather than clearing it.
+  const next: CompanyFact = {
+    ...fact,
+    statement,
+    kind: changes.kind ?? fact.kind,
+    status: changes.status ?? fact.status,
+  };
   if (next.statement === fact.statement && next.kind === fact.kind && next.status === fact.status)
     return fail('Nothing was changed.');
   return ok({ ...ws, knowledge: { ...ws.knowledge, [factId]: next } });

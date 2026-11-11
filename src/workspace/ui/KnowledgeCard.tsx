@@ -7,6 +7,7 @@ import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
 import { DialogField, FormDialog } from './fields';
 import { speakerName } from './FindingForm';
+import { focusAfterRemoving } from './focus';
 import { step } from './steps';
 
 /** The company's facts, oldest first, so each keeps its place as more are added. */
@@ -34,7 +35,7 @@ export function KnowledgeCard({ view, manage }: { view: ClientView; manage: bool
         <h2 id="knowledge-title">{manage ? 'Company knowledge' : `What is known about ${view.workspace.company.name}`}</h2>
         {!manage && facts.length > 0 && (
           <a className="button" href={companyHref}>
-            Change on the client’s page
+            {view.readOnly ? 'See on the client’s page' : 'Change on the client’s page'}
           </a>
         )}
       </div>
@@ -63,7 +64,16 @@ export function KnowledgeCard({ view, manage }: { view: ClientView; manage: bool
                 fact={f}
                 editable={editable}
                 onEdit={() => setEditing(f)}
-                onRemove={() => setError(step(view.session, 'Remove a company fact', (ws) => removeFact(ws, f.id)))}
+                onRemove={() => {
+                  const problem = step(view.session, 'Remove a company fact', (ws) => removeFact(ws, f.id));
+                  setError(problem);
+                  if (!problem)
+                    focusAfterRemoving(
+                      facts.map((x) => x.id),
+                      f.id,
+                      (id) => `fact-item-${id}`,
+                    );
+                }}
               />
             ))}
           </ul>
@@ -92,7 +102,7 @@ function FactItem({
   const finding = source?.findingId ? get(ws.findings, source.findingId) : undefined;
   const recordHref = finding ? `#/c/${view.session.companyId}/e/${finding.engagementId}/record` : null;
   return (
-    <li className="ws-finding" aria-labelledby={`fact-${f.id}`}>
+    <li className="ws-finding" id={`fact-item-${f.id}`} tabIndex={-1} aria-labelledby={`fact-${f.id}`}>
       <p className="ws-finding-statement" id={`fact-${f.id}`}>
         {f.statement}
       </p>
@@ -128,7 +138,8 @@ function FactItem({
           </span>
         )}
       </p>
-      {source && source.quotes.length > 0 && (
+      {/* A damaged fact (opened read-only) may have no list of quotes. */}
+      {source && Array.isArray(source.quotes) && source.quotes.length > 0 && (
         <ul className="ws-evidence" aria-label="Quotes">
           {source.quotes.map((q, i) => (
             <li key={i}>
