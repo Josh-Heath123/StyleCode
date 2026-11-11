@@ -18,7 +18,7 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 
 ### Kick-off
 
-2026-11-04 09:00 UTC
+2026-11-04 11:00 (GMT+2)
 
 - Alex Owner, Owner, Harbour Bakery (client)
 - Sam Consultant, Consultant, Sam Consulting (consultant’s side)
@@ -32,7 +32,7 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 - **Kind:** Scalability
 - **Status:** Confirmed
 - **Provenance:** Said in a session
-- **Evidence:** “about five times as many orders in December” (said in Kick-off, by Alex Owner)
+- **Evidence:** “about five times as many orders in December”, said by Speaker 1 in Kick-off
 
 ### Assumptions
 
@@ -42,7 +42,7 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 - **Status:** Assumption
 - **Provenance:** Said in a session
 - **Proposed by:** AI (ollama, qwen2.5:7b), accepted by the consultant
-- **Evidence:** “we keep stock in a spreadsheet” (said in Kick-off, by Alex Owner)
+- **Evidence:** “we keep stock in a spreadsheet”, said by Alex Owner in Kick-off
 
 ### Open
 
@@ -51,7 +51,7 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 - **Kind:** Open question
 - **Status:** Unresolved
 - **Provenance:** Entered by the consultant
-- **Evidence:** “spreadsheet conflicts at month end” (note in Kick-off, 2026-11-04 09:05 UTC)
+- **Evidence:** “spreadsheet conflicts at month end”, a note in Kick-off at 2026-11-04 11:05 (GMT+2)
 
 ## Links
 
@@ -66,8 +66,8 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 - **How:** verbally at the start of the meeting
 - **Agreed to:** audio recording no; transcription yes; AI on this computer yes; AI by an external provider no
 - **Outcome:** given
-- **Confirmed:** by Sam Consultant, 2026-11-04 09:00 UTC
-- **Locked:** 2026-11-04 10:30 UTC
+- **Confirmed:** by Sam Consultant, 2026-11-04 11:00 (GMT+2)
+- **Locked:** 2026-11-04 12:30 (GMT+2)
 - **Allows now:** transcription, AI on this computer, AI by Anthropic (api.anthropic.com)
 
 What the client was told (wording draft-1; [x] = told):
@@ -79,7 +79,7 @@ What the client was told (wording draft-1; [x] = told):
 - [x] “The recording is kept until the project ends. The transcript and my notes are kept with the project's records.”
 - [x] “You can ask me to stop recording at any time, and ask me to delete the recording and the transcript.”
 
-**Amendment**, 2026-11-05 08:00 UTC, by Sam Consultant. Reason: The client agreed by email to Anthropic.
+**Amendment**, 2026-11-05 10:00 (GMT+2), by Sam Consultant. Reason: The client agreed by email to Anthropic.
 
 Changes: AI by an external provider yes; external provider Anthropic (api.anthropic.com).
 

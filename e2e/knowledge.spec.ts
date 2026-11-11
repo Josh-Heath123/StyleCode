@@ -171,6 +171,17 @@ test('deleting the transcript takes the fact’s quotes from it, and lists the f
   await expect(fact.getByRole('list', { name: 'Quotes' })).toHaveCount(0);
 });
 
+test('the export quotes the transcript with the speaker’s name and the session, at the meeting’s local time (WP9)', async ({
+  page,
+}) => {
+  await withFinding(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export as Markdown' }).click();
+  const text = readFileSync(await (await download).path(), 'utf8');
+  expect(text).toMatch(/- \*\*Evidence:\*\* “Accept the job.*”, said by Pieter van Wyk in Kick-off\n/);
+  expect(text).toContain('### Kick-off\n\n2026-11-05 10:00 (GMT+2)\n');
+});
+
 test('the company page’s knowledge works from the keyboard', async ({ page }) => {
   const id = await withFinding(page);
   await promote(page);

@@ -278,7 +278,11 @@ test('the record exports as Markdown with findings, links and consent, the same 
   expect(first.text).toContain('# Online ordering');
   expect(first.text).toContain('#### F1. Traffic peaks in December.');
   expect(first.text).toContain('- **Provenance:** Entered by the consultant');
-  expect(first.text).toContain('“Orders peak in December, about five times the usual.” (note in Kick-off');
+  // Times are the session's own, with the offset (Phase 2 brief, decision 18).
+  expect(first.text).toContain('### Kick-off\n\n2026-11-04 11:00 (GMT+2)\n');
+  expect(first.text).toContain(
+    '“Orders peak in December, about five times the usual.”, a note in Kick-off at 2026-11-04 11:10 (GMT+2)',
+  );
   expect(first.text).toContain('F1 (Traffic peaks in December.) **influences** F2');
   expect(first.text).toContain('## Consent');
   // Which AI statement the client heard, in the words shown, and what the record allows.

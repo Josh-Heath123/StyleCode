@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { exportEngagementMarkdown, exportFileName, md } from './exportMarkdown';
+import { exportEngagementMarkdown, exportFileName, localTime, md } from './exportMarkdown';
 import { sampleWorkspace, T3 } from './model/fixtures';
 import type { CompanyWorkspace } from './model/types';
 
 /**
  * The sample record, with what the export has to cover: a finding the
  * consultant added from a note, a withdrawn session's consent, an
- * amendment that told the client about external AI, and a second
- * engagement whose content must not appear.
+ * amendment that told the client about external AI, a second engagement
+ * whose content must not appear, and transcript labels that aren't the
+ * speaker's name: one matched to a participant, one not.
  */
 function record(): CompanyWorkspace {
   const ws = sampleWorkspace();
+  ws.segments.sg_2.speakerLabel = 'Speaker 2';
+  ws.participants.pa_client.speakerLabels = ['Alex Owner', 'Speaker 2'];
+  ws.segments.sg_1.speakerLabel = 'Speaker 1';
   delete ws.findings.fd_risk; // A pending proposal isn't in the record.
   ws.findings.fd_note = {
     id: 'fd_note',
@@ -80,6 +84,36 @@ describe('the Markdown export (MVP 8)', () => {
     );
     expect(exportFileName('Harbour Bakery', 'Online ordering')).toBe('harbour-bakery-online-ordering.md');
     expect(exportFileName('Café Ünïcode', '?!')).toBe('cafe-unicode.md');
+  });
+});
+
+describe('the export, Workspace Phase 2 (WP9)', () => {
+  it('names the speaker of a transcript quote: the matched participant, or the label', () => {
+    const out = exportEngagementMarkdown(record(), 'en_1');
+    expect(out).toContain('“we keep stock in a spreadsheet”, said by Alex Owner in Kick-off');
+    expect(out).toContain('“about five times as many orders in December”, said by Speaker 1 in Kick-off');
+  });
+
+  it('writes each session’s times in its own zone, with the offset (decision 18)', () => {
+    const ws = record();
+    expect(exportEngagementMarkdown(ws, 'en_1')).toContain('### Kick-off\n\n2026-11-04 11:00 (GMT+2)\n');
+    ws.sessions.se_1.timeZone = 'Asia/Kolkata';
+    const out = exportEngagementMarkdown(ws, 'en_1');
+    expect(out).toContain('2026-11-04 14:30 (GMT+5:30)');
+    expect(out).not.toMatch(/\d\d:\d\d UTC/);
+  });
+
+  it('gives the date and time where the session was, across midnight and summer time', () => {
+    expect(localTime('2026-11-04T23:30:00.000Z', 'Africa/Johannesburg')).toBe('2026-11-05 01:30 (GMT+2)');
+    expect(localTime('2026-07-01T09:00:00.000Z', 'Europe/London')).toBe('2026-07-01 10:00 (GMT+1)');
+    expect(localTime('2026-12-01T09:00:00.000Z', 'Europe/London')).toBe('2026-12-01 09:00 (GMT)');
+    expect(localTime('2026-12-01T09:00:00.000Z', 'America/New_York')).toBe('2026-12-01 04:00 (GMT-5)');
+  });
+
+  it('falls back to UTC for a zone or time it can’t read', () => {
+    expect(localTime('2026-11-04T09:00:00.000Z', 'Mars/Olympus_Mons')).toBe('2026-11-04 09:00 UTC');
+    expect(localTime('2026-11-04T09:00:00.000Z', undefined)).toBe('2026-11-04 09:00 UTC');
+    expect(localTime('soon', 'Africa/Johannesburg')).toBe('soon');
   });
 });
 

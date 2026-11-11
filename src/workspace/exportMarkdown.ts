@@ -1,14 +1,17 @@
 /**
  * An engagement's record as one Markdown file (MVP story 8; Phase 1 brief,
  * WP11). Pure and deterministic: the same record always gives the same
- * file, byte for byte. There is no export time in it, dates are written in
- * UTC, and everything has a fixed order. Nothing from other engagements or
- * other companies is included.
+ * file, byte for byte. There is no export time in it, and everything has a
+ * fixed order. Each session's times are written in the time zone it was
+ * created in, with the offset (Phase 2 brief, decision 18), so they read as
+ * the meeting's local time on any computer. Nothing from other engagements
+ * or other companies is included.
  */
 import { consentFor, consentState } from './model/consent.ts';
 import { recordGroups } from './model/findings.ts';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from './model/labels.ts';
 import { evidenceSession } from './model/record.ts';
+import { speakerOf } from './model/transcripts.ts';
 import {
   CONSENT_STATEMENTS,
   type CompanyWorkspace,
@@ -44,11 +47,45 @@ function heading(value: unknown): string {
 /** Compares by character codes, not the computer's language settings, so every computer sorts alike. */
 const byCode = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-/** A timestamp as a fixed, readable UTC time: "2026-11-04 09:00 UTC". */
+/** A timestamp as a fixed, readable UTC time: "2026-11-04 09:00 UTC", for times that belong to no session. */
 function utc(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 16)} UTC`;
+}
+
+/**
+ * A timestamp in a session's time zone, with the offset: "2026-11-05 10:00
+ * (GMT+2)" (decision 18). The parts are put together here, not by the
+ * computer's language settings, so every computer writes the same. Without a
+ * zone it can read, it is written in UTC.
+ */
+export function localTime(iso: string, timeZone: unknown): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t) || typeof timeZone !== 'string') return utc(iso);
+  let parts: Intl.DateTimeFormatPart[];
+  try {
+    parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZoneName: 'shortOffset',
+    }).formatToParts(t);
+  } catch {
+    return utc(iso);
+  }
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')} (${part('timeZoneName')})`;
+}
+
+/** A time in a session's zone, or in UTC if the session is gone. */
+function sessionTime(ws: CompanyWorkspace, sessionId: string | null | undefined, iso: string): string {
+  const session = sessionId ? get(ws.sessions, sessionId) : undefined;
+  return session ? localTime(iso, session.timeZone) : utc(iso);
 }
 
 const byTime =
@@ -93,7 +130,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   push('## Sessions', '');
   if (!sessions.length) push('No sessions.', '');
   for (const s of sessions) {
-    push(`### ${heading(s.title)}`, '', `${utc(s.startsAt)}`, '');
+    push(`### ${heading(s.title)}`, '', localTime(s.startsAt, s.timeZone), '');
     const people = Object.values(ws.participants)
       .filter((p) => p.sessionId === s.id)
       .sort(
@@ -179,18 +216,22 @@ function evidenceText(ws: CompanyWorkspace, e: Evidence): string {
   const sessionId = evidenceSession(ws, e);
   const session = sessionId ? get(ws.sessions, sessionId) : undefined;
   const where = session ? md(session.title) : 'a deleted session';
-  if (e.kind === 'deleted') return `a quote from ${where}, since deleted (${utc(e.deletedAt)})`;
+  if (e.kind === 'deleted') return `a quote from ${where}, since deleted (${sessionTime(ws, sessionId, e.deletedAt)})`;
   if (e.kind === 'note') {
     const note = get(ws.notes, e.noteId);
-    return `“${md(e.quote)}” (note in ${where}${note ? `, ${utc(note.writtenAt)}` : ''})`;
+    return `“${md(e.quote)}”, a note in ${where}${note ? ` at ${sessionTime(ws, sessionId, note.writtenAt)}` : ''}`;
   }
+  // The speaker: the participant matched to the transcript's label, or the label as the transcript gives it.
   const segment = get(ws.segments, e.segmentId);
-  return `“${md(e.quote)}” (said in ${where}${segment?.speakerLabel ? `, by ${md(segment.speakerLabel)}` : ''})`;
+  const label = segment?.speakerLabel;
+  const speaker = label ? (sessionId && speakerOf(ws, sessionId, label)?.name) || label : null;
+  return `“${md(e.quote)}”, said${speaker ? ` by ${md(speaker)}` : ''} in ${where}`;
 }
 
 const METHOD = { 'verbal-at-start': 'verbally at the start of the meeting', 'written-before': 'in writing beforehand' } as const;
 
 function consentLines(ws: CompanyWorkspace, r: ConsentRecord): string[] {
+  const at = (iso: string) => sessionTime(ws, r.sessionId, iso);
   const asked = r.askedParticipantIds.map((id) => md(get(ws.participants, id)?.name ?? id)).join(', ');
   const provider = r.given.externalProvider ?? r.told.externalProvider;
   const out = [
@@ -199,12 +240,12 @@ function consentLines(ws: CompanyWorkspace, r: ConsentRecord): string[] {
     `- **How:** ${r.method.kind === 'other' ? md(r.method.description) : METHOD[r.method.kind]}`,
     `- **Agreed to:** audio recording ${yesNo(r.given.audioRecording)}; transcription ${yesNo(r.given.transcription)}; AI on this computer ${yesNo(r.given.aiLocal)}; AI by an external provider ${r.given.aiExternal ? `yes (${md(r.given.externalProvider ?? '')})` : 'no'}`,
     `- **Outcome:** ${r.outcome.kind === 'given' ? 'given' : r.outcome.kind === 'declined' ? 'declined' : `given with limits: ${md(r.outcome.limits)}`}`,
-    `- **Confirmed:** ${r.confirmed ? `by ${md(r.confirmed.by)}, ${utc(r.confirmed.at)}` : 'no (a draft, which allows nothing)'}`,
+    `- **Confirmed:** ${r.confirmed ? `by ${md(r.confirmed.by)}, ${at(r.confirmed.at)}` : 'no (a draft, which allows nothing)'}`,
   ];
   // How long audio is kept means something only once audio recording was agreed, as on the form.
   if (r.given.audioRecording || r.amendments.some((a) => a.kind === 'change' && a.given?.audioRecording))
     out.splice(4, 0, `- **Retention:** ${retentionText(r.retention)}`);
-  if (r.lockedAt) out.push(`- **Locked:** ${utc(r.lockedAt)}`);
+  if (r.lockedAt) out.push(`- **Locked:** ${at(r.lockedAt)}`);
   // What the record allows now, after its amendments (consentState): the answer a reader is looking for.
   const state = consentState(r);
   const allowed = [
@@ -218,7 +259,7 @@ function consentLines(ws: CompanyWorkspace, r: ConsentRecord): string[] {
   );
   out.push('', `What the client was told (wording ${md(r.wordingVersion)}; [x] = told):`, '');
   out.push(...wordingLines(r.wordingVersion, (s) => r.told[s] === true, provider, r.retention));
-  for (const a of [...r.amendments].sort(byTime((x) => x.at))) out.push('', ...amendmentLines(a, provider, r.retention));
+  for (const a of [...r.amendments].sort(byTime((x) => x.at))) out.push('', ...amendmentLines(a, at, provider, r.retention));
   return out;
 }
 
@@ -235,8 +276,13 @@ function wordingLines(
   );
 }
 
-function amendmentLines(a: ConsentAmendment, provider: string | null, retention: Retention): string[] {
-  const head = `**${a.kind === 'withdrawal' ? 'Withdrawal' : 'Amendment'}**, ${utc(a.at)}, by ${md(a.by)}. Reason: ${md(a.reason)}`;
+function amendmentLines(
+  a: ConsentAmendment,
+  at: (iso: string) => string,
+  provider: string | null,
+  retention: Retention,
+): string[] {
+  const head = `**${a.kind === 'withdrawal' ? 'Withdrawal' : 'Amendment'}**, ${at(a.at)}, by ${md(a.by)}. Reason: ${md(a.reason)}`;
   if (a.kind === 'withdrawal') return [head];
   const out = [head];
   const changes: string[] = [];
