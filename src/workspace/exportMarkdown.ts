@@ -12,6 +12,7 @@ import { recordGroups } from './model/findings.ts';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from './model/labels.ts';
 import { evidenceSession } from './model/record.ts';
 import { speakerOf } from './model/transcripts.ts';
+import { offsetMs, wallClock, type WallClock } from './import/zone.ts';
 import {
   CONSENT_STATEMENTS,
   type CompanyWorkspace,
@@ -56,30 +57,29 @@ function utc(iso: string): string {
 
 /**
  * A timestamp in a session's time zone, with the offset: "2026-11-05 10:00
- * (GMT+2)" (decision 18). The parts are put together here, not by the
- * computer's language settings, so every computer writes the same. Without a
- * zone it can read, it is written in UTC.
+ * (GMT+2)" (decision 18). Only the zone's clock comes from `Intl`, as
+ * numbers; the text, including the offset, is put together here. The
+ * offset's name isn't taken from `Intl`, because its wording depends on the
+ * locale data each Node and browser carries ("GMT" or "GMT+0"), and the file
+ * must be the same on every computer. Without a zone it can read, the time is
+ * written in UTC.
  */
 export function localTime(iso: string, timeZone: unknown): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t) || typeof timeZone !== 'string') return utc(iso);
-  let parts: Intl.DateTimeFormatPart[];
+  let clock: WallClock;
+  let offset: number;
   try {
-    parts = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-      timeZoneName: 'shortOffset',
-    }).formatToParts(t);
+    clock = wallClock(t, timeZone);
+    offset = Math.round(offsetMs(t, timeZone) / 60_000);
   } catch {
     return utc(iso);
   }
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
-  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')} (${part('timeZoneName')})`;
+  const two = (n: number) => String(n).padStart(2, '0');
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const minutes = Math.abs(offset) % 60;
+  const gmt = offset === 0 ? 'GMT' : `GMT${offset < 0 ? '-' : '+'}${hours}${minutes ? `:${two(minutes)}` : ''}`;
+  return `${clock.year}-${two(clock.month)}-${two(clock.day)} ${two(clock.hour)}:${two(clock.minute)} (${gmt})`;
 }
 
 /** A time in a session's zone, or in UTC if the session is gone. */

@@ -108,6 +108,10 @@ describe('the export, Workspace Phase 2 (WP9)', () => {
     expect(localTime('2026-07-01T09:00:00.000Z', 'Europe/London')).toBe('2026-07-01 10:00 (GMT+1)');
     expect(localTime('2026-12-01T09:00:00.000Z', 'Europe/London')).toBe('2026-12-01 09:00 (GMT)');
     expect(localTime('2026-12-01T09:00:00.000Z', 'America/New_York')).toBe('2026-12-01 04:00 (GMT-5)');
+    // The offset is written by StyleCode, not by the locale data, which differs between Node and browser versions.
+    expect(localTime('2026-12-01T09:00:00.000Z', 'Etc/UTC')).toBe('2026-12-01 09:00 (GMT)');
+    expect(localTime('2026-12-01T09:00:00.000Z', 'Asia/Kathmandu')).toBe('2026-12-01 14:45 (GMT+5:45)');
+    expect(localTime('2026-12-01T09:00:00.000Z', 'America/St_Johns')).toBe('2026-12-01 05:30 (GMT-3:30)');
   });
 
   it('falls back to UTC for a zone or time it can’t read', () => {

@@ -520,7 +520,7 @@ As built in Workspace Phase 1 (`server/workspace/store.ts`):
 
 **Files** upload as raw bytes (`POST …/files`), are listed as `FileRef`s, and download through `fetch` with the workspace header, saved as `application/octet-stream` with `<a download>`, so a stored HTML or SVG file never runs as StyleCode's page.
 
-**The Markdown export** (`src/workspace/exportMarkdown.ts`) is pure and deterministic: no export time, a fixed order, and text escaped so it can't become Markdown structure. Labels for kinds, statuses, provenance and links come from `model/labels.ts`, shared with the pages. Since Phase 2, each session's times are written in the session's own IANA zone with the offset (`2026-11-05 10:00 (GMT+2)`), put together from `Intl` parts rather than the computer's language, so every computer writes the same file; a time with no session left is written in UTC.
+**The Markdown export** (`src/workspace/exportMarkdown.ts`) is pure and deterministic: no export time, a fixed order, and text escaped so it can't become Markdown structure. Labels for kinds, statuses, provenance and links come from `model/labels.ts`, shared with the pages. Since Phase 2, each session's times are written in the session's own IANA zone with the offset (`2026-11-05 10:00 (GMT+2)`), with only the zone's clock read from `Intl`, as numbers, and the text and the offset put together in code, because the offset's wording in `Intl` differs between Node and browser versions ("GMT" or "GMT+0"). So every computer writes the same file; a time with no session left is written in UTC.
 
 ### Transcripts, extraction and company knowledge (built in Workspace Phase 2)
 
