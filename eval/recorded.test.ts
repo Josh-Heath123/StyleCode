@@ -18,8 +18,8 @@ const ids = readdirSync(CONSULTATIONS).sort();
 const json = <T>(...path: string[]) => JSON.parse(readFileSync(join(...path), 'utf8')) as T;
 
 describe('the evaluation set', () => {
-  it('has the three consultations of decision 19', () => {
-    expect(ids).toEqual(['karoo-freight-kickoff', 'umoya-school-portal', 'veldt-vets-booking']);
+  it('has the three consultations of decision 19 and the hour-long one of Phase 3', () => {
+    expect(ids).toEqual(['bosveld-citrus-intake', 'karoo-freight-kickoff', 'umoya-school-portal', 'veldt-vets-booking']);
   });
 
   it.each(ids)('%s: the transcript and the key’s segments are up to date', async (id) => {

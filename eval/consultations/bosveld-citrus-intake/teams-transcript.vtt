@@ -1,0 +1,2741 @@
+WEBVTT
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/12-0
+00:00:03.100 --> 00:00:13.687
+<v Ayesha Patel>Morning, everyone. Thank you for having me, and thanks for the coffee, Johan. Um, before we start, there's one thing I need to check with all of you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/12-1
+00:00:13.687 --> 00:00:20.523
+<v Ayesha Patel>I'd like to keep a transcript of this meeting so I can write up the requirements properly afterwards.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/12-2
+00:00:20.523 --> 00:00:32.236
+<v Ayesha Patel>And I use an AI assistant that runs on my own laptop to help me sort through the transcript. Nothing goes to an outside service. Are you all comfortable with that?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/13-0
+00:00:32.551 --> 00:00:34.677
+<v Johan Steenkamp>Ja, that's fine with me.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/14-0
+00:00:35.675 --> 00:00:37.051
+<v Precious Maluleke>Yes, no problem.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/15-0
+00:00:37.306 --> 00:00:43.183
+<v Sipho Ngobeni>Fine by me. As long as it doesn't, uh, end up on the internet somewhere.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/16-0
+00:00:43.580 --> 00:00:51.583
+<v Ayesha Patel>It won't. It stays on this laptop, and if anyone wants me to stop at any point, just say so. Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/16-1
+00:00:51.583 --> 00:01:01.087
+<v Ayesha Patel>How was the road this morning, by the way? I came in on the R71 from Polokwane and the stop-and-go at the pass was terrible.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/17-0
+00:01:01.454 --> 00:01:09.957
+<v Johan Steenkamp>Ag, those road works. They've been there since Easter. My wife says they're building a new road one spade at a time.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/18-0
+00:01:10.700 --> 00:01:13.576
+<v Precious Maluleke>It's worse in the afternoon. The trucks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/19-0
+00:01:14.297 --> 00:01:24.176
+<v Ayesha Patel>I'll leave early, then. Okay, so I've read the email you sent, Johan, but I'd really like to hear it from you in your own words.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/19-1
+00:01:24.176 --> 00:01:29.928
+<v Ayesha Patel>Maybe start with the co-op itself, and then what made you pick up the phone.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/20-0
+00:01:30.289 --> 00:01:35.249
+<v Johan Steenkamp>Sure. So, Bosveld Citrus Co-operative. We're in Letsitele, about twenty-five kilometres outside Tzaneen.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/20-1
+00:01:35.249 --> 00:01:43.961
+<v Johan Steenkamp>We pack citrus for our members, mostly oranges, Valencias and navels, then some lemons, and a fair amount of soft citrus, the mandarins.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/20-2
+00:01:43.961 --> 00:01:47.796
+<v Johan Steenkamp>The co-op was started in nineteen seventy-eight by eleven farmers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/21-0
+00:01:48.495 --> 00:01:49.120
+<v Sipho Ngobeni>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/22-0
+00:01:49.682 --> 00:01:54.267
+<v Johan Steenkamp>And today we've got, uh, about a hundred and forty member growers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/22-1
+00:01:54.267 --> 00:02:04.104
+<v Johan Steenkamp>Some of them are big commercial farms with a few hundred hectares, and some are small growers from the Nkowankowa side with five or six hectares.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/22-2
+00:02:04.104 --> 00:02:08.314
+<v Johan Steenkamp>Everybody's fruit comes through the one packhouse, here, behind this office.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/23-0
+00:02:08.612 --> 00:02:11.113
+<v Ayesha Patel>And the packhouse runs all year?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/24-0
+00:02:11.397 --> 00:02:21.651
+<v Johan Steenkamp>No, no. The season is, roughly, from the end of March with the early mandarins until about the middle of September, when the last Valencias go through.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/24-1
+00:02:21.651 --> 00:02:27.403
+<v Johan Steenkamp>Outside of that we do maintenance, we do the books, and we argue about prices.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/25-0
+00:02:27.752 --> 00:02:29.878
+<v Sipho Ngobeni>Mostly we argue about prices.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/26-0
+00:02:30.430 --> 00:02:35.766
+<v Johan Steenkamp>Ja, mostly. So what made me pick up the phone. Honestly, it's the growers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/26-1
+00:02:35.766 --> 00:02:44.477
+<v Johan Steenkamp>They phone us all day. Where's my fruit, what was my packout, when do I get paid, why did my bins get downgraded?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/26-2
+00:02:44.477 --> 00:02:53.189
+<v Johan Steenkamp>And we can't answer them quickly, because the information is in, I'd say, five different places. And some of it is on paper.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/27-0
+00:02:54.045 --> 00:02:57.672
+<v Ayesha Patel>Five different places. Can you walk me through them?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/28-0
+00:02:57.936 --> 00:03:02.688
+<v Johan Steenkamp>Precious can do that better than me. She lives in the packhouse.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/29-0
+00:03:03.372 --> 00:03:11.750
+<v Precious Maluleke>Ja, okay. So it starts at the weighbridge. A grower's truck comes in, or a contractor's truck, with bins on the back.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/29-1
+00:03:11.750 --> 00:03:15.627
+<v Precious Maluleke>Each bin is about four hundred kilos when it's full.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/30-0
+00:03:16.087 --> 00:03:16.712
+<v Ayesha Patel>Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/31-0
+00:03:16.967 --> 00:03:24.220
+<v Precious Maluleke>The truck goes over the weighbridge, and our clerk writes a delivery ticket. It's a carbon book, three copies.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/31-1
+00:03:24.220 --> 00:03:29.597
+<v Precious Maluleke>White copy for the grower, pink for the office, yellow stays in the book.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/32-0
+00:03:30.439 --> 00:03:31.065
+<v Ayesha Patel>Handwritten?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/33-0
+00:03:31.699 --> 00:03:40.827
+<v Precious Maluleke>Handwritten. The weighbridge has a little computer with the scale program on it, it's called WeighMate, and it prints the weight on a slip.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/33-1
+00:03:40.827 --> 00:03:50.331
+<v Precious Maluleke>Then the clerk copies the weight onto the ticket, with the grower number, the farm, the orchard block, the cultivar and the number of bins.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/34-0
+00:03:51.188 --> 00:03:56.690
+<v Ayesha Patel>So the weight comes from the machine, but everything else is written by hand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/35-0
+00:03:56.984 --> 00:04:07.738
+<v Precious Maluleke>Exactly. Then the bins go into the holding area. They get a, uh, a cardboard tag tied on with the ticket number, and they wait for the line.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/36-0
+00:04:08.167 --> 00:04:10.293
+<v Ayesha Patel>How long do they wait?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/37-0
+00:04:10.886 --> 00:04:21.891
+<v Precious Maluleke>It depends. In the peak, sometimes two days. The early mandarins have to go through degreening first, in the rooms at the back, so it can be a while.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/37-1
+00:04:21.891 --> 00:04:24.642
+<v Precious Maluleke>The oranges usually go the next day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/38-0
+00:04:25.460 --> 00:04:26.835
+<v Ayesha Patel>Okay. And then?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/39-0
+00:04:27.114 --> 00:04:35.867
+<v Precious Maluleke>Then the bins go onto the line. We've got an optical grader, the Optisort, that photographs every fruit and sorts it into classes.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/39-1
+00:04:35.867 --> 00:04:46.871
+<v Precious Maluleke>Class one for export, class two for the local market, and then juice. The grader's computer makes a report for each batch. A batch is basically one delivery ticket.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/40-0
+00:04:47.545 --> 00:04:48.170
+<v Ayesha Patel>Right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/41-0
+00:04:49.003 --> 00:04:56.381
+<v Precious Maluleke>And the report says how many cartons of each class and the percentages. That's what we call the packout.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/42-0
+00:04:56.915 --> 00:05:00.166
+<v Ayesha Patel>And the report lives on the grader's computer.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/43-0
+00:05:00.524 --> 00:05:11.278
+<v Precious Maluleke>It lives on the grader's computer. Tannie Marietjie in the office prints them out every afternoon and files them, and then she types the totals into a spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/44-0
+00:05:11.563 --> 00:05:15.939
+<v Sipho Ngobeni>My spreadsheet. Well, it's the co-op's spreadsheet, but I built it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/45-0
+00:05:16.599 --> 00:05:20.976
+<v Ayesha Patel>Okay. So Sipho, the spreadsheet is yours. What does it do?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/46-0
+00:05:21.668 --> 00:05:28.128
+<v Sipho Ngobeni>So the spreadsheet is, uh, the heart of the whole thing, unfortunately. Every delivery is a row.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/46-1
+00:05:28.128 --> 00:05:35.339
+<v Sipho Ngobeni>Marietjie types in the ticket from the pink copy, and then she adds the packout from the grader report.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/46-2
+00:05:35.339 --> 00:05:42.926
+<v Sipho Ngobeni>And then at the end of each month I use that to work out the advance payments to the growers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/47-0
+00:05:43.431 --> 00:05:44.807
+<v Ayesha Patel>Advance payments meaning?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/48-0
+00:05:45.743 --> 00:05:50.703
+<v Sipho Ngobeni>So in citrus you don't get paid the full price when you deliver.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/48-1
+00:05:50.703 --> 00:06:00.540
+<v Sipho Ngobeni>The fruit gets exported, it goes on a ship, it gets sold in Rotterdam or wherever, and only months later do we know the final price.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/48-2
+00:06:00.540 --> 00:06:11.127
+<v Sipho Ngobeni>So we pay the growers an advance. So much per carton of class one, so much per carton of class two, a few rand per bin of juice.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/49-0
+00:06:11.638 --> 00:06:12.263
+<v Johan Steenkamp>Mm-hm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/50-0
+00:06:13.203 --> 00:06:19.456
+<v Sipho Ngobeni>And then after the season there's a final pool payment, when all the money is in.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/51-0
+00:06:20.040 --> 00:06:26.292
+<v Ayesha Patel>Right. So the monthly calculation is the advance, and the pool payment is once a year.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/52-0
+00:06:26.707 --> 00:06:31.084
+<v Sipho Ngobeni>Once a year, usually in February. And that one's a beast.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/53-0
+00:06:31.523 --> 00:06:38.150
+<v Ayesha Patel>I can imagine. And the growers, how do they find out what they've been paid, and why?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/54-0
+00:06:38.912 --> 00:06:48.416
+<v Sipho Ngobeni>They get a statement. I make it in the spreadsheet, and Marietjie prints it and posts it, or emails it to those who have email.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/54-1
+00:06:48.416 --> 00:06:56.419
+<v Sipho Ngobeni>Some of them still come and collect it at the office, they like to have a cup of tea with her.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/55-0
+00:06:56.766 --> 00:07:00.768
+<v Ayesha Patel>How long after the month ends do they get it?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/56-0
+00:07:01.343 --> 00:07:10.596
+<v Sipho Ngobeni>Um, honestly, three weeks. Sometimes more. Because everything has to be typed first, and checked, and then I have to reconcile with the bank.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/57-0
+00:07:11.595 --> 00:07:14.471
+<v Johan Steenkamp>And that's when the phone starts ringing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/58-0
+00:07:15.093 --> 00:07:21.345
+<v Ayesha Patel>So the growers are phoning because they don't know where they stand for three, four weeks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/59-0
+00:07:21.779 --> 00:07:29.157
+<v Johan Steenkamp>Exactly. And look, I understand them. A small grower with six hectares, that's his whole income for the year.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/60-0
+00:07:29.952 --> 00:07:30.577
+<v Precious Maluleke>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/61-0
+00:07:31.414 --> 00:07:41.793
+<v Johan Steenkamp>He delivered thirty bins two weeks ago, and he doesn't know whether they packed out at eighty percent or forty percent. Of course he's going to phone.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/62-0
+00:07:42.108 --> 00:07:44.984
+<v Ayesha Patel>How many calls are we talking about?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/63-0
+00:07:45.323 --> 00:07:54.826
+<v Precious Maluleke>In the season? I'd say, uh, Marietjie gets forty, fifty calls a day. And I get the ones about the grading, maybe ten a day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/63-1
+00:07:54.826 --> 00:07:56.827
+<v Precious Maluleke>Those are the angry ones.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/64-0
+00:07:57.199 --> 00:07:58.199
+<v Ayesha Patel>Why angry?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/65-0
+00:07:59.143 --> 00:08:10.898
+<v Precious Maluleke>Because when a batch packs out badly, the grower thinks we made a mistake. He thinks his bins got mixed up with someone else's. And sometimes, to be honest, they did.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/65-1
+00:08:10.898 --> 00:08:18.901
+<v Precious Maluleke>Because the cardboard tag fell off, or the ticket number was written badly and someone read a seven as a one.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/66-0
+00:08:19.397 --> 00:08:22.648
+<v Ayesha Patel>Okay, that's important. How often does that happen?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/67-0
+00:08:23.415 --> 00:08:35.544
+<v Precious Maluleke>Not often. Maybe, I don't know, two or three times a week in the peak. But every time it happens it's a big fight, and it takes a day to sort out.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/67-1
+00:08:35.544 --> 00:08:41.297
+<v Precious Maluleke>I have to go through the grader reports and the tickets and phone the driver.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/68-0
+00:08:41.725 --> 00:08:52.687
+<v Ayesha Patel>Let me make sure I've got the picture. A truck comes in, it goes over the weighbridge, the clerk writes a ticket by hand with the weight from WeighMate.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/68-1
+00:08:52.687 --> 00:08:58.023
+<v Ayesha Patel>The bins get a cardboard tag, they wait, they go through the Optisort grader.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/68-2
+00:08:58.023 --> 00:09:09.736
+<v Ayesha Patel>The grader report gets printed, Marietjie types the ticket and the packout into Sipho's spreadsheet, and Sipho works out the advance at the end of the month and makes a statement.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/69-0
+00:09:10.177 --> 00:09:13.053
+<v Sipho Ngobeni>That's it. That's the whole sad story.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/70-0
+00:09:13.780 --> 00:09:16.656
+<v Ayesha Patel>And the fifth place? Johan said five.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/71-0
+00:09:17.281 --> 00:09:22.992
+<v Johan Steenkamp>Oh, the QC lab. Sorry. Before a grower picks an orchard, our lab tests samples.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/71-1
+00:09:22.992 --> 00:09:30.953
+<v Johan Steenkamp>The sugar and the acid and the juice percentage, to see if the fruit is mature enough for export. Maturity tests.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/71-2
+00:09:30.953 --> 00:09:40.415
+<v Johan Steenkamp>That's on paper too, and the results go to the grower by WhatsApp. Our QC lady takes a photo of the sheet and sends it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/72-0
+00:09:41.413 --> 00:09:44.289
+<v Ayesha Patel>Okay. And spray records? You mentioned export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/73-0
+00:09:44.920 --> 00:09:48.755
+<v Johan Steenkamp>Ja, that's a sixth place, now that you mention it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/73-1
+00:09:48.755 --> 00:09:57.841
+<v Johan Steenkamp>Every grower has to give us his spray records before we can pack his fruit for export, because the European buyers test for residues.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/73-2
+00:09:57.841 --> 00:10:01.676
+<v Johan Steenkamp>Those are in a lever arch file in my office.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/74-0
+00:10:01.978 --> 00:10:13.858
+<v Ayesha Patel>So there's paper and spreadsheets everywhere, and the growers can't see any of it themselves. That's really helpful. What's the most painful part for you, if you had to pick one?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/75-0
+00:10:14.336 --> 00:10:17.087
+<v Johan Steenkamp>The phone calls. No, wait. The statements.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/75-1
+00:10:17.087 --> 00:10:23.215
+<v Johan Steenkamp>Because if the statements came out in a week, half the phone calls would go away.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/76-0
+00:10:23.613 --> 00:10:31.366
+<v Sipho Ngobeni>For me it's the typing. Marietjie types for, what, three, four hours a day in the season. And she's retiring.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/77-0
+00:10:32.222 --> 00:10:32.847
+<v Ayesha Patel>When?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/78-0
+00:10:33.460 --> 00:10:40.463
+<v Sipho Ngobeni>End of June next year. Right in the middle of the season, which is a whole other problem.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/79-0
+00:10:41.450 --> 00:10:46.202
+<v Ayesha Patel>That's a real risk. Is there someone to take over from her?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/80-0
+00:10:46.936 --> 00:10:52.313
+<v Johan Steenkamp>Not yet. We'll advertise. But nobody else knows that spreadsheet like her and Sipho.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/80-1
+00:10:52.313 --> 00:10:59.566
+<v Johan Steenkamp>She knows every grower by name, she knows whose son is farming now and whose wife does the books.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/81-0
+00:10:59.905 --> 00:11:06.908
+<v Ayesha Patel>Okay. So let's talk about what you'd like. If this goes well, a year from now, what's different?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/82-0
+00:11:07.533 --> 00:11:19.287
+<v Johan Steenkamp>The growers can see their own deliveries and their packout on their phones, the same day or the day after. They get their statements in a few days, not three weeks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/82-1
+00:11:19.287 --> 00:11:22.789
+<v Johan Steenkamp>And we stop answering fifty phone calls a day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/83-0
+00:11:23.212 --> 00:11:27.964
+<v Ayesha Patel>Is there a number you'd want to hit? Fewer calls, faster statements?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/84-0
+00:11:28.743 --> 00:11:37.622
+<v Johan Steenkamp>Half. If the calls go down by half, I'd be happy. And statements within, let's say, five working days after the month end.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/85-0
+00:11:38.455 --> 00:11:45.458
+<v Sipho Ngobeni>Five working days is tight, but, ja. If I don't have to wait for the typing, it's possible.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/86-0
+00:11:45.878 --> 00:11:51.005
+<v Ayesha Patel>Good. I'll write those down as the goals. Precious, from the packhouse side?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/87-0
+00:11:51.423 --> 00:12:02.803
+<v Precious Maluleke>For me it's the tickets. I want the weighbridge to be quicker, and I want the bins to be traceable without a cardboard tag that falls off in the rain.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/87-1
+00:12:02.803 --> 00:12:11.181
+<v Precious Maluleke>If every bin had a barcode or something, and you scanned it, then we'd always know whose fruit is on the line.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/88-0
+00:12:12.088 --> 00:12:16.089
+<v Ayesha Patel>Do the bins have anything on them today? A number?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/89-0
+00:12:16.756 --> 00:12:22.133
+<v Precious Maluleke>The bins belong to the growers, mostly. Some have numbers painted on, some don't.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/89-1
+00:12:22.133 --> 00:12:32.387
+<v Precious Maluleke>The co-op has about, uh, three thousand of its own bins that we lend out to the small growers, and those have numbers burnt into the plastic.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/90-0
+00:12:32.723 --> 00:12:36.725
+<v Ayesha Patel>So putting a permanent label on each bin isn't straightforward.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/91-0
+00:12:37.674 --> 00:12:44.927
+<v Precious Maluleke>No. That's why I said barcode or something. Maybe the barcode is on the tag, not on the bin.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/91-1
+00:12:44.927 --> 00:12:52.555
+<v Precious Maluleke>A plastic tag that you clip on, and it comes back to the weighbridge. I don't know, you're the expert.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/92-0
+00:12:53.273 --> 00:13:03.152
+<v Ayesha Patel>I'm not sure I'm the expert on bins, but I'll look into what other packhouses do. Let me note that as something to work out together.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/92-1
+00:13:03.152 --> 00:13:08.904
+<v Ayesha Patel>So, scanning a tag at intake, and again when the bin goes onto the line.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/93-0
+00:13:09.747 --> 00:13:15.999
+<v Precious Maluleke>Yes. At the tipper, where they tip the bins into the water. That's where we'd scan.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/94-0
+00:13:16.878 --> 00:13:22.631
+<v Ruan du Toit (Guest)>Hi, sorry, sorry. Is this the system meeting? Johan said half past nine, I think.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/94-1
+00:13:22.631 --> 00:13:25.007
+<v Ruan du Toit (Guest)>Or I heard half past nine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/95-0
+00:13:25.435 --> 00:13:31.187
+<v Johan Steenkamp>It was nine, Ruan. Come in, sit. Ayesha, this is Ruan, he does our IT.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/95-1
+00:13:31.187 --> 00:13:36.939
+<v Johan Steenkamp>He's not staff, he's a contractor, but he's here every Wednesday, and whenever something breaks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/96-0
+00:13:37.218 --> 00:13:48.723
+<v Ayesha Patel>Hi Ruan, nice to meet you. We've just been through how a delivery goes from the weighbridge to the statement, and Precious was talking about scanning bins at the tipper.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/97-0
+00:13:49.659 --> 00:13:55.536
+<v Ruan du Toit (Guest)>Ah, okay. Ja, the scanning. Precious has been on about the scanning for a year.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/98-0
+00:13:56.353 --> 00:13:57.728
+<v Precious Maluleke>Because it's needed.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/99-0
+00:13:58.200 --> 00:14:00.326
+<v Ruan du Toit (Guest)>No, I agree, I agree.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/100-0
+00:14:00.679 --> 00:14:08.056
+<v Ayesha Patel>Ruan, it's actually a good moment for you. What's the network like? At the weighbridge, and at the tipper.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/101-0
+00:14:08.345 --> 00:14:15.723
+<v Ruan du Toit (Guest)>Uh, so. The office and the packhouse are on fibre, it came in two years ago, and it's okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/102-0
+00:14:16.614 --> 00:14:17.239
+<v Johan Steenkamp>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/103-0
+00:14:17.776 --> 00:14:26.112
+<v Ruan du Toit (Guest)>But the weighbridge is at the gate, about three hundred metres from the office, and it's on a wireless link, a point-to-point.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/103-1
+00:14:26.112 --> 00:14:32.948
+<v Ruan du Toit (Guest)>When it rains hard, or when there's load-shedding and the battery at the gate runs flat, it drops.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/103-2
+00:14:32.948 --> 00:14:38.659
+<v Ruan du Toit (Guest)>The tipper is inside the packhouse, so that's fine, the Wi-Fi in there is decent.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/104-0
+00:14:39.637 --> 00:14:42.138
+<v Ayesha Patel>How often does the weighbridge drop?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/105-0
+00:14:42.424 --> 00:14:47.051
+<v Ruan du Toit (Guest)>In the season, maybe once a week, for an hour or so.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/105-1
+00:14:47.051 --> 00:14:59.181
+<v Ruan du Toit (Guest)>And when the whole area's fibre goes down, which happens, someone digs up a cable next to the R36 or whatever, then everything's off. Last year we had a full day once.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/106-0
+00:15:00.099 --> 00:15:04.100
+<v Ayesha Patel>So the weighbridge has to keep working without the network.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/107-0
+00:15:04.502 --> 00:15:16.381
+<v Johan Steenkamp>It has to. We cannot stop trucks at the gate. If a truck waits, the fruit sits in the sun, and the next twenty trucks are behind it on the road.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/108-0
+00:15:16.633 --> 00:15:25.512
+<v Ayesha Patel>Okay. So the intake has to work offline and catch up when the link is back. I'll write that as a firm requirement.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/109-0
+00:15:25.893 --> 00:15:35.146
+<v Ruan du Toit (Guest)>Ja. And to be honest, I can put a bigger battery on the gate, that's not expensive. But the fibre outages I can't fix.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/110-0
+00:15:35.397 --> 00:15:41.649
+<v Ayesha Patel>Let's talk about WeighMate for a second. Is it something you can get data out of?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/111-0
+00:15:42.263 --> 00:15:48.016
+<v Ruan du Toit (Guest)>WeighMate is old. It runs on a Windows PC under the counter at the gate.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/111-1
+00:15:48.016 --> 00:15:56.019
+<v Ruan du Toit (Guest)>It writes every weighing to a little database file, and it can export a CSV at the end of the day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/112-0
+00:15:56.822 --> 00:15:57.448
+<v Ayesha Patel>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/113-0
+00:15:58.000 --> 00:16:03.753
+<v Ruan du Toit (Guest)>And I think the scale indicator is connected to the PC by a serial cable.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/113-1
+00:16:03.753 --> 00:16:11.381
+<v Ruan du Toit (Guest)>So if you wanted the weight live, you could probably read it straight from the indicator, without WeighMate at all.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/114-0
+00:16:12.374 --> 00:16:15.250
+<v Ayesha Patel>That's useful. And the grader, the Optisort?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/115-0
+00:16:16.090 --> 00:16:25.969
+<v Ruan du Toit (Guest)>That's the problem one. The Optisort was bought in twenty nineteen, from the supplier overseas, through their agent in Cape Town. Its computer is locked down.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/115-1
+00:16:25.969 --> 00:16:37.723
+<v Ruan du Toit (Guest)>The reports come out as PDFs. There might be a database underneath, but we don't have the password, and the agent says if we touch it, we void the support contract.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/116-0
+00:16:38.555 --> 00:16:42.932
+<v Ayesha Patel>So getting the packout out of the grader automatically is uncertain.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/117-0
+00:16:43.727 --> 00:16:53.355
+<v Ruan du Toit (Guest)>Very uncertain. I can ask the agent whether they have an export, a CSV or an API or something. They might want money for it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/118-0
+00:16:54.129 --> 00:16:58.881
+<v Ayesha Patel>Would you mind asking them? That's probably the biggest unknown we've got.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/119-0
+00:16:59.417 --> 00:17:03.043
+<v Ruan du Toit (Guest)>I'll ask. I'll send them an email this week.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/120-0
+00:17:03.704 --> 00:17:12.958
+<v Ayesha Patel>Thank you. And if the answer is no, the fallback is someone typing the totals from the report, which is what Marietjie does now.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/121-0
+00:17:13.619 --> 00:17:17.996
+<v Sipho Ngobeni>Or reading the PDF automatically? Can't a computer read a PDF?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/122-0
+00:17:18.587 --> 00:17:30.092
+<v Ayesha Patel>Sometimes, if the PDF has real text in it and the layout never changes. I'd need to see a few. Can someone send me some grader reports from last season?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/123-0
+00:17:30.599 --> 00:17:34.225
+<v Precious Maluleke>I'll send you some. Good batches and bad ones.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/124-0
+00:17:35.005 --> 00:17:39.382
+<v Ayesha Patel>Perfect. And on the accounting side, Sipho, what do you use?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/125-0
+00:17:39.974 --> 00:17:50.603
+<v Sipho Ngobeni>We use LedgerOne for the books. The payments to the growers go out through the bank, in a batch file that I upload to the bank's business banking.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/125-1
+00:17:50.603 --> 00:17:58.231
+<v Sipho Ngobeni>The spreadsheet makes the batch file, actually. Well, it makes a list, and I copy it into the bank's template.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/126-0
+00:17:58.684 --> 00:18:03.811
+<v Ayesha Patel>So the payment calculation is in your spreadsheet, and LedgerOne gets the totals.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/127-0
+00:18:04.672 --> 00:18:09.798
+<v Sipho Ngobeni>The totals, ja. I journal them in at the end of the month.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/128-0
+00:18:10.542 --> 00:18:19.045
+<v Ayesha Patel>Would you want the new system to calculate the advances, or do you want to keep that in your spreadsheet for now?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/129-0
+00:18:19.477 --> 00:18:22.936
+<v Sipho Ngobeni>Hmm. Honestly? Keep it in my spreadsheet for now.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/129-1
+00:18:22.936 --> 00:18:34.649
+<v Sipho Ngobeni>The rules change every season. The board decides different advance rates for different cultivars and sizes, and I don't want to phone a developer every time the board changes its mind.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/129-2
+00:18:34.649 --> 00:18:40.360
+<v Sipho Ngobeni>If the system gives me the deliveries and the packout, clean, I'll do the sums.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/130-0
+00:18:41.118 --> 00:18:45.869
+<v Johan Steenkamp>I agree. Let's not build the payment engine in the first round.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/131-0
+00:18:46.198 --> 00:18:48.157
+<v Ayesha Patel>Okay, so that's a decision.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/131-1
+00:18:48.157 --> 00:18:59.119
+<v Ayesha Patel>The payment calculation stays in Sipho's spreadsheet for phase one, and the new system gives him the deliveries and packout as an export he can open in the spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/131-2
+00:18:59.119 --> 00:19:05.205
+<v Ayesha Patel>And then the statement. Does the statement come from the new system or from the spreadsheet?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/132-0
+00:19:05.643 --> 00:19:13.646
+<v Sipho Ngobeni>Um. That's a good question. If the advance is worked out in my spreadsheet, the statement has to show the advance.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/132-1
+00:19:13.646 --> 00:19:20.898
+<v Sipho Ngobeni>So either I upload the amounts back into the system every month, or the statement stays in the spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/133-0
+00:19:21.401 --> 00:19:32.530
+<v Ayesha Patel>Let's leave that one open for now. I'll come back with a couple of options. It depends on how much work an upload would be for you each month.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/134-0
+00:19:33.497 --> 00:19:34.122
+<v Sipho Ngobeni>Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/135-0
+00:19:34.421 --> 00:19:40.674
+<v Ayesha Patel>Can we talk about the growers' information for a bit? What do you hold about them?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/136-0
+00:19:41.639 --> 00:19:52.643
+<v Sipho Ngobeni>Names, ID numbers for the growers who farm as individuals, company registration numbers for the farms that are companies, VAT numbers, bank account details, physical addresses, phone numbers, email.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/136-1
+00:19:52.643 --> 00:19:56.894
+<v Sipho Ngobeni>And their delivery history, their packouts, and what they've been paid.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/137-0
+00:19:57.622 --> 00:20:07.876
+<v Ayesha Patel>Okay. So for the small growers who farm in their own name, that's all personal information under POPIA, and the bank details need care in any case.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/137-1
+00:20:07.876 --> 00:20:10.627
+<v Ayesha Patel>Who should be able to see what?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/138-0
+00:20:11.061 --> 00:20:22.566
+<v Johan Steenkamp>A grower must only see his own stuff. That's the number one thing. If grower A can see what grower B got paid, I'll have a war on my hands.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/139-0
+00:20:22.961 --> 00:20:23.586
+<v Ayesha Patel>Right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/140-0
+00:20:24.068 --> 00:20:31.821
+<v Johan Steenkamp>Seriously. These people are neighbours. Their kids go to the same school, they sit next to each other in church.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/141-0
+00:20:32.510 --> 00:20:39.137
+<v Ayesha Patel>I understand. So each grower sees only their own deliveries, packouts and statements. And in the office?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/142-0
+00:20:40.010 --> 00:20:45.762
+<v Sipho Ngobeni>Me and Johan see everything. Marietjie sees everything except, no, actually she sees everything too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/142-1
+00:20:45.762 --> 00:20:53.015
+<v Sipho Ngobeni>Precious and the clerks need the deliveries and the grading, but not the bank details and not the money.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/143-0
+00:20:53.692 --> 00:20:56.568
+<v Precious Maluleke>I don't want to see the money.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/144-0
+00:20:56.971 --> 00:21:06.849
+<v Ayesha Patel>So the roles are something like this. The office and management see everything. The packhouse staff see deliveries and grading, but not bank details or payments.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/144-1
+00:21:06.849 --> 00:21:11.476
+<v Ayesha Patel>And growers see their own. Who changes a grower's bank details today?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/145-0
+00:21:12.146 --> 00:21:17.273
+<v Sipho Ngobeni>Only me, and only with a letter from the bank. Because there's fraud.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/146-0
+00:21:17.588 --> 00:21:18.213
+<v Precious Maluleke>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/147-0
+00:21:18.907 --> 00:21:28.161
+<v Sipho Ngobeni>Last year someone phoned, pretending to be one of our growers, and asked us to change his bank account. Luckily Marietjie knew his voice.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/148-0
+00:21:28.440 --> 00:21:39.945
+<v Ayesha Patel>That's exactly the kind of thing to design for. So changing bank details stays a manual, checked process in the office, and a grower can't change them from their phone.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/149-0
+00:21:40.777 --> 00:21:41.777
+<v Sipho Ngobeni>Definitely not.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/150-0
+00:21:42.253 --> 00:21:48.881
+<v Ayesha Patel>Good. And the weights? What if someone changes a weight or a bin count after the fact?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/151-0
+00:21:49.252 --> 00:21:55.129
+<v Precious Maluleke>That must be recorded. Who changed it and why. Because that's where the fights are.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/152-0
+00:21:55.601 --> 00:22:03.729
+<v Ayesha Patel>So an audit trail on every change to a delivery: who changed it, when, what it was before, and the reason.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/153-0
+00:22:04.149 --> 00:22:10.026
+<v Precious Maluleke>Yes. And the grower should be able to see that it was changed, I think.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/154-0
+00:22:10.367 --> 00:22:20.746
+<v Johan Steenkamp>Hmm. Maybe not the reason. Sometimes the reason is, you know, the driver counted wrong because he was in a hurry to get to the bottle store.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/155-0
+00:22:21.605 --> 00:22:23.730
+<v Precious Maluleke>Okay, maybe not the reason.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/156-0
+00:22:24.307 --> 00:22:35.312
+<v Ayesha Patel>I'll note that the grower sees that a delivery was corrected, and whether they also see the reason is still to be decided. Ruan, where would all this live?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/156-1
+00:22:35.312 --> 00:22:38.063
+<v Ayesha Patel>Do you have a preference for hosting?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/157-0
+00:22:38.953 --> 00:22:49.332
+<v Ruan du Toit (Guest)>Not on a server in the office, please. I don't want another thing to look after, and the power here isn't reliable. Some cloud thing is fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/158-0
+00:22:49.885 --> 00:23:00.639
+<v Johan Steenkamp>The board said the data must stay in South Africa. One of our members is a lawyer, and he was very firm about that at the last meeting.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/159-0
+00:23:01.071 --> 00:23:09.574
+<v Ayesha Patel>Okay, so hosting in a South African data centre. That's a constraint, and it's possible with most of the big providers now.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/160-0
+00:23:10.534 --> 00:23:13.786
+<v Ruan du Toit (Guest)>Ja, they've got Johannesburg and Cape Town regions.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/161-0
+00:23:14.635 --> 00:23:26.139
+<v Ayesha Patel>Exactly. And for the weighbridge, the tablet or PC at the gate would keep its own copy of the day's deliveries and send them up when the link is back.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/162-0
+00:23:26.593 --> 00:23:29.094
+<v Ruan du Toit (Guest)>And if the tablet gets stolen?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/163-0
+00:23:29.440 --> 00:23:40.569
+<v Ayesha Patel>Good point. Then it should need a PIN or a login, and it shouldn't hold more than it needs. The day's deliveries and the grower list, not bank details.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/164-0
+00:23:41.302 --> 00:23:43.428
+<v Ruan du Toit (Guest)>Okay, that works for me.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/165-0
+00:23:43.776 --> 00:23:48.153
+<v Ayesha Patel>How long do you keep the records now? Tickets and statements.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/166-0
+00:23:49.093 --> 00:24:00.222
+<v Sipho Ngobeni>The auditors say five years for anything financial. The tickets we keep, uh, I think also five years, in boxes in the storeroom. The mice eat some of them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/167-0
+00:24:01.023 --> 00:24:06.525
+<v Ayesha Patel>Five years, then, for deliveries and statements. And when a grower leaves the co-op?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/168-0
+00:24:07.060 --> 00:24:14.438
+<v Sipho Ngobeni>We keep his records for the five years, for tax, and then, honestly, nobody has ever thrown anything away.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/169-0
+00:24:14.711 --> 00:24:25.715
+<v Ayesha Patel>That's common. I'll suggest that the system keeps a leaver's records for five years and then flags them for deletion, and you decide. Let's talk about the growers themselves.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/169-1
+00:24:25.715 --> 00:24:29.592
+<v Ayesha Patel>How do they use their phones? What kind of phones?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/170-0
+00:24:29.962 --> 00:24:40.591
+<v Johan Steenkamp>Everything. The big farmers have iPhones and laptops and their own farm managers. The small growers, a lot of them have cheap Android phones, and data is expensive.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/170-1
+00:24:40.591 --> 00:24:45.969
+<v Johan Steenkamp>Some of them, the older ones, their kids do the phone stuff for them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/171-0
+00:24:46.897 --> 00:24:55.025
+<v Ayesha Patel>So whatever the growers use has to work on a cheap Android phone, on a slow connection, without eating their data.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/172-0
+00:24:55.468 --> 00:25:06.097
+<v Johan Steenkamp>Ja. And I don't want them to have to download an app. Last time somebody made us an app, for the, uh, the study group, nobody installed it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/172-1
+00:25:06.097 --> 00:25:09.223
+<v Johan Steenkamp>Twelve people, out of a hundred and forty.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/173-0
+00:25:10.154 --> 00:25:17.907
+<v Ayesha Patel>A web page they open from a link, then. One they can save to the home screen like an app.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/174-0
+00:25:18.227 --> 00:25:19.227
+<v Johan Steenkamp>That's fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/175-0
+00:25:19.992 --> 00:25:24.368
+<v Precious Maluleke>And SMS. Not everybody uses WhatsApp properly, but everybody gets SMSes.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/176-0
+00:25:25.165 --> 00:25:27.291
+<v Ayesha Patel>What would you send them?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/177-0
+00:25:27.696 --> 00:25:38.825
+<v Precious Maluleke>When their batch is graded. Your delivery number four four seven one packed out at seventy-eight percent class one, something like that, with a link to see the rest.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/178-0
+00:25:39.603 --> 00:25:43.605
+<v Ayesha Patel>That's a nice one. Johan, are you happy with SMS?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/179-0
+00:25:43.975 --> 00:25:50.228
+<v Johan Steenkamp>SMS is fine. WhatsApp costs money if you do it through the business, doesn't it, Ruan?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/180-0
+00:25:50.907 --> 00:25:59.035
+<v Ruan du Toit (Guest)>Ja, it's per message, through one of the providers. But SMS also costs. About, I think, twenty-five, thirty cents a message.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/181-0
+00:25:59.651 --> 00:26:07.779
+<v Ayesha Patel>Then let's say SMS for the grading notifications to start with, and maybe WhatsApp later. Are you all okay with that?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/182-0
+00:26:08.728 --> 00:26:09.353
+<v Johan Steenkamp>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/183-0
+00:26:10.323 --> 00:26:10.948
+<v Sipho Ngobeni>Fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/184-0
+00:26:11.554 --> 00:26:18.181
+<v Ayesha Patel>Good, that's decided. And how does a grower log in? Most of them won't want another password.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/185-0
+00:26:18.886 --> 00:26:22.137
+<v Johan Steenkamp>No passwords. They'll forget it and phone us.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/186-0
+00:26:22.822 --> 00:26:32.826
+<v Ayesha Patel>One option is a code sent by SMS to the phone number you already have on file for them. They type the code, and they're in.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/187-0
+00:26:33.691 --> 00:26:39.568
+<v Sipho Ngobeni>That works, if the number on file is right. Some of them change their numbers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/188-0
+00:26:39.875 --> 00:26:49.879
+<v Ayesha Patel>Then updating a phone number would go through the office, like the bank details, so nobody can take over someone else's account by changing the number.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/189-0
+00:26:50.664 --> 00:26:52.040
+<v Sipho Ngobeni>Ja. Same rule.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/190-0
+00:26:52.767 --> 00:26:54.893
+<v Ayesha Patel>Now, language. The growers speak?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/191-0
+00:26:55.465 --> 00:27:00.217
+<v Johan Steenkamp>English, Afrikaans, Xitsonga, Sepedi. Most of the small growers are Xitsonga speakers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/192-0
+00:27:00.773 --> 00:27:05.525
+<v Precious Maluleke>My mother would want it in Xitsonga. But she reads English too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/193-0
+00:27:06.151 --> 00:27:09.027
+<v Ayesha Patel>Do you want the grower pages translated?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/194-0
+00:27:09.366 --> 00:27:12.117
+<v Johan Steenkamp>Hmm. I don't know. It'd be nice.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/194-1
+00:27:12.117 --> 00:27:15.994
+<v Johan Steenkamp>But the statements are in English now, and nobody complains.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/195-0
+00:27:16.753 --> 00:27:21.130
+<v Sipho Ngobeni>The statements have to be in English for the auditors anyway.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/196-0
+00:27:21.459 --> 00:27:32.964
+<v Ayesha Patel>So the minimum is English. Whether we also do Xitsonga, and maybe Afrikaans, for the grower pages, I'll leave open, and I'll tell you what it would cost to add.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/197-0
+00:27:33.394 --> 00:27:35.894
+<v Johan Steenkamp>Ja, let's see the cost first.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/198-0
+00:27:36.764 --> 00:27:41.515
+<v Ayesha Patel>And how should it look? Do you have any preferences? Colours, style?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/199-0
+00:27:42.044 --> 00:27:50.797
+<v Johan Steenkamp>Our colours are orange and dark green. The logo is an orange with a leaf on it, use that. And big, clear writing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/199-1
+00:27:50.797 --> 00:27:53.548
+<v Johan Steenkamp>Some of our members are seventy, seventy-five.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/200-0
+00:27:53.998 --> 00:28:00.126
+<v Precious Maluleke>For the weighbridge, big buttons. The clerk sometimes has gloves on in winter, and it's dusty.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/200-1
+00:28:00.126 --> 00:28:06.628
+<v Precious Maluleke>And it's outside, under the roof but outside, so the screen must be readable in the sun.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/201-0
+00:28:07.362 --> 00:28:11.739
+<v Ayesha Patel>Would that be a tablet at the weighbridge, or the PC?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/202-0
+00:28:12.642 --> 00:28:24.147
+<v Precious Maluleke>A tablet, I think. A rugged one. The PC is under the counter, and the clerk has to go inside the little office to use it, while the driver waits.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/203-0
+00:28:24.623 --> 00:28:30.500
+<v Ruan du Toit (Guest)>Then it needs to be charged every day, and with the battery at the gate...</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/204-0
+00:28:30.750 --> 00:28:32.876
+<v Precious Maluleke>We'll keep it charged, Ruan.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/205-0
+00:28:33.201 --> 00:28:34.202
+<v Ruan du Toit (Guest)>Okay, okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/206-0
+00:28:34.692 --> 00:28:42.695
+<v Ayesha Patel>I'll write it down as a strong preference for a rugged tablet at the weighbridge, and I'll check the hardware cost.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/206-1
+00:28:42.695 --> 00:28:49.197
+<v Ayesha Patel>And for the growers, plain and simple: their deliveries, their packout, their statements, and not much else.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/207-0
+00:28:49.789 --> 00:28:57.167
+<v Johan Steenkamp>Not much else. If it's complicated, they'll phone us to ask how it works, which defeats the whole point.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/208-0
+00:28:58.032 --> 00:29:02.784
+<v Ayesha Patel>When the truck leaves, does the driver still need a paper ticket?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/209-0
+00:29:03.488 --> 00:29:13.367
+<v Precious Maluleke>Yes. The driver must leave with something in his hand, otherwise the grower phones to ask if the fruit arrived. A small printed slip is fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/209-1
+00:29:13.367 --> 00:29:14.992
+<v Precious Maluleke>Like a till slip.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/210-0
+00:29:15.341 --> 00:29:22.343
+<v Ayesha Patel>So a small printer next to the tablet, that prints a slip for each grower on the truck.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/211-0
+00:29:22.640 --> 00:29:27.767
+<v Precious Maluleke>Ja. And the SMS too, if they want it. But the slip, always.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/212-0
+00:29:28.739 --> 00:29:30.865
+<v Johan Steenkamp>The old ones like paper.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/213-0
+00:29:31.303 --> 00:29:35.305
+<v Ayesha Patel>And if the tablet itself breaks on a busy morning?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/214-0
+00:29:35.856 --> 00:29:42.483
+<v Precious Maluleke>We keep the carbon books in the drawer. Just in case. Then someone types them in afterwards.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/215-0
+00:29:42.734 --> 00:29:50.111
+<v Ayesha Patel>That's sensible. I'll make sure there's a quick way to enter the paper tickets afterwards, so nothing gets lost.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/216-0
+00:29:50.684 --> 00:29:55.060
+<v Ruan du Toit (Guest)>Ja, keep the books. Tablets always die at the worst moment.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/217-0
+00:29:56.021 --> 00:30:01.523
+<v Ayesha Patel>Okay. Let's talk volumes. How many trucks come through the weighbridge in a day?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/218-0
+00:30:02.291 --> 00:30:11.420
+<v Precious Maluleke>In the peak, sixty, seventy trucks. Mostly between six and ten in the morning, because they pick in the, no, actually that's not right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/218-1
+00:30:11.420 --> 00:30:17.172
+<v Precious Maluleke>They pick in the morning and they deliver late morning. Between seven and eleven, say.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/219-0
+00:30:17.819 --> 00:30:20.695
+<v Ayesha Patel>And each truck carries how many bins?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/220-0
+00:30:21.179 --> 00:30:28.557
+<v Precious Maluleke>It depends on the truck. A small grower's bakkie with a trailer, six bins. A big truck, forty bins.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/221-0
+00:30:29.446 --> 00:30:32.697
+<v Ayesha Patel>Does one truck always carry one grower's fruit?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/222-0
+00:30:33.604 --> 00:30:45.484
+<v Precious Maluleke>No, and that's another headache. The small growers around Nkowankowa share transport. There's a contractor, Mister Shirindza, with two trucks, and he collects from six or seven growers in one trip.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/223-0
+00:30:46.284 --> 00:30:46.909
+<v Ayesha Patel>Right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/224-0
+00:30:47.684 --> 00:30:52.644
+<v Precious Maluleke>So one truck comes over the weighbridge with seven growers' bins on it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/224-1
+00:30:52.644 --> 00:31:02.482
+<v Precious Maluleke>We weigh the whole truck, and then we have to split the weight by grower, by the number of bins each one has on the truck.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/224-2
+00:31:02.482 --> 00:31:05.191
+<v Precious Maluleke>The clerk does it with a calculator.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/225-0
+00:31:06.133 --> 00:31:14.637
+<v Ayesha Patel>So one truck can carry several growers' bins, and the weight gets shared out. Is it always by the number of bins?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/226-0
+00:31:15.330 --> 00:31:27.210
+<v Precious Maluleke>By bins. We can't weigh each bin separately, there's no bin scale. So it's the full truck minus the empty truck, divided by the bins, and each grower gets his share.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/227-0
+00:31:28.146 --> 00:31:30.272
+<v Sipho Ngobeni>And the growers accept that?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/228-0
+00:31:31.171 --> 00:31:35.173
+<v Precious Maluleke>They accept it because it's always been like that. Mostly.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/229-0
+00:31:36.105 --> 00:31:46.359
+<v Ayesha Patel>I'll make sure the intake can split one truck's weight across several growers by their number of bins, and that each grower's ticket shows his own share.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/229-1
+00:31:46.359 --> 00:31:49.110
+<v Ayesha Patel>Does the contractor need to see anything?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/230-0
+00:31:49.803 --> 00:31:54.930
+<v Johan Steenkamp>No. The contractor gets paid by the growers directly. That's not our business.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/231-0
+00:31:55.692 --> 00:31:59.694
+<v Ayesha Patel>So how many bins in a day, at the peak?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/232-0
+00:32:00.689 --> 00:32:04.315
+<v Precious Maluleke>About eighteen hundred bins a day at the peak.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/233-0
+00:32:05.257 --> 00:32:09.634
+<v Ayesha Patel>And how long does a truck take at the weighbridge now?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/234-0
+00:32:10.048 --> 00:32:21.928
+<v Precious Maluleke>Four, five minutes when it's going well. The writing is what takes the time. When there's a queue, it backs up onto the road, and then the traffic department phones Johan.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/235-0
+00:32:22.761 --> 00:32:24.137
+<v Johan Steenkamp>Twice last season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/236-0
+00:32:24.591 --> 00:32:27.842
+<v Ayesha Patel>What would be good enough for the clerk?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/237-0
+00:32:28.840 --> 00:32:35.843
+<v Precious Maluleke>Under a minute. If they can scan and tap and go, under a minute for the clerk's part.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/238-0
+00:32:36.728 --> 00:32:47.107
+<v Ayesha Patel>So capturing a delivery at the weighbridge should take the clerk less than a minute, and it must keep up with seventy trucks in about four hours.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/239-0
+00:32:47.476 --> 00:32:55.103
+<v Precious Maluleke>Ja. Oh, and sorry, I said eighteen hundred bins. That's what we do on a normal day in June, July.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/239-1
+00:32:55.103 --> 00:33:01.981
+<v Precious Maluleke>The peak last season, in the big Valencia week, was twenty-four hundred bins in one day. Twenty-four hundred.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/240-0
+00:33:02.750 --> 00:33:12.754
+<v Ayesha Patel>Twenty-four hundred at the peak, and about eighteen hundred on a normal day in the middle of the season. Thank you, that matters for the sizing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/241-0
+00:33:13.063 --> 00:33:23.817
+<v Sipho Ngobeni>And it's growing. We've got two new members planting, and the old navel orchards are being replaced with mandarins, which means smaller fruit and more cartons per bin.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/242-0
+00:33:24.231 --> 00:33:26.357
+<v Ayesha Patel>Any idea how much growth?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/243-0
+00:33:27.316 --> 00:33:38.070
+<v Johan Steenkamp>The board's plan says ten percent more volume a year, for the next five years. Whether that happens, with the prices the way they are, I don't know.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/244-0
+00:33:38.867 --> 00:33:47.745
+<v Ayesha Patel>I'll design for that anyway. It's not a big number for a system like this. And how many growers would use the portal?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/245-0
+00:33:48.707 --> 00:33:50.833
+<v Johan Steenkamp>Well, all hundred and forty.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/246-0
+00:33:51.544 --> 00:33:59.547
+<v Sipho Ngobeni>Johan, it's a hundred and sixty-two. A hundred and forty delivered last season, but we have a hundred and sixty-two members.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/246-1
+00:33:59.547 --> 00:34:07.925
+<v Sipho Ngobeni>The others haven't delivered for a season or two, but they can come back any time, and they still get the newsletter.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/247-0
+00:34:08.349 --> 00:34:13.100
+<v Johan Steenkamp>Ja, okay, a hundred and sixty-two. He's the one with the list.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/248-0
+00:34:13.908 --> 00:34:23.537
+<v Ayesha Patel>So up to a hundred and sixty-two growers. And some will have more than one person logging in? A farm manager and the owner, say.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/249-0
+00:34:24.050 --> 00:34:29.177
+<v Johan Steenkamp>The big farms, yes. The owner and his manager, and maybe his bookkeeper.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/250-0
+00:34:29.566 --> 00:34:39.569
+<v Ayesha Patel>So a few hundred users at most. That's small. The bigger load is the morning rush at the weighbridge, and the notifications going out after grading.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/251-0
+00:34:40.130 --> 00:34:44.132
+<v Ruan du Toit (Guest)>And when everybody opens their statement on the same morning.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/252-0
+00:34:44.508 --> 00:34:56.388
+<v Ayesha Patel>Ja, that too. Still small numbers, but the pages should be quick on a slow phone. I'd aim for a grower's page loading in, say, three seconds on a 3G connection.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/253-0
+00:34:57.281 --> 00:35:07.285
+<v Johan Steenkamp>That's fine. Most of them have 3G at least. Some of the farms up towards the mountain have nothing, but then they come down to town.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/254-0
+00:35:08.103 --> 00:35:14.231
+<v Ruan du Toit (Guest)>Except after the hail. Did you hear, Ayesha? Last Saturday a hailstorm went right over Letsitele.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/254-1
+00:35:14.231 --> 00:35:20.733
+<v Ruan du Toit (Guest)>Ten minutes. Some of the farms on the Rubbervale road lost half the crop on the trees.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/255-0
+00:35:21.346 --> 00:35:23.096
+<v Ayesha Patel>Oh no. That's terrible.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/256-0
+00:35:23.818 --> 00:35:28.945
+<v Ruan du Toit (Guest)>My cousin's farm, a whole block of navels, all marked. It's juice now.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/257-0
+00:35:29.584 --> 00:35:32.835
+<v Johan Steenkamp>It happens every few years. That's farming. Anyway.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/258-0
+00:35:33.298 --> 00:35:39.926
+<v Ayesha Patel>Johan, apart from the growers, what do you need to see as the manager? Day to day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/259-0
+00:35:40.304 --> 00:35:47.932
+<v Johan Steenkamp>Every morning I want to know what came in yesterday. How many bins, per cultivar, and what the packout was.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/259-1
+00:35:47.932 --> 00:35:54.059
+<v Johan Steenkamp>Right now I walk over to Precious and ask her, and she looks in her notebook.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/260-0
+00:35:54.663 --> 00:35:56.789
+<v Precious Maluleke>It's a very good notebook.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/261-0
+00:35:57.445 --> 00:36:04.447
+<v Johan Steenkamp>It's a very good notebook. But when I'm in Johannesburg at the citrus meeting, I can't walk over.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/262-0
+00:36:04.788 --> 00:36:13.666
+<v Ayesha Patel>So a daily summary for management: bins received and the packout, per cultivar, for the day before. On the phone or by email?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/263-0
+00:36:13.919 --> 00:36:20.921
+<v Johan Steenkamp>Both. An email at six in the morning would be perfect. And a page I can look at.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/264-0
+00:36:21.748 --> 00:36:26.500
+<v Ayesha Patel>Okay. Any other reports? For the board, or for the export agent?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/265-0
+00:36:27.041 --> 00:36:36.669
+<v Sipho Ngobeni>The board wants a monthly report. Volumes, packout, advances paid. I make that by hand too, in the spreadsheet, and it takes me a day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/266-0
+00:36:37.238 --> 00:36:49.493
+<v Ayesha Patel>That one I'd probably leave in your spreadsheet for the first phase, since the advances are there. But the volumes and packout could come straight from the system. Does that sound right?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/267-0
+00:36:50.291 --> 00:36:51.666
+<v Sipho Ngobeni>That sounds right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/268-0
+00:36:51.954 --> 00:36:58.957
+<v Ayesha Patel>Okay. Precious, at the tipper, what happens when a bin is scanned? What would you want to see?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/269-0
+00:36:59.401 --> 00:37:11.656
+<v Precious Maluleke>The grower, the block, the cultivar. And if it's the last bin of that delivery, so the line knows to close the batch on the grader. Right now the line foreman shouts.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/270-0
+00:37:11.944 --> 00:37:12.944
+<v Ayesha Patel>He shouts?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/271-0
+00:37:13.664 --> 00:37:16.915
+<v Precious Maluleke>He shouts. Last bin, four four seven one.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/272-0
+00:37:17.714 --> 00:37:18.339
+<v Ruan du Toit (Guest)>Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/273-0
+00:37:18.727 --> 00:37:25.729
+<v Precious Maluleke>And the grader operator types it in. If he doesn't hear, two growers' fruit go into one batch.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/274-0
+00:37:26.312 --> 00:37:33.689
+<v Ayesha Patel>Mm. So the scan at the tipper should tell the operator when a delivery's last bin has gone in.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/275-0
+00:37:33.993 --> 00:37:37.619
+<v Precious Maluleke>Yes. That alone would save me half my fights.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/276-0
+00:37:38.060 --> 00:37:45.813
+<v Ayesha Patel>That's a good one. Can I ask about the clerks? How many people would use the weighbridge and tipper screens?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/277-0
+00:37:46.639 --> 00:37:57.643
+<v Precious Maluleke>Two clerks at the weighbridge, one in the morning shift, one in the afternoon, and in the peak both together. And at the tipper, three people over the shifts.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/277-1
+00:37:57.643 --> 00:37:59.644
+<v Precious Maluleke>Plus me, plus the foreman.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/278-0
+00:38:00.616 --> 00:38:03.492
+<v Ayesha Patel>And how comfortable are they with computers?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/279-0
+00:38:04.303 --> 00:38:10.430
+<v Precious Maluleke>The weighbridge clerks, okay. They use WhatsApp, they use the WeighMate screen. The tipper guys, less.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/279-1
+00:38:10.430 --> 00:38:12.056
+<v Precious Maluleke>They'll want one button.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/280-0
+00:38:12.753 --> 00:38:16.630
+<v Ayesha Patel>One button. I like that. Before we get to money.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/280-1
+00:38:16.630 --> 00:38:20.882
+<v Ayesha Patel>Have you looked at buying a packhouse system off the shelf?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/281-0
+00:38:21.577 --> 00:38:28.080
+<v Johan Steenkamp>We did, three years ago. There's a big one that the large packhouses use, from Cape Town.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/281-1
+00:38:28.080 --> 00:38:39.084
+<v Johan Steenkamp>They wanted, I think, two million rand, plus a yearly licence, and it does a hundred things we don't need. For a co-op our size, it doesn't make sense.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/282-0
+00:38:39.788 --> 00:38:44.915
+<v Sipho Ngobeni>And it didn't have the small-grower stuff. The sharing of trucks, the SMS.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/283-0
+00:38:45.832 --> 00:38:51.709
+<v Ayesha Patel>That's helpful to know. So buying the big system was ruled out, mainly on cost.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/284-0
+00:38:52.150 --> 00:38:58.778
+<v Johan Steenkamp>On cost. And because the people who sold it never came back to us after the demo.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/285-0
+00:38:59.178 --> 00:39:04.305
+<v Ayesha Patel>Okay. Can we talk about budget? Do you have a figure in mind?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/286-0
+00:39:04.984 --> 00:39:12.362
+<v Johan Steenkamp>The board approved, uh, six hundred and fifty thousand rand for the system. That was at the August meeting.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/287-0
+00:39:13.040 --> 00:39:17.417
+<v Sipho Ngobeni>I'm not sure that's right, Johan. I think it was less.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/288-0
+00:39:18.393 --> 00:39:20.894
+<v Johan Steenkamp>Was it? I remember six fifty.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/289-0
+00:39:21.420 --> 00:39:28.673
+<v Sipho Ngobeni>Six fifty was what Ruan's friend quoted us last year, for the app thing. The board approved something lower.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/289-1
+00:39:28.673 --> 00:39:34.050
+<v Sipho Ngobeni>Let me grab the resolution, one sec, it's in the file on my desk.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/290-0
+00:41:34.377 --> 00:41:37.253
+<v Johan Steenkamp>There he is. Did you find it?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/291-0
+00:41:37.773 --> 00:41:40.899
+<v Sipho Ngobeni>Ja. Okay, sorry about that. Here it is.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/291-1
+00:41:40.899 --> 00:41:43.275
+<v Sipho Ngobeni>Resolution of the twenty-first of August.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/292-0
+00:41:44.097 --> 00:41:44.723
+<v Johan Steenkamp>Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/293-0
+00:41:45.179 --> 00:41:59.184
+<v Sipho Ngobeni>The board approves an amount of up to five hundred and eighty thousand rand, excluding VAT, for the development of a grower information system, and running costs of up to four thousand five hundred rand per month.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/293-1
+00:41:59.184 --> 00:42:01.935
+<v Sipho Ngobeni>So it's five eighty, not six fifty.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/294-0
+00:42:02.871 --> 00:42:05.372
+<v Johan Steenkamp>Five eighty. Okay, I stand corrected.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/295-0
+00:42:06.027 --> 00:42:18.156
+<v Ayesha Patel>Thank you, Sipho, it's helpful to have it exactly. Five hundred and eighty thousand excluding VAT for the build, and up to four and a half thousand a month to run it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/295-1
+00:42:18.156 --> 00:42:21.658
+<v Ayesha Patel>Does the four and a half include the SMSes?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/296-0
+00:42:22.193 --> 00:42:24.944
+<v Sipho Ngobeni>It doesn't say. Hmm. I'd assume so.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/296-1
+00:42:24.944 --> 00:42:27.320
+<v Sipho Ngobeni>Everything it takes to run it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/297-0
+00:42:27.983 --> 00:42:37.487
+<v Ayesha Patel>Then I'll assume it includes the SMSes and the hosting, and I'll show you the monthly breakdown so you can check it against the resolution.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/297-1
+00:42:37.487 --> 00:42:40.613
+<v Ayesha Patel>Is the build amount for this financial year?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/298-0
+00:42:40.915 --> 00:42:52.420
+<v Sipho Ngobeni>Our year ends in February. So whatever we spend before the end of February comes from this year's budget. After that, it would have to go to the board again.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/299-0
+00:42:52.802 --> 00:43:00.555
+<v Ayesha Patel>Okay, that's good to know. That probably means paying in stages, with most of it before the end of February.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/300-0
+00:43:00.826 --> 00:43:02.952
+<v Sipho Ngobeni>Ja, that would suit us.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/301-0
+00:43:03.405 --> 00:43:08.907
+<v Ayesha Patel>And the export to your spreadsheet, Sipho. How do you want it laid out?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/302-0
+00:43:09.853 --> 00:43:18.356
+<v Sipho Ngobeni>Per grower, per cultivar, per class, for the month. That's how my sheet works. If it's one row per bin, I'll drown.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/303-0
+00:43:18.774 --> 00:43:23.525
+<v Ayesha Patel>Per grower, per cultivar, per class, for the month. Totals, not bins.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/304-0
+00:43:24.060 --> 00:43:31.437
+<v Sipho Ngobeni>Totals. And the delivery numbers next to them, so I can check against the tickets if a grower complains.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/305-0
+00:43:32.290 --> 00:43:35.541
+<v Ayesha Patel>And timing. When do you need it working?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/306-0
+00:43:36.115 --> 00:43:41.992
+<v Johan Steenkamp>Before the season. The first mandarins come in at the end of March. So, February?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/307-0
+00:43:42.320 --> 00:43:52.949
+<v Precious Maluleke>February is too late for me. If the clerks must learn a new weighbridge system, I want them to practise in February. But there's no fruit in February.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/307-1
+00:43:52.949 --> 00:43:53.549
+<v Precious Maluleke>Hmm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/308-0
+00:43:54.543 --> 00:43:59.670
+<v Ayesha Patel>That's a real problem. There's nothing to practise on before the season starts.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/309-0
+00:44:00.097 --> 00:44:05.975
+<v Precious Maluleke>We can practise with empty bins. Or, no, we can make up deliveries. Fake trucks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/310-0
+00:44:06.621 --> 00:44:11.748
+<v Ayesha Patel>Training with made-up deliveries in February, that works. So what's the hard date?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/311-0
+00:44:12.173 --> 00:44:20.176
+<v Johan Steenkamp>The intake at the weighbridge must be working by the first of March. The grower pages can come a bit later.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/311-1
+00:44:20.176 --> 00:44:25.553
+<v Johan Steenkamp>The growers can wait until, say, the end of April for their first statements.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/312-0
+00:44:26.078 --> 00:44:34.957
+<v Ayesha Patel>So two dates. The weighbridge intake live by the first of March twenty twenty-seven, and the grower pages by the end of April.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/313-0
+00:44:35.456 --> 00:44:36.081
+<v Johan Steenkamp>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/314-0
+00:44:36.638 --> 00:44:45.392
+<v Ayesha Patel>That's about fifteen weeks from now, with the December break in the middle. It's doable for the intake if we keep it tight.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/314-1
+00:44:45.392 --> 00:44:53.770
+<v Ayesha Patel>But I want to be honest with you: the grader connection is the part that could slip, because we don't control it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/315-0
+00:44:54.294 --> 00:45:02.047
+<v Johan Steenkamp>Understood. If the grader part is late, Marietjie keeps typing for a bit. It's not the end of the world.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/316-0
+00:45:03.025 --> 00:45:09.277
+<v Ayesha Patel>When we start, what do we bring over from the spreadsheet? The grower list, for sure.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/317-0
+00:45:10.110 --> 00:45:19.738
+<v Sipho Ngobeni>The grower list, with the orchard blocks and the cultivars. That's in a separate sheet, about six hundred blocks. Some of it's out of date.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/318-0
+00:45:20.217 --> 00:45:21.967
+<v Ayesha Patel>Who could check it?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/319-0
+00:45:22.563 --> 00:45:26.564
+<v Sipho Ngobeni>Marietjie. She'd know which blocks were pulled out and replanted.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/320-0
+00:45:27.032 --> 00:45:32.534
+<v Ayesha Patel>And last season's deliveries? Would the growers want to see those on their pages?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/321-0
+00:45:33.160 --> 00:45:39.038
+<v Johan Steenkamp>Hmm. It'd be nice for comparing, this year against last year. But it's not essential.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/322-0
+00:45:39.672 --> 00:45:47.425
+<v Sipho Ngobeni>The old data is messy, I'll warn you now. Different years, different columns. Some years Marietjie's niece did the typing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/323-0
+00:45:48.164 --> 00:45:58.418
+<v Ayesha Patel>Then I'd suggest we bring over the grower list and the blocks for sure, and last season's deliveries only if it's cheap, once I've seen the spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/323-1
+00:45:58.418 --> 00:46:01.919
+<v Ayesha Patel>We can decide that after I've had a look.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/324-0
+00:46:02.581 --> 00:46:06.208
+<v Sipho Ngobeni>I'll send you a copy. Without the bank details.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/325-0
+00:46:07.058 --> 00:46:14.811
+<v Ayesha Patel>Without the bank details, please. Just the grower numbers, names, blocks and the deliveries. That's all I need to see.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/326-0
+00:46:15.144 --> 00:46:16.520
+<v Sipho Ngobeni>Ja, of course.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/327-0
+00:46:17.322 --> 00:46:22.449
+<v Ayesha Patel>You mentioned spray records earlier, Johan. Do you want those in the system?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/328-0
+00:46:22.714 --> 00:46:30.092
+<v Johan Steenkamp>Ja, if possible. Every grower must give us his spray programme for each orchard before we pack for export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/329-0
+00:46:30.776 --> 00:46:31.401
+<v Ayesha Patel>Sure.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/330-0
+00:46:32.017 --> 00:46:44.271
+<v Johan Steenkamp>The European market tests for residues, and if one container fails, it's a disaster. For the whole co-op, not just for that grower. And our auditors check that we have the records.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/331-0
+00:46:44.677 --> 00:46:48.304
+<v Ayesha Patel>How do the growers give them to you now?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/332-0
+00:46:48.722 --> 00:46:55.725
+<v Johan Steenkamp>Paper, email, photos on WhatsApp. Whatever they like. And my PA files them in the lever arch file.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/333-0
+00:46:56.336 --> 00:47:02.213
+<v Ayesha Patel>So the growers could upload their spray records on the portal, for each orchard block.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/334-0
+00:47:03.135 --> 00:47:14.639
+<v Johan Steenkamp>Yes. And then, this is the important part, if a grower hasn't given us his spray records, the weighbridge must warn the clerk that this fruit can't go for export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/335-0
+00:47:15.593 --> 00:47:18.844
+<v Ayesha Patel>A warning, or does it stop the delivery?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/336-0
+00:47:19.511 --> 00:47:29.515
+<v Johan Steenkamp>A warning. We still take the fruit, it can go to the local market or to juice. But it must not go into an export batch.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/337-0
+00:47:30.504 --> 00:47:38.257
+<v Precious Maluleke>Then I need to see it at the tipper too. When I scan the bin, it must say no export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/338-0
+00:47:38.917 --> 00:47:50.796
+<v Ayesha Patel>That's clear. So missing spray records mark a delivery as not for export, at the weighbridge and at the tipper. Do the auditors accept digital records, or do they want paper?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/339-0
+00:47:51.617 --> 00:47:59.370
+<v Johan Steenkamp>I don't know. I think digital is fine, but I'd have to ask them. Their next audit is in May.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/340-0
+00:48:00.198 --> 00:48:05.700
+<v Ayesha Patel>Okay, I'll leave that as an open question for you to check with them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/341-0
+00:48:06.336 --> 00:48:07.711
+<v Johan Steenkamp>I'll ask them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/342-0
+00:48:08.540 --> 00:48:13.666
+<v Ayesha Patel>Let's talk about the training a bit more. Who needs it, and when?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/343-0
+00:48:14.342 --> 00:48:23.971
+<v Precious Maluleke>The weighbridge clerks and the tipper guys, in February, like we said. Two sessions, because of the shifts. And I want to be in both.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/344-0
+00:48:24.254 --> 00:48:33.507
+<v Sipho Ngobeni>And me, separately, for the export to my spreadsheet. I don't need to know the weighbridge, I need to know my numbers are right.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/345-0
+00:48:34.478 --> 00:48:43.356
+<v Ayesha Patel>That makes sense. A session for the packhouse team, twice, and one for the office. And a few practice days with made-up trucks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/346-0
+00:48:43.956 --> 00:48:52.835
+<v Precious Maluleke>Ja. And on the first real day, the first of March or whenever the first mandarins come, I want you here. Or someone.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/347-0
+00:48:53.264 --> 00:48:59.141
+<v Ayesha Patel>I'll be here for the first two mornings of the season. That I can promise.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/348-0
+00:48:59.396 --> 00:49:03.022
+<v Precious Maluleke>Good. Because the first morning, something will go wrong.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/349-0
+00:49:03.556 --> 00:49:09.058
+<v Ayesha Patel>Something always does. And the growers? How do they find out about the portal?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/350-0
+00:49:09.726 --> 00:49:20.480
+<v Johan Steenkamp>The AGM is on the eleventh of March. Most of the members come, for the lunch if nothing else. We can show it on the big screen there.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/351-0
+00:49:21.334 --> 00:49:31.713
+<v Ayesha Patel>That's a good moment. And then each grower gets an SMS with a link, from the office, and Mister Baloyi helps the small growers who get stuck.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/352-0
+00:49:32.305 --> 00:49:36.682
+<v Johan Steenkamp>Ja. And Marietjie can help too, she'll still be here then.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/353-0
+00:49:37.502 --> 00:49:44.504
+<v Sipho Ngobeni>She'll want a farewell with a cake in June, by the way. A big one. I'm just saying.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/354-0
+00:49:45.360 --> 00:49:47.486
+<v Johan Steenkamp>She'll get a cake, Sipho.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/355-0
+00:49:48.247 --> 00:49:56.750
+<v Ayesha Patel>Precious, at the weighbridge, apart from the grower, the block and the bins, is there anything else the clerk writes down today?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/356-0
+00:49:57.035 --> 00:50:07.789
+<v Precious Maluleke>The truck registration and the driver's name. For the gate security, so we know who was on the property. That's in a different book, at the guard hut.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/357-0
+00:50:08.667 --> 00:50:11.918
+<v Ayesha Patel>Should that move to the tablet as well?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/358-0
+00:50:12.799 --> 00:50:20.552
+<v Precious Maluleke>If it's on the same screen, yes. Then the guard doesn't need his book. But it's not the important part.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/359-0
+00:50:21.362 --> 00:50:30.616
+<v Ayesha Patel>Okay, I'll include it as a small extra on the intake screen. And while we're talking about the season, does the packhouse work weekends?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/360-0
+00:50:31.161 --> 00:50:34.787
+<v Precious Maluleke>Saturdays in the peak, until one o'clock. Never Sundays.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/361-0
+00:50:35.161 --> 00:50:39.538
+<v Ayesha Patel>Then the grower pages need to be up on Saturdays too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/362-0
+00:50:40.241 --> 00:50:45.368
+<v Precious Maluleke>Ja, they must. Saturday morning is when the growers have time to look.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/363-0
+00:50:46.223 --> 00:50:48.724
+<v Ayesha Patel>And the maturity tests, the lab?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/364-0
+00:50:48.986 --> 00:50:55.239
+<v Johan Steenkamp>Nice to have. The QC lady, Nthabiseng, she'd love it. But it's not the main thing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/365-0
+00:50:55.695 --> 00:51:00.072
+<v Ayesha Patel>Let's put that down for later, then, not the first phase.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/366-0
+00:51:00.693 --> 00:51:01.318
+<v Johan Steenkamp>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/367-0
+00:51:02.313 --> 00:51:12.567
+<v Precious Maluleke>Oh, one more thing about the packout. Should the grower see the packout immediately, or only after I've checked the report? Sometimes the grader gets it wrong.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/367-1
+00:51:12.567 --> 00:51:17.569
+<v Precious Maluleke>The camera gets dirty, or the light changes, and I redo the batch.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/368-0
+00:51:18.302 --> 00:51:20.803
+<v Johan Steenkamp>Hmm. I'd say after you've checked.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/369-0
+00:51:21.190 --> 00:51:26.692
+<v Precious Maluleke>But then I'm the bottleneck. In the peak I'm checking sixty batches a day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/370-0
+00:51:27.414 --> 00:51:29.915
+<v Johan Steenkamp>Ja. Well. Let's think about it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/371-0
+00:51:30.285 --> 00:51:42.165
+<v Ayesha Patel>I'll leave that one open. Whether the packout goes to the grower straight from the grader, or only after Precious has checked it. I can show you how both would work.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/372-0
+00:51:42.733 --> 00:51:43.358
+<v Precious Maluleke>Okay.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/373-0
+00:51:44.147 --> 00:51:50.024
+<v Ayesha Patel>Precious, when a grower disagrees with a packout, what should happen? Today he phones you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/374-0
+00:51:50.658 --> 00:51:55.785
+<v Precious Maluleke>Today he phones me, or he arrives at my office with his son.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/375-0
+00:51:56.701 --> 00:52:00.577
+<v Ayesha Patel>Could the grower raise a query on his page instead?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/375-1
+00:52:00.577 --> 00:52:10.081
+<v Ayesha Patel>He presses a button on that delivery, writes what's wrong, and it lands with you, with the delivery, the scans and the grader report attached.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/376-0
+00:52:11.012 --> 00:52:18.390
+<v Precious Maluleke>Yes. That would be much better. Then I have everything in front of me when I phone him back.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/377-0
+00:52:18.678 --> 00:52:23.805
+<v Johan Steenkamp>But he must still be able to phone. Some of them won't type.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/378-0
+00:52:24.065 --> 00:52:29.192
+<v Ayesha Patel>Of course. The phone stays. The query on the page is an extra.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/379-0
+00:52:29.771 --> 00:52:36.399
+<v Precious Maluleke>And I want to see how many queries each grower sends. Some growers query every single batch.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/380-0
+00:52:36.677 --> 00:52:37.302
+<v Sipho Ngobeni>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/381-0
+00:52:38.137 --> 00:52:39.887
+<v Precious Maluleke>I won't say who.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/382-0
+00:52:40.290 --> 00:52:46.543
+<v Johan Steenkamp>Ja, she won't. Ayesha, while we're on the growers, there's something I forgot earlier. The comparison.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/383-0
+00:52:46.938 --> 00:52:47.938
+<v Ayesha Patel>The comparison?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/384-0
+00:52:48.831 --> 00:52:53.208
+<v Johan Steenkamp>Every grower wants to know how he did against the others.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/385-0
+00:52:53.930 --> 00:52:54.555
+<v Precious Maluleke>Ja.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/386-0
+00:52:55.022 --> 00:53:02.775
+<v Johan Steenkamp>Was my eighty percent good, or was everybody on ninety this week? Right now they phone Precious and ask her.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/387-0
+00:53:03.296 --> 00:53:11.049
+<v Precious Maluleke>And I tell them. Roughly. I say, ag, the Valencias from the lower farms were all around seventy-five this week.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/388-0
+00:53:12.026 --> 00:53:20.904
+<v Ayesha Patel>So the grower would see his packout next to an average. The average of all the growers, for that cultivar, for that week?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/389-0
+00:53:21.741 --> 00:53:24.867
+<v Johan Steenkamp>Ja, exactly. But never another grower's name. Never.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/389-1
+00:53:24.867 --> 00:53:26.117
+<v Johan Steenkamp>Just the average.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/390-0
+00:53:26.986 --> 00:53:37.991
+<v Sipho Ngobeni>And only if there are enough growers in it. If there are two growers with, uh, hmm, wait. Say there are only two growers with lemons in one week.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/390-1
+00:53:37.991 --> 00:53:42.242
+<v Sipho Ngobeni>Then the average tells you exactly what the other one got.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/391-0
+00:53:43.128 --> 00:53:53.131
+<v Ayesha Patel>That's a really good point, Sipho. So the average only shows when, say, at least five growers delivered that cultivar in that week. Otherwise it's hidden.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/392-0
+00:53:53.920 --> 00:53:56.421
+<v Johan Steenkamp>Five. Okay, fine. Five is fair.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/393-0
+00:53:57.282 --> 00:54:06.911
+<v Ayesha Patel>I'll write that down. A cultivar average for the week, shown only when at least five growers are in it, and never with a name.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/394-0
+00:54:07.561 --> 00:54:14.813
+<v Precious Maluleke>Can I add something about the packout? The grader doesn't only give the classes. It gives the sizes too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/394-1
+00:54:14.813 --> 00:54:18.315
+<v Precious Maluleke>The count, how many fruit fit in a carton.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/395-0
+00:54:18.650 --> 00:54:21.526
+<v Ayesha Patel>And the growers care about the sizes?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/396-0
+00:54:22.127 --> 00:54:29.505
+<v Precious Maluleke>Very much. The big sizes get a better price, especially the navels. And Sipho's advance is different per size.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/397-0
+00:54:30.204 --> 00:54:37.582
+<v Sipho Ngobeni>Per size group. We have three groups, large, medium and small. The board sets a rate for each one.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/398-0
+00:54:38.498 --> 00:54:47.376
+<v Ayesha Patel>So the packout the grower sees should show the classes and the size groups, and your export should have the size groups too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/399-0
+00:54:47.679 --> 00:54:53.932
+<v Sipho Ngobeni>Ja. Otherwise I have to go back to the PDFs anyway, and then what's the point.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/400-0
+00:54:54.482 --> 00:55:02.110
+<v Ayesha Patel>That depends on what the grader can give us, of course. If the agent's export has the sizes, it's easy.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/400-1
+00:55:02.110 --> 00:55:08.612
+<v Ayesha Patel>If we have to read the PDFs, I need to check that the sizes are in them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/401-0
+00:55:09.369 --> 00:55:15.246
+<v Precious Maluleke>They're in them. On the second page. I'll send you some with the second page.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/402-0
+00:55:15.557 --> 00:55:23.560
+<v Ayesha Patel>Thank you. Can I go back to the weighbridge for a minute? When a truck comes in full, you weigh it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/402-1
+00:55:23.560 --> 00:55:27.062
+<v Ayesha Patel>Do you weigh it again when it leaves empty?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/403-0
+00:55:27.462 --> 00:55:33.214
+<v Precious Maluleke>The big trucks, yes. In and out. The bakkies and the tractors with trailers, no.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/403-1
+00:55:33.214 --> 00:55:38.216
+<v Precious Maluleke>We use the weight we've got written down for that vehicle. The tare.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/404-0
+00:55:39.065 --> 00:55:41.191
+<v Ayesha Patel>Where is that written down?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/405-0
+00:55:41.985 --> 00:55:48.613
+<v Precious Maluleke>On a list stuck on the wall in the weighbridge office. The registration and the tare weight.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/406-0
+00:55:49.117 --> 00:55:51.618
+<v Ayesha Patel>How often is the list updated?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/407-0
+00:55:52.107 --> 00:55:57.109
+<v Precious Maluleke>Every month. No, sorry, it should be every month. Honestly, it's every season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/407-1
+00:55:57.109 --> 00:56:02.486
+<v Precious Maluleke>At the start of the season we weigh every vehicle empty, and that's it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/408-0
+00:56:03.030 --> 00:56:13.784
+<v Ayesha Patel>So the system should keep each vehicle's empty weight, so the clerk doesn't need the list on the wall, and the big trucks still weigh in and out.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/409-0
+00:56:14.623 --> 00:56:21.125
+<v Precious Maluleke>Ja. And it must remind us when a tare weight is old. Say, older than a month.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/409-1
+00:56:21.125 --> 00:56:29.503
+<v Precious Maluleke>Because a farmer puts new sides on his trailer, and suddenly it's heavier, and then he gets paid for wood, not oranges.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/410-0
+00:56:30.137 --> 00:56:38.641
+<v Ayesha Patel>So a reminder when a vehicle's empty weight is more than a month old. Is that a hard stop, or a warning?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/411-0
+00:56:39.190 --> 00:56:45.818
+<v Precious Maluleke>A warning. Then the clerk weighs that vehicle out, that time, and the new tare goes in.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/412-0
+00:56:46.421 --> 00:56:55.299
+<v Ayesha Patel>Okay. And between the weighbridge and the tipper, there's the holding area. Do you need to know where the bins are in there?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/413-0
+00:56:56.251 --> 00:57:01.211
+<v Precious Maluleke>Oh, yes. That's my other headache. The mandarins go into the degreening rooms.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/413-1
+00:57:01.211 --> 00:57:06.171
+<v Precious Maluleke>We have four rooms. They stay there two, three days with the ethylene.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/413-2
+00:57:06.171 --> 00:57:18.259
+<v Precious Maluleke>And the oranges wait in rows in the holding area, under the roof, with the forklifts going up and down. And sometimes a delivery gets forgotten in a corner, behind the others.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/414-0
+00:57:18.679 --> 00:57:19.304
+<v Ayesha Patel>Forgotten?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/415-0
+00:57:19.858 --> 00:57:28.361
+<v Precious Maluleke>Forgotten. Last season we found twelve bins of Nadorcotts that had been in the holding area for six days. They were soft.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/416-0
+00:57:28.921 --> 00:57:29.546
+<v Ayesha Patel>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/417-0
+00:57:30.054 --> 00:57:31.805
+<v Precious Maluleke>Juice. Straight to juice.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/418-0
+00:57:32.549 --> 00:57:36.176
+<v Sipho Ngobeni>And the grower wanted to be paid for export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/419-0
+00:57:37.155 --> 00:57:40.782
+<v Precious Maluleke>And he was right, actually. It was our fault.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/420-0
+00:57:41.333 --> 00:57:47.210
+<v Ayesha Patel>So it would help to see which deliveries are waiting, where, and for how long.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/421-0
+00:57:47.795 --> 00:57:57.799
+<v Precious Maluleke>Yes. A list of what's waiting, oldest first, and in which room. And if something has been waiting more than three days, it must go red.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/422-0
+00:57:58.757 --> 00:58:05.760
+<v Ayesha Patel>Who would tell the system that a delivery has moved into a degreening room? Is that another scan?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/423-0
+00:58:06.198 --> 00:58:09.324
+<v Precious Maluleke>Hmm. The forklift driver. But he won't scan.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/423-1
+00:58:09.324 --> 00:58:12.075
+<v Precious Maluleke>He's got both hands on the forklift.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/424-0
+00:58:12.832 --> 00:58:16.083
+<v Ruan du Toit (Guest)>Could he have a tablet on the forklift?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/425-0
+00:58:16.357 --> 00:58:17.357
+<v Precious Maluleke>Ruan, no.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/426-0
+00:58:17.749 --> 00:58:28.878
+<v Ayesha Patel>Maybe the person at the door of the rooms. Let me think about that one and come back with options. I'm not sure yet where that scan should happen.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/427-0
+00:58:29.772 --> 00:58:32.273
+<v Precious Maluleke>Okay. But the list, I want.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/428-0
+00:58:33.021 --> 00:58:44.901
+<v Ruan du Toit (Guest)>Just so you know, the Wi-Fi doesn't reach inside the degreening rooms. The walls are insulated panels. If someone has to scan at the doors, I'll need another access point there.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/429-0
+00:58:45.250 --> 00:58:48.502
+<v Ayesha Patel>Good to know. How much would that be?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/430-0
+00:58:48.868 --> 00:58:53.245
+<v Ruan du Toit (Guest)>An outdoor one, with the cabling, maybe five, six thousand rand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/431-0
+00:58:53.567 --> 00:58:57.568
+<v Ayesha Patel>Ruan, the packhouse side. When there's load-shedding, what keeps running?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/432-0
+00:58:58.474 --> 00:59:06.852
+<v Ruan du Toit (Guest)>The packhouse has a generator. A big diesel one, it runs the line. It takes about, uh, thirty seconds to kick in.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/432-1
+00:59:06.852 --> 00:59:12.980
+<v Ruan du Toit (Guest)>The Wi-Fi access points are on the generator too, but in those thirty seconds everything drops.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/433-0
+00:59:13.464 --> 00:59:17.840
+<v Ayesha Patel>So the tipper scanner loses the network for half a minute.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/434-0
+00:59:18.593 --> 00:59:29.722
+<v Ruan du Toit (Guest)>Half a minute, and sometimes the access points take another two minutes to come back up. I could put a small UPS on them. That's maybe three thousand rand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/435-0
+00:59:30.392 --> 00:59:33.143
+<v Ayesha Patel>That would be worth it, I think.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/435-1
+00:59:33.143 --> 00:59:43.397
+<v Ayesha Patel>And the tipper screen should hold its scans for a few minutes if the network drops, the same as the weighbridge, and send them when it's back.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/436-0
+00:59:44.368 --> 00:59:46.494
+<v Ruan du Toit (Guest)>Ja, I'll price the UPS.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/437-0
+00:59:47.091 --> 00:59:50.342
+<v Johan Steenkamp>Just do it, Ruan. It's three thousand rand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/438-0
+00:59:50.751 --> 00:59:52.877
+<v Ruan du Toit (Guest)>Okay, okay. I'll do it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/439-0
+00:59:53.167 --> 00:59:59.419
+<v Ayesha Patel>Who else needs information from you? Outside the co-op, I mean. You mentioned an export agent.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/440-0
+01:00:00.388 --> 01:00:04.973
+<v Johan Steenkamp>The marketer. Our fruit is sold by an export agent in Durban.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/440-1
+01:00:04.973 --> 01:00:14.436
+<v Johan Steenkamp>Every week they want to know how many cartons we packed, per cultivar and class, and what's in the cold store waiting for a container.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/440-2
+01:00:14.436 --> 01:00:20.896
+<v Johan Steenkamp>They plan the ships from that, so if our numbers are late, our fruit misses a ship.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/441-0
+01:00:21.395 --> 01:00:25.647
+<v Sipho Ngobeni>Every Friday. No, sorry, Monday morning. They changed it this year.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/441-1
+01:00:25.647 --> 01:00:28.022
+<v Sipho Ngobeni>By nine o'clock on Monday morning.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/442-0
+01:00:28.572 --> 01:00:31.448
+<v Ayesha Patel>And how do they get it now?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/443-0
+01:00:32.250 --> 01:00:39.628
+<v Sipho Ngobeni>I make a spreadsheet and email it. It takes me an hour, an hour and a half, every Monday.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/444-0
+01:00:40.387 --> 01:00:50.766
+<v Ayesha Patel>So a weekly report for the export agent, with the cartons packed per cultivar and class, ready by nine on Monday. Do they want a particular format?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/445-0
+01:00:51.746 --> 01:00:55.747
+<v Sipho Ngobeni>They sent us a template. I'll send it to you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/446-0
+01:00:56.537 --> 01:01:00.914
+<v Ayesha Patel>Please. And the cold store, is that something you track today?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/447-0
+01:01:01.227 --> 01:01:11.606
+<v Precious Maluleke>The cold store is pallets. That's a different thing. The pallets get a sticker with the pallet number, and the cold store manager has his own book.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/448-0
+01:01:12.544 --> 01:01:22.923
+<v Ayesha Patel>Then I'd keep the cold store out of the first phase, and the weekly report has the packed cartons only, unless that's not enough for the agent.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/449-0
+01:01:23.229 --> 01:01:27.981
+<v Johan Steenkamp>Hmm. They'll want the cold store. But let's start with the cartons.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/450-0
+01:01:28.414 --> 01:01:37.167
+<v Ayesha Patel>Okay. I'll note the cold store as something for later. Sipho, you said earlier that some of the numbers on file are wrong.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/450-1
+01:01:37.167 --> 01:01:42.169
+<v Ayesha Patel>How many growers do you think we have a good cellphone number for?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/451-0
+01:01:42.495 --> 01:01:47.872
+<v Sipho Ngobeni>Hmm. Good question. I'd say a hundred and thirty, maybe a hundred and thirty-five.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/451-1
+01:01:47.872 --> 01:01:55.500
+<v Sipho Ngobeni>The rest, either there's no number, or it's a landline, or it's the number of someone who has passed away.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/452-0
+01:01:56.350 --> 01:01:59.601
+<v Ayesha Patel>So about thirty need checking before the season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/453-0
+01:01:59.883 --> 01:02:03.009
+<v Sipho Ngobeni>Ja. And there's another thing. Some families share.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/453-1
+01:02:03.009 --> 01:02:10.637
+<v Sipho Ngobeni>Three growers, a mother and two sons, each with their own blocks and their own grower number, and one phone.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/454-0
+01:02:11.160 --> 01:02:11.785
+<v Ayesha Patel>Mm.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/455-0
+01:02:12.630 --> 01:02:17.006
+<v Sipho Ngobeni>The Mathebula family, for example. One phone for three grower numbers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/456-0
+01:02:17.890 --> 01:02:26.394
+<v Ayesha Patel>So one phone number can belong to more than one grower. When they log in, they'd choose which grower they're looking at.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/457-0
+01:02:27.080 --> 01:02:30.706
+<v Sipho Ngobeni>Ja. But then the mother sees the sons' payments.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/458-0
+01:02:31.248 --> 01:02:36.375
+<v Johan Steenkamp>That's their business. They're a family. If they share a phone, they share.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/459-0
+01:02:36.895 --> 01:02:40.521
+<v Sipho Ngobeni>Hmm. I'm not so sure. What if they fight?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/460-0
+01:02:40.974 --> 01:02:43.474
+<v Johan Steenkamp>Then they get their own phones.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/461-0
+01:02:43.842 --> 01:02:55.596
+<v Ayesha Patel>Let me put that down as a question. When growers share a phone, does whoever has the phone see all of those growers, or does each grower need his own number?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/461-1
+01:02:55.596 --> 01:02:59.848
+<v Ayesha Patel>It touches the rule that a grower only sees his own.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/462-0
+01:03:00.746 --> 01:03:06.249
+<v Sipho Ngobeni>Ja, leave it open. I want to ask the lawyer member about that one.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/463-0
+01:03:06.629 --> 01:03:12.131
+<v Ayesha Patel>While we're on statements. What's on a statement besides the advance? Are there deductions?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/464-0
+01:03:12.983 --> 01:03:21.695
+<v Sipho Ngobeni>The packing fee, per carton. The bin hire, for the growers who use the co-op's bins, that's thirty-five rand per bin per season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/464-1
+01:03:21.695 --> 01:03:27.030
+<v Sipho Ngobeni>Transport, if they used our truck, but that's only a few. And the levies.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/464-2
+01:03:27.030 --> 01:03:34.241
+<v Sipho Ngobeni>And at the bottom, what he got last month and what he got this month, because they always compare.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/465-0
+01:03:35.199 --> 01:03:45.202
+<v Ayesha Patel>Okay. Even if the statement stays in your spreadsheet for now, it'd help me to see one. To see what the growers are used to reading.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/466-0
+01:03:45.794 --> 01:03:50.170
+<v Sipho Ngobeni>I'll send you a statement. With a fake name on it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/467-0
+01:03:50.633 --> 01:03:52.384
+<v Ayesha Patel>Perfect, a fake name.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/468-0
+01:03:52.894 --> 01:04:00.522
+<v Ruan du Toit (Guest)>You know what would be cool? Drones. My cousin is using a drone to count the fruit on the trees.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/468-1
+01:04:00.522 --> 01:04:07.774
+<v Ruan du Toit (Guest)>Then you'd know before the picking how many bins are coming. He says it's quite accurate, within ten percent.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/469-0
+01:04:08.465 --> 01:04:09.465
+<v Johan Steenkamp>Not today.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/470-0
+01:04:09.999 --> 01:04:12.125
+<v Precious Maluleke>He says this every meeting.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/471-0
+01:04:13.012 --> 01:04:15.138
+<v Ruan du Toit (Guest)>One day you'll thank me.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/472-0
+01:04:15.464 --> 01:04:20.966
+<v Ayesha Patel>Actually, Ruan isn't completely off. Do you know in advance what's coming in tomorrow?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/473-0
+01:04:21.471 --> 01:04:29.850
+<v Precious Maluleke>The big farms send me a WhatsApp the day before. Tomorrow, forty bins of Midknights from block seven. The small growers, no.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/473-1
+01:04:29.850 --> 01:04:31.100
+<v Precious Maluleke>They just arrive.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/474-0
+01:04:31.755 --> 01:04:38.382
+<v Ayesha Patel>Would it help if the big farms could put that on their page, instead of on WhatsApp?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/475-0
+01:04:39.377 --> 01:04:49.381
+<v Precious Maluleke>It would help me plan the line. But I don't want it compulsory. If they have to fill in a form, they'll just stop telling me.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/476-0
+01:04:50.084 --> 01:04:51.835
+<v Johan Steenkamp>Optional. Nice to have.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/477-0
+01:04:52.788 --> 01:05:01.917
+<v Ayesha Patel>Then I'll keep it as a nice-to-have for a later phase, unless it turns out to be cheap to add. One more practical thing.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/477-1
+01:05:01.917 --> 01:05:13.296
+<v Ayesha Patel>For the first weeks of the season, would you be willing to run the old way and the new way side by side? The carbon book and the tablet, both.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/478-0
+01:05:14.139 --> 01:05:17.390
+<v Precious Maluleke>Both? That's double the work at the gate.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/479-0
+01:05:18.064 --> 01:05:25.692
+<v Ayesha Patel>It is. But it means that if something's wrong in the new system, you've got the paper to check against.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/479-1
+01:05:25.692 --> 01:05:30.693
+<v Ayesha Patel>And Sipho can compare the export with Marietjie's typing for the first month-end.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/480-0
+01:05:30.951 --> 01:05:39.079
+<v Sipho Ngobeni>I'd like that, actually. For the first month-end, I want to compare. I'm not paying growers on numbers I haven't checked.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/481-0
+01:05:39.899 --> 01:05:43.900
+<v Precious Maluleke>Hmm. For two weeks, okay. Not the whole of April.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/482-0
+01:05:44.534 --> 01:05:49.286
+<v Johan Steenkamp>Two weeks at the gate, and Sipho compares the first month. Agreed.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/483-0
+01:05:49.990 --> 01:05:57.368
+<v Ayesha Patel>Good. Two weeks of both at the weighbridge, and a check of the first month's export against the spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/484-0
+01:05:58.289 --> 01:06:02.665
+<v Precious Maluleke>But then I want an extra clerk for those two weeks.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/485-0
+01:06:03.637 --> 01:06:10.640
+<v Johan Steenkamp>We'll get someone. There's always a student from the college in Tzaneen looking for a few weeks' work.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/486-0
+01:06:11.598 --> 01:06:20.101
+<v Ayesha Patel>The orchard blocks. When a grower replants a block, or pulls out navels and plants mandarins, how do you hear about it?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/487-0
+01:06:20.630 --> 01:06:26.132
+<v Sipho Ngobeni>When he delivers mandarins from a block that was navels. Then Marietjie phones him.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/488-0
+01:06:27.123 --> 01:06:32.625
+<v Precious Maluleke>Or the clerk writes the wrong cultivar, and it goes into the wrong batch.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/489-0
+01:06:33.185 --> 01:06:41.688
+<v Ayesha Patel>Should growers be able to update their own blocks on their page? Say, block seven is now Nadorcott, planted in twenty twenty-five.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/490-0
+01:06:42.086 --> 01:06:53.966
+<v Johan Steenkamp>Update, yes, but someone in the office must approve it. Otherwise they'll make mistakes, and the spray records go with the block, so a wrong block means a wrong spray record.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/491-0
+01:06:54.674 --> 01:06:59.050
+<v Ayesha Patel>So the grower proposes the change, and the office approves it.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/492-0
+01:06:59.554 --> 01:07:02.805
+<v Sipho Ngobeni>Ja. Like the bank details, but less strict.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/493-0
+01:07:03.352 --> 01:07:04.727
+<v Ayesha Patel>And the hectares?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/494-0
+01:07:05.501 --> 01:07:13.504
+<v Sipho Ngobeni>Hectares, ja, we need those for the estimate. The board wants an estimate of the crop before the season, per cultivar.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/494-1
+01:07:13.504 --> 01:07:18.506
+<v Sipho Ngobeni>Every grower sends us an estimate in February, how many bins they expect.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/495-0
+01:07:18.833 --> 01:07:20.958
+<v Ayesha Patel>How do they send it?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/496-0
+01:07:21.873 --> 01:07:28.876
+<v Sipho Ngobeni>On a form. Paper. And Marietjie phones the ones who don't send it, which is most of them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/497-0
+01:07:29.491 --> 01:07:33.868
+<v Ayesha Patel>Would it help to collect the estimates on the growers' page?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/498-0
+01:07:34.120 --> 01:07:42.248
+<v Sipho Ngobeni>It would help a lot. But I don't know if it's for this year. February is when everything else is happening.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/499-0
+01:07:42.749 --> 01:07:53.503
+<v Ayesha Patel>Then it's a candidate for phase one if there's time, otherwise next season. I'll price it separately, so the board can see what it costs on its own.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/500-0
+01:07:54.187 --> 01:07:58.564
+<v Johan Steenkamp>Price it separately. Okay. What else do you need from us?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/501-0
+01:07:58.857 --> 01:08:05.359
+<v Ayesha Patel>Can I raise a few things that worry me a bit, so you know what I'm thinking?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/501-1
+01:08:05.359 --> 01:08:14.863
+<v Ayesha Patel>First, Marietjie retiring in June, in the middle of the first season with a new system. A lot of the knowledge is in her head.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/502-0
+01:08:15.467 --> 01:08:17.593
+<v Sipho Ngobeni>That's my biggest worry too.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/503-0
+01:08:18.052 --> 01:08:22.053
+<v Ayesha Patel>Could she be part of testing it, before she goes?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/504-0
+01:08:22.478 --> 01:08:26.104
+<v Johan Steenkamp>Definitely. She'd want to. She's been here thirty-one years.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/505-0
+01:08:27.092 --> 01:08:33.345
+<v Ayesha Patel>Second, the growers. If the small growers don't use it, the phone calls don't go down.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/506-0
+01:08:34.066 --> 01:08:40.318
+<v Johan Steenkamp>Ja. We'll have to do something at the study group days. Show them on their phones.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/507-0
+01:08:41.245 --> 01:08:47.122
+<v Precious Maluleke>The extension officer can help. Mister Baloyi, he visits the small growers every second week.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/508-0
+01:08:47.750 --> 01:08:57.004
+<v Ayesha Patel>Good, that helps a lot. Third, the grader, which we've talked about. And fourth, the internet at the gate, which the offline part covers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/509-0
+01:08:57.877 --> 01:09:00.753
+<v Ruan du Toit (Guest)>And the gate battery, which I'll do.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/510-0
+01:09:01.467 --> 01:09:03.968
+<v Ayesha Patel>And the gate battery. Thanks, Ruan.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/511-0
+01:09:04.379 --> 01:09:05.004
+<v Ruan du Toit (Guest)>Sure.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/512-0
+01:09:05.511 --> 01:09:17.391
+<v Ayesha Patel>One more on POPIA. The growers will be getting SMSes, and their details will be on the new system. Do your membership forms say anything about how you use their information?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/513-0
+01:09:18.230 --> 01:09:22.607
+<v Sipho Ngobeni>The forms are from two thousand and five. Nothing about POPIA.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/514-0
+01:09:22.873 --> 01:09:28.375
+<v Johan Steenkamp>I'm the information officer, apparently. I registered last year, the lawyer member made me.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/515-0
+01:09:28.725 --> 01:09:37.479
+<v Ayesha Patel>Then it'd be worth updating the forms, or sending the members a short notice about the portal and the SMSes before the season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/515-1
+01:09:37.479 --> 01:09:43.231
+<v Ayesha Patel>I'm not a lawyer, so I'd ask your lawyer member to look at the wording.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/516-0
+01:09:44.197 --> 01:09:45.573
+<v Johan Steenkamp>He'll enjoy that.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/517-0
+01:09:46.226 --> 01:09:52.478
+<v Ayesha Patel>And how bad is it if the system is down for an hour in the season?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/518-0
+01:09:53.146 --> 01:10:00.774
+<v Johan Steenkamp>At the weighbridge, it can't be down. That's why we said offline. For the growers' pages, an hour is fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/518-1
+01:10:00.774 --> 01:10:04.275
+<v Johan Steenkamp>A day is not fine, the phones start again.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/519-0
+01:10:04.773 --> 01:10:18.154
+<v Ayesha Patel>So in the season, the grower pages should be up during working hours, say six in the morning to six at night, Monday to Saturday, and any maintenance happens at night or out of season.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/520-0
+01:10:18.618 --> 01:10:22.995
+<v Ruan du Toit (Guest)>And backups. Daily, please. And not only in the same place.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/521-0
+01:10:23.585 --> 01:10:27.961
+<v Ayesha Patel>Daily backups, kept in a second location, also in South Africa.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/522-0
+01:10:28.281 --> 01:10:34.408
+<v Ruan du Toit (Guest)>Ja. And one more thing from me. The hosting account must be in the co-op's name.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/522-1
+01:10:34.408 --> 01:10:43.161
+<v Ruan du Toit (Guest)>Not yours, not mine. The last developer had everything in his own name, and when he moved to Australia we lost the website.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/523-0
+01:10:43.437 --> 01:10:45.937
+<v Johan Steenkamp>Two years we had no website.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/524-0
+01:10:46.789 --> 01:10:56.793
+<v Ayesha Patel>That's fair, and it's how I'd do it anyway. The accounts in the co-op's name, and I get access as long as I'm working for you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/525-0
+01:10:57.628 --> 01:11:08.632
+<v Ruan du Toit (Guest)>While we're on my side of things. The tablets. I can get rugged ones from a supplier in Polokwane, I think about eight and a half thousand rand each.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/525-1
+01:11:08.632 --> 01:11:17.386
+<v Ruan du Toit (Guest)>We'd need two, one at the weighbridge and one at the tipper, plus a spare. And the little slip printer, maybe two thousand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/526-0
+01:11:17.971 --> 01:11:21.973
+<v Ayesha Patel>Is the hardware part of the five eighty, or separate?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/527-0
+01:11:22.441 --> 01:11:28.193
+<v Sipho Ngobeni>Hmm. The resolution says development. I'd say the hardware is separate, from the equipment budget.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/527-1
+01:11:28.193 --> 01:11:31.319
+<v Sipho Ngobeni>But I'd have to check with the auditor.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/528-0
+01:11:31.633 --> 01:11:35.259
+<v Johan Steenkamp>Put it separate. We buy equipment every year anyway.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/529-0
+01:11:35.533 --> 01:11:44.412
+<v Ayesha Patel>Okay, I'll show the hardware as a separate line in the proposal, so it's clear either way, and Sipho checks where it goes.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/530-0
+01:11:45.066 --> 01:11:46.817
+<v Sipho Ngobeni>I'll check. Don't worry.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/531-0
+01:11:47.416 --> 01:11:54.794
+<v Ayesha Patel>Is there anything you know is coming that I should keep in mind, even if it's not for now?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/532-0
+01:11:55.518 --> 01:12:02.771
+<v Johan Steenkamp>Two things. There's talk of merging with the co-op in Hoedspruit, the Blyde co-op. They're smaller, about sixty growers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/532-1
+01:12:02.771 --> 01:12:09.274
+<v Johan Steenkamp>Nothing is signed, but it's on the board's table. If that happens, there'd be a second packhouse.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/533-0
+01:12:10.011 --> 01:12:15.138
+<v Ayesha Patel>So the system should be able to handle more than one packhouse later.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/534-0
+01:12:15.921 --> 01:12:21.298
+<v Johan Steenkamp>Later. Maybe in two, three years. And the second thing is the export documents.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/534-1
+01:12:21.298 --> 01:12:25.550
+<v Johan Steenkamp>Every container needs a pile of paperwork, and that's another spreadsheet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/535-0
+01:12:26.077 --> 01:12:27.077
+<v Sipho Ngobeni>Two spreadsheets.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/536-0
+01:12:27.957 --> 01:12:30.458
+<v Johan Steenkamp>Two spreadsheets. But that's for later.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/537-0
+01:12:31.067 --> 01:12:35.444
+<v Sipho Ngobeni>And the pool payment, maybe, next year. If phase one works.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/538-0
+01:12:35.932 --> 01:12:45.810
+<v Ayesha Patel>Okay, I'll note those for later, and I'll design the data so that a second packhouse doesn't mean starting over. What about the co-op's own bins?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/538-1
+01:12:45.810 --> 01:12:48.561
+<v Ayesha Patel>You said you lend out three thousand.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/539-0
+01:12:48.873 --> 01:12:54.625
+<v Precious Maluleke>Ag, the bins. We lose about a hundred a year. Nobody knows where they are.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/539-1
+01:12:54.625 --> 01:13:02.253
+<v Precious Maluleke>Some of them are on farms, some of them are, I think, in people's gardens with tomatoes growing in them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/540-0
+01:13:02.698 --> 01:13:04.073
+<v Johan Steenkamp>Not now, Precious.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/541-0
+01:13:04.683 --> 01:13:06.809
+<v Precious Maluleke>Not now. But one day.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/542-0
+01:13:07.605 --> 01:13:15.358
+<v Ayesha Patel>I'll note bin tracking as an idea for later, too. Okay. What do you expect from me, from here on?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/543-0
+01:13:16.251 --> 01:13:20.878
+<v Johan Steenkamp>A price. A fixed price, please. The board doesn't like open-ended things.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/543-1
+01:13:20.878 --> 01:13:25.505
+<v Johan Steenkamp>Last time we paid by the hour, and the hours never stopped.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/544-0
+01:13:26.062 --> 01:13:34.565
+<v Ayesha Patel>That's fine. A fixed price for phase one, with the grader connection priced separately, because it depends on what the agent says.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/545-0
+01:13:34.927 --> 01:13:42.305
+<v Johan Steenkamp>Good. And we want training for the clerks, and for Marietjie and Sipho, and a manual. A short one.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/546-0
+01:13:43.021 --> 01:13:44.022
+<v Precious Maluleke>With pictures.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/547-0
+01:13:44.805 --> 01:13:49.932
+<v Ayesha Patel>Training, and a short manual with pictures. And support during the first season?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/548-0
+01:13:50.315 --> 01:13:59.568
+<v Johan Steenkamp>Ja. Someone we can phone when it breaks on a Saturday morning in May. Because it will break on a Saturday morning in May.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/549-0
+01:14:00.550 --> 01:14:11.304
+<v Ayesha Patel>That's a fair expectation. I'll include season support in the proposal, with its cost, so you can see it against the four and a half thousand a month.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/550-0
+01:14:12.138 --> 01:14:20.266
+<v Johan Steenkamp>Good. And before you build anything, I want to see what the growers will see. Pictures, or whatever you call them.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/551-0
+01:14:21.005 --> 01:14:30.259
+<v Ayesha Patel>Yes. I'll design the main screens first, and we'll go through them together, with a few of the growers too, before anything gets built.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/552-0
+01:14:30.529 --> 01:14:35.156
+<v Johan Steenkamp>With a few growers, ja. Good idea. Mister Baloyi can choose some.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/552-1
+01:14:35.156 --> 01:14:44.284
+<v Johan Steenkamp>And while you're building, I want to know where it stands. Every two weeks, a short update. Half an hour on Teams is fine.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/553-0
+01:14:45.159 --> 01:14:53.287
+<v Ayesha Patel>Every two weeks, half an hour. I'll set it up, and I'll show you whatever is working by then, not slides.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/554-0
+01:14:53.903 --> 01:14:55.278
+<v Johan Steenkamp>Not slides. Good.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/555-0
+01:14:56.009 --> 01:15:06.763
+<v Ayesha Patel>One more question from my side. Who at the co-op would look after the system day to day? Adding a new grower, a new clerk, resetting a tablet.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/556-0
+01:15:07.111 --> 01:15:08.737
+<v Johan Steenkamp>Hmm. Good question. Ruan?</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/556-1
+01:15:08.737 --> 01:15:11.113
+<v Johan Steenkamp>No, Ruan's only here on Wednesdays.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/557-0
+01:15:11.993 --> 01:15:15.620
+<v Ruan du Toit (Guest)>I can do the tablets. But not the growers.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/558-0
+01:15:16.562 --> 01:15:18.688
+<v Sipho Ngobeni>Not me. I've got enough.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/559-0
+01:15:19.534 --> 01:15:24.661
+<v Johan Steenkamp>Let me think about that one. Maybe the new person who replaces Marietjie.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/560-0
+01:15:25.228 --> 01:15:33.731
+<v Ayesha Patel>Okay, I'll leave it with you. It'd help to know before we start training, so that person is in the first sessions.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/561-0
+01:15:34.482 --> 01:15:36.608
+<v Johan Steenkamp>I'll come back to you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/562-0
+01:15:37.024 --> 01:15:43.109
+<v Ayesha Patel>Then I think that's a good place to stop. Let me run through what happens next.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/562-1
+01:15:43.109 --> 01:15:54.822
+<v Ayesha Patel>I'll send you a summary of today by Friday, and a proposal with a fixed price for phase one within two weeks. Ruan will ask the grader agent about an export.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/562-2
+01:15:54.822 --> 01:16:04.659
+<v Ayesha Patel>Precious will send me some grader reports. And Johan will check with the auditors about digital spray records, and think about who looks after the system.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/563-0
+01:16:05.324 --> 01:16:07.825
+<v Johan Steenkamp>That's right. Thanks, Ayesha. Good meeting.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/564-0
+01:16:08.319 --> 01:16:09.319
+<v Precious Maluleke>Thank you.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/565-0
+01:16:10.150 --> 01:16:11.151
+<v Sipho Ngobeni>Thanks, Ayesha.</v>
+
+3f9a6c1d-58e2-4b7a-9c04-d17e2a85b6f3/566-0
+01:16:12.150 --> 01:16:13.150
+<v Ruan du Toit (Guest)>Cheers, everyone.</v>

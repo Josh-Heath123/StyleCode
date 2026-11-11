@@ -5,11 +5,20 @@
  */
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { readTranscriptFile } from '../src/workspace/import/read.ts';
 import { buildTranscript, fillSegments } from './dataset.ts';
 import type { AnswerKey, Consultation } from './types.ts';
 
 export const CONSULTATIONS = join(import.meta.dirname, 'consultations');
+
+const sameJson = (text: string, value: unknown) => {
+  try {
+    return isDeepStrictEqual(JSON.parse(text), JSON.parse(json(value)));
+  } catch {
+    return false;
+  }
+};
 
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 
@@ -40,7 +49,8 @@ async function build(check: boolean): Promise<string[]> {
       } catch {
         current = '';
       }
-      if (current.replace(/\r\n/g, '\n') === json(value)) continue;
+      // Compared as data, not text: Prettier lays the committed files out differently from JSON.stringify.
+      if (sameJson(current, value)) continue;
       if (check) problems.push(`${id}/${file} is out of date: run npm run eval:build.`);
       else writeFileSync(path, json(value));
     }
