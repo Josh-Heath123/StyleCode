@@ -52,6 +52,18 @@ export function evaluateNumber(input: string): number | null {
   }
 }
 
+/**
+ * Selects a field's text once the click that focused it is done. In Chromium,
+ * select() also focuses the field, so it must not run if the field has been
+ * left meanwhile (Enter pressed before the next frame): that would take the
+ * focus back, and the next Ctrl+Z would go to the field instead of undoing.
+ */
+function selectSoon(input: HTMLInputElement): void {
+  requestAnimationFrame(() => {
+    if (document.activeElement === input) input.select();
+  });
+}
+
 interface NumberFieldProps {
   label: ReactNode;
   /** Accessible name; also the tooltip. */
@@ -154,7 +166,7 @@ export function NumberField({
         onFocus={(e) => {
           setFocused(true);
           setText(shown);
-          requestAnimationFrame(() => e.target.select());
+          selectSoon(e.target);
         }}
         onBlur={() => {
           if (handled.current) handled.current = false;
@@ -258,7 +270,7 @@ export function ColorField({ name, value, onChange }: ColorFieldProps) {
           spellCheck={false}
           onFocus={(e) => {
             setFocused(true);
-            requestAnimationFrame(() => e.target.select());
+            selectSoon(e.target);
           }}
           onBlur={() => {
             if (cancelled.current) cancelled.current = false;

@@ -68,6 +68,26 @@ test('edits properties from the panel as single undo steps', async ({ page }) =>
   await expect.poll(async () => (await node(page, rect)).fill).not.toBe('#2f7bff');
 });
 
+test('a panel field left before the next frame keeps the focus away, so Ctrl+Z undoes', async ({ page }) => {
+  const rect = await draw(page, 'r', [420, 300], [560, 400]);
+  // A slow frame: the field's text is selected only after Enter has left it.
+  await page.evaluate(() => {
+    const raf = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (cb) => {
+      setTimeout(() => raf(cb), 300);
+      return 0;
+    };
+  });
+  const hex = page.getByLabel('Fill hex value');
+  await hex.fill('2F7BFF');
+  await hex.press('Enter');
+  await expect.poll(async () => (await node(page, rect)).fill).toBe('#2f7bff');
+  await page.waitForTimeout(400);
+  await expect(hex).not.toBeFocused();
+  await page.keyboard.press('Control+z');
+  await expect.poll(async () => (await node(page, rect)).fill).not.toBe('#2f7bff');
+});
+
 test('keeps the project after a reload', async ({ page }) => {
   await draw(page, 'r', [420, 300], [560, 400]);
   const name = page.getByLabel('Design name');
