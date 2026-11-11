@@ -3,6 +3,9 @@ import { alignWords, errorRate } from './align.ts';
 import { normaliseTagged, normaliseWords } from './normalise.ts';
 import { matchLabels, speakerScores } from './speakers.ts';
 import { namesIn, termScores } from './terms.ts';
+import { errorsBySpeaker, scoreSpeakers, scoreWords, scriptWords } from './score.ts';
+import { engineTranscript, translateKey } from './downstream.ts';
+import type { AnswerKey } from '../types.ts';
 
 /** The transcription scorer (Phase 3 brief, decision 8 and WP2). */
 
@@ -220,5 +223,66 @@ describe('key terms', () => {
       { term: 'colesberg', times: 1, writtenAs: ['colesburg'] },
       { term: 'thandi', times: 1, writtenAs: ['tandy'] },
     ]);
+  });
+});
+
+describe('scoring a run', () => {
+  const turns = [
+    { turn: 'T1', speaker: 'Sam', segments: ['s1'], text: 'Morning, everyone.', startMs: 0, endMs: 1000 },
+    {
+      turn: 'T2',
+      speaker: 'Thandi',
+      segments: ['s2', 's3'],
+      text: 'We run forty trucks from Midrand.',
+      startMs: 1500,
+      endMs: 4000,
+    },
+  ];
+  const w = (text: string, startMs: number, confidence: number) => ({ text, startMs, endMs: startMs + 300, confidence });
+  const words = [
+    w('Morning,', 0, 0.9),
+    w('everyone.', 400, 0.95),
+    w('We', 1500, 0.9),
+    w('run', 1800, 0.9),
+    w('40', 2100, 0.95),
+    w('trucks', 2400, 0.9),
+    w('from', 2700, 0.9),
+    w('Midrent.', 3000, 0.3),
+  ];
+
+  it('counts word errors after normalising, key terms, and how well low confidence marks the errors', () => {
+    const s = scoreWords(turns, words);
+    expect(s).toMatchObject({ refWords: 8, wer: 1 / 8, sub: 1, del: 0, ins: 0 });
+    expect(s.terms).toMatchObject({ occurrences: 2, found: 1 });
+    const at = (t: number) => s.confidence!.find((c) => c.threshold === t)!;
+    expect(at(0.5)).toMatchObject({ wrongBelow: 1, wrongAbove: 0, caught: 1 });
+    expect(at(0.5).below).toBeCloseTo(1 / 8);
+  });
+
+  it('counts words given the right person, and errors by person', () => {
+    const s = scoreWords(turns, words);
+    const speakers = [
+      { label: 'a', startMs: 0, endMs: 1000 },
+      { label: 'b', startMs: 1500, endMs: 2600 },
+      { label: 'a', startMs: 2600, endMs: 4000 },
+    ];
+    // "from" and "Midrent" fall in a stretch given to Sam's label.
+    expect(scoreSpeakers(turns, words, speakers, s.steps).wordsRightSpeaker).toBeCloseTo(6 / 8);
+    expect(errorsBySpeaker(s.steps, scriptWords(turns).speakers)).toEqual({
+      Sam: { words: 2, errors: 0, rate: 0 },
+      Thandi: { words: 6, errors: 1, rate: 1 / 6 },
+    });
+  });
+
+  it('translates the key’s turns into the engine’s segments by time', () => {
+    const transcript = engineTranscript('m', 'M', 'UTC', '', turns, words, null, 'test');
+    // Without speakers, one segment holds everything; both turns overlap it.
+    expect(transcript.segments).toHaveLength(1);
+    const key = {
+      meeting: 'm',
+      status: '',
+      findings: [{ id: 'F1', kind: 'existing-system', status: 'confirmed', statement: '', turns: ['T2'], segments: ['s2'] }],
+    } as unknown as AnswerKey;
+    expect(translateKey(key, turns, transcript).findings[0].segments).toEqual(['e1']);
   });
 });

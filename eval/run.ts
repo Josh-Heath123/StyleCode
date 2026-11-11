@@ -1,14 +1,18 @@
 /**
- * `npm run eval:run -- --model <name> [--context 8192] [--think off|on|default] [--cpu] [--only <consultation>]`
+ * `npm run eval:run -- --model <name> [--context 8192] [--think off|on|default] [--cpu] [--only <consultation>] [--transcripts <folder>]`
  *
  * Runs StyleCode's extraction (`src/workspace/extraction`) on every
  * consultation through a local Ollama, using the AI server's own provider
  * code, and records each run in `eval/runs/<model>/<consultation>.json` for
  * `npm run eval:score`. Never run in CI: CI scores the recorded runs only.
+ *
+ * `--transcripts` runs it on an engine's transcripts instead of the typed ones
+ * (Phase 3, the downstream test): `<folder>/<consultation>.transcript.json`,
+ * scored against `<folder>/<consultation>.key.json` (`npm run eval:transcripts`).
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus, totalmem } from 'node:os';
-import { join } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { parseArgs } from 'node:util';
 import { streamChat } from '../server/ai/providers.ts';
 import { EXTRACTION_PROMPT_VERSION, type Passage } from '../src/workspace/extraction/prompt.ts';
@@ -32,6 +36,8 @@ const { values } = parseArgs({
     cpu: { type: 'boolean', default: false },
     /** The reply limit for each part, in tokens: the app's is 3000. A thinking model's reasoning counts against it. */
     'max-tokens': { type: 'string', default: '3000' },
+    /** A folder of engine transcripts and translated keys, from `npm run eval:transcripts`. */
+    transcripts: { type: 'string' },
   },
 });
 if (!values.model) throw new Error('Name the model: npm run eval:run -- --model qwen3:4b');
@@ -110,8 +116,12 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
   const dir = join(CONSULTATIONS, id);
   const read = <T>(file: string) => JSON.parse(readFileSync(join(dir, file), 'utf8')) as T;
   const consultation = read<Consultation>('consultation.json');
-  const transcript = read<EvalTranscript>('transcript.json');
-  const key = read<AnswerKey>('answer-key.json');
+  const other = values.transcripts ? resolve(values.transcripts) : null;
+  if (other && !existsSync(join(other, `${id}.transcript.json`))) continue;
+  const transcriptFile = other ? join(other, `${id}.transcript.json`) : join(dir, 'transcript.json');
+  const keyFile = other ? join(other, `${id}.key.json`) : join(dir, 'answer-key.json');
+  const transcript = JSON.parse(readFileSync(transcriptFile, 'utf8')) as EvalTranscript;
+  const key = JSON.parse(readFileSync(keyFile, 'utf8')) as AnswerKey;
   const passages = passagesOf(transcript, consultation);
 
   const startedAt = new Date();
@@ -162,6 +172,12 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
     think: think ?? 'default',
     ...(maxTokens === 3000 ? {} : { maxTokens }),
     ...(values.cpu ? { cpuOnly: true } : {}),
+    ...(other
+      ? {
+          transcriptFile: relative(DIR, transcriptFile).split(sep).join('/'),
+          keyFile: relative(DIR, keyFile).split(sep).join('/'),
+        }
+      : {}),
     proposals: result.raw.map((p) => ({
       kind: String(p.kind),
       status: String(p.status),

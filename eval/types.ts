@@ -86,5 +86,8 @@ export interface RecordedRun {
   cpuOnly?: boolean;
   /** The reply limit per part, when it isn't the app's 3000 tokens. */
   maxTokens?: number;
+  /** For a run on an engine's transcript (Phase 3): the transcript and translated key it was scored against, relative to `eval/`. */
+  transcriptFile?: string;
+  keyFile?: string;
   proposals: RunProposal[];
 }
