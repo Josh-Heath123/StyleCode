@@ -1,0 +1,976 @@
+{
+  "consultation": "umoya-school-portal",
+  "sampleRate": 16000,
+  "voices": {
+    "Priya Govender": {
+      "voice": "bf_alice",
+      "accent": "gb"
+    },
+    "Lindiwe Zulu": {
+      "voice": "af_nicole",
+      "accent": "us"
+    },
+    "Graham Fortuin": {
+      "voice": "am_fenrir",
+      "accent": "us"
+    },
+    "Ayanda Ngcobo": {
+      "voice": "am_puck",
+      "accent": "us"
+    }
+  },
+  "clean": {
+    "turns": [
+      {
+        "turn": "T1",
+        "speaker": "Priya Govender",
+        "segments": ["s1"],
+        "text": "Good afternoon, everyone. Before we get going, I'd like to confirm what we agreed by email. I'm using this meeting's transcript to write up your requirements, and the AI that helps me with that runs on my own computer, so nothing leaves it. Is everyone still happy with that?",
+        "startMs": 1000,
+        "endMs": 17084
+      },
+      {
+        "turn": "T2",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s2"],
+        "text": "Yes, that's fine.",
+        "startMs": 17933,
+        "endMs": 19233
+      },
+      {
+        "turn": "T3",
+        "speaker": "Graham Fortuin",
+        "segments": ["s3"],
+        "text": "Fine by me.",
+        "startMs": 20290,
+        "endMs": 21160
+      },
+      {
+        "turn": "T4",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s4"],
+        "text": "Yes, I'm happy with that.",
+        "startMs": 21551,
+        "endMs": 22805
+      },
+      {
+        "turn": "T5",
+        "speaker": "Priya Govender",
+        "segments": ["s5"],
+        "text": "Thank you. Ayanda, I think your camera has frozen, but I can hear you.",
+        "startMs": 23411,
+        "endMs": 27548
+      },
+      {
+        "turn": "T6",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s6"],
+        "text": "Sorry, it's the school Wi-Fi. It's always like this after two o'clock when the boarders come back.",
+        "startMs": 28476,
+        "endMs": 33428
+      },
+      {
+        "turn": "T7",
+        "speaker": "Priya Govender",
+        "segments": ["s7"],
+        "text": "No problem. So, Lindiwe, you wrote that parents are struggling to get information from the school. Tell me more.",
+        "startMs": 33952,
+        "endMs": 40558
+      },
+      {
+        "turn": "T8",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s8"],
+        "text": "Ja. Right now everything goes out on paper, or by email from SchoolBase. Fee statements are printed every month and sent home in the learners' bags, and half of them never reach the parents. Then I have parents phoning me about fees they didn't know they owed.",
+        "startMs": 41070,
+        "endMs": 58750
+      },
+      {
+        "turn": "T9",
+        "speaker": "Graham Fortuin",
+        "segments": ["s9"],
+        "text": "And reports are the same. Printed, put in envelopes, sent home. For about nine hundred learners that's a week of the admin staff's time every term.",
+        "startMs": 59695,
+        "endMs": 67487
+      },
+      {
+        "turn": "T10",
+        "speaker": "Priya Govender",
+        "segments": ["s10"],
+        "text": "And notices, like sports fixtures or a school closure?",
+        "startMs": 68567,
+        "endMs": 71860
+      },
+      {
+        "turn": "T11",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s11"],
+        "text": "Those go on WhatsApp broadcast lists, and by email. But a broadcast list fills up, so we have five of them now, and parents who change their numbers just fall off.",
+        "startMs": 72173,
+        "endMs": 80766
+      },
+      {
+        "turn": "T12",
+        "speaker": "Priya Govender",
+        "segments": ["s12"],
+        "text": "And absence notes?",
+        "startMs": 81766,
+        "endMs": 83263
+      },
+      {
+        "turn": "T13",
+        "speaker": "Graham Fortuin",
+        "segments": ["s13"],
+        "text": "Handwritten in the learner's homework diary, or an email to the class teacher, who may or may not pass it on to the office. We had a learner marked absent for three days last term and nobody at the office knew why.",
+        "startMs": 83774,
+        "endMs": 96256
+      },
+      {
+        "turn": "T14",
+        "speaker": "Priya Govender",
+        "segments": ["s14"],
+        "text": "That sounds stressful for everyone. So what's the main thing you want out of this?",
+        "startMs": 97115,
+        "endMs": 101634
+      },
+      {
+        "turn": "T15",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s15"],
+        "text": "One place where a parent can see what they owe, their child's reports and the school's notices, and tell us when their child is sick.",
+        "startMs": 102521,
+        "endMs": 111334
+      },
+      {
+        "turn": "T16",
+        "speaker": "Graham Fortuin",
+        "segments": ["s16"],
+        "text": "And for us to stop printing. That's a real cost, and a lot of hours.",
+        "startMs": 112242,
+        "endMs": 115886
+      },
+      {
+        "turn": "T17",
+        "speaker": "Priya Govender",
+        "segments": ["s17"],
+        "text": "Let me take those one at a time. Fee statements first. What would a parent need to see?",
+        "startMs": 116826,
+        "endMs": 122535
+      },
+      {
+        "turn": "T18",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s18"],
+        "text": "The current balance, the monthly statement as a PDF, and the reference to use for EFT. We don't take card payments and we're not going to, so there's no paying through the portal. Parents pay by EFT or debit order, like now.",
+        "startMs": 122855,
+        "endMs": 138616
+      },
+      {
+        "turn": "T19",
+        "speaker": "Priya Govender",
+        "segments": ["s19"],
+        "text": "Got it, no payments in the portal. And the reports?",
+        "startMs": 139809,
+        "endMs": 143151
+      },
+      {
+        "turn": "T20",
+        "speaker": "Graham Fortuin",
+        "segments": ["s20"],
+        "text": "The term report as a PDF, the same one we print. Released on the same day for everyone. We don't want some families seeing them before others.",
+        "startMs": 144046,
+        "endMs": 151577
+      },
+      {
+        "turn": "T21",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s21"],
+        "text": "That day is the problem. When reports come out, every parent logs in within a couple of hours, mostly in the evening. We've got about fourteen hundred parent contacts. Last year we put one grade's reports on the website as a test, and the site fell over.",
+        "startMs": 152263,
+        "endMs": 165696
+      },
+      {
+        "turn": "T22",
+        "speaker": "Priya Govender",
+        "segments": ["s22"],
+        "text": "That's useful to know. And the notices?",
+        "startMs": 166397,
+        "endMs": 169255
+      },
+      {
+        "turn": "T23",
+        "speaker": "Graham Fortuin",
+        "segments": ["s23"],
+        "text": "Notices from the office and from the grade heads, either to the whole school or just to one grade or one team.",
+        "startMs": 169865,
+        "endMs": 176107
+      },
+      {
+        "turn": "T24",
+        "speaker": "Priya Govender",
+        "segments": ["s24"],
+        "text": "And absence notes, a parent fills in a form?",
+        "startMs": 176577,
+        "endMs": 179334
+      },
+      {
+        "turn": "T25",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s25"],
+        "text": "Yes, the reason and the dates, and the class teacher and the office both see it straight away.",
+        "startMs": 179678,
+        "endMs": 185659
+      },
+      {
+        "turn": "T26",
+        "speaker": "Priya Govender",
+        "segments": ["s26"],
+        "text": "Now, SchoolBase. Where does it run?",
+        "startMs": 186615,
+        "endMs": 189278
+      },
+      {
+        "turn": "T27",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s27"],
+        "text": "On a server in the admin block. It's SchoolBase 7, from about 2014 I think. It holds the learners, the parents, fees and marks. It can export to CSV, and it produces the report PDFs.",
+        "startMs": 189634,
+        "endMs": 201126
+      },
+      {
+        "turn": "T28",
+        "speaker": "Priya Govender",
+        "segments": ["s28"],
+        "text": "Does it have any kind of API?",
+        "startMs": 201769,
+        "endMs": 203754
+      },
+      {
+        "turn": "T29",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s29"],
+        "text": "Not that I know of. I've asked the supplier and they haven't answered yet.",
+        "startMs": 204107,
+        "endMs": 207527
+      },
+      {
+        "turn": "T30",
+        "speaker": "Priya Govender",
+        "segments": ["s30"],
+        "text": "Then it's an open question how the portal gets fresh data. One option I'd suggest is a nightly CSV export from SchoolBase that the portal picks up, so we never touch SchoolBase itself.",
+        "startMs": 207998,
+        "endMs": 219280
+      },
+      {
+        "turn": "T31",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s31"],
+        "text": "Hmm, I'd want to know how out of date the balances would be. Parents pay on the first and phone me on the second. Let's talk about it once we've heard from the supplier.",
+        "startMs": 219778,
+        "endMs": 230515
+      },
+      {
+        "turn": "T32",
+        "speaker": "Priya Govender",
+        "segments": ["s32"],
+        "text": "Fair enough. What about the parents' phones and data?",
+        "startMs": 231424,
+        "endMs": 234668
+      },
+      {
+        "turn": "T33",
+        "speaker": "Graham Fortuin",
+        "segments": ["s33"],
+        "text": "Most of our parents have smartphones, but data is expensive, and I'd say most of them are on prepaid. I think most parents would use the portal on their phones rather than a computer, but honestly, we'd need to check. We've never asked them.",
+        "startMs": 235317,
+        "endMs": 248816
+      },
+      {
+        "turn": "T34",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s34"],
+        "text": "Our bursary families especially count every megabyte.",
+        "startMs": 249463,
+        "endMs": 253239
+      },
+      {
+        "turn": "T35",
+        "speaker": "Priya Govender",
+        "segments": ["s35"],
+        "text": "So the portal has to be light: small pages, and the PDFs only downloaded when someone actually opens one.",
+        "startMs": 254186,
+        "endMs": 261001
+      },
+      {
+        "turn": "T36",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s36"],
+        "text": "Yes. And could it be zero-rated? I heard some schools have arranged that with the networks.",
+        "startMs": 261741,
+        "endMs": 266346
+      },
+      {
+        "turn": "T37",
+        "speaker": "Priya Govender",
+        "segments": ["s37"],
+        "text": "That I'd have to look into. I'll note it as a question.",
+        "startMs": 267303,
+        "endMs": 270791
+      },
+      {
+        "turn": "T38",
+        "speaker": "Graham Fortuin",
+        "segments": ["s38"],
+        "text": "On security, I want to be very clear. These are children's records. Reports, the medical reasons on absence notes, family addresses. Only a learner's own parents or guardians may see anything about that learner.",
+        "startMs": 271484,
+        "endMs": 283439
+      },
+      {
+        "turn": "T39",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s39"],
+        "text": "And with some divorced parents, one of them may not see anything at all. There's a court order on about a dozen files.",
+        "startMs": 284282,
+        "endMs": 291989
+      },
+      {
+        "turn": "T40",
+        "speaker": "Priya Govender",
+        "segments": ["s40"],
+        "text": "That's an important one. So the portal has to respect restrictions per parent, and the office has to be able to set them.",
+        "startMs": 292523,
+        "endMs": 299464
+      },
+      {
+        "turn": "T41",
+        "speaker": "Graham Fortuin",
+        "segments": ["s41"],
+        "text": "Yes. Exactly.",
+        "startMs": 300339,
+        "endMs": 301767
+      },
+      {
+        "turn": "T42",
+        "speaker": "Priya Govender",
+        "segments": ["s42"],
+        "text": "And does the data have to stay in South Africa?",
+        "startMs": 302549,
+        "endMs": 305383
+      },
+      {
+        "turn": "T43",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s43"],
+        "text": "The board said it must be hosted in South Africa. That came out of the last board meeting.",
+        "startMs": 306388,
+        "endMs": 310821
+      },
+      {
+        "turn": "T44",
+        "speaker": "Priya Govender",
+        "segments": ["s44"],
+        "text": "Okay. What about language, and accessibility?",
+        "startMs": 311310,
+        "endMs": 314480
+      },
+      {
+        "turn": "T45",
+        "speaker": "Graham Fortuin",
+        "segments": ["s45"],
+        "text": "English is the school's language, but a lot of our grandparents look after the children, and they're more comfortable in isiZulu. If the notices and the main screens could be in isiZulu too, that would mean a lot.",
+        "startMs": 314983,
+        "endMs": 326718
+      },
+      {
+        "turn": "T46",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s46"],
+        "text": "And big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader. Oh, and please use the school's maroon, not some generic blue.",
+        "startMs": 327851,
+        "endMs": 341429
+      },
+      {
+        "turn": "T47",
+        "speaker": "Priya Govender",
+        "segments": ["s47"],
+        "text": "Noted. And the budget?",
+        "startMs": 341926,
+        "endMs": 343955
+      },
+      {
+        "turn": "T48",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s48"],
+        "text": "The finance committee has proposed two hundred and fifty thousand rand for the first year, all in. But the board has to approve it, and they only meet on the twenty-eighth of January.",
+        "startMs": 344344,
+        "endMs": 356368
+      },
+      {
+        "turn": "T49",
+        "speaker": "Priya Govender",
+        "segments": ["s49"],
+        "text": "Then we'd want a firm figure ready for that meeting. And timing, when would you want it working?",
+        "startMs": 356859,
+        "endMs": 361789
+      },
+      {
+        "turn": "T50",
+        "speaker": "Graham Fortuin",
+        "segments": ["s50"],
+        "text": "The term two reports go out on the twenty-sixth of June. We'd like parents to get those through the portal.",
+        "startMs": 362532,
+        "endMs": 367841
+      },
+      {
+        "turn": "T51",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s51"],
+        "text": "Ayanda, I've just looked in SchoolBase while we were talking. It's not fourteen hundred parent contacts, it's about sixteen hundred and fifty. A lot of families have both parents and a grandparent listed.",
+        "startMs": 368989,
+        "endMs": 382542
+      },
+      {
+        "turn": "T52",
+        "speaker": "Priya Govender",
+        "segments": ["s52"],
+        "text": "Thanks, sixteen fifty then. A risk I see is that if the first report day goes badly, parents lose trust in the portal straight away. I'd suggest a trial with one grade's term one reports first.",
+        "startMs": 383423,
+        "endMs": 395308
+      },
+      {
+        "turn": "T53",
+        "speaker": "Graham Fortuin",
+        "segments": ["s53"],
+        "text": "I like that. Let's do grade eight in April as the trial.",
+        "startMs": 395920,
+        "endMs": 399132
+      },
+      {
+        "turn": "T54",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s54"],
+        "text": "Agreed, grade eight first.",
+        "startMs": 399884,
+        "endMs": 401868
+      },
+      {
+        "turn": "T55",
+        "speaker": "Priya Govender",
+        "segments": ["s55"],
+        "text": "Any risks from your side that I should know about?",
+        "startMs": 402667,
+        "endMs": 405317
+      },
+      {
+        "turn": "T56",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s56"],
+        "text": "Me, honestly. I'm the only IT person, and only two days a week. If something breaks on report night, there's nobody.",
+        "startMs": 406130,
+        "endMs": 412752
+      },
+      {
+        "turn": "T57",
+        "speaker": "Priya Govender",
+        "segments": ["s57"],
+        "text": "That's an honest answer, thank you. Anything you'd want later, but not in the first version?",
+        "startMs": 413354,
+        "endMs": 418444
+      },
+      {
+        "turn": "T58",
+        "speaker": "Graham Fortuin",
+        "segments": ["s58"],
+        "text": "Eventually, booking slots for parents' evenings. But not now.",
+        "startMs": 418903,
+        "endMs": 422421
+      },
+      {
+        "turn": "T59",
+        "speaker": "Priya Govender",
+        "segments": ["s59"],
+        "text": "Good. I'll send the summary and the open questions by Friday. Thank you all for your time.",
+        "startMs": 423220,
+        "endMs": 428980
+      }
+    ],
+    "durationMs": 429980
+  },
+  "hard": {
+    "turns": [
+      {
+        "turn": "T1",
+        "speaker": "Priya Govender",
+        "segments": ["s1"],
+        "text": "Good afternoon, everyone. Before we get going, I'd like to confirm what we agreed by email. I'm using this meeting's transcript to write up your requirements, and the AI that helps me with that runs on my own computer, so nothing leaves it. Is everyone still happy with that?",
+        "startMs": 1000,
+        "endMs": 17084
+      },
+      {
+        "turn": "T2",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s2"],
+        "text": "Yes, that's fine.",
+        "startMs": 17933,
+        "endMs": 19233
+      },
+      {
+        "turn": "T3",
+        "speaker": "Graham Fortuin",
+        "segments": ["s3"],
+        "text": "Fine by me.",
+        "startMs": 19009,
+        "endMs": 19879
+      },
+      {
+        "turn": "T4",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s4"],
+        "text": "Yes, I'm happy with that.",
+        "startMs": 20270,
+        "endMs": 21524
+      },
+      {
+        "turn": "T5",
+        "speaker": "Priya Govender",
+        "segments": ["s5"],
+        "text": "Thank you. Ayanda, I think your camera has frozen, but I can hear you.",
+        "startMs": 22130,
+        "endMs": 26267
+      },
+      {
+        "turn": "T6",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s6"],
+        "text": "Sorry, it's the school Wi-Fi. It's always like this after two o'clock when the boarders come back.",
+        "startMs": 27195,
+        "endMs": 32147
+      },
+      {
+        "turn": "T7",
+        "speaker": "Priya Govender",
+        "segments": ["s7"],
+        "text": "No problem. So, Lindiwe, you wrote that parents are struggling to get information from the school. Tell me more.",
+        "startMs": 32671,
+        "endMs": 39277
+      },
+      {
+        "turn": "T8",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s8"],
+        "text": "Ja. Right now everything goes out on paper, or by email from SchoolBase. Fee statements are printed every month and sent home in the learners' bags, and half of them never reach the parents. Then I have parents phoning me about fees they didn't know they owed.",
+        "startMs": 39789,
+        "endMs": 57469
+      },
+      {
+        "turn": "T9",
+        "speaker": "Graham Fortuin",
+        "segments": ["s9"],
+        "text": "And reports are the same. Printed, put in envelopes, sent home. For about nine hundred learners that's a week of the admin staff's time every term.",
+        "startMs": 58414,
+        "endMs": 66206
+      },
+      {
+        "turn": "T10",
+        "speaker": "Priya Govender",
+        "segments": ["s10"],
+        "text": "And notices, like sports fixtures or a school closure?",
+        "startMs": 67286,
+        "endMs": 70579
+      },
+      {
+        "turn": "T11",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s11"],
+        "text": "Those go on WhatsApp broadcast lists, and by email. But a broadcast list fills up, so we have five of them now, and parents who change their numbers just fall off.",
+        "startMs": 70892,
+        "endMs": 79485
+      },
+      {
+        "turn": "T12",
+        "speaker": "Priya Govender",
+        "segments": ["s12"],
+        "text": "And absence notes?",
+        "startMs": 80485,
+        "endMs": 81982
+      },
+      {
+        "turn": "T13",
+        "speaker": "Graham Fortuin",
+        "segments": ["s13"],
+        "text": "Handwritten in the learner's homework diary, or an email to the class teacher, who may or may not pass it on to the office. We had a learner marked absent for three days last term and nobody at the office knew why.",
+        "startMs": 82493,
+        "endMs": 94975
+      },
+      {
+        "turn": "T14",
+        "speaker": "Priya Govender",
+        "segments": ["s14"],
+        "text": "That sounds stressful for everyone. So what's the main thing you want out of this?",
+        "startMs": 95834,
+        "endMs": 100353
+      },
+      {
+        "turn": "T15",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s15"],
+        "text": "One place where a parent can see what they owe, their child's reports and the school's notices, and tell us when their child is sick.",
+        "startMs": 101240,
+        "endMs": 110053
+      },
+      {
+        "turn": "T16",
+        "speaker": "Graham Fortuin",
+        "segments": ["s16"],
+        "text": "And for us to stop printing. That's a real cost, and a lot of hours.",
+        "startMs": 110961,
+        "endMs": 114605
+      },
+      {
+        "turn": "T17",
+        "speaker": "Priya Govender",
+        "segments": ["s17"],
+        "text": "Let me take those one at a time. Fee statements first. What would a parent need to see?",
+        "startMs": 115545,
+        "endMs": 121254
+      },
+      {
+        "turn": "T18",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s18"],
+        "text": "The current balance, the monthly statement as a PDF, and the reference to use for EFT. We don't take card payments and we're not going to, so there's no paying through the portal. Parents pay by EFT or debit order, like now.",
+        "startMs": 121574,
+        "endMs": 137335
+      },
+      {
+        "turn": "T19",
+        "speaker": "Priya Govender",
+        "segments": ["s19"],
+        "text": "Got it, no payments in the portal. And the reports?",
+        "startMs": 138528,
+        "endMs": 141870
+      },
+      {
+        "turn": "T20",
+        "speaker": "Graham Fortuin",
+        "segments": ["s20"],
+        "text": "The term report as a PDF, the same one we print. Released on the same day for everyone. We don't want some families seeing them before others.",
+        "startMs": 142765,
+        "endMs": 150296
+      },
+      {
+        "turn": "T21",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s21"],
+        "text": "That day is the problem. When reports come out, every parent logs in within a couple of hours, mostly in the evening. We've got about fourteen hundred parent contacts. Last year we put one grade's reports on the website as a test, and the site fell over.",
+        "startMs": 150982,
+        "endMs": 164415
+      },
+      {
+        "turn": "T22",
+        "speaker": "Priya Govender",
+        "segments": ["s22"],
+        "text": "That's useful to know. And the notices?",
+        "startMs": 165116,
+        "endMs": 167974
+      },
+      {
+        "turn": "T23",
+        "speaker": "Graham Fortuin",
+        "segments": ["s23"],
+        "text": "Notices from the office and from the grade heads, either to the whole school or just to one grade or one team.",
+        "startMs": 168584,
+        "endMs": 174826
+      },
+      {
+        "turn": "T24",
+        "speaker": "Priya Govender",
+        "segments": ["s24"],
+        "text": "And absence notes, a parent fills in a form?",
+        "startMs": 175296,
+        "endMs": 178053
+      },
+      {
+        "turn": "T25",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s25"],
+        "text": "Yes, the reason and the dates, and the class teacher and the office both see it straight away.",
+        "startMs": 178397,
+        "endMs": 184378
+      },
+      {
+        "turn": "T26",
+        "speaker": "Priya Govender",
+        "segments": ["s26"],
+        "text": "Now, SchoolBase. Where does it run?",
+        "startMs": 185334,
+        "endMs": 187997
+      },
+      {
+        "turn": "T27",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s27"],
+        "text": "On a server in the admin block. It's SchoolBase 7, from about 2014 I think. It holds the learners, the parents, fees and marks. It can export to CSV, and it produces the report PDFs.",
+        "startMs": 188353,
+        "endMs": 199845
+      },
+      {
+        "turn": "T28",
+        "speaker": "Priya Govender",
+        "segments": ["s28"],
+        "text": "Does it have any kind of API?",
+        "startMs": 200488,
+        "endMs": 202473
+      },
+      {
+        "turn": "T29",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s29"],
+        "text": "Not that I know of. I've asked the supplier and they haven't answered yet.",
+        "startMs": 202826,
+        "endMs": 206246
+      },
+      {
+        "turn": "T30",
+        "speaker": "Priya Govender",
+        "segments": ["s30"],
+        "text": "Then it's an open question how the portal gets fresh data. One option I'd suggest is a nightly CSV export from SchoolBase that the portal picks up, so we never touch SchoolBase itself.",
+        "startMs": 206717,
+        "endMs": 217999
+      },
+      {
+        "turn": "T31",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s31"],
+        "text": "Hmm, I'd want to know how out of date the balances would be. Parents pay on the first and phone me on the second. Let's talk about it once we've heard from the supplier.",
+        "startMs": 218497,
+        "endMs": 229234
+      },
+      {
+        "turn": "T32",
+        "speaker": "Priya Govender",
+        "segments": ["s32"],
+        "text": "Fair enough. What about the parents' phones and data?",
+        "startMs": 230143,
+        "endMs": 233387
+      },
+      {
+        "turn": "T33",
+        "speaker": "Graham Fortuin",
+        "segments": ["s33"],
+        "text": "Most of our parents have smartphones, but data is expensive, and I'd say most of them are on prepaid. I think most parents would use the portal on their phones rather than a computer, but honestly, we'd need to check. We've never asked them.",
+        "startMs": 234036,
+        "endMs": 247535
+      },
+      {
+        "turn": "T34",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s34"],
+        "text": "Our bursary families especially count every megabyte.",
+        "startMs": 248182,
+        "endMs": 251958
+      },
+      {
+        "turn": "T35",
+        "speaker": "Priya Govender",
+        "segments": ["s35"],
+        "text": "So the portal has to be light: small pages, and the PDFs only downloaded when someone actually opens one.",
+        "startMs": 252905,
+        "endMs": 259720
+      },
+      {
+        "turn": "T36",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s36"],
+        "text": "Yes. And could it be zero-rated? I heard some schools have arranged that with the networks.",
+        "startMs": 260460,
+        "endMs": 265065
+      },
+      {
+        "turn": "T37",
+        "speaker": "Priya Govender",
+        "segments": ["s37"],
+        "text": "That I'd have to look into. I'll note it as a question.",
+        "startMs": 266022,
+        "endMs": 269510
+      },
+      {
+        "turn": "T38",
+        "speaker": "Graham Fortuin",
+        "segments": ["s38"],
+        "text": "On security, I want to be very clear. These are children's records. Reports, the medical reasons on absence notes, family addresses. Only a learner's own parents or guardians may see anything about that learner.",
+        "startMs": 270203,
+        "endMs": 282158
+      },
+      {
+        "turn": "T39",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s39"],
+        "text": "And with some divorced parents, one of them may not see anything at all. There's a court order on about a dozen files.",
+        "startMs": 283001,
+        "endMs": 290708
+      },
+      {
+        "turn": "T40",
+        "speaker": "Priya Govender",
+        "segments": ["s40"],
+        "text": "That's an important one. So the portal has to respect restrictions per parent, and the office has to be able to set them.",
+        "startMs": 291242,
+        "endMs": 298183
+      },
+      {
+        "turn": "T41",
+        "speaker": "Graham Fortuin",
+        "segments": ["s41"],
+        "text": "Yes. Exactly.",
+        "startMs": 297866,
+        "endMs": 299294
+      },
+      {
+        "turn": "T42",
+        "speaker": "Priya Govender",
+        "segments": ["s42"],
+        "text": "And does the data have to stay in South Africa?",
+        "startMs": 300076,
+        "endMs": 302910
+      },
+      {
+        "turn": "T43",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s43"],
+        "text": "The board said it must be hosted in South Africa. That came out of the last board meeting.",
+        "startMs": 303915,
+        "endMs": 308348
+      },
+      {
+        "turn": "T44",
+        "speaker": "Priya Govender",
+        "segments": ["s44"],
+        "text": "Okay. What about language, and accessibility?",
+        "startMs": 308837,
+        "endMs": 312007
+      },
+      {
+        "turn": "T45",
+        "speaker": "Graham Fortuin",
+        "segments": ["s45"],
+        "text": "English is the school's language, but a lot of our grandparents look after the children, and they're more comfortable in isiZulu. If the notices and the main screens could be in isiZulu too, that would mean a lot.",
+        "startMs": 312510,
+        "endMs": 324245
+      },
+      {
+        "turn": "T46",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s46"],
+        "text": "And big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader. Oh, and please use the school's maroon, not some generic blue.",
+        "startMs": 325378,
+        "endMs": 338956
+      },
+      {
+        "turn": "T47",
+        "speaker": "Priya Govender",
+        "segments": ["s47"],
+        "text": "Noted. And the budget?",
+        "startMs": 339453,
+        "endMs": 341482
+      },
+      {
+        "turn": "T48",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s48"],
+        "text": "The finance committee has proposed two hundred and fifty thousand rand for the first year, all in. But the board has to approve it, and they only meet on the twenty-eighth of January.",
+        "startMs": 341871,
+        "endMs": 353895
+      },
+      {
+        "turn": "T49",
+        "speaker": "Priya Govender",
+        "segments": ["s49"],
+        "text": "Then we'd want a firm figure ready for that meeting. And timing, when would you want it working?",
+        "startMs": 354386,
+        "endMs": 359316
+      },
+      {
+        "turn": "T50",
+        "speaker": "Graham Fortuin",
+        "segments": ["s50"],
+        "text": "The term two reports go out on the twenty-sixth of June. We'd like parents to get those through the portal.",
+        "startMs": 360059,
+        "endMs": 365368
+      },
+      {
+        "turn": "T51",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s51"],
+        "text": "Ayanda, I've just looked in SchoolBase while we were talking. It's not fourteen hundred parent contacts, it's about sixteen hundred and fifty. A lot of families have both parents and a grandparent listed.",
+        "startMs": 366516,
+        "endMs": 380069
+      },
+      {
+        "turn": "T52",
+        "speaker": "Priya Govender",
+        "segments": ["s52"],
+        "text": "Thanks, sixteen fifty then. A risk I see is that if the first report day goes badly, parents lose trust in the portal straight away. I'd suggest a trial with one grade's term one reports first.",
+        "startMs": 380950,
+        "endMs": 392835
+      },
+      {
+        "turn": "T53",
+        "speaker": "Graham Fortuin",
+        "segments": ["s53"],
+        "text": "I like that. Let's do grade eight in April as the trial.",
+        "startMs": 393447,
+        "endMs": 396659
+      },
+      {
+        "turn": "T54",
+        "speaker": "Lindiwe Zulu",
+        "segments": ["s54"],
+        "text": "Agreed, grade eight first.",
+        "startMs": 397411,
+        "endMs": 399395
+      },
+      {
+        "turn": "T55",
+        "speaker": "Priya Govender",
+        "segments": ["s55"],
+        "text": "Any risks from your side that I should know about?",
+        "startMs": 400194,
+        "endMs": 402844
+      },
+      {
+        "turn": "T56",
+        "speaker": "Ayanda Ngcobo",
+        "segments": ["s56"],
+        "text": "Me, honestly. I'm the only IT person, and only two days a week. If something breaks on report night, there's nobody.",
+        "startMs": 403657,
+        "endMs": 410279
+      },
+      {
+        "turn": "T57",
+        "speaker": "Priya Govender",
+        "segments": ["s57"],
+        "text": "That's an honest answer, thank you. Anything you'd want later, but not in the first version?",
+        "startMs": 410881,
+        "endMs": 415971
+      },
+      {
+        "turn": "T58",
+        "speaker": "Graham Fortuin",
+        "segments": ["s58"],
+        "text": "Eventually, booking slots for parents' evenings. But not now.",
+        "startMs": 416430,
+        "endMs": 419948
+      },
+      {
+        "turn": "T59",
+        "speaker": "Priya Govender",
+        "segments": ["s59"],
+        "text": "Good. I'll send the summary and the open questions by Friday. Thank you all for your time.",
+        "startMs": 420747,
+        "endMs": 426507
+      }
+    ],
+    "durationMs": 427507
+  }
+}
