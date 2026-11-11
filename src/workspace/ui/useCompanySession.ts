@@ -86,3 +86,11 @@ export function useCompanySession(companyId: string): [CompanyLoad, reload: () =
   };
   return [load, reload];
 }
+
+/**
+ * Keeps a client open while the AI works on it, whichever client is opened
+ * meanwhile (`SessionRegistry.hold`). Returns the function that lets it go.
+ */
+export function holdCompany(session: WorkspaceSession): () => void {
+  return registry.hold(session);
+}

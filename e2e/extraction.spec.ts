@@ -7,9 +7,9 @@ import { kickoff } from './karoo';
 import { E2E_WORKSPACE } from './workspaceFolder';
 
 /**
- * Asking the AI for findings from a session (MVP 6.1; Phase 2 brief, WP6),
- * through the real local AI server to a fake Ollama that answers
- * predictably. The AI settings are served to the page by the test, and each
+ * Asking the AI for findings from a session and reviewing them (MVP 6.1–6.3;
+ * Phase 2 brief, WP6 and WP7), through the real local AI server to a fake
+ * Ollama that answers predictably. The AI settings are served to the page by the test, and each
  * request names its provider and model, so these tests don't touch the AI
  * settings file other tests share. Karoo Freight is role-played.
  */
@@ -29,6 +29,8 @@ interface Stored {
     string,
     {
       status: string;
+      statement: string;
+      history?: unknown[];
       provenance: { kind: string };
       evidence: { kind: string; quote: string }[];
       origin: { kind: string; model: string; processing: { kind: string }; inputSessionIds: string[]; review: { state: string } };
@@ -95,6 +97,13 @@ test('an Ollama cloud model isn’t offered when the client agreed only to AI on
   await expect(page.getByRole('button', { name: 'Ask the AI for findings' })).toHaveCount(0);
 });
 
+const proposals = (page: Page) =>
+  card(page)
+    .getByRole('list', { name: /waiting for review/ })
+    .locator('> li');
+const findings = (id: string) => Object.values(onDisk(id).findings);
+const byState = (id: string, state: string) => findings(id).filter((f) => f.origin.review.state === state);
+
 test('asking for findings: the proposals wait for review, what failed the checks is counted, and undo removes them', async ({
   page,
 }) => {
@@ -104,12 +113,19 @@ test('asking for findings: the proposals wait for review, what failed the checks
   await expect(card(page)).toContainText(
     `The AI reads this session’s transcript and notes, and nothing else, using ${FAKE_MODEL}, on this computer.`,
   );
+  await expect(card(page)).toContainText('It usually finds about two thirds of what a careful consultant would record');
+  await expect(card(page).getByTestId('run-estimate')).toHaveText(
+    `No estimate yet: ${FAKE_MODEL} hasn’t read a whole session on this computer before. A local model can take several minutes for a long meeting, and you can keep working meanwhile.`,
+  );
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
   await expect(card(page).getByRole('status').first()).toContainText(/The AI proposed \d+ findings to review\./);
   await expect(card(page)).toContainText(
     'Not shown, because they failed StyleCode’s checks: 1 quoted words that aren’t in the passage.',
   );
-  await expect(card(page)).toContainText(/\d+ proposals waiting for review\./);
+  await expect(card(page).getByRole('heading', { name: /^\d+ proposals waiting for review$/ })).toBeVisible();
+  // Each is marked as the AI's, its quote shown first.
+  await expect(proposals(page).first()).toContainText('Proposed by the AI');
+  await expect(proposals(page).first().getByRole('list', { name: 'What it quotes' })).toContainText(/said by Thandi Mokoena/);
 
   // Sent once, to the model that was checked, with thinking off.
   const sent = fake.requests.at(-1)!;
@@ -117,9 +133,8 @@ test('asking for findings: the proposals wait for review, what failed the checks
   expect((sent as unknown as { think: boolean }).think).toBe(false);
   expect(sent.messages[1].content).toContain('Thandi Mokoena (client): ');
 
-  await expect.poll(() => Object.keys(onDisk(id).findings).length).toBeGreaterThan(0);
-  const findings = Object.values(onDisk(id).findings);
-  for (const f of findings) {
+  await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+  for (const f of findings(id)) {
     expect(f.origin).toMatchObject({
       kind: 'ai',
       model: FAKE_MODEL,
@@ -131,38 +146,138 @@ test('asking for findings: the proposals wait for review, what failed the checks
     expect(f.status).toBe('suggested');
   }
 
-  // Asking again proposes nothing new: every proposal repeats one under review.
+  // Now there is an estimate, and asking again proposes nothing new: every proposal repeats one under review.
+  await card(page).getByRole('button', { name: 'Close this summary' }).click();
+  await expect(card(page).getByTestId('run-estimate')).toContainText(
+    `This will take less than a minute, judging by ${FAKE_MODEL}’s earlier runs on this computer.`,
+  );
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
   await expect(card(page)).toContainText('The AI proposed nothing new.');
   await expect(card(page)).toContainText(/\d+ repeated a finding already in this engagement or proposed again/);
 
   await page.keyboard.press('Control+z');
   await expect(card(page)).not.toContainText('waiting for review');
-  await expect.poll(() => Object.keys(onDisk(id).findings).length).toBe(0);
+  await expect.poll(() => findings(id).length).toBe(0);
 });
 
-test('Stop ends a run and saves nothing', async ({ page }) => {
+test('reviewing from the keyboard: select, accept with a status, edit and accept, reject, undo; the report counts them', async ({
+  page,
+}) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
+  const id = await kickoff(page);
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('heading', { name: /proposals waiting for review/ })).toBeVisible();
+  const total = await proposals(page).count();
+  expect(total).toBeGreaterThan(3);
+
+  // Into the list: the first proposal is selected, and the words it quotes are marked in the transcript.
+  const first = proposals(page).first();
+  await first.focus();
+  await expect(first).toHaveAttribute('aria-current', 'true');
+  const quote = (await first.getByRole('list', { name: 'What it quotes' }).locator('q').first().textContent())!;
+  await expect(page.locator('.ws-segment.is-quoted mark').first()).toHaveText(quote);
+
+  // ↓ moves to the next; A accepts it with the status chosen, and the one after takes its place.
+  await page.keyboard.press('ArrowDown');
+  const second = proposals(page).nth(1);
+  await expect(second).toHaveAttribute('aria-current', 'true');
+  await expect(second).toBeFocused();
+  await second.getByRole('combobox').selectOption('confirmed');
+  await second.focus();
+  await page.keyboard.press('a');
+  await expect(proposals(page)).toHaveCount(total - 1);
+  await expect(proposals(page).nth(1)).toBeFocused();
+  await expect.poll(() => byState(id, 'accepted').map((f) => f.status)).toEqual(['confirmed']);
+
+  // R rejects: kept, hidden, with who.
+  await page.keyboard.press('r');
+  await expect(proposals(page)).toHaveCount(total - 2);
+  await expect.poll(() => byState(id, 'rejected').length).toBe(1);
+
+  // E edits, then accepts with the changes, each in the history.
+  await page.keyboard.press('e');
+  const dialog = page.getByRole('dialog', { name: 'Edit the proposal, then accept it' });
+  await expect(dialog).toContainText('The AI proposed “Suggested (not agreed yet)”. Only you can confirm a finding.');
+  await dialog.getByLabel('Statement').fill('Dispatch runs on a WhatsApp group today.');
+  await dialog.getByLabel('Kind').selectOption({ label: 'Existing system' });
+  await dialog.getByRole('button', { name: 'Accept with these changes' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(proposals(page)).toHaveCount(total - 3);
+  await expect
+    .poll(() => byState(id, 'accepted').find((f) => f.statement === 'Dispatch runs on a WhatsApp group today.')?.history?.length)
+    .toBe(2);
+
+  // The report: one accepted, one edited, one rejected, the rest waiting.
+  await card(page).getByText('How the AI did on this session').click();
+  await expect(card(page).getByRole('row', { name: /^All/ }).getByRole('cell')).toHaveText([
+    String(total),
+    '1',
+    '1',
+    '1',
+    String(total - 3),
+  ]);
+
+  // Undo takes back the edit-and-accept: the proposal waits again.
+  await page.keyboard.press('Control+z');
+  await expect(proposals(page)).toHaveCount(total - 2);
+});
+
+test('Stop partway keeps what the parts that finished proposed, says which, and they can be discarded', async ({ page }) => {
+  // A small context, so the meeting is read in several parts; the second is slow.
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'Slow from part two' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('status')).toContainText(/The AI is reading part 2 of \d+\./);
+  await card(page).getByRole('button', { name: 'Stop' }).click();
+  await expect(card(page).getByRole('status').first()).toContainText(/Stopped after part 1 of \d+\./);
+  await expect(card(page)).toContainText(
+    /\d+ proposals from part 1 of \d+ are kept for review\. The rest of the session wasn’t read\./,
+  );
+  await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+
+  await card(page)
+    .getByRole('button', { name: /^Discard these \d+ proposals$/ })
+    .click();
+  await expect(card(page)).toContainText(/The proposals from part 1 of \d+ were discarded\. Undo brings them back\./);
+  await expect.poll(() => findings(id).length).toBe(0);
+  await page.keyboard.press('Control+z');
+  await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+});
+
+test('Stop before any part finishes adds nothing', async ({ page }) => {
   await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
   const id = await kickoff(page, { title: 'A slow kick-off' });
   await importTranscript(page);
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
-  await expect(card(page).getByRole('status')).toContainText('The AI is reading the session…');
+  await expect(card(page).getByRole('status')).toContainText('The AI is reading the session.');
   await card(page).getByRole('button', { name: 'Stop' }).click();
-  await expect(card(page).getByRole('alert')).toHaveText('Stopped. Nothing was saved.');
-  expect(Object.keys(onDisk(id).findings)).toHaveLength(0);
-  await expect(page.getByRole('button', { name: 'Ask the AI for findings' })).toBeVisible();
+  await expect(card(page)).toContainText('Nothing was added: no part had finished.');
+  expect(findings(id)).toHaveLength(0);
+  await expect(page.getByRole('button', { name: 'Ask the AI again' })).toBeVisible();
 });
 
-test('when the model fails, the session says so and nothing is saved', async ({ page }) => {
+test('when the model fails partway, the session says so and keeps what came before', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'Fails on part two' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page)).toContainText(
+    /The AI stopped working on part 2 of \d+\. Ollama returned an error \(500\): model runner has unexpectedly stopped/,
+  );
+  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are kept for review/);
+  await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+});
+
+test('when the model fails on the only part, nothing is added', async ({ page }) => {
   await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
   const id = await kickoff(page, { title: 'A kick-off that will fail' });
   await importTranscript(page);
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
-  await expect(card(page).getByRole('alert')).toContainText(
-    'Ollama returned an error (500): model runner has unexpectedly stopped',
-  );
-  await expect(card(page).getByRole('alert')).toContainText('Nothing was saved.');
-  expect(Object.keys(onDisk(id).findings)).toHaveLength(0);
+  await expect(card(page)).toContainText('Ollama returned an error (500): model runner has unexpectedly stopped');
+  await expect(card(page)).toContainText('Nothing was added: no part had finished.');
+  expect(findings(id)).toHaveLength(0);
 });
 
 test('switching to a cloud model during a run stops it before anything is sent there (C5, C6)', async ({ page }) => {
@@ -178,19 +293,84 @@ test('switching to a cloud model during a run stops it before anything is sent t
     await route.continue();
   });
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
-  await expect(card(page).getByRole('alert')).toHaveText(
-    'The AI settings changed while the AI was working, so it stopped. Nothing was saved.',
-  );
+  await expect(card(page)).toContainText('The AI settings changed while the AI was working, so it stopped.');
   expect(requestsFor(FAKE_MODEL) - before).toBe(1);
   expect(requestsFor('gpt-oss:120b-cloud')).toBe(0);
-  expect(Object.keys(onDisk(id).findings)).toHaveLength(0);
+  // What the local model proposed for the first part is kept: consent allowed that.
+  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are kept for review/);
+  for (const f of findings(id)) expect(f.origin).toMatchObject({ model: FAKE_MODEL, processing: { kind: 'local' } });
   // Back on the page, the cloud model isn't offered.
   await expect(card(page)).toContainText('The client did not agree to an external AI provider.');
 });
 
-test('the card passes the accessibility checks, before and after a run', async ({ page }) => {
+test('a run goes on while the consultant works elsewhere, and closing the tab asks first', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'A steady kick-off' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  const nav = page.getByRole('navigation', { name: 'StyleCode' });
+  await expect(nav.getByRole('link', { name: /The AI is reading “A steady kick-off”: part \d+ of \d+/ })).toBeVisible();
+
+  // Closing the tab during a run asks first.
+  let asked = false;
+  page.once('dialog', async (d) => {
+    asked = d.type() === 'beforeunload';
+    await d.dismiss();
+  });
+  await page.close({ runBeforeUnload: true });
+  await expect.poll(() => asked).toBe(true);
+  expect(page.isClosed()).toBe(false);
+
+  // Off to the design editor, and to the clients list, while it reads.
+  await nav.getByRole('link', { name: 'Design editor' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'StyleCode' }).getByRole('link', { name: /The AI is reading/ }),
+  ).toBeVisible();
+  await page.evaluate(() => (location.hash = '#/'));
+  const done = page.getByRole('navigation', { name: 'StyleCode' }).getByRole('link', {
+    name: 'The AI has finished “A steady kick-off”',
+  });
+  await expect(done).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+  await done.click();
+  await expect(card(page).getByRole('heading', { name: /proposals waiting for review/ })).toBeVisible();
+  await expect(card(page)).toContainText(/The AI proposed \d+ findings to review\./);
+});
+
+test('a note quoted by a proposal under review can’t change, and the message leads to the proposal (decision 14)', async ({
+  page,
+}) => {
   await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
+  await kickoff(page, { note: 'Thandi wants the pilot in Bloemfontein first.' });
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('heading', { name: '1 proposal waiting for review' })).toBeVisible();
+  const notes = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Notes', exact: true }) });
+  await notes.getByRole('button', { name: /Change the note written at/ }).click();
+  await notes.getByRole('textbox').fill('The pilot is in Midrand first.');
+  await notes.getByRole('button', { name: 'Save' }).click();
+  await expect(notes.getByRole('alert')).toContainText('An AI proposal quotes this note (“The note said: Thandi wants the pilot');
+  await notes.getByRole('button', { name: 'Review the proposal' }).click();
+  await expect(proposals(page).first()).toBeFocused();
+  await expect(proposals(page).first()).toHaveAttribute('aria-current', 'true');
+  // The note is marked as what the proposal quotes; its editor stays open, so the change typed isn't lost.
+  await expect(page.locator('.ws-note.is-quoted')).toHaveCount(1);
+  await expect(notes.getByRole('textbox')).toHaveValue('The pilot is in Midrand first.');
+});
+
+test('? lists the review shortcuts on a client page', async ({ page }) => {
+  await aiSettings(page, { provider: 'off', model: '' });
   await kickoff(page);
+  await page.keyboard.press('?');
+  const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
+  await expect(dialog.getByRole('region', { name: 'Reviewing the AI’s proposals' })).toContainText('Reject the proposal');
+  await expect(dialog).not.toContainText('Rectangle');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+});
+
+test('the card passes the accessibility checks: before a run, during one, and reviewing', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  await kickoff(page, { title: 'Slow from part two' });
   await importTranscript(page);
   const check = async () =>
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual(
@@ -199,6 +379,13 @@ test('the card passes the accessibility checks, before and after a run', async (
   await check();
   await page.getByRole('button', { name: 'Ask the AI for findings' }).focus();
   await page.keyboard.press('Enter');
-  await expect(card(page)).toContainText(/proposals waiting for review/);
+  await expect(card(page).getByRole('status')).toContainText(/part 2 of/);
+  await check();
+  await card(page).getByRole('button', { name: 'Stop' }).click();
+  await expect(card(page).getByRole('heading', { name: /proposals waiting for review/ })).toBeVisible();
+  await proposals(page).first().focus();
+  await check();
+  await page.keyboard.press('e');
+  await expect(page.getByRole('dialog', { name: 'Edit the proposal, then accept it' })).toBeVisible();
   await check();
 });

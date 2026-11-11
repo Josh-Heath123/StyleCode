@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import {
   addParticipant,
@@ -19,7 +19,7 @@ import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { ConsentPanel } from './consent/ConsentPanel';
 import { NotesCard } from './NotesCard';
 import { TranscriptCard, usePassage } from './TranscriptCard';
-import { ProposalsCard } from './extraction/ProposalsCard';
+import { ProposalsCard, quotedPassages } from './extraction/ProposalsCard';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
@@ -87,6 +87,22 @@ function SessionView({
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  // The proposal selected for review, and the passages it quotes, highlighted in the transcript and notes.
+  const [selected, setSelected] = useState<string | null>(null);
+  const quoted = useMemo(() => quotedPassages(selected ? get(workspace.findings, selected) : undefined), [workspace, selected]);
+  const firstQuoted = quoted.keys().next().value;
+  useEffect(() => {
+    if (firstQuoted) document.getElementById(`passage-${firstQuoted}`)?.scrollIntoView({ block: 'nearest' });
+  }, [selected, firstQuoted]);
+  /** Selects a proposal and moves to it: from a note that it quotes (decision 14). */
+  const selectProposal = (id: string) => {
+    setSelected(id);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`proposal-${id}`);
+      el?.scrollIntoView({ block: 'center' });
+      el?.focus({ preventScroll: true });
+    });
+  };
   const people = Object.values(workspace.participants)
     .filter((p) => p.sessionId === meeting.id)
     .sort((a, b) => Number(a.side === 'consultant') - Number(b.side === 'consultant') || a.name.localeCompare(b.name));
@@ -109,7 +125,6 @@ function SessionView({
         <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
         <div className="ws-columns">
           <div className="ws-stack">
-            <NotesCard key={meeting.id} view={view} meeting={meeting} passageId={passageId} />
             <section className="ws-card" aria-labelledby="participants-title">
               <div className="ws-card-head">
                 <h2 id="participants-title">Participants</h2>
@@ -219,8 +234,22 @@ function SessionView({
             )}
           </section>
         </div>
-        <ProposalsCard key={`ai-${meeting.id}`} view={view} meeting={meeting} />
-        <TranscriptCard key={meeting.id} view={view} meeting={meeting} passageId={passageId} />
+        <div className="ws-review">
+          <div className="ws-stack">
+            <NotesCard
+              key={meeting.id}
+              view={view}
+              meeting={meeting}
+              passageId={passageId}
+              quoted={quoted}
+              onShowProposal={selectProposal}
+            />
+            <TranscriptCard key={`t-${meeting.id}`} view={view} meeting={meeting} passageId={passageId} quoted={quoted} />
+          </div>
+          <div className="ws-review-side">
+            <ProposalsCard key={`ai-${meeting.id}`} view={view} meeting={meeting} selected={selected} onSelect={setSelected} />
+          </div>
+        </div>
       </Page>
       {dialog?.kind === 'participant' && (
         <ParticipantDialog view={view} sessionId={meeting.id} participant={dialog.participant} onClose={() => setDialog(null)} />

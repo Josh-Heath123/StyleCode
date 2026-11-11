@@ -1,3 +1,4 @@
+import { Quoted } from './Quoted';
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../../ui/Icon';
 import { LAYOUT_LABELS, PLATFORM_LABELS, readPastedTranscript, readTranscriptFile, type TranscriptRead } from '../import/read';
@@ -61,7 +62,18 @@ function groupsOf(segments: readonly TranscriptSegment[]): TranscriptSegment[][]
  * transcript by speaker, with the speakers who weren't asked for consent
  * (rule C11); matching speakers to participants; replacing and deleting it.
  */
-export function TranscriptCard({ view, meeting, passageId }: { view: ClientView; meeting: Session; passageId: string | null }) {
+export function TranscriptCard({
+  view,
+  meeting,
+  passageId,
+  quoted,
+}: {
+  view: ClientView;
+  meeting: Session;
+  passageId: string | null;
+  /** The passages the selected proposal quotes, with the words quoted from each. */
+  quoted?: ReadonlyMap<string, readonly string[]>;
+}) {
   const { workspace, readOnly } = view;
   const transcript = transcriptOf(workspace, meeting.id);
   const [dialog, setDialog] = useState<'import' | 'replace' | 'delete' | null>(null);
@@ -104,7 +116,7 @@ export function TranscriptCard({ view, meeting, passageId }: { view: ClientView;
           </p>
         </div>
       ) : (
-        <TranscriptView view={view} meeting={meeting} transcript={transcript} passageId={passageId} />
+        <TranscriptView view={view} meeting={meeting} transcript={transcript} passageId={passageId} quoted={quoted} />
       )}
       {(dialog === 'import' || dialog === 'replace') && (
         <ImportDialog view={view} meeting={meeting} replacing={dialog === 'replace'} onClose={() => setDialog(null)} />
@@ -159,11 +171,13 @@ function TranscriptView({
   meeting,
   transcript,
   passageId,
+  quoted,
 }: {
   view: ClientView;
   meeting: Session;
   transcript: Transcript;
   passageId: string | null;
+  quoted?: ReadonlyMap<string, readonly string[]>;
 }) {
   const ws = view.workspace;
   const segments = segmentsOf(ws, transcript.id);
@@ -198,9 +212,9 @@ function TranscriptView({
                   key={s.id}
                   id={`passage-${s.id}`}
                   tabIndex={-1}
-                  className={`ws-segment${s.id === passageId ? ' is-cited' : ''}`}
+                  className={`ws-segment${s.id === passageId ? ' is-cited' : ''}${quoted?.has(s.id) ? ' is-quoted' : ''}`}
                 >
-                  {s.text}
+                  <Quoted text={s.text} quotes={quoted?.get(s.id)} />
                 </p>
               ))}
             </div>

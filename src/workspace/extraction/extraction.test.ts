@@ -15,7 +15,7 @@ import {
   type Passage,
 } from './prompt.ts';
 import { addProposals, checkProposals, engagementFindings, normaliseStatement, readReply, sessionPassages } from './proposals.ts';
-import { extract } from './run.ts';
+import { extract, type PartDone } from './run.ts';
 import { FINDING_KINDS } from '../model/types.ts';
 
 /** Role-played: the sample workspace's session se_1, a shop's stock spreadsheet. */
@@ -366,5 +366,37 @@ describe('running an extraction', () => {
       },
     });
     await expect(cancelled).rejects.toThrow();
+  });
+
+  it('reports each part as it finishes, so a run that fails or stops partway keeps the parts before', async () => {
+    const passages: Passage[] = Array.from({ length: 300 }, (_, i) => ({
+      ref: `S${i + 1}`,
+      kind: 'segment',
+      id: `sg_${i + 1}`,
+      speaker: 'Thandi Mokoena (client)',
+      text: `Passage ${i + 1}: we run forty trucks between two depots and dispatch on a group chat every morning.`,
+    }));
+    const done: PartDone[] = [];
+    let sent = 0;
+    const failing = extract({
+      title: 'Kick-off',
+      passages,
+      contextSize: 8192,
+      signal: new AbortController().signal,
+      onPart: (d) => done.push(d),
+      send: async () => {
+        if (++sent === 3) throw new Error('model runner has unexpectedly stopped');
+        return sent === 2
+          ? 'No.'
+          : JSON.stringify({ findings: [{ kind: 'budget', status: 'suggested', statement: 'x', evidence: [] }] });
+      },
+    });
+    await expect(failing).rejects.toThrow('model runner');
+    expect(done.map((d) => [d.part, d.raw.length, d.readable])).toEqual([
+      [1, 1, true],
+      [2, 0, false],
+    ]);
+    expect(done[0].parts).toBeGreaterThan(3);
+    expect(done[0].tokens).toBeGreaterThan(0);
   });
 });

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Assistant } from '../../ai/assistant';
 import { App } from '../../app/App';
 import { AppNav } from '../../app/AppNav';
+import { ShortcutsDialog, WORKSPACE_GROUPS } from '../../app/ShortcutsDialog';
+import { isTypingTarget } from '../../canvas/Canvas';
 import type { Camera } from '../../editor/camera';
 import type { Editor } from '../../editor/editor';
 import type { ProjectSession } from '../../persistence/session';
@@ -57,6 +59,20 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
     document.title = showEditor ? 'StyleCode' : 'StyleCode · Clients';
   }, [showEditor]);
 
+  // On client pages, ? opens the keyboard shortcuts (the editor has its own).
+  const [shortcuts, setShortcuts] = useState(false);
+  useEffect(() => {
+    if (showEditor) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '?' || e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
+      if ((e.target as Element | null)?.closest?.('[role="dialog"], .menu')) return;
+      e.preventDefault();
+      setShortcuts(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showEditor]);
+
   if (showEditor || info === null) {
     return (
       <App
@@ -85,6 +101,7 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
         >
           {renderPage(route)}
         </ErrorBoundary>
+        {shortcuts && <ShortcutsDialog groups={WORKSPACE_GROUPS} onClose={() => setShortcuts(false)} />}
         <footer className="ws-folder">
           Client data folder: <span className="ws-folder-path">{info.folder}</span>
         </footer>

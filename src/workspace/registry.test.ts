@@ -72,6 +72,38 @@ describe('which clients stay open', () => {
   });
 });
 
+describe('a client held open while the AI works on it (WP7)', () => {
+  it('stays open while another is opened, and goes once the hold is let go and it has saved', async () => {
+    const registry = new SessionRegistry();
+    const a = client('co_a', { value: false });
+    registry.open(a);
+    const letGo = registry.hold(a);
+    registry.open(client('co_b', { value: false }));
+    expect(a.closed).toBe(false);
+    expect(registry.get('co_a')).toBe(a);
+    // The run adds its proposals to the held client, which saves them.
+    a.apply('Add the AI’s proposals', rename('A'));
+    letGo();
+    expect(a.closed).toBe(false);
+    await vi.advanceTimersByTimeAsync(SAVE_DELAY_MS);
+    expect(a.closed).toBe(true);
+    expect(registry.get('co_a')).toBeUndefined();
+  });
+
+  it('stays open after the hold goes when it is the current client again', () => {
+    const registry = new SessionRegistry();
+    const a = client('co_a', { value: false });
+    registry.open(a);
+    const letGo = registry.hold(a);
+    registry.open(client('co_b', { value: false }));
+    registry.open(a);
+    letGo();
+    letGo();
+    expect(a.closed).toBe(false);
+    expect(registry.get('co_a')).toBe(a);
+  });
+});
+
 describe('unfinished notes', () => {
   const draft = { text: 'Orders peak in Dec', startedAt: '2026-11-04T09:00:00.000Z' };
 

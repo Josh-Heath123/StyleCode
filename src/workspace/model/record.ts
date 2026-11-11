@@ -3,7 +3,17 @@
  * hand, edited, filtered, and linked. Pure, so each change is one undoable
  * step; every edit to a finding is in its history, with who and when.
  */
-import { editFinding, isInRecord, provenanceFor, recordGroups, type FindingEdits, type RecordGroups } from './findings.ts';
+import {
+  acceptProposal,
+  editFinding,
+  isInRecord,
+  isPending,
+  provenanceFor,
+  recordGroups,
+  rejectProposal,
+  type FindingEdits,
+  type RecordGroups,
+} from './findings.ts';
 import {
   type CompanyWorkspace,
   type Evidence,
@@ -194,4 +204,65 @@ export function linksOf(ws: CompanyWorkspace, findingId: string): LinkView[] {
   return out.sort(
     (a, b) => a.relation.createdAt.localeCompare(b.relation.createdAt) || a.relation.id.localeCompare(b.relation.id),
   );
+}
+
+// Reviewing the AI's proposals (MVP 6.2; Phase 2 brief, WP7)
+// ---------------------------------------------------------------------------
+
+/**
+ * Accepts a pending AI proposal into the record, with any edits the
+ * consultant made while reviewing it (kind, statement, status, evidence),
+ * each in its history. Evidence is checked as when a finding is entered by
+ * hand. The status is the consultant's choice (decision 8), so it is recorded
+ * as theirs even when it is the AI's.
+ */
+export function acceptReviewed(
+  ws: CompanyWorkspace,
+  findingId: string,
+  edits: FindingEdits,
+  consultant: string,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  const finding = get(ws.findings, findingId);
+  if (!finding) return fail('The proposal does not exist.');
+  if (!isNonEmptyText(consultant)) return fail('Give your name in Settings first: accepting records who accepted it.');
+  for (const e of edits.evidence ?? []) {
+    const issue = evidenceIssue(ws, finding.engagementId, e);
+    if (issue) return fail(issue);
+  }
+  if (edits.evidence !== undefined && edits.evidence.length === 0)
+    return fail('Keep at least one quote: it is what the proposal rests on.');
+  if (edits.statement !== undefined) edits = { ...edits, statement: edits.statement.trim() };
+  const accepted = acceptProposal(finding, consultant.trim(), at, edits);
+  if (!accepted.ok) return accepted;
+  return ok({ ...ws, findings: { ...ws.findings, [findingId]: accepted.value } });
+}
+
+/** Rejects a pending AI proposal: it is kept, hidden, with who and when, so it isn't proposed again (MVP Q11). */
+export function rejectReviewed(
+  ws: CompanyWorkspace,
+  findingId: string,
+  consultant: string,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  const finding = get(ws.findings, findingId);
+  if (!finding) return fail('The proposal does not exist.');
+  const rejected = rejectProposal(finding, consultant.trim(), at);
+  if (!rejected.ok) return rejected;
+  return ok({ ...ws, findings: { ...ws.findings, [findingId]: rejected.value } });
+}
+
+/**
+ * Discards the proposals of a run that didn't finish, as if it had never
+ * proposed them: unlike rejected ones, they aren't kept. Only proposals still
+ * waiting for review go; any already accepted or rejected stay as they are.
+ */
+export function discardProposals(ws: CompanyWorkspace, findingIds: readonly string[]): Result<CompanyWorkspace> {
+  const pending = findingIds.filter((id) => {
+    const f = get(ws.findings, id);
+    return f !== undefined && isPending(f);
+  });
+  if (!pending.length) return fail('None of those proposals is waiting for review any more.');
+  const gone = new Set(pending);
+  return ok({ ...ws, findings: Object.fromEntries(Object.entries(ws.findings).filter(([id]) => !gone.has(id))) });
 }

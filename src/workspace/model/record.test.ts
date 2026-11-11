@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { sampleWorkspace, T3 } from './fixtures';
-import { addRelation, createFinding, filteredRecord, linksOf, removeRelation, updateFinding } from './record';
+import {
+  acceptReviewed,
+  addRelation,
+  createFinding,
+  discardProposals,
+  filteredRecord,
+  linksOf,
+  rejectReviewed,
+  removeRelation,
+  updateFinding,
+} from './record';
 import type { CompanyWorkspace } from './types';
 import { validateWorkspace } from './validate';
 
@@ -147,5 +157,67 @@ describe('links (MVP 7.2)', () => {
       ok: false,
       error: 'Links stay within one engagement.',
     });
+  });
+});
+
+describe('reviewing a proposal (MVP 6.2; Phase 2 brief, WP7)', () => {
+  it('accepts with the AI’s status, or another the consultant chooses, recorded as theirs', () => {
+    const ws = sampleWorkspace();
+    const kept = value(acceptReviewed(ws, 'fd_risk', {}, 'Sam', AT)).findings.fd_risk;
+    expect(kept.origin).toMatchObject({ review: { state: 'accepted', by: 'Sam', at: AT } });
+    expect(kept.statusSet).toEqual({ by: { kind: 'consultant', name: 'Sam' }, at: AT });
+    expect(kept.history).toEqual([]);
+    const confirmed = value(acceptReviewed(ws, 'fd_risk', { status: 'confirmed' }, 'Sam', AT));
+    expect(confirmed.findings.fd_risk.status).toBe('confirmed');
+    expect(codes(confirmed)).toEqual([]);
+  });
+
+  it('accepts with edits, each in the history, the proposal kept as the AI made it', () => {
+    const ws = sampleWorkspace();
+    const after = value(
+      acceptReviewed(
+        ws,
+        'fd_risk',
+        {
+          kind: 'operational-challenge',
+          statement: '  Stock changes clash at month end. ',
+          evidence: [{ kind: 'segment', segmentId: 'sg_2', quote: 'we keep stock in a spreadsheet' }],
+        },
+        'Sam',
+        AT,
+      ),
+    );
+    const f = after.findings.fd_risk;
+    expect(f.statement).toBe('Stock changes clash at month end.');
+    expect(f.history.map((h) => h.field)).toEqual(['kind', 'statement', 'evidence']);
+    expect(f.provenance).toEqual({ kind: 'said-in-session' });
+    expect(f.origin.kind === 'ai' && f.origin.proposed.kind).toBe('risk');
+    expect(codes(after)).toEqual([]);
+  });
+
+  it('refuses evidence that isn’t in the passage, no evidence at all, and an empty statement', () => {
+    const ws = sampleWorkspace();
+    const bad = { kind: 'segment' as const, segmentId: 'sg_2', quote: 'we keep stock in a database' };
+    expect(acceptReviewed(ws, 'fd_risk', { evidence: [bad] }, 'Sam', AT).ok).toBe(false);
+    expect(acceptReviewed(ws, 'fd_risk', { evidence: [] }, 'Sam', AT).ok).toBe(false);
+    expect(acceptReviewed(ws, 'fd_risk', { statement: '  ' }, 'Sam', AT).ok).toBe(false);
+    expect(acceptReviewed(ws, 'fd_risk', {}, ' ', AT).ok).toBe(false);
+  });
+
+  it('rejects: kept, hidden, with who and when; only a pending proposal', () => {
+    const ws = sampleWorkspace();
+    const after = value(rejectReviewed(ws, 'fd_risk', 'Sam', AT));
+    expect(after.findings.fd_risk.origin).toMatchObject({ review: { state: 'rejected', by: 'Sam', at: AT } });
+    expect(codes(after)).toEqual([]);
+    expect(rejectReviewed(after, 'fd_risk', 'Sam', AT).ok).toBe(false);
+    expect(acceptReviewed(after, 'fd_risk', {}, 'Sam', AT).ok).toBe(false);
+  });
+
+  it('discards only proposals still waiting for review, and says when none is', () => {
+    const ws = sampleWorkspace();
+    const after = value(discardProposals(ws, ['fd_risk', 'fd_stock', 'fd_gone']));
+    expect(Object.keys(after.findings).sort()).toEqual(['fd_peak', 'fd_stock']);
+    expect(codes(after)).toEqual([]);
+    expect(discardProposals(after, ['fd_risk', 'fd_stock']).ok).toBe(false);
   });
 });

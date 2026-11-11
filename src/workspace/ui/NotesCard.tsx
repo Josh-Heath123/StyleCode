@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { isTypingTarget } from '../../canvas/Canvas';
 import { Icon } from '../../ui/Icon';
 import { getSettings } from '../api';
+import { isPending } from '../model/findings';
 import { addNote, editNote, findingsQuotingNote, notesOf, removeNote } from '../model/notes';
 import type { Finding, Note, Session } from '../model/types';
 import { formatTimeOfDay, sinceStart } from '../time';
 import type { ClientView } from './ClientFrame';
 import { FormDialog } from './fields';
+import { Quoted } from './Quoted';
 import { now, step } from './steps';
 import { noteDraft, setNoteDraft } from './useCompanySession';
 
@@ -20,10 +22,16 @@ export function NotesCard({
   view,
   meeting,
   passageId = null,
+  quoted,
+  onShowProposal,
 }: {
   view: ClientView;
   meeting: Session;
   passageId?: string | null;
+  /** The notes the selected proposal quotes, with the words quoted from each. */
+  quoted?: ReadonlyMap<string, readonly string[]>;
+  /** Selects a proposal under review: from the message when one quotes a note (decision 14). */
+  onShowProposal?: (findingId: string) => void;
 }) {
   const { workspace, readOnly, session } = view;
   const notes = notesOf(workspace, meeting.id);
@@ -32,6 +40,8 @@ export function NotesCard({
   const [editing, setEditing] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ note: Note; text: string | null; findings: Finding[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** A proposal under review that quotes the note being changed, so the change waits for its review (decision 14). */
+  const [blockedBy, setBlockedBy] = useState<Finding | null>(null);
   const consultant = useConsultantName();
 
   // N starts a new note, from anywhere on the session page except a text field or a dialog.
@@ -50,6 +60,12 @@ export function NotesCard({
   /** Applies an edit or deletion; one whose quotes findings use is confirmed first (decision 6). */
   const change = (note: Note, text: string | null, confirmed = false): boolean => {
     const findings = findingsQuotingNote(workspace, note.id, text);
+    const pending = findings.find(isPending);
+    setBlockedBy(pending ?? null);
+    if (pending) {
+      setError(null);
+      return false;
+    }
     if (findings.length && !confirmed) {
       setConfirm({ note, text, findings });
       return false;
@@ -82,6 +98,24 @@ export function NotesCard({
           {error}
         </p>
       )}
+      {blockedBy && (
+        <p className="ws-error" role="alert">
+          An AI proposal quotes this note (“{blockedBy.statement}”), so it can’t change until the proposal is reviewed.{' '}
+          {onShowProposal && (
+            <button
+              type="button"
+              className="ws-link-button"
+              onClick={() => {
+                const id = blockedBy.id;
+                setBlockedBy(null);
+                onShowProposal(id);
+              }}
+            >
+              Review the proposal
+            </button>
+          )}
+        </p>
+      )}
       {notes.length === 0 && !writing && (
         <div className="ws-empty is-small">
           <p>
@@ -99,7 +133,7 @@ export function NotesCard({
               key={note.id}
               id={`passage-${note.id}`}
               tabIndex={-1}
-              className={`ws-note${note.id === passageId ? ' is-cited' : ''}`}
+              className={`ws-note${note.id === passageId ? ' is-cited' : ''}${quoted?.has(note.id) ? ' is-quoted' : ''}`}
             >
               <div className="ws-note-time">
                 <span>{formatTimeOfDay(note.writtenAt)}</span>
@@ -118,7 +152,9 @@ export function NotesCard({
                 />
               ) : (
                 <div className="ws-note-body">
-                  <p className="ws-note-text">{note.text}</p>
+                  <p className="ws-note-text">
+                    <Quoted text={note.text} quotes={quoted?.get(note.id)} />
+                  </p>
                   {note.updatedAt !== note.writtenAt && <p className="ws-help">Changed {formatTimeOfDay(note.updatedAt)}</p>}
                 </div>
               )}
