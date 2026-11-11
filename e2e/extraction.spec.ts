@@ -153,7 +153,11 @@ test('asking for findings: the proposals wait for review, what failed the checks
   );
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
   await expect(card(page)).toContainText('The AI proposed nothing new.');
-  await expect(card(page)).toContainText(/\d+ repeated a finding already in this engagement or proposed again/);
+  // Repeats aren't failures: they are left out, and said so apart from what failed the checks.
+  await expect(card(page)).toContainText(/Left out: \d+ repeated a finding already in this engagement, or one proposed before\./);
+  await expect(card(page)).toContainText(
+    'Not shown, because they failed StyleCode’s checks: 1 quoted words that aren’t in the passage.',
+  );
 
   await page.keyboard.press('Control+z');
   await expect(card(page)).not.toContainText('waiting for review');
@@ -177,6 +181,10 @@ test('reviewing from the keyboard: select, accept with a status, edit and accept
   await expect(first).toHaveAttribute('aria-current', 'true');
   const quote = (await first.getByRole('list', { name: 'What it quotes' }).locator('q').first().textContent())!;
   await expect(page.locator('.ws-segment.is-quoted mark').first()).toHaveText(quote);
+  // Only the selected proposal offers its actions; the others show the quote, statement and labels.
+  await expect(first.getByRole('button', { name: 'Accept' })).toBeVisible();
+  await expect(proposals(page).nth(1).getByRole('button')).toHaveCount(0);
+  await expect(proposals(page).nth(1)).toContainText('Proposed by the AI');
 
   // ↓ moves to the next; A accepts it with the status chosen, and the one after takes its place.
   await page.keyboard.press('ArrowDown');
@@ -232,10 +240,15 @@ test('Stop partway keeps what the parts that finished proposed, says which, and 
   await expect(card(page).getByRole('status')).toContainText(/The AI is reading part 2 of \d+\./);
   await card(page).getByRole('button', { name: 'Stop' }).click();
   await expect(card(page).getByRole('status').first()).toContainText(/Stopped after part 1 of \d+\./);
-  await expect(card(page)).toContainText(
-    /\d+ proposals from part 1 of \d+ are kept for review\. The rest of the session wasn’t read\./,
-  );
+  const coverage =
+    /\d+ proposals from part 1 of \d+ are waiting for review\. The rest of the session wasn’t read: ask the AI again to read all of it\./;
+  await expect(card(page)).toContainText(coverage);
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+
+  // After a reload, what that run read is still said, until its proposals are reviewed or discarded.
+  await page.reload();
+  await expect(card(page)).toContainText(coverage);
+  await expect(card(page)).not.toContainText('Stopped after');
 
   await card(page)
     .getByRole('button', { name: /^Discard these \d+ proposals$/ })
@@ -244,6 +257,30 @@ test('Stop partway keeps what the parts that finished proposed, says which, and 
   await expect.poll(() => findings(id).length).toBe(0);
   await page.keyboard.press('Control+z');
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
+  await expect(card(page)).toContainText(coverage);
+
+  // Reviewing them all ends it: reject each, from the keyboard.
+  await proposals(page).first().focus();
+  const left = await proposals(page).count();
+  for (let i = 0; i < left; i++) {
+    await page.keyboard.press('r');
+    await expect(proposals(page)).toHaveCount(left - i - 1);
+  }
+  await expect(card(page)).not.toContainText(/from part 1 of/);
+});
+
+test('a quote from the consultant’s side says so', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
+  await kickoff(page, { title: 'Kick-off, both sides' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('heading', { name: /proposals waiting for review/ })).toBeVisible();
+  await expect(card(page).getByRole('list', { name: 'What it quotes' }).filter({ hasText: 'Sam Naidoo' }).first()).toContainText(
+    'said by Sam Naidoo (your side)',
+  );
+  await expect(card(page).getByRole('list', { name: 'What it quotes' }).filter({ hasText: 'Thandi' }).first()).toContainText(
+    /said by Thandi Mokoena$/,
+  );
 });
 
 test('Stop before any part finishes adds nothing', async ({ page }) => {
@@ -266,7 +303,7 @@ test('when the model fails partway, the session says so and keeps what came befo
   await expect(card(page)).toContainText(
     /The AI stopped working on part 2 of \d+\. Ollama returned an error \(500\): model runner has unexpectedly stopped/,
   );
-  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are kept for review/);
+  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are waiting for review/);
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
 });
 
@@ -297,7 +334,7 @@ test('switching to a cloud model during a run stops it before anything is sent t
   expect(requestsFor(FAKE_MODEL) - before).toBe(1);
   expect(requestsFor('gpt-oss:120b-cloud')).toBe(0);
   // What the local model proposed for the first part is kept: consent allowed that.
-  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are kept for review/);
+  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are waiting for review/);
   for (const f of findings(id)) expect(f.origin).toMatchObject({ model: FAKE_MODEL, processing: { kind: 'local' } });
   // Back on the page, the cloud model isn't offered.
   await expect(card(page)).toContainText('The client did not agree to an external AI provider.');

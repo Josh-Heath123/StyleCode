@@ -4068,8 +4068,9 @@ a.ws-row:focus-visible {
 
 .ws-review-side {
   position: sticky;
-  top: 16px;
-  max-height: calc(100vh - 32px);
+  /* Below the sticky top bar. */
+  top: calc(var(--topbar-h) + 12px);
+  max-height: calc(100vh - var(--topbar-h) - 24px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -4238,4 +4239,32 @@ a.ws-row:focus-visible {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--melon);
+}
+
+/* The run's progress, summary and coverage stay in sight above the proposals. */
+.ws-run-status {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  margin: 0 -20px;
+  padding: 8px 20px;
+  background: var(--surface-1);
+}
+
+.ws-run-status:empty {
+  display: none;
+}
+
+.ws-run-status p {
+  margin: 0;
+}
+
+.ws-run-coverage {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--melon);
+  border-radius: 8px;
 }

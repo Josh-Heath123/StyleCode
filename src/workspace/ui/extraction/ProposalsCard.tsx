@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon } from '../../../ui/Icon';
 import { canUseAi } from '../../model/consent';
 import { isPending } from '../../model/findings';
 import { KIND_LABEL, STATUS_LABEL } from '../../model/labels';
 import { notesOf } from '../../model/notes';
 import { acceptReviewed, rejectReviewed } from '../../model/record';
-import { segmentsOf, transcriptOf } from '../../model/transcripts';
+import { segmentsOf, speakerOf, transcriptOf } from '../../model/transcripts';
 import { FINDING_STATUSES, type CompanyWorkspace, type Finding, type FindingStatus, type Session } from '../../model/types';
 import { get } from '../../model/util';
 import { formatDuration } from '../../extraction/estimate';
@@ -20,6 +20,7 @@ import { FormDialog, NameField, nameFor } from '../fields';
 import { now, step } from '../steps';
 import { useConsultant } from '../useConsultant';
 import { currentAiSetup, type AiSetup } from './aiSetup';
+import { coverageOf } from './coverage';
 import {
   discardRun,
   dismissRun,
@@ -40,10 +41,17 @@ export function whereItRuns(setup: AiSetup): string {
     : `${setup.model}, by ${setup.processing.provider}`;
 }
 
-/** The dropped proposals, as a sentence: "2 quoted words that aren't in the passage; 1 cited nothing". */
-export function droppedText(dropped: DropCounts): string | null {
-  const parts = DROP_REASONS.filter((r) => dropped[r] > 0).map((r) => `${dropped[r]} ${DROP_LABELS[r]}`);
-  return parts.length ? parts.join('; ') : null;
+/**
+ * What the checks kept out, as sentences: the proposals that failed them
+ * (invented or unreadable evidence, a kind or status that isn't allowed), and
+ * the repeats, which aren't failures.
+ */
+export function droppedText(dropped: DropCounts): { failed: string | null; leftOut: string | null } {
+  const failed = DROP_REASONS.filter((r) => r !== 'repeat' && dropped[r] > 0).map((r) => `${dropped[r]} ${DROP_LABELS[r]}`);
+  return {
+    failed: failed.length ? `Not shown, because they failed StyleCode’s checks: ${failed.join('; ')}.` : null,
+    leftOut: dropped.repeat ? `Left out: ${dropped.repeat} ${DROP_LABELS.repeat}.` : null,
+  };
 }
 
 /**
@@ -156,6 +164,7 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
           : null;
   const ready = !why && setup && typeof setup !== 'string' ? setup : null;
   const estimate = ready ? estimateFor(ready, passageTokens(passages)) : null;
+  const summary = run && !running ? run : null;
 
   const ask = async () => {
     setError(null);
@@ -165,37 +174,46 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
     if (run) dismissRun(run);
     setError(startRun(session, meeting, start, location.hash));
   };
+  const askButton = ready && (
+    <button type="button" className="button primary" onClick={() => void ask()}>
+      <Icon name="sparkle" size={14} /> {summary ? 'Ask the AI again' : 'Ask the AI for findings'}
+    </button>
+  );
 
   return (
-    <div className="ws-run">
-      {!running && why && <p className="ws-muted">{why}</p>}
-      {!running && ready && (
-        <>
-          <p className="ws-help">
-            The AI reads this session’s transcript and notes, and nothing else, using {whereItRuns(ready)}. What it proposes waits
-            for your review and isn’t part of the record until you accept it. It usually finds about two thirds of what a careful
-            consultant would record, so read the transcript too.
-          </p>
-          <p className="ws-help" data-testid="run-estimate">
-            {estimate !== null
-              ? `This will take ${formatDuration(estimate)}, judging by ${ready.model}’s earlier runs on this computer. You can keep working meanwhile.`
-              : `No estimate yet: ${ready.model} hasn’t read a whole session on this computer before. A local model can take several minutes for a long meeting, and you can keep working meanwhile.`}
-          </p>
-          <div className="ws-run-actions">
-            <button type="button" className="button primary" onClick={() => void ask()}>
-              <Icon name="sparkle" size={14} /> {run ? 'Ask the AI again' : 'Ask the AI for findings'}
-            </button>
-          </div>
-        </>
+    <>
+      {!running && !summary && (
+        <div className="ws-run">
+          {why && <p className="ws-muted">{why}</p>}
+          {ready && (
+            <>
+              <p className="ws-help">
+                The AI reads this session’s transcript and notes, and nothing else, using {whereItRuns(ready)}. What it proposes
+                waits for your review and isn’t part of the record until you accept it. It usually finds about two thirds of what
+                a careful consultant would record, so read the transcript too.
+              </p>
+              <p className="ws-help" data-testid="run-estimate">
+                {estimate !== null
+                  ? `This will take ${formatDuration(estimate)}, judging by ${ready.model}’s earlier runs on this computer. You can keep working meanwhile.`
+                  : `No estimate yet: ${ready.model} hasn’t read a whole session on this computer before. A local model can take several minutes for a long meeting, and you can keep working meanwhile.`}
+              </p>
+              <div className="ws-run-actions">{askButton}</div>
+            </>
+          )}
+        </div>
       )}
-      {run && running && <Progress run={run} />}
-      {run && !running && <Summary view={view} run={run} />}
-      {error && (
-        <p className="ws-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+      {/* What the run is doing or did, and what an unfinished run read: kept in sight at the top of the column. */}
+      <div className="ws-run-status">
+        {run && running && <Progress run={run} />}
+        {summary && <Summary run={summary} why={why} askButton={askButton} />}
+        <CoverageNotice view={view} meeting={meeting} />
+        {error && (
+          <p className="ws-error" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -217,16 +235,9 @@ function Progress({ run }: { run: Run }) {
 
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-function Summary({ view, run }: { view: ClientView; run: Run }) {
-  const [error, setError] = useState<string | null>(null);
+function Summary({ run, why, askButton }: { run: Run; why: string | null; askButton: ReactNode }) {
   const added = run.addedIds.length;
-  const partial = run.state !== 'finished';
-  const kept = partial && run.partsDone > 0;
-  const dropped = run.dropped && droppedText(run.dropped);
-  const stillPending = run.addedIds.filter((id) => {
-    const f = get(view.workspace.findings, id);
-    return f !== undefined && isPending(f);
-  }).length;
+  const { failed, leftOut } = run.dropped ? droppedText(run.dropped) : { failed: null, leftOut: null };
   return (
     <div className="ws-run-summary" role="status">
       {run.state === 'failed' && (
@@ -239,15 +250,10 @@ function Summary({ view, run }: { view: ClientView; run: Run }) {
       {run.state === 'finished' && (
         <p>{added ? `The AI proposed ${count(added, 'finding')} to review.` : 'The AI proposed nothing new.'}</p>
       )}
-      {partial && !kept && <p>Nothing was added: no part had finished.</p>}
-      {kept && !run.discarded && (
-        <p>
-          {added
-            ? `${count(added, 'proposal')} from ${partsText(run.partsDone, run.parts)} ${added === 1 ? 'is' : 'are'} kept for review. The rest of the session wasn’t read.`
-            : `Nothing new came from ${partsText(run.partsDone, run.parts)}.`}
-        </p>
+      {run.state !== 'finished' && run.partsDone === 0 && <p>Nothing was added: no part had finished.</p>}
+      {run.state !== 'finished' && run.partsDone > 0 && !added && (
+        <p>Nothing new came from {partsText(run.partsDone, run.parts)}.</p>
       )}
-      {run.discarded && <p>The proposals from {partsText(run.partsDone, run.parts)} were discarded. Undo brings them back.</p>}
       {run.unreadable > 0 && (
         <p>
           {run.unreadable === run.partsDone && run.partsDone === 1
@@ -256,22 +262,69 @@ function Summary({ view, run }: { view: ClientView; run: Run }) {
           couldn’t be read, so try again or choose another model.
         </p>
       )}
-      {dropped && <p className="ws-help">Not shown, because they failed StyleCode’s checks: {dropped}.</p>}
-      {error && (
-        <p className="ws-error" role="alert">
-          {error}
-        </p>
-      )}
+      {failed && <p className="ws-help">{failed}</p>}
+      {leftOut && <p className="ws-help">{leftOut}</p>}
+      {why && <p className="ws-muted">{why}</p>}
       <div className="ws-run-actions">
-        {kept && !run.discarded && stillPending > 0 && !view.readOnly && (
-          <button type="button" className="button" onClick={() => setError(discardRun(view.session, run))}>
-            Discard {stillPending === 1 ? 'this proposal' : `these ${stillPending} proposals`}
-          </button>
-        )}
+        {askButton}
         <button type="button" className="button" onClick={() => dismissRun(run)}>
           Close this summary
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * What a run that didn't finish read, until its proposals are all reviewed or
+ * discarded, after a reload too (`coverage.ts`), with the way to discard them.
+ */
+function CoverageNotice({ view, meeting }: { view: ClientView; meeting: Session }) {
+  const [note, setNote] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const coverage = coverageOf(view.session.companyId, meeting.id);
+  const waiting = coverage
+    ? Object.values(view.workspace.findings).filter(
+        (f) =>
+          isPending(f) && f.origin.kind === 'ai' && f.origin.at === coverage.at && f.origin.inputSessionIds.includes(meeting.id),
+      )
+    : [];
+  // Once they are back (undo), the note that they were discarded no longer holds.
+  useEffect(() => {
+    if (waiting.length && note) setNote(null);
+  }, [waiting.length, note]);
+  if (!coverage || (!waiting.length && !note)) return null;
+  const parts = partsText(coverage.partsDone, coverage.parts);
+  if (!waiting.length) return <p role="status">{note}</p>;
+  return (
+    <div className="ws-run-coverage">
+      <p>
+        {count(waiting.length, 'proposal')} from {parts} {waiting.length === 1 ? 'is' : 'are'} waiting for review. The rest of the
+        session wasn’t read: ask the AI again to read all of it.
+      </p>
+      {problem && (
+        <p className="ws-error" role="alert">
+          {problem}
+        </p>
+      )}
+      {!view.readOnly && (
+        <div className="ws-run-actions">
+          <button
+            type="button"
+            className="button"
+            onClick={() => {
+              const problem = discardRun(
+                view.session,
+                waiting.map((f) => f.id),
+              );
+              setProblem(problem);
+              if (!problem) setNote(`The proposals from ${parts} were discarded. Undo brings them back.`);
+            }}
+          >
+            Discard {waiting.length === 1 ? 'this proposal' : `these ${waiting.length} proposals`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -462,7 +515,7 @@ function ProposalItem({
           {STATUS_LABEL[f.status]}
         </span>
       </div>
-      {!readOnly && (
+      {!readOnly && selected && (
         <div className="ws-proposal-actions">
           <label className="ws-inline">
             Accept as
@@ -502,7 +555,10 @@ function quoteSource(ws: CompanyWorkspace, meeting: Session, e: Exclude<Finding[
     return `your note${note ? ` at ${formatTimeOfDay(note.writtenAt)}` : ''}`;
   }
   const label = get(ws.segments, e.segmentId)?.speakerLabel;
-  return label ? `said by ${speakerName(ws, meeting.id, label)}` : 'said';
+  if (!label) return 'said';
+  // The consultant's side isn't the client: a quote from them says so.
+  const side = speakerOf(ws, meeting.id, label)?.side;
+  return `said by ${speakerName(ws, meeting.id, label)}${side === 'consultant' ? ' (your side)' : ''}`;
 }
 
 /** Edits a proposal and accepts it in one step (MVP 6.2): every change is in its history; what the AI proposed is kept. */

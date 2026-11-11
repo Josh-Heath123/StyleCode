@@ -131,7 +131,7 @@ export const DROP_LABELS: Record<DropReason, string> = {
   'no-statement': 'had no statement',
   'bad-kind': 'had a kind StyleCode doesn’t use',
   'bad-status': 'had a status the AI may not give',
-  repeat: 'repeated a finding already in this engagement or proposed again',
+  repeat: 'repeated a finding already in this engagement, or one proposed before',
 };
 
 export type DropCounts = Record<DropReason, number>;

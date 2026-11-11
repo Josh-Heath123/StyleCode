@@ -36,7 +36,8 @@ export type FakeReply = { text: string; delay: number } | { status: number; erro
  * the passage, which StyleCode must drop. A meeting titled with "slow" streams
  * slowly (to test Stop), with "steady" takes a few seconds a part, and with
  * "fail" the model server returns an error. With "part two" in the title too,
- * "slow" and "fail" start from the second part.
+ * "slow" and "fail" start from the second part; with "both sides", what the
+ * consultant's side said is proposed too.
  */
 function extractionReply(body: FakeOllama['requests'][number]): FakeReply | null {
   if (!body.messages[0]?.content.includes('list the findings a careful consultant would record')) return null;
@@ -47,7 +48,9 @@ function extractionReply(body: FakeOllama['requests'][number]): FakeReply | null
   if (from('fail')) return { status: 500, error: 'model runner has unexpectedly stopped' };
   const own = message.includes('New passages:') ? message.slice(message.indexOf('New passages:')) : message;
   const findings: unknown[] = [];
-  for (const m of own.matchAll(/^\[([SN]\d+)\] (?:([^:\n]+?) \(client\): |Note: )?(.*)$/gm)) {
+  // With "both sides" in the title, what the consultant's side said is proposed too.
+  const sides = title.includes('both sides') ? 'client|consultant' : 'client';
+  for (const m of own.matchAll(new RegExp(`^\\[([SN]\\d+)\\] (?:([^:\\n]+?) \\((?:${sides})\\): |Note: )?(.*)$`, 'gm'))) {
     const [, ref, client, text] = m;
     const speaker = client ?? (ref.startsWith('N') ? 'The note' : null);
     const words = text.split(/\s+/);

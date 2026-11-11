@@ -17,6 +17,7 @@ import type { WorkspaceSession } from '../../session';
 import { now, step } from '../steps';
 import { holdCompany } from '../useCompanySession';
 import { sendForSession, type AiSetup } from './aiSetup';
+import { setCoverage } from './coverage';
 import { recordSpeed, speedOf } from './speed';
 
 /**
@@ -50,8 +51,6 @@ export interface Run {
   unreadable: number;
   /** Why it failed, or why its proposals couldn't be added. */
   error: string | null;
-  /** The proposals of a run that didn't finish were discarded. */
-  discarded: boolean;
 }
 
 const runs = new Map<string, Run>();
@@ -154,7 +153,6 @@ export function startRun(session: WorkspaceSession, meeting: Session, setup: AiS
     dropped: null,
     unreadable: 0,
     error: null,
-    discarded: false,
   });
   publish();
   void go(key, session, meeting, setup, passages, controller);
@@ -204,6 +202,7 @@ async function go(
   let addedIds: string[] = [];
   let dropped: DropCounts | null = null;
   let error = ended.error;
+  const at = now();
   if (partsDone > 0) {
     const label =
       ended.state === 'finished' ? 'Add the AI’s proposals' : `Add the AI’s proposals from ${partsText(partsDone, parts)}`;
@@ -215,7 +214,7 @@ async function go(
         provider: setup.provider,
         model: setup.model,
         processing: setup.processing,
-        at: now(),
+        at,
       });
       if (!stored.ok) return stored;
       addedIds = stored.value.ids;
@@ -226,6 +225,10 @@ async function go(
       error = `${error ? `${error} ` : ''}The proposals couldn’t be added: ${problem}`;
     }
   }
+  // What a run that didn't finish read is kept with its proposals; one that read it all makes that moot.
+  if (ended.state === 'finished') setCoverage(session.companyId, meeting.id, null);
+  else if (addedIds.length)
+    setCoverage(session.companyId, meeting.id, { companyId: session.companyId, sessionId: meeting.id, at, partsDone, parts });
   update(key, { ...ended, error, addedIds, dropped, unreadable, partsDone, parts });
   letGo();
 }
@@ -235,14 +238,9 @@ export function stopRun(companyId: string, sessionId: string): void {
   controllers.get(keyOf(companyId, sessionId))?.abort();
 }
 
-/**
- * Discards what a run that didn't finish proposed, as one undoable step.
- * Returns why it couldn't, or null.
- */
-export function discardRun(session: WorkspaceSession, run: Run): string | null {
-  const problem = step(session, 'Discard the AI’s proposals', (ws) => discardProposals(ws, run.addedIds));
-  if (!problem) update(keyOf(run.companyId, run.sessionId), { discarded: true });
-  return problem;
+/** Discards what a run that didn't finish proposed, as one undoable step. Returns why it couldn't, or null. */
+export function discardRun(session: WorkspaceSession, findingIds: readonly string[]): string | null {
+  return step(session, 'Discard the AI’s proposals', (ws) => discardProposals(ws, findingIds));
 }
 
 /** Forgets an ended run's summary (the proposals it added stay). */
