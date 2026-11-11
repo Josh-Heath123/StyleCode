@@ -11,6 +11,7 @@ import {
   extractionSchema,
   extractionSystemPrompt,
   KIND_MEANINGS,
+  PART_CONTEXT,
   type Passage,
 } from './prompt.ts';
 import { addProposals, checkProposals, engagementFindings, normaliseStatement, readReply, sessionPassages } from './proposals.ts';
@@ -96,8 +97,15 @@ describe('splitting a long session', () => {
     for (const c of chunks) expect(system + estimateTokens(extractionMessage('Kick-off', c)) + 3000).toBeLessThanOrEqual(8192);
   });
 
-  it('uses fewer parts with a larger context', () => {
-    expect(chunkPassages('Kick-off', passages, 32_768).length).toBeLessThan(chunkPassages('Kick-off', passages, 8192).length);
+  it('sizes parts for at most 6144 tokens of context, and smaller when the context setting is smaller', () => {
+    const at = (contextSize: number) => chunkPassages('Kick-off', passages, contextSize).length;
+    expect(PART_CONTEXT).toBe(6144);
+    expect(at(32_768)).toBe(at(6144));
+    expect(at(8192)).toBe(at(6144));
+    expect(at(4096)).toBeGreaterThan(at(6144));
+    const system = estimateTokens(extractionSystemPrompt());
+    for (const c of chunkPassages('Kick-off', passages, 32_768))
+      expect(system + estimateTokens(extractionMessage('Kick-off', c)) + 3000).toBeLessThanOrEqual(PART_CONTEXT);
   });
 
   it('sends a passage too long for any part on its own', () => {
@@ -174,6 +182,39 @@ describe('reading and checking proposals', () => {
       'bad-status': 1,
       repeat: 1,
     });
+  });
+
+  it('removes one ellipsis at the start or end of a quote, and stores the quote without it', () => {
+    const raw = readReply(
+      reply([
+        proposal({ evidence: [{ ref: 'S2', quote: '…we keep stock in a spreadsheet' }] }),
+        proposal({ kind: 'risk', evidence: [{ ref: 'S1', quote: 'about five times as many orders ...' }] }),
+        proposal({ kind: 'constraint', evidence: [{ ref: 'N1', quote: '... spreadsheet conflicts at month …' }] }),
+      ]),
+      passages,
+    )!;
+    const { proposals, dropped } = checkProposals(raw, []);
+    expect(Object.values(dropped).every((n) => n === 0)).toBe(true);
+    expect(
+      proposals.map((p) => {
+        const e = p.evidence[0];
+        return 'quote' in e ? e.quote : null;
+      }),
+    ).toEqual(['we keep stock in a spreadsheet', 'about five times as many orders', 'spreadsheet conflicts at month']);
+  });
+
+  it('still drops a quote with an ellipsis inside it', () => {
+    const raw = readReply(reply([proposal({ evidence: [{ ref: 'S2', quote: 'we keep … in a spreadsheet' }] })]), passages)!;
+    const { proposals, dropped } = checkProposals(raw, []);
+    expect(proposals).toHaveLength(0);
+    expect(dropped['quote-not-found']).toBe(1);
+  });
+
+  it('still drops a quote of fewer than three words once the ellipsis is gone', () => {
+    const raw = readReply(reply([proposal({ evidence: [{ ref: 'S2', quote: 'a spreadsheet…' }] })]), passages)!;
+    const { proposals, dropped } = checkProposals(raw, []);
+    expect(proposals).toHaveLength(0);
+    expect(dropped['quote-too-short']).toBe(1);
   });
 
   it('drops a repeat of a finding already in the engagement, in the record, under review or rejected', () => {

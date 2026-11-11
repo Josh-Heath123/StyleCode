@@ -144,17 +144,25 @@ export const REPLY_TOKENS = 3000;
 export const OVERLAP_SHARE = 0.15;
 
 /**
+ * The most context a part is sized for, in tokens, whatever the model allows.
+ * Smaller parts found more: a model proposes about twenty findings a reply,
+ * however long the part (`docs/research/EXTRACTION.md`).
+ */
+export const PART_CONTEXT = 6144;
+
+/**
  * Splits a session's passages into parts at passage boundaries, each fitting
- * the model's context (`contextSize` in the AI settings) with the
- * instructions and room for the reply. Each part after the first repeats the
- * end of the one before. A passage longer than a whole part goes alone.
+ * `PART_CONTEXT`, or the model's context (`contextSize` in the AI settings)
+ * if that is smaller, with the instructions and room for the reply. Each
+ * part after the first repeats the end of the one before. A passage longer
+ * than a whole part goes alone.
  */
 export function chunkPassages(title: string, passages: readonly Passage[], contextSize: number): Chunk[] {
   const fixed =
     estimateTokens(extractionSystemPrompt()) +
     estimateTokens(extractionMessage(title, { index: 0, count: 2, context: [], passages: [] })) +
     200;
-  const room = Math.max(500, contextSize - REPLY_TOKENS - fixed);
+  const room = Math.max(500, Math.min(contextSize, PART_CONTEXT) - REPLY_TOKENS - fixed);
   const overlap = Math.floor(room * OVERLAP_SHARE);
   const cost = (p: Passage) => estimateTokens(line(p)) + 1;
 

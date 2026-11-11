@@ -20,6 +20,7 @@
  * Pure: no files, so it is tested like the domain model.
  */
 import { FINDING_KINDS, type FindingKind } from '../src/workspace/model/types.ts';
+import { withoutEndEllipsis } from '../src/workspace/extraction/proposals.ts';
 import { isQuoteLongEnough, quoteAppearsIn } from '../src/workspace/model/util.ts';
 import type { AnswerKey, EvalTranscript, KeyFinding, RunProposal } from './types.ts';
 
@@ -50,9 +51,11 @@ export function proposalProblems(transcript: EvalTranscript, p: RunProposal): Ev
   const byId = new Map(transcript.segments.map((s) => [s.id, s]));
   for (const e of evidence) {
     const segment = byId.get(e?.segmentId);
+    // As the app checks it: one ellipsis at either end doesn't count (withoutEndEllipsis).
+    const quote = typeof e?.quote === 'string' ? withoutEndEllipsis(e.quote) : null;
     if (!segment) problems.add('unknown-segment');
-    else if (typeof e.quote !== 'string' || !quoteAppearsIn(segment.text, e.quote)) problems.add('quote-not-in-segment');
-    else if (!isQuoteLongEnough(segment.text, e.quote)) problems.add('quote-too-short');
+    else if (quote === null || !quoteAppearsIn(segment.text, quote)) problems.add('quote-not-in-segment');
+    else if (!isQuoteLongEnough(segment.text, quote)) problems.add('quote-too-short');
   }
   return [...problems];
 }

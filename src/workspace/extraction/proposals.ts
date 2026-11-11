@@ -180,7 +180,11 @@ export function checkProposals(
 ): { proposals: CheckedProposal[]; dropped: DropCounts } {
   const dropped = noneDropped();
   const proposals: CheckedProposal[] = [];
-  for (const p of raw) {
+  for (const unchecked of raw) {
+    const p: RawProposal = {
+      ...unchecked,
+      evidence: unchecked.evidence.map((e) => (typeof e.quote === 'string' ? { ...e, quote: withoutEndEllipsis(e.quote) } : e)),
+    };
     const reason = problemOf(p);
     if (reason) {
       dropped[reason]++;
@@ -205,6 +209,20 @@ export function checkProposals(
     proposals.push(checked);
   }
   return { proposals, dropped };
+}
+
+/**
+ * A quote without one "…" or "..." at its start and one at its end, with the
+ * space beside it: models mark a quote that starts or stops mid-sentence that
+ * way, and the words left must still appear in the passage. An ellipsis inside
+ * a quote stays, so it fails the check: it could join words from different
+ * places.
+ */
+export function withoutEndEllipsis(quote: string): string {
+  return quote
+    .trim()
+    .replace(/^(?:…|\.\.\.)\s*/, '')
+    .replace(/\s*(?:…|\.\.\.)$/, '');
 }
 
 function problemOf(p: RawProposal): DropReason | null {

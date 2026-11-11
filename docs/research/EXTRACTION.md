@@ -25,9 +25,20 @@ Each row covers all three consultations: 31, 59 and 59 turns, 70 findings in the
 | **qwen3:4b** | **off** | **6144 (1, 2, 2)** | **59** | **98%** | **69%** | **2%** | **25** |
 | qwen3:4b | off | 4096 (3, 6, 7) | 81 | 84% | 71% | 1% | 15 * |
 | qwen3:8b | off | 8192 (1 each) | 49 | 90% | 56% | 10% | 41 |
-| gemma3:4b | (none) | 8192 (1 each) | 52 | 69% | 41% | 23% | 18 |
+| gemma3:4b | (none) | 8192 (1 each) | 52 | 77% | 46% | 15% | 18 |
+| qwen3:4b, performance mode | off | 6144 (1, 2, 2) | 62 | 98% | 63% | 0% | 9 † |
+
+The scores apply the rule adopted after the first write-up: an ellipsis at either end of a quote is removed before the check. It changed only gemma3:4b's row, which was 69%, 41% and 23% before.
+
+The two qwen3:4b runs at 6144 differ by 6 points of recall (69% and 63%), with the same settings. That is the run-to-run spread to expect at temperature 0.2.
 
 \* The GPU was cool at the start of this run: Karoo Freight took 28 s and the school portal 50 s, then the vets' meeting took 293 s. With the GPU slowed throughout, expect about 30.
+
+† **In performance mode** (11 November 2026, the laptop plugged in, HP OMEN performance mode; Windows Update was installing meanwhile), the three meetings took 218 s in all: Karoo Freight 15 s, the school portal 42 s, the vets 162 s. Before, the same settings took 615 s.
+- For the first minute the GPU ran at 1,300 to 1,500 MHz, drawing 80 to 100 W.
+- It then reached 88 to 90 °C, and thermal slowdown (`clocks_event_reasons` 0x20) held it at 210 MHz for the rest of the run, at about 52 W. The clock logged every 15 s from the second minute averaged 279 MHz.
+
+So performance mode removes the power cap, and heat becomes the limit. An hour-long meeting would run mostly at the slowed clock: expect something between 9 and 25 minutes per hour of meeting, nearer 25 the longer it is. Better cooling (a cooling pad, clean vents, a cooler room) is what would raise the slowed clock.
 
 **Thinking on** (Karoo Freight only, 4.6 minutes, 20 findings):
 
@@ -59,7 +70,7 @@ A subagent that hadn't seen the scores settled the unclear pairs (132 of them) w
 - With the CPU alone, the transcript is read about five times more slowly.
 
 **What would help, most first:**
-1. **Let the GPU run at full speed.** Set the laptop's vendor app (or Windows' power mode) to its performance setting, plugged in, and check the cooling (vents and fans). At its normal clocks this GPU should be several times faster. That has not been measured here, so measure it again after the change.
+1. **Let the GPU run at full speed, and keep it cool.** Performance mode, plugged in, ran these meetings 2.8 times faster (above). After the first minute, heat held the GPU back, so cooling is what would help next: clean vents, a cooling pad, or a cooler room.
 2. **Stay with a model that fits in the GPU's 6 GB:** a 4B model at 4-bit, context 8192 or less.
 3. **Keep thinking off for extraction.** The app already sends `think: false` to Ollama.
 4. **Leave memory free.** With 16 GB, the runs left 1 to 3 GB free, and Claude Code once stopped them for low memory. Close the browser and WSL during a long run.
@@ -68,9 +79,9 @@ A subagent that hadn't seen the scores settled the unclear pairs (132 of them) w
 ## Recommendations
 
 - **Default model: `qwen3:4b`, thinking off.** It had the best precision and recall here, never invented evidence at 8192, and fits entirely on the GPU. gemma3:4b was faster, but missed most of the key and invented evidence in nearly a quarter of its proposals. That included a wrong number: it quoted "about a hundred and sixty a day" where the client said a hundred and twenty. StyleCode's checks caught it.
-- **Part size: about 6144 tokens of context per part, whatever the context setting.** Smaller parts found more: the model seems to stop at around 20 findings a reply, however long the part. At 6144, recall rose 8 points over one part per meeting, at much the same precision and speed. At 4096 it rose 2 points more, but precision fell to 84%, because so many small parts repeated and split findings. This rests on three short meetings, so measure it again on the first real hour-long transcripts. **Not yet in the app:** parts are still sized from the context setting (default 8192). It needs your decision.
+- **Part size: about 6144 tokens of context per part, whatever the context setting.** Smaller parts found more: the model seems to stop at around 20 findings a reply, however long the part. At 6144, recall rose 8 points over one part per meeting, at much the same precision and speed. At 4096 it rose 2 points more, but precision fell to 84%, because so many small parts repeated and split findings. This rests on three short meetings, so measure it again on the first real hour-long transcript. **Adopted:** parts are sized for 6144 tokens of context, or for the context setting if that is smaller (`PART_CONTEXT` in `src/workspace/extraction/prompt.ts`).
 - **Prompt:** keep version 2 (`src/workspace/extraction/prompt.ts`).
-- **Small fix to consider:** gemma3, and qwen3:8b once, ended otherwise exact quotes with "…", which fails the check. Removing a leading or trailing ellipsis before the check would keep the guarantee, because every remaining word must still appear in the passage. Not made: it changes what counts as evidence, so it needs your decision.
+- **Ellipses at the ends of a quote. Adopted:** gemma3, and qwen3:8b once, ended otherwise exact quotes with "…". One "…" or "..." at the start and one at the end of a quote are now removed, with the space beside them, before the check, and the quote is stored without them (`withoutEndEllipsis`). An ellipsis inside a quote still fails, because it could join words from different places, and what remains must still be at least three words. The scorer applies the same rule.
 
 ## What StyleCode can promise
 
