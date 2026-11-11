@@ -1,0 +1,180 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "provider": "ollama",
+  "model": "gemma3:4b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T09:12:36.828Z",
+  "durationMs": 105371,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The app must ensure every collection is assigned and confirmed.",
+      "evidence": [
+        {
+          "segmentId": "s4",
+          "quote": "the goal today is to understand how dispatch works now and what the app has to do."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "assumption",
+      "statement": "The app must allow drivers to accept jobs, mark them collected, and take photos of waybills.",
+      "evidence": [
+        {
+          "segmentId": "s11",
+          "quote": "What does a driver need to do on the road?"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "assumption",
+      "statement": "The app must function offline, specifically in areas with limited signal, such as between Colesberg and Beaufort West.",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "between Colesberg and Beaufort West there's no signal for hours."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "assumption",
+      "statement": "The dispatch process currently relies on WhatsApp and a shared spreadsheet, leading to missed collections.",
+      "evidence": [
+        {
+          "segmentId": "s5",
+          "quote": "We run forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein. Dispatch happens on WhatsApp."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "assumption",
+      "statement": "The app must handle approximately one hundred and twenty collections per day, potentially doubling in November and December.",
+      "evidence": [
+        {
+          "segmentId": "s7",
+          "quote": "About a hundred and twenty a day. In November and December it roughly doubles."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "assumption",
+      "statement": "The client intends to provide a budget figure by the end of January, with an initial target of two hundred thousand rand.",
+      "evidence": [
+        {
+          "segmentId": "s19",
+          "quote": "Our MD signs off anything above two hundred thousand rand. I'd want to show her a figure by the end of January."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "assumption",
+      "statement": "The app must address the use of drivers’ location data, requiring a review of compliance with relevant regulations.",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "Drivers' locations are personal information. Have you checked how you're allowed to use them?"
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "assumption",
+      "statement": "The app should eventually provide clients with a tracking link, similar to a courier service.",
+      "evidence": [
+        {
+          "segmentId": "s27",
+          "quote": "Eventually our clients should get a tracking link, like a courier."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "assumption",
+      "statement": "The app should support Afrikaans, as preferred by half of the drivers.",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "And Afrikaans in the app. Half my drivers would prefer it."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The initial pilot should focus on the Bloemfontein depot due to its challenging network conditions.",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "My suggestion is to start with a pilot at the Bloemfontein depot, since it has the hardest conditions."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "assumption",
+      "statement": "The controller's screen needs to function even when the Midrand depot is offline.",
+      "evidence": [
+        {
+          "segmentId": "s23",
+          "quote": "And when it's down, the controller can't see anything."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "assumption",
+      "statement": "The app must integrate with the trucks’ tracking system and the Sage invoicing system.",
+      "evidence": [
+        {
+          "segmentId": "s17",
+          "quote": "It would be nice if the app could pull positions from the tracking system, but it's not essential at the start."
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "assumption",
+      "statement": "Load-shedding at the Bloemfontein depot could disrupt internet connectivity and impact app functionality.",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "Midrand is fine. Bloemfontein goes down during load-shedding because the router isn't on the backup battery."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The client has not yet determined how they are allowed to use drivers’ location data.",
+      "evidence": [
+        {
+          "segmentId": "s25",
+          "quote": "HR would have to look at that with the drivers' union."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 14
+}

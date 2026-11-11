@@ -5,10 +5,11 @@
   "promptVersion": "2",
   "contextSize": 8192,
   "chunks": 1,
-  "startedAt": "2026-11-10T16:35:30.713Z",
-  "durationMs": 275232,
+  "startedAt": "2026-11-11T07:58:22.430Z",
+  "durationMs": 285079,
   "unreadableReplies": 0,
-  "hardware": "12th Gen Intel(R) Core(TM) i7-12700H, 16 GB RAM",
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
   "proposals": [
     {
       "kind": "operational-challenge",
@@ -24,7 +25,7 @@
     {
       "kind": "operational-challenge",
       "status": "unresolved",
-      "statement": "Reports are printed, put in envelopes, and sent home, taking a week of admin staff's time every term for about nine hundred learners",
+      "statement": "Reports are printed, put in envelopes, and sent home but take a week of admin staff's time every term for about nine hundred learners",
       "evidence": [
         {
           "segmentId": "s9",
@@ -46,7 +47,7 @@
     {
       "kind": "operational-challenge",
       "status": "unresolved",
-      "statement": "Absence notes are handwritten in the learner's homework diary or emailed to the class teacher, who may not pass them to the office, leading to cases where learners are marked absent for three days without the office knowing",
+      "statement": "Absence notes are handwritten in the learner's homework diary or emailed to the class teacher who may not pass them to the office, leading to cases where learners are marked absent for three days without office awareness",
       "evidence": [
         {
           "segmentId": "s13",
@@ -79,7 +80,7 @@
     {
       "kind": "functional-requirement",
       "status": "suggested",
-      "statement": "Parents need to see the current balance, monthly statement as a PDF, and reference for EFT when paying fees",
+      "statement": "The portal must provide the current balance, monthly statement as a PDF, and reference for EFT payment",
       "evidence": [
         {
           "segmentId": "s18",
@@ -90,7 +91,7 @@
     {
       "kind": "functional-requirement",
       "status": "suggested",
-      "statement": "Reports must be released as PDFs on the same day for all parents, with no early access",
+      "statement": "The portal must release term reports as PDFs on the same day for all parents without early access",
       "evidence": [
         {
           "segmentId": "s20",
@@ -101,7 +102,7 @@
     {
       "kind": "functional-requirement",
       "status": "suggested",
-      "statement": "Parents need to fill in absence notes with reason and dates, and have both class teacher and office see them immediately",
+      "statement": "The portal must allow parents to fill in absence notes with reason and dates, and have both class teacher and office see them immediately",
       "evidence": [
         {
           "segmentId": "s25",
@@ -112,7 +113,7 @@
     {
       "kind": "existing-system",
       "status": "suggested",
-      "statement": "The school uses SchoolBase 7, a system from about 2014 that holds learners, parents, fees, and marks, and can export to CSV and produce report PDFs",
+      "statement": "SchoolBase 7 is used for learners, parents, fees, and marks, and can export to CSV and produce report PDFs",
       "evidence": [
         {
           "segmentId": "s27",
@@ -123,18 +124,18 @@
     {
       "kind": "non-functional-requirement",
       "status": "suggested",
-      "statement": "The portal must be light with small pages and PDFs only downloaded when opened to accommodate parents with limited data",
+      "statement": "The portal must be lightweight with small pages and only download PDFs when opened",
       "evidence": [
         {
           "segmentId": "s35",
-          "quote": "Small pages, and the PDFs only downloaded when someone actually opens one."
+          "quote": "So the portal has to be light: small pages, and the PDFs only downloaded when someone actually opens one."
         }
       ]
     },
     {
       "kind": "non-functional-requirement",
       "status": "suggested",
-      "statement": "The portal should be zero-rated by the network to help parents with expensive data plans",
+      "statement": "The portal must be zero-rated by the network to accommodate parents with limited data",
       "evidence": [
         {
           "segmentId": "s36",
@@ -171,7 +172,7 @@
     {
       "kind": "design-preference",
       "status": "suggested",
-      "statement": "The portal should have big, clear text for parents with vision difficulties and support for screen readers",
+      "statement": "The portal should have big, clear text for parents with eye problems and accessibility for screen readers",
       "evidence": [
         {
           "segmentId": "s46",
@@ -193,7 +194,7 @@
     {
       "kind": "budget",
       "status": "suggested",
-      "statement": "The finance committee has proposed two hundred and fifty thousand rand for the first year, but the board must approve it by January 28",
+      "statement": "The finance committee has proposed two hundred and fifty thousand rand for the first year, but the board must approve it",
       "evidence": [
         {
           "segmentId": "s48",
@@ -202,9 +203,9 @@
       ]
     },
     {
-      "kind": "objective",
+      "kind": "expectation",
       "status": "suggested",
-      "statement": "Parents should get term two reports through the portal by June 26",
+      "statement": "The portal must be ready by the term two report date, which is the twenty-sixth of June",
       "evidence": [
         {
           "segmentId": "s50",
@@ -213,20 +214,9 @@
       ]
     },
     {
-      "kind": "constraint",
-      "status": "suggested",
-      "statement": "The portal must be hosted in South Africa as per the board's requirement",
-      "evidence": [
-        {
-          "segmentId": "s43",
-          "quote": "The board said it must be hosted in South Africa. That came out of the last board meeting."
-        }
-      ]
-    },
-    {
       "kind": "operational-challenge",
       "status": "suggested",
-      "statement": "The school has a single IT person who only works two days a week, so if something breaks on report night there's no one to fix it",
+      "statement": "The school has only one IT person who works two days a week, so if the portal breaks on report night, there's no one to fix it",
       "evidence": [
         {
           "segmentId": "s56",
@@ -235,13 +225,24 @@
       ]
     },
     {
-      "kind": "future-consideration",
+      "kind": "objective",
       "status": "suggested",
-      "statement": "Booking slots for parents' evenings is planned for later but not for the first version",
+      "statement": "The school wants to start with a trial of one grade's term one reports in April to test the portal",
       "evidence": [
         {
-          "segmentId": "s58",
-          "quote": "Eventually, booking slots for parents' evenings. But not now."
+          "segmentId": "s53",
+          "quote": "Let's do grade eight in April as the trial."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal must be hosted in South Africa as per the board's decision",
+      "evidence": [
+        {
+          "segmentId": "s43",
+          "quote": "The board said it must be hosted in South Africa. That came out of the last board meeting."
         }
       ]
     },
@@ -257,13 +258,35 @@
       ]
     },
     {
-      "kind": "decision",
-      "status": "suggested",
-      "statement": "The school will trial grade eight term one reports in April as the first test",
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "SchoolBase 7 does not have an API, and the supplier has not responded to a query about it",
       "evidence": [
         {
-          "segmentId": "s53",
-          "quote": "Let's do grade eight in April as the trial."
+          "segmentId": "s29",
+          "quote": "Not that I know of. I've asked the supplier and they haven't answered yet."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The portal's data must be zero-rated by the network to accommodate parents with limited data",
+      "evidence": [
+        {
+          "segmentId": "s36",
+          "quote": "Yes. And could it be zero-rated? I heard some schools have arranged that with the networks."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The portal must be able to handle the current parent count of sixteen hundred and fifty, including families with both parents and grandparents listed",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "Ayanda, I've just looked in SchoolBase while we were talking. It's not fourteen hundred parent contacts, it's about sixteen hundred and fifty. A lot of families have both parents and a grandparent listed."
         }
       ]
     }
@@ -278,5 +301,5 @@
     "bad-status": 0,
     "repeat": 1
   },
-  "shown": 22
+  "shown": 24
 }

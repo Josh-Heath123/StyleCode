@@ -27,8 +27,12 @@ Each folder has:
 npm run eval:build                                  # transcripts and the keys' segment ids, after any change
 npm run eval:run -- --model qwen3:4b                # runs extraction through a local Ollama, into eval/runs/qwen3-4b/
 npm run eval:run -- --model qwen3:4b --context 4096 --label qwen3-4b-ctx4096   # the same with smaller parts
-npm run eval:score                                  # scores every recorded run
+npm run eval:score                                  # scores every recorded run, then a summary with minutes per hour of meeting
 ```
+
+`eval:run` also takes `--think on|off|default` (Ollama's `think`; the app sends `off`), `--max-tokens` (the reply limit per part; the app's is 3000, and a thinking model's reasoning counts against it), `--cpu` (keeps the model off the GPU) and `--hardware` (how the run describes the computer). It unloads the model first if it is loaded, then loads it before the clock starts. Run one at a time: two runs at once share the GPU and spoil each other's times. A re-run makes new proposals, so delete that folder's `*.matches.csv` first.
+
+**Minutes per hour of meeting** is the time a run took over the meeting's length. A meeting exported without times (Google Meet) is timed from its words, at the speaking rate of those with times. These meetings are 5 to 15 minutes long and mostly fit in one part, so for an hour-long meeting, which takes several parts with overlap, expect somewhat more.
 
 `eval:run` uses StyleCode's own extraction code (`src/workspace/extraction/`) and the AI server's Ollama adapter, so it measures what the app does. It never runs in CI.
 

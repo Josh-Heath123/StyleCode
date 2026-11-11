@@ -300,7 +300,7 @@ export function readSettled(text: string): Map<string, boolean> {
 // The report
 // ---------------------------------------------------------------------------
 
-const percent = (value: number | null) => (value === null ? '–' : `${Math.round(value * 100)}%`);
+export const percent = (value: number | null) => (value === null ? '–' : `${Math.round(value * 100)}%`);
 
 /** The scores as a Markdown table, one row per kind and a total. */
 export function formatScore(score: Score): string {

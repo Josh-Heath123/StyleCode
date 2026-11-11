@@ -1,0 +1,193 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "gemma3:4b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T09:17:32.579Z",
+  "durationMs": 133765,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client’s goals are fewer missed calls, no double bookings, and fewer no-shows.",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "So if I’m hearing you right, the goals are fewer missed calls, no double bookings, and fewer no-shows?"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow pet owners to book appointments via a website on their phones, selecting a clinic and available time slots.",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "assumption",
+      "statement": "The system should send appointment reminders to pet owners via WhatsApp, as preferred by the client’s reception staff.",
+      "evidence": [
+        {
+          "segmentId": "s31",
+          "quote": "What about the reminders, SMS or WhatsApp?"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The system must record owner consent for data usage, adhering to POPIA regulations and requiring a written agreement with a POPIA-compliant messaging provider.",
+      "evidence": [
+        {
+          "segmentId": "s34",
+          "quote": "Now, the phone numbers. You mentioned POPIA in your email."
+        },
+        {
+          "segmentId": "s35",
+          "quote": "Our attorney went through it with us last year. Owners’ phone numbers are personal information."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The project budget is set at one hundred and eighty thousand rand, with ongoing monthly running costs capped at two and a half thousand rand for all three clinics.",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "And the budget?"
+        },
+        {
+          "segmentId": "s54",
+          "quote": "We’ve put aside a hundred and eighty thousand rand to build it."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system’s user interface should utilize the client’s green brand color and feature large buttons for ease of use, considering the typical user is holding a pet.",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Any preferences?"
+        },
+        {
+          "segmentId": "s56",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "assumption",
+      "statement": "The current reception staff are experiencing burnout due to high call volumes and manual booking processes.",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out. "
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "assumption",
+      "statement": "The client currently utilizes VetDesk Pro software for clinical records and owner details, but lacks a dedicated diary function.",
+      "evidence": [
+        {
+          "segmentId": "s9",
+          "quote": "I saw VetDesk on your invoice."
+        },
+        {
+          "segmentId": "s10",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live, the owners’ details, vaccination history, billing. But it has no proper diary."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "assumption",
+      "statement": "The system must be able to handle approximately one hundred and sixty appointments per day across the three clinics, with a potential doubling during vaccination season.",
+      "evidence": [
+        {
+          "segmentId": "s17",
+          "quote": "Across all three, I’d say about a hundred and sixty a day."
+        },
+        {
+          "segmentId": "s19",
+          "quote": "Hugely. Annual vaccinations bunch up in February and March, because so many of our clients got their puppies at Christmas, and then there’s the rabies drive in March as well. It easily doubles then."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "assumption",
+      "statement": "The system must protect owner personal information, including phone numbers, in compliance with POPIA regulations.",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "Our attorney went through it with us last year. Owners’ phone numbers are personal information."
+        },
+        {
+          "segmentId": "s36",
+          "quote": "Every client signs the consent bit on the registration form, but that’s on paper too, in a file at each clinic."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The specific criteria for determining which sick animal bookings are eligible for online booking remain unclear.",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "Hmm. That’s a good question. I don’t want someone booking a slot for tomorrow at eleven for a dog that’s been hit by a car."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The system should eventually integrate with an online pet food ordering platform, allowing owners to purchase supplies directly through the system.",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Maybe. Ordering pet food online and paying for it, maybe."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system should avoid requiring owners to select a specific vet, minimizing complexity for the user.",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "Some would want to. Dr Mokoena at Irene has her regulars. But it mustn’t be required.”}]}, 10] {"
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 6,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 7
+}

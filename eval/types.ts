@@ -80,5 +80,11 @@ export interface RecordedRun {
   /** Replies that weren't valid JSON, by chunk. */
   unreadableReplies: number;
   hardware?: string;
+  /** Ollama's `think` as sent: false (what the app sends), true, or left out ("default"). */
+  think?: boolean | 'default';
+  /** True when the run kept the model off the GPU (`--cpu`). */
+  cpuOnly?: boolean;
+  /** The reply limit per part, when it isn't the app's 3000 tokens. */
+  maxTokens?: number;
   proposals: RunProposal[];
 }

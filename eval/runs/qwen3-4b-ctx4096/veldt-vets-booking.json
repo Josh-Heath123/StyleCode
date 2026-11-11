@@ -1,0 +1,392 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 4096,
+  "chunks": 7,
+  "startedAt": "2026-11-10T17:03:34.452Z",
+  "durationMs": 337825,
+  "unreadableReplies": 0,
+  "hardware": "12th Gen Intel(R) Core(TM) i7-12700H, 16 GB RAM",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client uses a paper diary for appointments at reception because VetDesk Pro does not have a proper calendar function that receptionists can use.",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        },
+        {
+          "segmentId": "s10",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live, the owners' details, vaccination history, billing. But it has no proper diary. We tried its calendar years ago and the receptionists hated it, so the paper diary came back."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences double bookings due to receptionists manually updating the diary and phones being busy in the morning",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences no-shows that result in thirty-minute slots being wasted across three clinics",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "And no-shows. We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants fewer missed calls and fewer double bookings to improve the booking process",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "So if I'm hearing you right, the goals are fewer missed calls, no double bookings, and fewer no-shows?"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce the number of no-shows to free up thirty-minute slots",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "That's it. If I had to pick one, it's the phones. My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a manual diary system where receptionists check in people and take payments",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "there's one receptionist per clinic who is also checking people in and taking payments"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments that varies significantly by season, with annual vaccinations and rabies drives causing spikes",
+      "evidence": [
+        {
+          "segmentId": "s19",
+          "quote": "Hugely. Annual vaccinations bunch up in February and March, because so many of our clients got their puppies at Christmas, and then there's the rabies drive in March as well. It easily doubles then."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Pet owners can book appointments online by selecting a clinic, service type, and available time slots",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should send automated reminders to pet owners the day before their appointment",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should automatically send vaccination reminders to pet owners with a link to book appointments",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow receptionists to view and manage appointments in a digital calendar",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should support phone bookings for clients who prefer not to use the online system",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client currently uses a paper-based system for managing appointments",
+      "evidence": [
+        {
+          "segmentId": "s26",
+          "quote": "The paper diary goes."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow pet owners to select a specific veterinarian when booking appointments",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "Some would want to. Dr Mokoena at Irene has her regulars."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should not require pet owners to select a specific veterinarian when booking appointments",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "But it mustn't be required."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owners' phone numbers be used only for pet appointments and reminders, not for marketing or sharing with other companies",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pet's appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client needs to determine where to draw the line between urgent and non-urgent animal bookings",
+      "evidence": [
+        {
+          "segmentId": "s30",
+          "quote": "I don't want someone booking a slot for tomorrow at eleven for a dog that's been hit by a car. But a cat that's been vomiting, maybe."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects to use WhatsApp for appointment reminders instead of SMS",
+      "evidence": [
+        {
+          "segmentId": "s32",
+          "quote": "I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk, anyway."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client already pays for an SMS bundle through VetDesk for account statements",
+      "evidence": [
+        {
+          "segmentId": "s33",
+          "quote": "We do already pay for an SMS bundle through VetDesk, for the account statements."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owners' phone numbers be used only for pet appointments and reminders, not for marketing or sharing with other companies",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pet's appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client currently signs consent on paper at each clinic, but this needs to be recorded digitally for online bookings",
+      "evidence": [
+        {
+          "segmentId": "s36",
+          "quote": "And every client signs the consent bit on the registration form, but that's on paper too, in a file at each clinic."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must require online clients to agree to consent before sending any messages",
+      "evidence": [
+        {
+          "segmentId": "s37",
+          "quote": "Then whatever we build has to record that consent itself, and anyone who books online has to agree before we send them anything."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client is considering a deposit for Saturday bookings to reduce no-shows, but this needs client approval",
+      "evidence": [
+        {
+          "segmentId": "s39",
+          "quote": "One thing I'd suggest for the no-shows: ask for a small deposit, say a hundred rand, when someone books online for a Saturday, and refund it when they arrive."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client's daily booking volume is approximately one hundred and sixty appointments",
+      "evidence": [
+        {
+          "segmentId": "s41",
+          "quote": "Sorry, can I go back to the numbers? I've just opened last week's diaries. It's more like a hundred and sixty a day."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client's booking volume doubles during vaccination season",
+      "evidence": [
+        {
+          "segmentId": "s42",
+          "quote": "So a hundred and sixty on a normal day, doubling in vaccination season."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must not allow owners to view medical history online during visits",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "No. Definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "VetDesk's API requires per-clinic charges and takes three months to activate for a clinic",
+      "evidence": [
+        {
+          "segmentId": "s48",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to switch it on."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client needs the online booking system to be live by mid-January to accommodate vaccination season",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated 180,000 rand for development and a monthly budget of 2,500 rand for running costs including messages and hosting for all three clinics",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers a simple web interface with big buttons, green color scheme, and no app download",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand. And no app to download, just a web page."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The client wants a single-screen booking interface without clinical notes or complex fields",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants the online booking system to have a simple interface with one screen for the booking process",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the online booking system to support ordering pet food online and paying for it in the next year",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Ordering pet food online and paying for it, maybe. Next year."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 4
+  },
+  "shown": 29
+}

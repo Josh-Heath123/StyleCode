@@ -1,0 +1,301 @@
+{
+  "consultation": "umoya-school-portal",
+  "provider": "ollama",
+  "model": "gemma3:4b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 1,
+  "startedAt": "2026-11-11T09:14:22.222Z",
+  "durationMs": 190351,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, NVIDIA RTX 3060 Laptop 6 GB (held near 250 MHz by power and thermal limits)",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "Parents are struggling to get information from the school.",
+      "evidence": [
+        {
+          "segmentId": "s7",
+          "quote": "You wrote that parents are struggling to get information from the school."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Parents need a single place to see their child's fees, reports, and school notices.",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "One place where a parent can see what they owe, their child's reports and the school's notices..."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must stop printing, reducing administrative costs.",
+      "evidence": [
+        {
+          "segmentId": "s16",
+          "quote": "And for us to stop printing. That's a real cost, and a lot of hours."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to see current fee balances and a downloadable PDF of the monthly statement.",
+      "evidence": [
+        {
+          "segmentId": "s18",
+          "quote": "The current balance, the monthly statement as a PDF, and the reference to use for EFT."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must provide term reports as downloadable PDFs, released on the same day for all parents.",
+      "evidence": [
+        {
+          "segmentId": "s20",
+          "quote": "The term report as a PDF, the same one we print."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to view school notices from the office and grade heads.",
+      "evidence": [
+        {
+          "segmentId": "s23",
+          "quote": "Notices from the office and from the grade heads..."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "Parents are submitting absence notes by handwritten diary or email, leading to potential delays and lack of communication.",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "Handwritten in the learner's homework diary, or an email to the class teacher..."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to submit absence notes electronically, with visibility to the class teacher and office.",
+      "evidence": [
+        {
+          "segmentId": "s25",
+          "quote": "Yes, the reason and the dates, and the class teacher and the office both see it straight away."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "SchoolBase 7, running on a server in the admin block, is used to store learner, parent, fee, and mark data.",
+      "evidence": [
+        {
+          "segmentId": "s27",
+          "quote": "SchoolBase 7, from about 2014 I think. It holds the learners, the parents, fees and marks."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The method for fresh data to be transferred to the portal is currently unknown.",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "Not that I know of."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The portal must handle approximately sixteen fifty parent contacts, particularly during peak times like report release.",
+      "evidence": [
+        {
+          "segmentId": "s51",
+          "quote": "Ayanda, I've just looked in SchoolBase while we were talking. It's about sixteen hundred and fifty."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal's design should prioritize light pages and only download PDFs when requested.",
+      "evidence": [
+        {
+          "segmentId": "s35",
+          "quote": "The portal has to be light: small pages, and the PDFs only downloaded when someone actually opens one."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal's interface should support multiple languages, including English and isiZulu.",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "English is the school's language, but a lot of our grandparents look after the children, and they're more comfortable in isiZulu."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must ensure accessibility for users with visual impairments, including support for screen readers.",
+      "evidence": [
+        {
+          "segmentId": "s46",
+          "quote": "And big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal's color scheme should utilize the school's maroon color.",
+      "evidence": [
+        {
+          "segmentId": "s46",
+          "quote": "…use the school's maroon, not some generic blue."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The finance committee has allocated two hundred and fifty thousand rand for the first year of the portal's operation.",
+      "evidence": [
+        {
+          "segmentId": "s48",
+          "quote": "The finance committee has proposed two hundred and fifty thousand rand for the first year, all in."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The portal must be operational by the term two report release date of the twenty-sixth of June.",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "We'd like parents to get those through the portal."
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "assumption",
+      "statement": "A poor initial report day experience could negatively impact parent trust in the portal.",
+      "evidence": [
+        {
+          "segmentId": "s52",
+          "quote": "A risk I see is that if the first report day goes badly, parents lose trust in the portal straight away."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The trial phase for the portal will initially focus on grade eight's term one reports.",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "Let's do grade eight in April as the trial."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "assumption",
+      "statement": "The consultant's limited IT support capacity (two days a week) poses a risk to the portal's stability.",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "Me, honestly. I'm the only IT person, and only two days a week."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The portal should eventually include functionality for booking parent-teacher meetings.",
+      "evidence": [
+        {
+          "segmentId": "s57",
+          "quote": "Eventually, booking slots for parents' evenings."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The portal must restrict data access based on parent or guardian roles, ensuring only authorized individuals can view learner records.",
+      "evidence": [
+        {
+          "segmentId": "s38",
+          "quote": "On security, I want to be very clear. These are children's records."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must respect restrictions on data access based on individual parent or guardian roles.",
+      "evidence": [
+        {
+          "segmentId": "s40",
+          "quote": "So the portal has to respect restrictions per parent, and the office has to be able to set them."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The portal must be hosted within South Africa to comply with data protection regulations.",
+      "evidence": [
+        {
+          "segmentId": "s43",
+          "quote": "The board said it must be hosted in South Africa."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The method for data transfer from SchoolBase to the portal is currently undefined.",
+      "evidence": [
+        {
+          "segmentId": "s29",
+          "quote": "Not that I know of."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "unknown-passage": 0,
+    "quote-not-found": 6,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 1
+  },
+  "shown": 18
+}

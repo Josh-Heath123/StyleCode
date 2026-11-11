@@ -1,5 +1,5 @@
 /**
- * `npm run eval:run -- --model <name> [--context 8192] [--only <consultation>]`
+ * `npm run eval:run -- --model <name> [--context 8192] [--think off|on|default] [--cpu] [--only <consultation>]`
  *
  * Runs StyleCode's extraction (`src/workspace/extraction`) on every
  * consultation through a local Ollama, using the AI server's own provider
@@ -26,12 +26,35 @@ const { values } = parseArgs({
     hardware: { type: 'string' },
     /** The folder the runs go in, under eval/runs/ (default: the model's name). */
     label: { type: 'string' },
+    /** Ollama's `think`: "off" is what the app sends; "on" lets a thinking model reason first; "default" leaves it out. */
+    think: { type: 'string', default: 'off' },
+    /** Keep the model off the GPU, to measure a computer without one. */
+    cpu: { type: 'boolean', default: false },
+    /** The reply limit for each part, in tokens: the app's is 3000. A thinking model's reasoning counts against it. */
+    'max-tokens': { type: 'string', default: '3000' },
   },
 });
 if (!values.model) throw new Error('Name the model: npm run eval:run -- --model qwen3:4b');
 const model = values.model;
 const contextSize = Number(values.context);
-const hardware = values.hardware ?? `${cpus()[0]?.model.trim()}, ${Math.round(totalmem() / 2 ** 30)} GB RAM`;
+const maxTokens = Number(values['max-tokens']);
+const think = ({ off: false, on: true, default: undefined } as const)[values.think as 'off' | 'on' | 'default'];
+if (think === undefined && values.think !== 'default') throw new Error('--think is off, on or default');
+const hardware =
+  values.hardware ?? `${cpus()[0]?.model.trim()}, ${Math.round(totalmem() / 2 ** 30)} GB RAM${values.cpu ? ', CPU only' : ''}`;
+
+// --cpu: Ollama's num_gpu 0 keeps every layer on the CPU. The provider code stays as the app runs it;
+// only the request body gains the option.
+if (values.cpu) {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (input, init) => {
+    if (String(input).endsWith('/api/chat') && typeof init?.body === 'string') {
+      const body = JSON.parse(init.body) as { options?: Record<string, unknown> };
+      init = { ...init, body: JSON.stringify({ ...body, options: { ...body.options, num_gpu: 0 } }) };
+    }
+    return realFetch(input, init);
+  };
+}
 
 const DIR = import.meta.dirname;
 const CONSULTATIONS = join(DIR, 'consultations');
@@ -52,6 +75,34 @@ function passagesOf(transcript: EvalTranscript, consultation: Consultation): Pas
       text: s.text,
     };
   });
+}
+
+// Unload the model first: Ollama keeps a loaded model's options, so a model left on the CPU by a --cpu
+// run would stay there.
+const loaded = (await fetch(new URL('/api/ps', values.url))
+  .then((r) => r.json())
+  .catch(() => ({ models: [] }))) as { models?: { name: string }[] };
+if (loaded.models?.some((m) => m.name === model))
+  await fetch(new URL('/api/generate', values.url), { method: 'POST', body: JSON.stringify({ model, keep_alive: 0 }) });
+
+// Load the model before the clock starts: these meetings are minutes long, so a load of several seconds
+// would weigh far more in them than it does in an hour-long meeting.
+try {
+  for await (const _ of streamChat(
+    'ollama',
+    { baseUrl: values.url!, model, contextSize },
+    undefined,
+    {
+      system: 'Reply with {}.',
+      messages: [{ role: 'user', content: 'Ready?' }],
+      schema: { type: 'object' },
+      maxTokens: 16,
+      ...(think === undefined ? {} : { think }),
+    },
+    new AbortController().signal,
+  ));
+} catch {
+  // A thinking model may run out of its few tokens; it is loaded all the same.
 }
 
 for (const id of readdirSync(CONSULTATIONS).sort()) {
@@ -78,7 +129,13 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
           'ollama',
           { baseUrl: values.url!, model, contextSize },
           undefined,
-          { system, messages: [{ role: 'user', content: message }], schema, maxTokens: 3000, think: false },
+          {
+            system,
+            messages: [{ role: 'user', content: message }],
+            schema,
+            maxTokens,
+            ...(think === undefined ? {} : { think }),
+          },
           signal,
         ))
           reply += delta;
@@ -102,6 +159,9 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
     durationMs,
     unreadableReplies: result.unreadable,
     hardware,
+    think: think ?? 'default',
+    ...(maxTokens === 3000 ? {} : { maxTokens }),
+    ...(values.cpu ? { cpuOnly: true } : {}),
     proposals: result.raw.map((p) => ({
       kind: String(p.kind),
       status: String(p.status),

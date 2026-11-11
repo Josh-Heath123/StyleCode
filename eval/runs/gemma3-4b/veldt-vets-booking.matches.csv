@@ -1,0 +1,3 @@
+proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match
+3,V13,other-kind,non-functional-requirement,"The system should send appointment reminders to pet owners via WhatsApp, as preferred by the client’s reception staff.",open-question,"Can sick animals be booked online, and where is the line with emergencies? Hennie to discuss with the other vets.",no
+7,V5,other-kind,operational-challenge,The current reception staff are experiencing burnout due to high call volumes and manual booking processes.,objective,"Fewer missed calls, no double bookings and fewer no-shows; the phones are the top priority, because the receptionists are burning out.",no
