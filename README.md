@@ -33,10 +33,13 @@ StyleCode is also becoming a workspace for software consultants ([the vision](do
 - **Clients, engagements and sessions:** one folder per client on your computer, each engagement with its meetings and who took part.
 - **Consent first:** a consent form for each session, with the wording shown to the client, a check that every "yes" was explained, confirmation, and withdrawal. Nothing is recorded or imported without it.
 - **Notes during the meeting:** press <kbd>N</kbd>, type, <kbd>Ctrl</kbd>+<kbd>Enter</kbd>; each note keeps its time and how far into the meeting it was written.
-- **The record:** findings with a kind, a status and where they came from (two separate labels), evidence quoted from your notes, links between findings, and every change undoable, with who and when.
-- **Files and export:** documents on a client or an engagement, and the record exported as a Markdown specification, the same file every time.
+- **Transcripts:** import the transcript Teams, Zoom or Google Meet made (`.vtt`, `.docx` or `.txt`), or paste one, and match each speaker to a participant. Anyone who spoke but wasn't asked for consent is flagged.
+- **AI proposals, reviewed by you:** a local model (or the provider the client agreed to) reads one session and proposes findings. Every quote is checked against the transcript before you see it, and you accept, edit or reject each one from the keyboard, beside the highlighted passage.
+- **The record:** findings with a kind, a status and where they came from (two separate labels), evidence quoted from the transcript and your notes, links between findings, and every change undoable, with who and when.
+- **Company knowledge:** promote a finding, and it shows in every engagement with that client, with its source.
+- **Files and export:** documents on a client or an engagement, and the record exported as a Markdown specification in each meeting's local time, the same file every time.
 
-Everything works with AI off, and nothing leaves your computer. Extraction from transcripts comes next ([roadmap](docs/ROADMAP.md)). See [Running a consultation](docs/GUIDE.md#running-a-consultation) in the guide.
+Everything works with AI off, and with a local model nothing leaves your computer. Recording comes next ([roadmap](docs/ROADMAP.md)). See [Running a consultation](docs/GUIDE.md#running-a-consultation) in the guide.
 
 ![A role-played session in StyleCode: consent given for transcription and AI on this computer, three notes with their times and minutes into the meeting, a fourth being typed, and the participants on the client's side and the consultant's](docs/workspace.png)
 
@@ -171,7 +174,7 @@ Designs are stored in your browser's IndexedDB on this device and autosave as yo
 
 If saving fails (usually because the browser's storage is full), the save status in the top bar turns red and offers to try again, save to a file or free up space, and StyleCode asks before you close the page with unsaved changes. A design whose stored data is damaged is skipped rather than opened half-broken, and its data can still be downloaded from Designs. See [Saving and getting work back](docs/GUIDE.md#saving-and-getting-work-back).
 
-With AI on, each request sends a text description of the screen you are working on (layer names, text and properties, and your notes on it, but not images) to the provider you chose. With Ollama on your own computer, nothing leaves it. AI settings and keys are kept in `~/.stylecode/ai.json`, not in the browser.
+With AI on, each request sends a text description of the screen you are working on (layer names, text and properties, and your notes on it, but not images) to the provider you chose. Asking the AI for findings sends one session's transcript and notes, and only to a provider that session's consent allows. With Ollama on your own computer, nothing leaves it. AI settings and keys are kept in `~/.stylecode/ai.json`, not in the browser.
 
 ## Project structure
 

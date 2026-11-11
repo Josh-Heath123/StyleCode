@@ -144,11 +144,13 @@ Built in three slices (pull requests #9 and #10 for Slice A, #11 for Slice B, an
 
 **Depends on:** Workspace Phase 0.
 
-### Workspace Phase 2: Extraction
+### Workspace Phase 2: Extraction ✅
 
-**Scope:** MVP steps 4 and 6 (stories 4 and 6). Opens with the extraction test and evaluation harness (old WP7, in the appendix of `docs/phase-0/PHASE-0-BRIEF.md`), on typed role-play transcripts; the user provides sample exports from Teams, Zoom and Google Meet at the start (MVP Q7).
+Built in three slices (pull requests #15 and #16 for transcripts, #17 for extraction and review, and the Slice C pull request for company knowledge): transcript import from nine layouts, speaker matching, consent after an import, AI extraction measured on the user's laptop, review by keyboard with the evaluation report, company knowledge, and the export in each session's local time. See `docs/phase-2/HANDOVER.md`.
 
-- Transcript import from `.vtt` and `.docx` exports, and pasted text; blocked without consent (C1); the speaker check and its warning (C11); matching speaker labels to participants.
+**Scope:** MVP steps 4 and 6 (stories 4 and 6). Opens with the extraction test and evaluation harness (old WP7, in the appendix of `docs/phase-0/PHASE-0-BRIEF.md`), on typed role-play transcripts. The sample exports from Teams, Zoom and Google Meet are the reviewer's, rebuilt from each platform's published layout, not the user's (Phase 2 brief, decision 1; MVP Q7): `docs/phase-2/samples/`.
+
+- Transcript import from `.vtt`, `.docx` and `.txt` exports, and pasted text; blocked without consent (C1); the speaker check and its warning (C11); matching speaker labels to participants.
 - AI extraction from the transcript and notes, only where consent allows it, locally or by the named external provider (C5, C6); every quote checked against its passage before a proposal is shown; review by keyboard: accept, edit or reject, keeping what the AI proposed.
 - The evaluation set runs in CI where feasible, measuring what consultants edit and reject.
 
@@ -157,7 +159,7 @@ Built in three slices (pull requests #9 and #10 for Slice A, #11 for Slice B, an
 **Acceptance criteria:**
 
 - Importing a transcript without confirmed consent to transcription is unavailable, and says why.
-- I can import a Teams `.vtt` export from the user's samples and see it by speaker; speakers who weren't asked are listed and the warning stays on the transcript.
+- I can import every layout in `docs/phase-2/samples/` and see the meeting by speaker; speakers who weren't asked are listed and the warning stays on the transcript.
 - With a local model, I can ask for findings and review each proposal with its quoted passage highlighted; a proposal with an invented quote is never shown, and the count dropped is reported.
 - A session whose consent allows only local AI refuses an external provider, saying why.
 - After a withdrawal, deleting the transcript removes its words everywhere and lists the findings and company facts that keep a statement from it.
