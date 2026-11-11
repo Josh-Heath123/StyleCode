@@ -10,6 +10,9 @@ import { existsSync, mkdirSync, readFileSync, statfsSync, writeFileSync } from '
 import { join } from 'node:path';
 import { VOICE_TOOLS, VOICES_HOME } from './tools.ts';
 
+// Windows has bsdtar, which reads zip and .tar.bz2; Git for Windows puts its own tar first on the path, which reads "C:" as a remote host.
+const TAR = process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+
 const downloads = join(VOICES_HOME, '..', 'downloads');
 mkdirSync(downloads, { recursive: true });
 
@@ -45,7 +48,7 @@ for (const tool of VOICE_TOOLS) {
   const hash = createHash('sha256').update(readFileSync(file)).digest('hex');
   if (hash !== tool.sha256) throw new Error(`${file}: SHA-256 is ${hash}, expected ${tool.sha256}. Delete it and try again.`);
   mkdirSync(VOICES_HOME, { recursive: true });
-  const unpacked = spawnSync('tar', ['-xjf', file, '-C', VOICES_HOME], { stdio: 'inherit' });
+  const unpacked = spawnSync(TAR, ['-xjf', file, '-C', VOICES_HOME], { stdio: 'inherit' });
   if (unpacked.status !== 0) throw new Error(`Couldn't unpack ${file}.`);
   licence();
   console.log(`${tool.name}: installed`);
