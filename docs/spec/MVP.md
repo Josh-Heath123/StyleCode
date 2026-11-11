@@ -101,7 +101,7 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 **4.1 Import a file.** As a consultant, I want to import the transcript my meeting platform produced, so that I don't have to type up what was said.
 
-- I can import a `.vtt` file or a `.docx` file exported from Teams, Zoom or Google Meet (the exact variants are confirmed against role-played sample exports the user provides at the start of Phase 2; Q7).
+- I can import a `.vtt`, `.docx` or `.txt` file exported from Teams, Zoom or Google Meet (the variants are those in `docs/phase-2/samples/`, reconstructed by the reviewer from each platform's published layout; Q7).
 - The import is read on the computer, by code, without AI.
 - The transcript is shown as segments, each with its speaker label, its text, and its start and end times where the file has them.
 - A file the app can't read is refused with a message that names the problem, and nothing is changed.
@@ -215,7 +215,7 @@ The user accepted the recommendation for each question on 2026-11-04, with chang
 - **Q4. Duplicate company names.** *Decided:* refuse an exact duplicate (ignoring case), since the list is how the consultant tells clients apart.
 - **Q5. Engagement fields.** Retention "until the engagement ends" (consent form) implies an engagement can end. *Decided:* name, goal, and status (active or ended, with the date it ended). Nothing else for now.
 - **Q6. Deleting.** ADR-0002 says a company's data can be deleted as a unit. *Decided:* include deleting a company, an engagement and a session in the first version. No undo for deletion, so the confirmation is the safeguard. **Change:** deleting a company requires typing its name to confirm; engagements and sessions need a normal confirmation that names what will be deleted.
-- **Q7. Transcript formats.** *Decided:* **change:** the user provides role-played sample exports (typed, no real people) at the start of Phase 2. Formats are supported from those samples. Reading `.docx` may need a dependency; I would ask before adding one.
+- **Q7. Transcript formats.** *Decided:* **change:** the user provides role-played sample exports (typed, no real people) at the start of Phase 2. Formats are supported from those samples. Reading `.docx` may need a dependency; I would ask before adding one. **Changed in Workspace Phase 2** (Phase 2 brief, decision 1): the samples are the reviewer's, not the user's. They are one role-played meeting in nine layouts, rebuilt from each platform's published export layout, with their sources and how sure each layout is (`docs/phase-2/samples/README.md`). When a real export fails to import, a new made-up sample in that layout is typed, added there and supported; the real file is never added. `.txt` is supported too, and `.docx` is read with no new dependency.
 - **Q8. Times for pasted text.** *Decided:* recognise common time stamps at the start of a line (such as `00:12:34` or `[12:34]`) and use them. Otherwise segments have no times.
 - **Q9. Correcting the transcript.** Platforms make mistakes. *Decided:* no text editing in the first version, to keep evidence exact. Speaker matching (story 4.3) can be changed at any time.
 - **Q10. Replacing a transcript.** *Decided:* one transcript per session, replaceable only while no accepted finding cites it.

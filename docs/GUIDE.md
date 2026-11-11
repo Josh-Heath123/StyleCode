@@ -165,7 +165,89 @@ StyleCode opens on your clients. This is one consultation from start to end, wit
 - **Delete** a session or an engagement from its page: the confirmation says what goes with it, and it can't be undone. To delete a client, type its name.
 - A client whose file has a problem (damaged, or a folder copied under another name) opens **read-only**: you can see and download everything, but nothing changes. The page says what's wrong and what to do about it.
 
-Not yet: transcripts and AI extraction come in Workspace Phase 2, and recording in Phase 3 ([roadmap](ROADMAP.md)).
+Not yet: recording in StyleCode comes in Workspace Phase 3 ([roadmap](ROADMAP.md)). Until then, record and transcribe in the meeting app, and import its transcript (below).
+
+## Transcripts
+
+A session's transcript comes from the meeting app. Importing one needs a confirmed consent record that allows transcription; until then, **Import transcript…** says why it isn't available.
+
+**Downloading the transcript**
+
+- **Microsoft Teams:** open the meeting's **Recap** (or the **Transcript** pane in the chat), then **Download**, as `.vtt` or `.docx`. Both the current and the older `.docx` layouts work, and so does a `.vtt` exported through Microsoft Graph.
+- **Zoom:** a cloud recording's audio transcript (`.vtt`), or **Save transcript** in the meeting (`.txt`).
+- **Google Meet:** the transcript is a Google Doc in the organiser's Drive. Download it as Word (`.docx`) or plain text (`.txt`). From "Notes by Gemini", StyleCode imports only the transcript, never Gemini's AI-written notes.
+- **Anything else:** paste the transcript, one turn per line, as `Name: words`.
+
+**Importing**
+
+1. On the session's page, choose **Import transcript…** and pick the file, or choose **Pasted text** and paste it.
+2. Check the preview before you import:
+   - the platform StyleCode detected, which you can correct;
+   - how many segments there are, and the times the file gives;
+   - the speakers;
+   - anyone who spoke but wasn't asked for consent. The warning stays on the transcript.
+3. **Import transcript.** Importing locks the consent record (it can still be amended, below) and can't be undone. StyleCode keeps the words, not the file.
+
+A file that isn't a transcript is refused with the reason, and nothing changes. If a real export from one of these apps is refused, please report its layout (not the file).
+
+**Speakers.** The transcript shows each turn with the speaker's name and side. A label that matches a participant's name is matched on import, including Teams' " (Guest)" and " (External)". Open **Speakers** ("Speakers: 3 of 4 matched to participants") to match the rest, or to change a match. Matching says who spoke; it never changes who was asked for consent.
+
+**Replacing and deleting.** **Replace…** swaps in a better transcript while no finding in the record quotes the current one. **Delete transcript…** removes its words from StyleCode: from findings, from proposals and from company knowledge. Both are permanent.
+
+## Asking the AI for findings
+
+The AI can read a session and propose findings. It is optional: set it up in **AI settings**, in the design editor's top bar. The session only offers a provider its consent record allows: AI on this computer, or the external provider the client agreed to by name. Before every part it sends, StyleCode checks consent again, and a run stops if consent is withdrawn or the settings change.
+
+On the session's page, **Ask the AI for findings** shows where the AI runs and, after a first run, how long it should take. The AI reads only this session's transcript and notes. A local model can take a while: with qwen3:4b on a laptop, about 25 minutes for an hour of meeting ([measurements](research/EXTRACTION.md)). The run carries on while you work elsewhere in StyleCode, and the top bar shows its progress. StyleCode asks before you close the page during a run.
+
+Before you see anything, StyleCode checks every proposal. A quote must appear word for word in the passage it cites, and be at least three words long, or the whole passage. Proposals that fail are never shown, and the summary says how many failed and why. Repeats of a finding already in this engagement, or of one you rejected, are left out, and the summary says how many.
+
+If you stop a run, or it fails partway, the proposals from the parts it finished stay, and the session says which parts ("parts 1 to 4 of 7"). You can **Discard** them, and undo brings them back.
+
+The AI finds about two thirds of what a careful consultant would record, so read the transcript too.
+
+## Reviewing proposals
+
+The proposals are listed beside the transcript and notes, marked **Proposed by the AI**, with the AI's choice of kind and status. Select one to highlight its quoted passages. A quote from someone on your side says "(your side)": the client didn't say it.
+
+| Key | What it does |
+| --- | --- |
+| <kbd>↑</kbd> <kbd>↓</kbd>, or <kbd>J</kbd> <kbd>K</kbd> | Previous or next proposal |
+| <kbd>Home</kbd> <kbd>End</kbd> | First or last proposal |
+| <kbd>A</kbd> | Accept, with the status chosen under **Accept as** |
+| <kbd>E</kbd> | Edit, then accept |
+| <kbd>R</kbd> | Reject |
+
+The AI proposes "suggested", "assumption" or "unresolved", never "confirmed". When you accept, you choose any of the four. Accepting, editing and rejecting are each a step you can undo. A rejected proposal isn't proposed again.
+
+**How the AI did on this session** counts, by kind, the proposals you accepted, edited as you accepted them, rejected and haven't reviewed yet. It is counted on your computer, and nothing is sent anywhere.
+
+A note that a proposal quotes can't change until the proposal is reviewed. The message links to the proposal.
+
+## Company knowledge
+
+What you learn about a client can carry into its next engagement. In an engagement's record, choose **Add to company knowledge…** on a finding. The fact copies the finding's statement, kind, status and quotes, and the finding stays as it was. The finding then shows **In company knowledge**.
+
+The client's page lists its company knowledge: each fact with its kind, status, where it came from, and its quotes. Every engagement with that client shows the same facts, and no other client's. **Change** edits a fact's statement, kind or status, and **Remove** removes it. Both can be undone.
+
+A fact outlives its source. If the finding or its engagement is deleted, or a deleted session was all the finding rested on, the fact stays and says "source deleted". If a session's transcript is deleted, the fact loses its quotes from that session.
+
+**Delete** removes a finding from the record. Its links go with it, and you can undo it.
+
+## Consent after an import
+
+Importing locks the consent record. It can't be edited, but it can be changed in two ways, both kept in the record and in the export:
+
+- **Amend…** records what changed, what you newly told the client (in the words shown on the form), and why. It is checked like the form: a new yes needs its statement told. For example, a longer audio retention needs the retention statement told in its new words.
+- **Withdraw consent…** records the withdrawal and the reason, and nothing more is captured or processed for the session. StyleCode then offers to delete the transcript, saying what goes with it. Afterwards, **Review what keeps a statement…** lists the findings and company facts that still say something from the session, each with a way to remove it, or to edit it in the record or on the client's page, if the client asks.
+
+A signed form or an email can be attached to the consent record (**Attach a file…**). Attaching, replacing or removing it doesn't change the record, and works on a locked record too.
+
+**Before using external AI with real clients:** sending a transcript to an external provider sends personal information outside South Africa. The consent wording is still a draft until its POPIA review ([CONSENT.md](spec/CONSENT.md), question 3).
+
+## The export's times
+
+**Export as Markdown** writes each session's times in the time zone it was created in, with the offset, for example `2026-11-05 10:00 (GMT+2)`. The file is the same on any computer. Transcript quotes name the speaker (the matched participant, or the transcript's label) and the session.
 
 ## Large documents
 

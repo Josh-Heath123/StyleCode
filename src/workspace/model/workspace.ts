@@ -124,6 +124,8 @@ export type ParseWorkspaceResult =
  * - 1 to 2: each session gets `timeZone`, the computer's zone at migration
  *   (the zone it was most likely created in). The `txt` source format needs
  *   no change.
+ * - 2 to 3: each company fact gets a status: its source finding's, if that is
+ *   still there, otherwise "suggested", which claims nothing was agreed.
  */
 /** Maps each object in a record, leaving anything that isn't one as it is. */
 function mapRecord(value: unknown, map: (item: Record<string, unknown>) => unknown): unknown {
@@ -158,6 +160,21 @@ function migrate(raw: Record<string, unknown>, timeZone: string): Record<string,
         if (!source || typeof source !== 'object' || 'sessionIds' in source || !Array.isArray(source.quotes)) return fact;
         const ids = source.quotes.map((q: { sessionId?: unknown } | null) => q?.sessionId).filter((x) => typeof x === 'string');
         return { ...fact, source: { ...source, sessionIds: [...new Set(ids)] } };
+      }),
+    };
+  }
+  if (ws.version === 2) {
+    const findings = (ws.findings && typeof ws.findings === 'object' ? ws.findings : {}) as Record<string, unknown>;
+    ws = {
+      ...ws,
+      version: 3,
+      knowledge: mapRecord(ws.knowledge, (fact) => {
+        if ('status' in fact) return fact;
+        const source = fact.source as { findingId?: unknown } | null | undefined;
+        const id = source?.findingId;
+        const finding = typeof id === 'string' && Object.prototype.hasOwnProperty.call(findings, id) ? findings[id] : undefined;
+        const status = (finding as { status?: unknown } | undefined)?.status;
+        return { ...fact, status: typeof status === 'string' ? status : 'suggested' };
       }),
     };
   }

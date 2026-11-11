@@ -10,7 +10,7 @@
 All data belongs to exactly one company. The model's top-level value is a `CompanyWorkspace`: the company, plus flat maps keyed by id of everything that belongs to it.
 
 ```
-CompanyWorkspace (format "stylecode-workspace", version 1)
+CompanyWorkspace (format "stylecode-workspace", version 3)
 ├── company            Company
 ├── knowledge          CompanyFact          (company knowledge, carried across engagements)
 ├── engagements        Engagement           → company
@@ -39,7 +39,7 @@ CompanyWorkspace (format "stylecode-workspace", version 1)
 | Entity | Fields | Notes |
 | --- | --- | --- |
 | Company | name, industry, description (what they do), existing systems, notes | Free text, as in MVP story 1.1. The name is required, and must differ from other companies' names, ignoring case (MVP Q4; `isCompanyNameFree`). |
-| CompanyFact | statement, kind, provenance, source (or none), who and when | Company knowledge (vision §3). Modelled now; the interface comes after extraction (MVP Q3). Only a finding in the record can be promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
+| CompanyFact | statement, kind, status, provenance, source (or none), who and when | Company knowledge (vision §3; built in Workspace Phase 2, WP8). Only a finding in the record can be promoted, and only once while its fact exists. Promoting copies the finding's status, which can be edited on the fact afterwards with its statement and kind (`updateFact`, decision 17); its provenance and source stay as promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
 | Engagement | company, name, goal, status (active, or ended on a date) | The end date is what "keep until the engagement ends" in the consent form refers to (MVP Q5). |
 | DesignLink | engagement, name, StyleCode document id | A design belongs to one company: `sharedIds` also reports a document linked from two companies' workspaces. WP4 stores each design inside its company's data. |
 | Session | engagement, title, start time, time zone, audio files (Phase 3) | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. |
@@ -138,12 +138,13 @@ The validator reads entries of any shape without failing, which the tests check 
 
 ## Versioning
 
-The workspace carries `format: "stylecode-workspace"` and `version: 2`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
+The workspace carries `format: "stylecode-workspace"` and `version: 3`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
 
 | Version | Since | Changes |
 | --- | --- | --- |
 | 1 | Phase 0 | The first model. |
 | 2 | Workspace Phase 2 | Sessions keep their time zone (`timeZone`); a version 1 session gets the computer's zone at migration. Transcripts can come from `.txt` files (the source format `txt`), which needs no migration. |
+| 3 | Workspace Phase 2 (WP8) | Company facts have a status (decision 17). A version 2 fact takes its source finding's status if the finding is still there, otherwise "suggested", which claims nothing was agreed. |
 
 ## Decisions
 
@@ -219,3 +220,10 @@ Made from the decisions in `docs/phase-2/PHASE-2-BRIEF.md`, each with a test in 
 - **Retention in amendments** (decision 10): an amendment that changes how long audio is kept, while recording is agreed, must record the retention statement as newly told, in the new words (`retentionToldIssue`).
 - **The consent attachment** (decision 12): `attachToConsent` adds one file per record (purpose `consent-attachment`, owned by the session), replacing any earlier one; `removeConsentAttachment` takes it off. Neither changes the record's confirmation, and both work on a locked record. An attachment no record names is reported (`consent.attachment`).
 
+## Changes from Workspace Phase 2 (WP8)
+
+Each with a test in `src/workspace/model/knowledge.test.ts`. They raise the workspace to version 3 (see "Versioning"), because version 2 workspaces had been saved by then.
+
+- **A status on company facts** (decision 17): `promoteToKnowledge` copies the finding's status, and the validator checks it.
+- **One fact per finding:** promoting a finding that is company knowledge already is refused, so the same statement isn't listed twice; once the fact is removed, the finding can be promoted again.
+- **`addToKnowledge`** promotes and adds the fact in one step, and **`updateFact`** changes a fact's statement, kind or status, keeping its provenance and its copy of the source. `factFrom` finds the fact promoted from a finding.

@@ -118,7 +118,7 @@ const pendingAiFinding: Finding = {
 export function sampleWorkspace(): CompanyWorkspace {
   return structuredClone({
     format: 'stylecode-workspace',
-    version: 2,
+    version: 3,
     company: {
       id: 'co_bakery',
       name: 'Harbour Bakery',
