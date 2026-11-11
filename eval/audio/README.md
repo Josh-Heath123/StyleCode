@@ -31,7 +31,9 @@ The same meeting always gives the same timeline and the same samples. Each turn'
 
 **Checks.** A mix fails if the voice tool reports a skipped or unknown word, or if a turn comes out too short for its words (faster than about seven words a second), because the timeline would then hold words the audio doesn't. Typographic quotes, dashes and ellipses are turned into plain ones before speaking, so none is dropped.
 
-**Checking the voices.** Nobody listens to them. After the first mix, each voice's turns are transcribed with the best candidate (WP3), and a voice whose turns come back with more than 30% of words wrong is replaced and recorded under `swaps` in `voices.json`.
+**Checking the voices.** Nobody listens to them. After the first mix, each voice's turns are transcribed with the best candidate (WP3), and a voice whose turns come back with more than 30% of words wrong is replaced and recorded under `swaps` in `voices.json`. `npm run eval:audio:check` does this from a recorded run (by default whisper.cpp with large-v3-turbo on the GPU).
+
+**The check on 2026-11-11**, against whisper.cpp large-v3-turbo on the clean meetings: every voice was between 0.0% and 6.1% of words wrong (the most, `bm_daniel` as Johan Steenkamp in Bosveld Citrus), so none was replaced. Most of the errors were South African names: Bloemfontein, Gauteng, Colesberg, Lerato.
 
 ## The code
 

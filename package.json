@@ -31,6 +31,8 @@
     "eval:score": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/score.ts",
     "eval:audio:setup": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/audio/setup.ts",
     "eval:audio": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/audio/make.ts",
+    "eval:audio:check": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/audio/check-voices.ts",
+    "eval:transcription": "node --experimental-strip-types --disable-warning=ExperimentalWarning eval/transcription/report.ts",
     "site": "node --experimental-strip-types scripts/build-site.ts",
     "build:pages": "vite build --base=/StyleCode/app/ --outDir site/app --emptyOutDir && npm run site"
   },
