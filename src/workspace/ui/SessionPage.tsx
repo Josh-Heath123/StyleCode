@@ -19,6 +19,7 @@ import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { ConsentPanel } from './consent/ConsentPanel';
 import { NotesCard } from './NotesCard';
 import { TranscriptCard, usePassage } from './TranscriptCard';
+import { ProposalsCard } from './extraction/ProposalsCard';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
@@ -218,6 +219,7 @@ function SessionView({
             )}
           </section>
         </div>
+        <ProposalsCard key={`ai-${meeting.id}`} view={view} meeting={meeting} />
         <TranscriptCard key={meeting.id} view={view} meeting={meeting} passageId={passageId} />
       </Page>
       {dialog?.kind === 'participant' && (

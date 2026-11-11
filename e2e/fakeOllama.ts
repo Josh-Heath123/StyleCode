@@ -29,7 +29,44 @@ export const FAKE_MODEL = 'fake-designer:1b';
 
 export type FakeReply = { text: string; delay: number } | { status: number; error: string };
 
+/**
+ * Asked for findings (the workspace's extraction prompt), it answers like a
+ * small model: one finding for each passage a client said with six words or
+ * more, quoting its first five words, plus one whose quote isn't in the
+ * passage, which StyleCode must drop. A meeting titled with "slow" streams
+ * slowly (to test Stop); with "fail", the model server returns an error.
+ */
+function extractionReply(body: FakeOllama['requests'][number]): FakeReply | null {
+  if (!body.messages[0]?.content.includes('list the findings a careful consultant would record')) return null;
+  const message = body.messages[body.messages.length - 1].content;
+  const title = /^Meeting: (.*)$/m.exec(message)?.[1]?.toLowerCase() ?? '';
+  if (title.includes('fail')) return { status: 500, error: 'model runner has unexpectedly stopped' };
+  const own = message.includes('New passages:') ? message.slice(message.indexOf('New passages:')) : message;
+  const findings: unknown[] = [];
+  for (const m of own.matchAll(/^\[([SN]\d+)\] (?:([^:\n]+?) \(client\): )?(.*)$/gm)) {
+    const [, ref, speaker, text] = m;
+    const words = text.split(/\s+/);
+    if (!speaker || words.length < 6) continue;
+    findings.push({
+      kind: 'operational-challenge',
+      status: 'suggested',
+      statement: `${speaker} said: ${words.slice(0, 8).join(' ')}`,
+      evidence: [{ ref, quote: words.slice(0, 5).join(' ') }],
+    });
+  }
+  if (findings.length)
+    findings.push({
+      kind: 'risk',
+      status: 'suggested',
+      statement: 'Made up.',
+      evidence: [{ ref: 'S1', quote: 'words nobody ever said here' }],
+    });
+  return { text: JSON.stringify({ findings }), delay: title.includes('slow') ? 400 : 2 };
+}
+
 function reply(body: FakeOllama['requests'][number]): FakeReply {
+  const extraction = extractionReply(body);
+  if (extraction) return extraction;
   const first = body.messages.find((m) => m.role === 'user')?.content ?? '';
   const last = body.messages[body.messages.length - 1].content;
   const request = (/\nRequest: (.*)$/s.exec(first)?.[1] ?? '').toLowerCase();

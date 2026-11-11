@@ -5,12 +5,13 @@ import { expect, type Page } from '@playwright/test';
  * client with one engagement and one session, Sam Naidoo on the consultant's
  * side, Thandi and Pieter asked for consent, Lerato not. The consent record
  * allows transcription and local AI, and is confirmed unless `confirmed` is
- * false. With `note`, the session has that note, written at 10:10 there.
+ * false. With `note`, the session has that note, written at 10:10 there;
+ * `title` names the session (default "Kick-off").
  * Opens the session page and returns the client's id.
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
-export async function kickoff(page: Page, options: { confirmed?: boolean; note?: string } = {}) {
+export async function kickoff(page: Page, options: { confirmed?: boolean; note?: string; title?: string } = {}) {
   const res = await page.request.post('/api/workspace/companies', {
     headers: HEADERS,
     data: { profile: { name: `Karoo Freight ${Math.random().toString(36).slice(2, 8)}` } },
@@ -34,7 +35,7 @@ export async function kickoff(page: Page, options: { confirmed?: boolean; note?:
     se_1: {
       id: 'se_1',
       engagementId: 'en_1',
-      title: 'Kick-off',
+      title: options.title ?? 'Kick-off',
       startsAt: '2026-11-05T08:00:00.000Z',
       timeZone: 'Africa/Johannesburg',
       audioFileIds: [],
@@ -98,6 +99,6 @@ export async function kickoff(page: Page, options: { confirmed?: boolean; note?:
   // The same name as the other specs: settings are shared by tests running alongside.
   await page.request.put('/api/workspace/settings', { headers: HEADERS, data: { consultantName: 'Sam Consultant' } });
   await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
-  await expect(page.getByRole('heading', { level: 1, name: 'Kick-off' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: options.title ?? 'Kick-off' })).toBeVisible();
   return id;
 }
