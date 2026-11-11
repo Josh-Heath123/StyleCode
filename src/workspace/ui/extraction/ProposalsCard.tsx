@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon } from '../../../ui/Icon';
 import { canUseAi } from '../../model/consent';
 import { isPending } from '../../model/findings';
@@ -9,7 +9,7 @@ import { segmentsOf, speakerOf, transcriptOf } from '../../model/transcripts';
 import { FINDING_STATUSES, type CompanyWorkspace, type Finding, type FindingStatus, type Session } from '../../model/types';
 import { get } from '../../model/util';
 import { formatDuration } from '../../extraction/estimate';
-import { DROP_LABELS, DROP_REASONS, sessionPassages, type DropCounts } from '../../extraction/proposals';
+import { DROP_LABELS, DROP_REASONS, sessionPassages, type DropCounts, type DropReason } from '../../extraction/proposals';
 import { reviewReport } from '../../extraction/report';
 import { passageTokens } from '../../extraction/run';
 import { formatTimeOfDay } from '../../time';
@@ -20,7 +20,7 @@ import { FormDialog, NameField, nameFor } from '../fields';
 import { now, step } from '../steps';
 import { useConsultant } from '../useConsultant';
 import { currentAiSetup, type AiSetup } from './aiSetup';
-import { coverageOf } from './coverage';
+import { clearCoverage, coveragesOf, type Coverage } from './coverage';
 import {
   discardRun,
   dismissRun,
@@ -47,10 +47,15 @@ export function whereItRuns(setup: AiSetup): string {
  * the repeats, which aren't failures.
  */
 export function droppedText(dropped: DropCounts): { failed: string | null; leftOut: string | null } {
-  const failed = DROP_REASONS.filter((r) => r !== 'repeat' && dropped[r] > 0).map((r) => `${dropped[r]} ${DROP_LABELS[r]}`);
+  // Repeats, and quotes of passages changed during the run, aren't the AI's failures.
+  const notFailures: readonly DropReason[] = ['repeat', 'passage-changed'];
+  const said = (reasons: readonly DropReason[]) =>
+    reasons.filter((r) => dropped[r] > 0).map((r) => `${dropped[r]} ${DROP_LABELS[r]}`);
+  const failed = said(DROP_REASONS.filter((r) => !notFailures.includes(r)));
+  const leftOut = said(notFailures);
   return {
     failed: failed.length ? `Not shown, because they failed StyleCode’s checks: ${failed.join('; ')}.` : null,
-    leftOut: dropped.repeat ? `Left out: ${dropped.repeat} ${DROP_LABELS.repeat}.` : null,
+    leftOut: leftOut.length ? `Left out: ${leftOut.join('; ')}.` : null,
   };
 }
 
@@ -166,13 +171,21 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
   const estimate = ready ? estimateFor(ready, passageTokens(passages)) : null;
   const summary = run && !running ? run : null;
 
+  // A second click while the settings are read doesn't start a second run.
+  const asking = useRef(false);
   const ask = async () => {
-    setError(null);
-    const start = await currentAiSetup();
-    setSetup(start);
-    if (typeof start === 'string') return setError(start);
-    if (run) dismissRun(run);
-    setError(startRun(session, meeting, start, location.hash));
+    if (asking.current) return;
+    asking.current = true;
+    try {
+      setError(null);
+      const start = await currentAiSetup();
+      setSetup(start);
+      if (typeof start === 'string') return setError(start);
+      if (run) dismissRun(run);
+      setError(startRun(session, meeting, start, location.hash));
+    } finally {
+      asking.current = false;
+    }
   };
   const askButton = ready && (
     <button type="button" className="button primary" onClick={() => void ask()}>
@@ -206,7 +219,7 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
       <div className="ws-run-status">
         {run && running && <Progress run={run} />}
         {summary && <Summary run={summary} why={why} askButton={askButton} />}
-        <CoverageNotice view={view} meeting={meeting} />
+        <CoverageNotices view={view} meeting={meeting} />
         {error && (
           <p className="ws-error" role="alert">
             {error}
@@ -240,12 +253,12 @@ function Summary({ run, why, askButton }: { run: Run; why: string | null; askBut
   const { failed, leftOut } = run.dropped ? droppedText(run.dropped) : { failed: null, leftOut: null };
   return (
     <div className="ws-run-summary" role="status">
-      {run.state === 'failed' && (
+      {run.state === 'failed' && run.parts > 1 && run.part > 0 && (
         <p className="ws-error">
-          {run.parts > 1 && run.part > 0 ? `The AI stopped working on part ${run.part} of ${run.parts}. ` : ''}
-          {run.error}
+          The AI stopped working on part {run.part} of {run.parts}.
         </p>
       )}
+      {run.error && <p className="ws-error">{run.error}</p>}
       {run.state === 'stopped' && <p>{run.partsDone ? `Stopped after ${partsText(run.partsDone, run.parts)}.` : 'Stopped.'}</p>}
       {run.state === 'finished' && (
         <p>{added ? `The AI proposed ${count(added, 'finding')} to review.` : 'The AI proposed nothing new.'}</p>
@@ -279,21 +292,29 @@ function Summary({ run, why, askButton }: { run: Run; why: string | null; askBut
  * What a run that didn't finish read, until its proposals are all reviewed or
  * discarded, after a reload too (`coverage.ts`), with the way to discard them.
  */
-function CoverageNotice({ view, meeting }: { view: ClientView; meeting: Session }) {
+function CoverageNotices({ view, meeting }: { view: ClientView; meeting: Session }) {
+  return (
+    <>
+      {coveragesOf(view.session.companyId, meeting.id).map((c) => (
+        <CoverageNotice key={c.at} view={view} meeting={meeting} coverage={c} />
+      ))}
+    </>
+  );
+}
+
+function CoverageNotice({ view, meeting, coverage }: { view: ClientView; meeting: Session; coverage: Coverage }) {
   const [note, setNote] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const coverage = coverageOf(view.session.companyId, meeting.id);
-  const waiting = coverage
-    ? Object.values(view.workspace.findings).filter(
-        (f) =>
-          isPending(f) && f.origin.kind === 'ai' && f.origin.at === coverage.at && f.origin.inputSessionIds.includes(meeting.id),
-      )
-    : [];
-  // Once they are back (undo), the note that they were discarded no longer holds.
+  const waiting = Object.values(view.workspace.findings).filter(
+    (f) => isPending(f) && f.origin.kind === 'ai' && f.origin.at === coverage.at && f.origin.inputSessionIds.includes(meeting.id),
+  );
   useEffect(() => {
+    // Once they are back (undo), the note that they were discarded no longer holds.
     if (waiting.length && note) setNote(null);
-  }, [waiting.length, note]);
-  if (!coverage || (!waiting.length && !note)) return null;
+    // Once they are all reviewed, what that run read no longer needs saying.
+    if (!waiting.length && !note) clearCoverage(coverage.companyId, coverage.sessionId, coverage.at);
+  }, [waiting.length, note, coverage]);
+  if (!waiting.length && !note) return null;
   const parts = partsText(coverage.partsDone, coverage.parts);
   if (!waiting.length) return <p role="status">{note}</p>;
   return (
@@ -351,6 +372,7 @@ function ProposalList({
   const consultant = useConsultant();
   const [statusFor, setStatusFor] = useState<Record<string, FindingStatus>>({});
   const [editing, setEditing] = useState<Finding | null>(null);
+  const reviewing = useRef(new Set<string>());
   const [error, setError] = useState<string | null>(null);
   if (!proposals.length) return null;
 
@@ -365,15 +387,22 @@ function ProposalList({
     return proposals[i + 1]?.id ?? proposals[i - 1]?.id ?? null;
   };
   const review = async (f: Finding, how: 'accept' | 'reject') => {
-    const by = await consultant.current();
-    if (!by) return setError(NO_NAME);
-    const status = statusFor[f.id] ?? f.status;
-    const problem =
-      how === 'accept'
-        ? step(session, 'Accept a proposal', (ws) => acceptReviewed(ws, f.id, { status }, by, now()))
-        : step(session, 'Reject a proposal', (ws) => rejectReviewed(ws, f.id, by, now()));
-    setError(problem);
-    if (!problem) focus(after(f.id));
+    // A proposal being reviewed isn't reviewed again by a second key press or click meanwhile.
+    if (reviewing.current.has(f.id)) return;
+    reviewing.current.add(f.id);
+    try {
+      const by = await consultant.current();
+      if (!by) return setError(NO_NAME);
+      const status = statusFor[f.id] ?? f.status;
+      const problem =
+        how === 'accept'
+          ? step(session, 'Accept a proposal', (ws) => acceptReviewed(ws, f.id, { status }, by, now()))
+          : step(session, 'Reject a proposal', (ws) => rejectReviewed(ws, f.id, by, now()));
+      setError(problem);
+      if (!problem) focus(after(f.id));
+    } finally {
+      reviewing.current.delete(f.id);
+    }
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLOListElement>) => {

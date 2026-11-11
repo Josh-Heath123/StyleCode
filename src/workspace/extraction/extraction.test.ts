@@ -14,7 +14,15 @@ import {
   PART_CONTEXT,
   type Passage,
 } from './prompt.ts';
-import { addProposals, checkProposals, engagementFindings, normaliseStatement, readReply, sessionPassages } from './proposals.ts';
+import {
+  addProposals,
+  checkProposals,
+  engagementFindings,
+  normaliseStatement,
+  readReply,
+  sessionPassages,
+  withCurrentPassages,
+} from './proposals.ts';
 import { extract, type PartDone } from './run.ts';
 import { FINDING_KINDS } from '../model/types.ts';
 
@@ -173,6 +181,7 @@ describe('reading and checking proposals', () => {
     const { proposals, dropped } = checkProposals(raw, []);
     expect(proposals).toHaveLength(1);
     expect(dropped).toEqual({
+      'passage-changed': 0,
       'unknown-passage': 1,
       'quote-not-found': 1,
       'quote-too-short': 1,
@@ -182,6 +191,24 @@ describe('reading and checking proposals', () => {
       'bad-status': 1,
       repeat: 1,
     });
+  });
+
+  it('says apart a quote of a passage changed or deleted while the AI was reading, from an invented one', () => {
+    const raw = readReply(
+      reply([
+        proposal({ evidence: [{ ref: 'S2', quote: 'we keep stock in a spreadsheet' }] }),
+        proposal({ kind: 'risk', evidence: [{ ref: 'S1', quote: 'five times as many orders' }] }),
+        proposal({ kind: 'constraint', evidence: [{ ref: 'S2', quote: 'we keep stock in a database' }] }),
+      ]),
+      passages,
+    )!;
+    // Meanwhile the consultant corrected S2 and the transcript lost S1.
+    const ws = fresh();
+    ws.segments.sg_2 = { ...ws.segments.sg_2, text: 'Right now we keep stock in a ledger.' };
+    delete ws.segments.sg_1;
+    const { proposals, dropped } = checkProposals(withCurrentPassages(raw, ws), []);
+    expect(proposals).toHaveLength(0);
+    expect(dropped).toMatchObject({ 'passage-changed': 2, 'quote-not-found': 1, 'unknown-passage': 0 });
   });
 
   it('removes one ellipsis at the start or end of a quote, and stores the quote without it', () => {

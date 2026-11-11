@@ -45,6 +45,6 @@ npm run eval:score                                  # scores every recorded run,
    - **recall**: the share of key findings that some proposal matches;
    - **invented evidence**: the share of proposals that cite it.
 
-   A second proposal for a finding already matched is a **duplicate**. It counts as correct, and the duplicates are reported. **Status agrees** counts matched proposals whose status is the key's, where the key's "confirmed" counts as the AI's "suggested", since only the consultant confirms.
+   A second proposal for a finding already matched is a **duplicate**. It counts as correct, and the duplicates are reported. The scorer reads the run’s raw proposals, before the app leaves out repeats (`checkProposals`), so "proposed" can be more than the consultant would see; the app’s own counts are in each run file’s `dropped` and `shown`. **Status agrees** counts matched proposals whose status is the key's, where the key's "confirmed" counts as the AI's "suggested", since only the consultant confirms.
 
 **In CI**, `eval/scorer.test.ts` tests the scorer, and `eval/recorded.test.ts` checks that every transcript and key is up to date and that one recorded run still scores as it did.

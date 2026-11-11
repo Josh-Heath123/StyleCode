@@ -301,7 +301,7 @@ test('when the model fails partway, the session says so and keeps what came befo
   await importTranscript(page);
   await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
   await expect(card(page)).toContainText(
-    /The AI stopped working on part 2 of \d+\. Ollama returned an error \(500\): model runner has unexpectedly stopped/,
+    /The AI stopped working on part 2 of \d+\.\s?Ollama returned an error \(500\): model runner has unexpectedly stopped/,
   );
   await expect(card(page)).toContainText(/proposals from part 1 of \d+ are waiting for review/);
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
@@ -425,4 +425,64 @@ test('the card passes the accessibility checks: before a run, during one, and re
   await page.keyboard.press('e');
   await expect(page.getByRole('dialog', { name: 'Edit the proposal, then accept it' })).toBeVisible();
   await check();
+});
+
+test('a run goes on while another client is open, and its proposals reach its own client', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const first = await kickoff(page, { title: 'A steady kick-off' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('status')).toContainText(/The AI is reading part/);
+  // Another client opened meanwhile: the first stays open until its run has saved.
+  const second = await kickoff(page);
+  const nav = page.getByRole('navigation', { name: 'StyleCode' });
+  await expect(nav.getByRole('link', { name: 'The AI has finished “A steady kick-off”' })).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => findings(first).length).toBeGreaterThan(0);
+  expect(findings(second)).toHaveLength(0);
+});
+
+test('withdrawing consent during a run stops it at once, and nothing is added (C5)', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'Slow from part two' });
+  await importTranscript(page);
+  const before = requestsFor(FAKE_MODEL);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('status')).toContainText(/The AI is reading part 2 of/);
+  // Part 2's request has reached the model before anything is counted.
+  await expect.poll(() => requestsFor(FAKE_MODEL)).toBe(before + 2);
+  const sent = before + 2;
+  await page.getByRole('button', { name: 'Withdraw consent…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Withdraw consent' });
+  await dialog.getByLabel('Reason').fill('Thandi asked us to stop.');
+  await dialog.getByRole('button', { name: 'Record the withdrawal' }).click();
+  await expect(card(page)).toContainText('The client withdrew consent for this session. The AI stopped.');
+  await expect(card(page)).toContainText('The proposals couldn’t be added: The client withdrew consent for this session.');
+  expect(requestsFor(FAKE_MODEL)).toBe(sent);
+  expect(findings(id)).toHaveLength(0);
+});
+
+test('deleting the client during a run stops it, and nothing more is sent', async ({ page }) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'Slow from part two' });
+  await importTranscript(page);
+  const before = requestsFor(FAKE_MODEL);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('status')).toContainText(/The AI is reading part 2 of/);
+  // Part 2's request has reached the model before anything is counted.
+  await expect.poll(() => requestsFor(FAKE_MODEL)).toBe(before + 2);
+  const sent = before + 2;
+  const name = (await page
+    .getByRole('link', { name: /^Karoo Freight / })
+    .first()
+    .textContent())!;
+  await page.goto(`/#/c/${id}`);
+  await page.getByRole('button', { name: 'Delete client…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete client…' });
+  await dialog.getByLabel(`Type ${name} to confirm`).fill(name);
+  await dialog.getByRole('button', { name: 'Delete client' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Clients' })).toBeVisible();
+  const nav = page.getByRole('navigation', { name: 'StyleCode' });
+  await expect(nav.getByRole('link', { name: 'The AI couldn’t finish “Slow from part two”' })).toBeVisible();
+  await page.waitForTimeout(1000);
+  expect(requestsFor(FAKE_MODEL)).toBe(sent);
 });

@@ -30,6 +30,8 @@ export class SessionRegistry {
   private readonly live = new Map<string, WorkspaceSession>();
   private readonly releasing = new Map<WorkspaceSession, () => void>();
   private current: WorkspaceSession | null = null;
+  /** Told when a client is closed, before it is disposed: a run on it stops. */
+  private readonly closeListeners = new Set<(session: WorkspaceSession) => void>();
   /** Clients held open, with how many holds each has. */
   private readonly holds = new Map<WorkspaceSession, number>();
   /** Unfinished notes by client, then by session. */
@@ -113,7 +115,14 @@ export class SessionRegistry {
     if (session) this.forget(session);
   }
 
+  /** Calls back whenever a client is closed (deleted, reloaded, or let go). Returns the way to stop. */
+  onClose(listener: (session: WorkspaceSession) => void): () => void {
+    this.closeListeners.add(listener);
+    return () => this.closeListeners.delete(listener);
+  }
+
   private forget(session: WorkspaceSession): void {
+    this.closeListeners.forEach((l) => l(session));
     this.releasing.get(session)?.();
     this.dropDraftsOfDeletedSessions(session);
     session.dispose();

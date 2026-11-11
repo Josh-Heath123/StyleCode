@@ -50,6 +50,6 @@ function runText(run: Run): string {
   const title = `“${run.sessionTitle}”`;
   if (run.state === 'running')
     return run.parts > 1 ? `The AI is reading ${title}: part ${run.part} of ${run.parts}` : `The AI is reading ${title}`;
-  if (run.state === 'finished') return `The AI has finished ${title}`;
+  if (run.state === 'finished' && !run.error) return `The AI has finished ${title}`;
   return run.state === 'stopped' ? `The AI stopped on ${title}` : `The AI couldn’t finish ${title}`;
 }

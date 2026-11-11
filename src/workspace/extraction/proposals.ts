@@ -55,7 +55,14 @@ export function withCurrentPassages(raw: readonly RawProposal[], ws: CompanyWork
     const current = p.kind === 'segment' ? get(ws.segments, p.id) : get(ws.notes, p.id);
     return current ? { ...p, text: current.text } : null;
   };
-  return raw.map((r) => ({ ...r, evidence: r.evidence.map((e) => ({ ...e, passage: now(e.passage) })) }));
+  return raw.map((r) => ({
+    ...r,
+    evidence: r.evidence.map((e) => {
+      const current = now(e.passage);
+      const changed = e.passage !== null && current?.text !== e.passage.text;
+      return { ...e, passage: current, ...(changed ? { readAs: e.passage!.text } : {}) };
+    }),
+  }));
 }
 
 /** A proposal as read from a reply: nothing about it is trusted yet. */
@@ -64,7 +71,13 @@ export interface RawProposal {
   status: unknown;
   statement: unknown;
   /** Each citation, with the passage it names if that exists. */
-  evidence: { ref: string; passage: Passage | null; quote: unknown }[];
+  evidence: {
+    ref: string;
+    passage: Passage | null;
+    quote: unknown;
+    /** The passage's text when the AI read it, when it has changed or gone since (`withCurrentPassages`). */
+    readAs?: string;
+  }[];
 }
 
 /** The JSON object in a reply, tolerating code fences or text around it. */
@@ -111,6 +124,7 @@ export function readReply(reply: string, passages: readonly Passage[]): RawPropo
 
 /** Why a proposal was dropped before the consultant saw it (Phase 2 brief, "Clarifications"). */
 export const DROP_REASONS = [
+  'passage-changed',
   'unknown-passage',
   'quote-not-found',
   'quote-too-short',
@@ -124,6 +138,7 @@ export type DropReason = (typeof DROP_REASONS)[number];
 
 /** How each reason is shown, after a count: "2 cited a passage that isn't in this session". */
 export const DROP_LABELS: Record<DropReason, string> = {
+  'passage-changed': 'quoted a passage changed or deleted while the AI was reading',
   'unknown-passage': 'cited a passage that isn’t in this session',
   'quote-not-found': 'quoted words that aren’t in the passage',
   'quote-too-short': 'quoted fewer than three words',
@@ -230,9 +245,13 @@ function problemOf(p: RawProposal): DropReason | null {
   if (!(AI_STATUSES as readonly unknown[]).includes(p.status)) return 'bad-status';
   if (typeof p.statement !== 'string' || !p.statement.trim()) return 'no-statement';
   if (!p.evidence.length) return 'no-evidence';
-  for (const e of p.evidence) if (!e.passage) return 'unknown-passage';
+  // What was right when the AI read it, but no longer is, isn't the AI's mistake.
+  const wasThere = (e: RawProposal['evidence'][number]) =>
+    e.readAs !== undefined && typeof e.quote === 'string' && quoteAppearsIn(e.readAs, e.quote);
+  for (const e of p.evidence) if (!e.passage) return wasThere(e) ? 'passage-changed' : 'unknown-passage';
   for (const e of p.evidence)
-    if (typeof e.quote !== 'string' || !quoteAppearsIn(e.passage!.text, e.quote)) return 'quote-not-found';
+    if (typeof e.quote !== 'string' || !quoteAppearsIn(e.passage!.text, e.quote))
+      return wasThere(e) ? 'passage-changed' : 'quote-not-found';
   for (const e of p.evidence) if (!isQuoteLongEnough(e.passage!.text, e.quote as string)) return 'quote-too-short';
   return null;
 }

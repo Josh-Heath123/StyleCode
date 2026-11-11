@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { canUseAi } from '../../model/consent';
 import { discardProposals } from '../../model/record';
 import type { Session } from '../../model/types';
-import { ok } from '../../model/util';
+import { get, ok } from '../../model/util';
 import {
   addProposals,
   checkProposals,
@@ -15,9 +15,9 @@ import {
 import { extract, passageTokens } from '../../extraction/run';
 import type { WorkspaceSession } from '../../session';
 import { now, step } from '../steps';
-import { holdCompany } from '../useCompanySession';
+import { holdCompany, onCompanyClosed } from '../useCompanySession';
 import { sendForSession, type AiSetup } from './aiSetup';
-import { setCoverage } from './coverage';
+import { addCoverage, clearCoverage } from './coverage';
 import { recordSpeed, speedOf } from './speed';
 
 /**
@@ -172,65 +172,98 @@ async function go(
   let unreadable = 0;
   let partsDone = 0;
   let parts = 0;
-  let ended: Pick<Run, 'state' | 'error'>;
-  try {
-    const result = await extract({
-      title: meeting.title,
-      passages,
-      contextSize: setup.contextSize,
-      send: sendForSession(setup, () => session.getState().workspace, meeting.id),
-      signal: controller.signal,
-      onProgress: (p) => {
-        parts = p.parts;
-        update(key, { part: p.part, parts: p.parts });
-      },
-      onPart: (done) => {
-        raw.push(...done.raw);
-        if (!done.readable) unreadable++;
-        partsDone = done.part;
-        update(key, { partsDone, tokensDone: (runs.get(key)?.tokensDone ?? 0) + done.tokens });
-      },
-    });
-    parts = result.parts;
-    ended = { state: 'finished', error: null };
-    recordSpeed(setup, Date.now() - (runs.get(key)?.startedAt ?? Date.now()), passageTokens(passages));
-  } catch (e) {
-    ended = controller.signal.aborted ? { state: 'stopped', error: null } : { state: 'failed', error: (e as Error).message };
-  }
-  controllers.delete(key);
-
+  let ended: Pick<Run, 'state' | 'error'> = { state: 'failed', error: null };
   let addedIds: string[] = [];
   let dropped: DropCounts | null = null;
-  let error = ended.error;
-  const at = now();
-  if (partsDone > 0) {
-    const label =
-      ended.state === 'finished' ? 'Add the AI’s proposals' : `Add the AI’s proposals from ${partsText(partsDone, parts)}`;
-    const problem = step(session, label, (ws) => {
-      const checked = checkProposals(withCurrentPassages(raw, ws), engagementFindings(ws, meeting.id));
-      dropped = checked.dropped;
-      if (!checked.proposals.length) return ok(ws);
-      const stored = addProposals(ws, meeting.id, checked.proposals, {
-        provider: setup.provider,
-        model: setup.model,
-        processing: setup.processing,
-        at,
+
+  // Stops at once, mid-part too, when the client closes (deleted, or reloaded after a conflict), when the
+  // session is deleted, or when consent no longer allows this processing (rule C5).
+  let failure: string | null = null;
+  const stopWith = (reason: string) => {
+    if (failure) return;
+    failure = reason;
+    controller.abort();
+  };
+  const stopOnClose = onCompanyClosed((closed) => {
+    if (closed === session) stopWith('The client was closed, so the AI stopped.');
+  });
+  const watch = session.subscribe(() => {
+    const ws = session.getState().workspace;
+    if (!get(ws.sessions, meeting.id)) return stopWith('The session was deleted, so the AI stopped.');
+    const allowed = canUseAi(ws, meeting.id, setup.processing, now());
+    if (!allowed.ok) stopWith(`${allowed.error} The AI stopped.`);
+  });
+  const workspace = () => {
+    if (session.closed) throw new Error('The client was closed, so the AI stopped.');
+    return session.getState().workspace;
+  };
+
+  try {
+    try {
+      const result = await extract({
+        title: meeting.title,
+        passages,
+        contextSize: setup.contextSize,
+        send: sendForSession(setup, workspace, meeting.id),
+        signal: controller.signal,
+        onProgress: (p) => {
+          parts = p.parts;
+          update(key, { part: p.part, parts: p.parts });
+        },
+        onPart: (done) => {
+          raw.push(...done.raw);
+          if (!done.readable) unreadable++;
+          partsDone = done.part;
+          update(key, { partsDone, tokensDone: (runs.get(key)?.tokensDone ?? 0) + done.tokens });
+        },
       });
-      if (!stored.ok) return stored;
-      addedIds = stored.value.ids;
-      return ok(stored.value.workspace);
-    });
-    if (problem) {
-      addedIds = [];
-      error = `${error ? `${error} ` : ''}The proposals couldn’t be added: ${problem}`;
+      parts = result.parts;
+      ended = { state: 'finished', error: null };
+      recordSpeed(setup, Date.now() - (runs.get(key)?.startedAt ?? Date.now()), passageTokens(passages));
+    } catch (e) {
+      ended = failure
+        ? { state: 'failed', error: failure }
+        : controller.signal.aborted
+          ? { state: 'stopped', error: null }
+          : { state: 'failed', error: (e as Error).message };
     }
+
+    const at = now();
+    if (partsDone > 0 && !session.closed) {
+      const label =
+        ended.state === 'finished' ? 'Add the AI’s proposals' : `Add the AI’s proposals from ${partsText(partsDone, parts)}`;
+      const problem = step(session, label, (ws) => {
+        const checked = checkProposals(withCurrentPassages(raw, ws), engagementFindings(ws, meeting.id));
+        dropped = checked.dropped;
+        if (!checked.proposals.length) return ok(ws);
+        const stored = addProposals(ws, meeting.id, checked.proposals, {
+          provider: setup.provider,
+          model: setup.model,
+          processing: setup.processing,
+          at,
+        });
+        if (!stored.ok) return stored;
+        addedIds = stored.value.ids;
+        return ok(stored.value.workspace);
+      });
+      if (problem) {
+        addedIds = [];
+        ended = { ...ended, error: `${ended.error ? `${ended.error} ` : ''}The proposals couldn’t be added: ${problem}` };
+      }
+    }
+    // What a run that didn't finish read is kept with its proposals; one that read it all makes that moot.
+    if (ended.state === 'finished' && !ended.error) clearCoverage(session.companyId, meeting.id);
+    else if (addedIds.length) addCoverage({ companyId: session.companyId, sessionId: meeting.id, at, partsDone, parts });
+  } catch (e) {
+    // Never leave a run "running": whatever went wrong is said.
+    ended = { state: 'failed', error: `Something went wrong while adding the proposals: ${(e as Error).message}` };
+  } finally {
+    watch();
+    stopOnClose();
+    controllers.delete(key);
+    update(key, { ...ended, addedIds, dropped, unreadable, partsDone, parts });
+    letGo();
   }
-  // What a run that didn't finish read is kept with its proposals; one that read it all makes that moot.
-  if (ended.state === 'finished') setCoverage(session.companyId, meeting.id, null);
-  else if (addedIds.length)
-    setCoverage(session.companyId, meeting.id, { companyId: session.companyId, sessionId: meeting.id, at, partsDone, parts });
-  update(key, { ...ended, error, addedIds, dropped, unreadable, partsDone, parts });
-  letGo();
 }
 
 /** Stops a session's run; what the parts that finished proposed is still added. */
