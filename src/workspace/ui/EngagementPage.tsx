@@ -10,6 +10,7 @@ import { ClientFrame, Missing, type ClientView } from './ClientFrame';
 import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { FilesCard } from './FilesCard';
+import { KnowledgeCard } from './KnowledgeCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
 
@@ -132,6 +133,7 @@ function EngagementView({
                 </ul>
               )}
             </section>
+            <KnowledgeCard view={view} manage={false} />
             <FilesCard view={view} owner={{ kind: 'engagement', engagementId: engagement.id }} />
           </div>
           <section className="ws-card" aria-labelledby="details-title">

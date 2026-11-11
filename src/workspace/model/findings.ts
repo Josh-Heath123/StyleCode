@@ -4,6 +4,8 @@
  * values, so the caller can make each one an undoable step.
  */
 import {
+  FINDING_KINDS,
+  FINDING_STATUSES,
   TRACKED_FIELDS,
   type CompanyFact,
   type CompanyWorkspace,
@@ -150,6 +152,7 @@ export function promoteToKnowledge(
   if (!finding) return fail('The finding does not exist.');
   if (!isInRecord(finding)) return fail('Only findings in the record can become company knowledge.');
   if (!consultant.trim()) return fail('Adding company knowledge needs the consultant’s name.');
+  if (factFrom(ws, findingId)) return fail('This finding is company knowledge already.');
   const quotes: FactQuote[] = [];
   const sessionIds = new Set<string>();
   for (const e of finding.evidence) {
@@ -170,6 +173,7 @@ export function promoteToKnowledge(
     id: factId,
     statement: finding.statement,
     kind: finding.kind,
+    status: finding.status,
     provenance: finding.provenance,
     source: {
       findingId,
@@ -451,6 +455,44 @@ export function keptFromSession(ws: CompanyWorkspace, sessionId: string): { find
     (fact) => fact.source && (fact.source.sessionIds.includes(sessionId) || ids.has(fact.source.findingId ?? '')),
   );
   return { findings, facts };
+}
+
+/** Promotes a finding (`promoteToKnowledge`) and adds the fact to the workspace, as one step. */
+export function addToKnowledge(
+  ws: CompanyWorkspace,
+  findingId: string,
+  factId: string,
+  consultant: string,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  if (get(ws.knowledge, factId)) return fail('A company fact with this id exists already.');
+  const fact = promoteToKnowledge(ws, findingId, factId, consultant, at);
+  return fact.ok ? ok({ ...ws, knowledge: { ...ws.knowledge, [factId]: fact.value } }) : fact;
+}
+
+/** The company fact promoted from a finding, if there is one. */
+export function factFrom(ws: CompanyWorkspace, findingId: string): CompanyFact | undefined {
+  return Object.values(ws.knowledge).find((f) => f.source?.findingId === findingId);
+}
+
+export type FactChanges = Partial<Pick<CompanyFact, 'statement' | 'kind' | 'status'>>;
+
+/**
+ * Edits a company fact (Phase 2 brief, WP8 and decision 17): its statement,
+ * kind or status. Its provenance and its copy of the source stay as they
+ * were, so it still shows what it was promoted from.
+ */
+export function updateFact(ws: CompanyWorkspace, factId: string, changes: FactChanges): Result<CompanyWorkspace> {
+  const fact = get(ws.knowledge, factId);
+  if (!fact) return fail('The company fact does not exist.');
+  const statement = changes.statement === undefined ? fact.statement : changes.statement.trim();
+  if (!statement) return fail('A company fact needs a statement.');
+  if (changes.kind !== undefined && !FINDING_KINDS.includes(changes.kind)) return fail('Choose a kind.');
+  if (changes.status !== undefined && !FINDING_STATUSES.includes(changes.status)) return fail('Choose a status.');
+  const next: CompanyFact = { ...fact, ...changes, statement };
+  if (next.statement === fact.statement && next.kind === fact.kind && next.status === fact.status)
+    return fail('Nothing was changed.');
+  return ok({ ...ws, knowledge: { ...ws.knowledge, [factId]: next } });
 }
 
 /** Removes a company fact (Phase 2 brief, WP8 and decision 11), as an ordinary undoable step. */

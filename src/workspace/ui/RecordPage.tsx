@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from '../model/labels';
 import { addRelation, createFinding, filteredRecord, linksOf, removeRelation, updateFinding } from '../model/record';
-import { isInRecord, type RecordGroups } from '../model/findings';
+import { addToKnowledge, factFrom, isInRecord, removeFinding, type RecordGroups } from '../model/findings';
+import { createId } from '../model/util';
+import { ID_PREFIX } from '../model/workspace';
 import {
   FINDING_KINDS,
   RELATION_TYPES,
@@ -35,7 +37,11 @@ export function RecordPage({ companyId, engagementId }: { companyId: string; eng
   );
 }
 
-type Dialog = { kind: 'finding'; finding: Finding | null } | { kind: 'link'; finding: Finding } | null;
+type Dialog =
+  | { kind: 'finding'; finding: Finding | null }
+  | { kind: 'link'; finding: Finding }
+  | { kind: 'promote'; finding: Finding }
+  | null;
 
 function Record({ view, engagement }: { view: ClientView; engagement: Engagement }) {
   const { workspace, readOnly } = view;
@@ -150,6 +156,7 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
                       engagementHref={engagementHref}
                       onEdit={() => setDialog({ kind: 'finding', finding: f })}
                       onLink={() => setDialog({ kind: 'link', finding: f })}
+                      onPromote={() => setDialog({ kind: 'promote', finding: f })}
                       onError={setError}
                       onFollow={follow}
                     />
@@ -168,6 +175,9 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
           consultant={consultant}
           onClose={() => setDialog(null)}
         />
+      )}
+      {dialog?.kind === 'promote' && (
+        <PromoteDialog view={view} finding={dialog.finding} consultant={consultant} onClose={() => setDialog(null)} />
       )}
       {dialog?.kind === 'link' && (
         <LinkDialog
@@ -199,6 +209,7 @@ function FindingCard({
   engagementHref,
   onEdit,
   onLink,
+  onPromote,
   onError,
   onFollow,
 }: {
@@ -207,11 +218,13 @@ function FindingCard({
   engagementHref: string;
   onEdit: () => void;
   onLink: () => void;
+  onPromote: () => void;
   onError: (error: string | null) => void;
   onFollow: (findingId: string) => void;
 }) {
   const { workspace, readOnly, session } = view;
   const links = linksOf(workspace, f.id);
+  const fact = factFrom(workspace, f.id);
   return (
     <li className="ws-finding" id={`finding-${f.id}`} tabIndex={-1} aria-labelledby={`finding-${f.id}-statement`}>
       <p className="ws-finding-statement" id={`finding-${f.id}-statement`}>
@@ -227,6 +240,11 @@ function FindingCard({
           <span className="visually-hidden">Provenance: </span>
           {provenanceLabel(f.provenance)}
         </span>
+        {fact && (
+          <a className="ws-badge is-knowledge" href={`#/c/${session.companyId}`}>
+            In company knowledge
+          </a>
+        )}
       </div>
       {f.evidence.length > 0 && (
         <ul className="ws-evidence" aria-label="Evidence">
@@ -269,6 +287,24 @@ function FindingCard({
             </button>
             <button type="button" className="button" onClick={onLink} aria-label={`Link “${f.statement}” to another finding`}>
               Link…
+            </button>
+            {!fact && (
+              <button
+                type="button"
+                className="button"
+                onClick={onPromote}
+                aria-label={`Add “${f.statement}” to company knowledge`}
+              >
+                Add to company knowledge…
+              </button>
+            )}
+            <button
+              type="button"
+              className="button danger"
+              aria-label={`Delete “${f.statement}”`}
+              onClick={() => onError(step(session, 'Delete a finding', (ws) => removeFinding(ws, f.id, now())))}
+            >
+              Delete
             </button>
           </div>
         )}
@@ -373,6 +409,53 @@ function FindingDialog({
       }}
     >
       <FindingFields ws={ws} sessions={sessions} draft={draft} onChange={setDraft} />
+      <NameField consultant={consultant} value={name} onChange={setName} />
+    </FormDialog>
+  );
+}
+
+/**
+ * Adds a finding to company knowledge (Phase 2 brief, WP8 and decision 17),
+ * so every engagement with this client shows it. The fact copies the
+ * finding's statement, kind, status and quotes; the finding doesn't change.
+ */
+function PromoteDialog({
+  view,
+  finding,
+  consultant,
+  onClose,
+}: {
+  view: ClientView;
+  finding: Finding;
+  consultant: Consultant;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <FormDialog
+      title="Add to company knowledge"
+      submitLabel="Add to company knowledge"
+      error={error}
+      onClose={onClose}
+      onSubmit={async () => {
+        const by = await nameFor(consultant, name);
+        if (!by) return setError('Give your name: company knowledge records who added it.');
+        const problem = step(view.session, 'Add to company knowledge', (ws) =>
+          addToKnowledge(ws, finding.id, createId(ID_PREFIX.knowledge), by, now()),
+        );
+        if (problem) return setError(problem);
+        onClose();
+      }}
+    >
+      <p className="ws-dialog-text">
+        <q>{finding.statement}</q>
+      </p>
+      <p className="ws-help">
+        It will show on {view.workspace.company.name}’s page and in every engagement with them, as{' '}
+        {KIND_LABEL[finding.kind].toLowerCase()}, {STATUS_LABEL[finding.status].toLowerCase()}, with its quotes. You can change it
+        there afterwards. The finding stays in this record as it is.
+      </p>
       <NameField consultant={consultant} value={name} onChange={setName} />
     </FormDialog>
   );

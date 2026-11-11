@@ -9,6 +9,7 @@ import { ClientFrame, type ClientView } from './ClientFrame';
 import { count, formatDay, formatWhen, Id, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { FilesCard } from './FilesCard';
+import { KnowledgeCard } from './KnowledgeCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, step } from './steps';
 import { closeCompany } from './useCompanySession';
@@ -56,6 +57,7 @@ function Company({ view }: { view: ClientView }) {
                 onAdd={() => setDialog('engagement')}
               />
             </section>
+            <KnowledgeCard view={view} manage />
             <FilesCard view={view} owner={{ kind: 'company' }} />
           </div>
           <section className="ws-card" aria-labelledby="profile-title">

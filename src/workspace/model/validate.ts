@@ -123,6 +123,8 @@ function checkKnowledge(ws: CompanyWorkspace, report: Report) {
   for (const fact of Object.values(ws.knowledge)) {
     if (!isNonEmptyText(fact.statement)) report('fact.statement', 'A company fact needs a statement.', 'knowledge', fact.id);
     if (!oneOf(FINDING_KINDS, fact.kind)) report('field.value', 'A company fact has an unknown kind.', 'knowledge', fact.id);
+    if (!oneOf(FINDING_STATUSES, fact.status))
+      report('field.value', 'A company fact has an unknown status.', 'knowledge', fact.id);
     checkProvenance(fact.provenance, 'knowledge', fact.id, report);
     if (fact.source !== null) checkFactSource(ws, fact.id, fact.source, report);
     if (!isNonEmptyText(fact.createdBy)) report('field.value', 'A company fact says who added it.', 'knowledge', fact.id);

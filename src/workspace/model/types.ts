@@ -193,13 +193,15 @@ export interface Company {
 }
 
 /**
- * Something known about the company that carries across engagements (vision §3).
- * Modelled now; the interface for it comes after extraction (MVP Q3).
+ * Something known about the company that carries across engagements (vision §3;
+ * Phase 2 brief, WP8).
  */
 export interface CompanyFact {
   id: string;
   statement: string;
   kind: FindingKind;
+  /** Copied from the finding when it is promoted, and editable afterwards (Phase 2 brief, decision 17). */
+  status: FindingStatus;
   provenance: Provenance;
   /** Where it was promoted from, or null if the consultant entered it directly. */
   source: FactSource | null;
@@ -471,8 +473,9 @@ export const WORKSPACE_FORMAT = 'stylecode-workspace';
 /**
  * 1: the first version of the domain model (Phase 0).
  * 2: sessions keep their time zone; transcripts can come from `.txt` files (Workspace Phase 2).
+ * 3: company facts have a status (Workspace Phase 2, decision 17).
  */
-export const WORKSPACE_VERSION = 2;
+export const WORKSPACE_VERSION = 3;
 
 /** One company and everything that belongs to it. */
 export interface CompanyWorkspace {

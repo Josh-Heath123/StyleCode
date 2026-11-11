@@ -112,7 +112,7 @@ describe('workspace version 2', () => {
     const parsed = parseWorkspace(v1, { timeZone: 'Europe/London' });
     expect(parsed.ok && parsed.access).toBe('editable');
     if (!parsed.ok) return;
-    expect(parsed.workspace.version).toBe(2);
+    expect(parsed.workspace.version).toBe(3);
     expect(parsed.workspace.sessions.se_1.timeZone).toBe('Europe/London');
     expect({ ...parsed.workspace, version: 1, sessions: before.sessions }).toEqual(before);
     expect(v1).toEqual(before); // The input isn't changed.
@@ -141,7 +141,7 @@ describe('workspace version 2', () => {
     if (parsed.ok) expect(parsed.problems.map((p) => p.code)).toEqual(['session.title']);
   });
 
-  it('uses the computer’s zone when none is given, and leaves version 2 alone', () => {
+  it('uses the computer’s zone when none is given, and leaves a later version’s zones alone', () => {
     const v1 = sampleWorkspace() as unknown as Record<string, unknown> & { sessions: Record<string, Record<string, unknown>> };
     v1.version = 1;
     delete v1.sessions.se_1.timeZone;
