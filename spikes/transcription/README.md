@@ -41,7 +41,7 @@ The result goes to `eval/transcription/runs/<run>/<meeting>.<version>.json`: the
 
 ## WP3's measurements
 
-Each driver runs its steps one after another, logs each step's outcome to `~/.stylecode/transcription/spike/measure.log` (names, times and errors only), and carries on when a step fails. Set `STYLECODE_POWER` for all of them.
+Each driver runs its steps one after another, logs each step's start, end and outcome to `eval/transcription/progress.log` (git-ignored; names, times and errors only), and carries on when a step fails. Started again with the same command, it skips every step whose result is already on disk and clears the work folders a stopped run left behind. Run one driver at a time, in its own window rather than under a tool with a time limit. Set `STYLECODE_POWER` for all of them.
 
 ```bash
 node --experimental-strip-types spikes/transcription/measure.ts words       # every words candidate on every meeting, clean and hard, and Whisper with the names hint
