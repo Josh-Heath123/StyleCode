@@ -19,7 +19,7 @@
  * other's times. Set STYLECODE_POWER to record how the laptop was powered.
  */
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { readWav, writeWav16 } from '../../eval/audio/wav.ts';
 import type { EngineWord, SpeakerTurn } from '../../src/workspace/transcription/combine.ts';
 import {
@@ -128,17 +128,23 @@ async function parakeet(): Promise<{
         samples: audio.samples.subarray(from, to),
       }),
     );
-    return file;
+    return basename(file);
   });
-  const asr = await runWatched(join(SHERPA, 'sherpa-onnx-offline.exe'), [
-    `--tokens=${join(PARAKEET, 'tokens.txt')}`,
-    `--encoder=${join(PARAKEET, 'encoder.int8.onnx')}`,
-    `--decoder=${join(PARAKEET, 'decoder.int8.onnx')}`,
-    `--joiner=${join(PARAKEET, 'joiner.int8.onnx')}`,
-    '--model-type=nemo_transducer',
-    `--num-threads=${THREADS}`,
-    ...files,
-  ]);
+  // Run in the pieces' folder and name them without it: an hour's worth of
+  // full paths is longer than Windows allows a command line (32,767 characters).
+  const asr = await runWatched(
+    join(SHERPA, 'sherpa-onnx-offline.exe'),
+    [
+      `--tokens=${join(PARAKEET, 'tokens.txt')}`,
+      `--encoder=${join(PARAKEET, 'encoder.int8.onnx')}`,
+      `--decoder=${join(PARAKEET, 'decoder.int8.onnx')}`,
+      `--joiner=${join(PARAKEET, 'joiner.int8.onnx')}`,
+      '--model-type=nemo_transducer',
+      `--num-threads=${THREADS}`,
+      ...files,
+    ],
+    { cwd: dir },
+  );
   rmSync(dir, { recursive: true, force: true });
   if (asr.code !== 0) throw new Error(`sherpa-onnx-offline failed (${asr.code}).`);
   const results = readSherpaResults(asr.stdout + '\n' + asr.stderr);
