@@ -23,7 +23,8 @@ export interface Resources {
   gpu: GpuSample[];
 }
 
-function gpuNow(): GpuSample | null {
+/** The GPU's state now, from `nvidia-smi`, or null without one. */
+export function gpuNow(): GpuSample | null {
   const out = spawnSync(
     'nvidia-smi',
     ['--query-gpu=clocks.gr,temperature.gpu,memory.used,utilization.gpu,power.draw', '--format=csv,noheader,nounits'],

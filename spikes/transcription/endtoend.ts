@@ -1,0 +1,172 @@
+/**
+ * The hour-long meeting end to end, and sharing the GPU (Phase 3 brief,
+ * decisions 8 and 10):
+ *
+ *   node --experimental-strip-types spikes/transcription/endtoend.ts <words candidate> <speakers model> <--count | --threshold x> [<other words candidate>...]
+ *
+ * 1. **One after the other:** words, then speakers, then putting them
+ *    together, then extraction (qwen3:4b at 6144) on the result: the minutes
+ *    from the end of the meeting to the proposals.
+ * 2. **Words and speakers at once** (the speaker engine runs on the CPU),
+ *    then putting them together and extraction.
+ * 3. **Transcription during an extraction run** (decision 10): extraction of
+ *    the typed hour-long meeting alone, then each words candidate alone, then
+ *    each started while that extraction is under way. Both times, and the
+ *    GPU's memory, against the times alone.
+ *
+ * The summary goes to eval/transcription/endtoend/<words>.json.
+ */
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  HOUR_MEETING,
+  ROOT,
+  extractionArgs,
+  gpuLog,
+  log,
+  pause,
+  startScript,
+  step,
+  unloadModel,
+  type StepResult,
+} from './steps.ts';
+
+const [words, speakersModel, ...more] = process.argv.slice(2);
+const speakerOption = more[0] === '--count' ? ['--count'] : more[0] === '--threshold' ? ['--threshold', more[1]] : null;
+if (!words || !speakersModel || !speakerOption)
+  throw new Error('endtoend.ts <words candidate> <speakers model> <--count | --threshold x> [<other words candidate>...]');
+const others = more.slice(speakerOption.length);
+const wordsArgs = (candidate: string, label: string) => ['words', candidate, HOUR_MEETING, 'clean', '--label', label];
+const speakersArgs = (label: string) => ['speakers', speakersModel, HOUR_MEETING, 'clean', ...speakerOption, '--label', label];
+const RUN = 'spikes/transcription/run.ts';
+const summary: Record<string, unknown> = {
+  words,
+  speakers: `${speakersModel} ${speakerOption.join(' ')}`,
+  at: new Date().toISOString(),
+};
+const brief = (r: StepResult) => ({
+  name: r.name,
+  ok: r.code === 0,
+  wallMs: r.wallMs,
+  ...(r.code === 0 ? {} : { error: r.tail }),
+});
+
+log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also ${others.join(', ') || 'nothing'}`);
+
+// 1. One after the other.
+{
+  await unloadModel();
+  const gpu = gpuLog();
+  const w = await step('e2e sequential: words', RUN, wordsArgs(words, `e2e-seq-${words}`));
+  const s = await step('e2e sequential: speakers', RUN, speakersArgs('e2e-seq-speakers'));
+  const b = await step('e2e sequential: together', 'eval/transcription/build.ts', [
+    `e2e-seq-${words}`,
+    'e2e-seq-speakers',
+    'clean',
+  ]);
+  const e = await step(
+    'e2e sequential: extraction',
+    'eval/run.ts',
+    extractionArgs('p3-e2e-sequential', 6144, [
+      '--only',
+      HOUR_MEETING,
+      '--transcripts',
+      `eval/transcription/extraction/e2e-seq-${words}+e2e-seq-speakers.clean`,
+    ]),
+  );
+  const steps = [w, s, b, e];
+  summary.sequential = {
+    steps: steps.map(brief),
+    totalMs: steps.reduce((n, x) => n + x.wallMs, 0),
+    gpu: gpu.stop(),
+  };
+}
+
+// 2. Words and speakers at once.
+{
+  await unloadModel();
+  const gpu = gpuLog();
+  const started = Date.now();
+  const [w, s] = await Promise.all([
+    startScript('e2e parallel: words', RUN, wordsArgs(words, `e2e-par-${words}`)).done,
+    startScript('e2e parallel: speakers', RUN, speakersArgs('e2e-par-speakers')).done,
+  ]);
+  const both = Date.now() - started;
+  for (const r of [w, s])
+    log(`${r.code === 0 ? 'ok' : 'FAILED'} ${r.name}: ${(r.wallMs / 1000).toFixed(1)} s${r.code ? `: ${r.tail}` : ''}`);
+  const b = await step('e2e parallel: together', 'eval/transcription/build.ts', [
+    `e2e-par-${words}`,
+    'e2e-par-speakers',
+    'clean',
+  ]);
+  const e = await step(
+    'e2e parallel: extraction',
+    'eval/run.ts',
+    extractionArgs('p3-e2e-parallel', 6144, [
+      '--only',
+      HOUR_MEETING,
+      '--transcripts',
+      `eval/transcription/extraction/e2e-par-${words}+e2e-par-speakers.clean`,
+    ]),
+  );
+  summary.parallel = {
+    steps: [w, s, b, e].map(brief),
+    wordsAndSpeakersMs: both,
+    totalMs: both + b.wallMs + e.wallMs,
+    gpu: gpu.stop(),
+  };
+}
+
+// 3. Transcription during an extraction run.
+{
+  const contention: Record<string, unknown>[] = [];
+  await unloadModel();
+  let gpu = gpuLog();
+  const alone = await step(
+    'extraction alone',
+    'eval/run.ts',
+    extractionArgs('p3-gpu-extraction-alone', 6144, ['--only', HOUR_MEETING]),
+  );
+  summary.extractionAlone = { ...brief(alone), gpu: gpu.stop() };
+  for (const candidate of [words, ...others]) {
+    await unloadModel();
+    await pause(30_000); // let the GPU cool a little between runs
+    gpu = gpuLog();
+    const t = await step(`${candidate} alone`, RUN, wordsArgs(candidate, `gpu-alone-${candidate}`));
+    const aloneGpu = gpu.stop();
+    await unloadModel();
+    await pause(30_000);
+    gpu = gpuLog();
+    // Start the transcription once extraction is sending its first part, so the model is on the GPU.
+    let partStarted: () => void = () => undefined;
+    const firstPart = new Promise<void>((r) => (partStarted = r));
+    const e = startScript(
+      `extraction with ${candidate}`,
+      'eval/run.ts',
+      extractionArgs(`p3-gpu-extraction-with-${candidate}`, 6144, ['--only', HOUR_MEETING]),
+      (line) => {
+        if (/part 1 of/.test(line)) partStarted();
+      },
+    );
+    await Promise.race([firstPart, e.done]);
+    await pause(10_000);
+    const tw = await startScript(`${candidate} during extraction`, RUN, wordsArgs(candidate, `gpu-with-extraction-${candidate}`))
+      .done;
+    const ew = await e.done;
+    for (const r of [tw, ew])
+      log(`${r.code === 0 ? 'ok' : 'FAILED'} ${r.name}: ${(r.wallMs / 1000).toFixed(1)} s${r.code ? `: ${r.tail}` : ''}`);
+    contention.push({
+      candidate,
+      alone: { ...brief(t), gpu: aloneGpu },
+      during: brief(tw),
+      extraction: brief(ew),
+      gpu: gpu.stop(),
+    });
+  }
+  summary.contention = contention;
+}
+
+const out = join(ROOT, 'eval', 'transcription', 'endtoend');
+mkdirSync(out, { recursive: true });
+writeFileSync(join(out, `${words}.json`), `${JSON.stringify(summary, null, 2)}\n`);
+log('end to end done');

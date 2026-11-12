@@ -51,13 +51,15 @@ for (const r of wordRuns) {
 }
 
 console.log('\n## Speakers\n');
-console.log('| Run | Meeting | Version | People | Labels | Wrong speaker | Missed | Speech where none | Minutes per hour |');
-console.log('| --- | --- | --- | --: | --: | --: | --: | --: | --: |');
+console.log(
+  '| Run | Meeting | Version | People | Labels | Labels per person | Wrong speaker | Missed | Speech where none | Minutes per hour |',
+);
+console.log('| --- | --- | --- | --: | --: | --: | --: | --: | --: | --: |');
 for (const r of speakerRuns) {
   const t = timeline(r.meeting, r.version);
   const s = scoreSpeakers(t, [], r.turns!, []);
   console.log(
-    `| ${r.run} | ${r.meeting} | ${r.version} | ${s.people} | ${s.labels} | ${pct(s.wrongSpeaker)} | ${pct(s.missed)} | ${pct(s.falseSpeech)} | ${r.minutesPerHour} |`,
+    `| ${r.run} | ${r.meeting} | ${r.version} | ${s.people} | ${s.labels} | ${(s.labels / s.people).toFixed(2)} | ${pct(s.wrongSpeaker)} | ${pct(s.missed)} | ${pct(s.falseSpeech)} | ${r.minutesPerHour} |`,
   );
 }
 

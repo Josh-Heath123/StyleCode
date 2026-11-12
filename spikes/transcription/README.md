@@ -38,3 +38,22 @@ npm run eval:transcription      # scores every recorded run
 - Every program is started with an argument list, never through a shell. The runner records the wall time of each stage, the program's peak memory (`tasklist`, every second), and the GPU's clock, temperature, memory, use and power (`nvidia-smi`, every second, logged every 15 seconds). Run one at a time.
 
 The result goes to `eval/transcription/runs/<run>/<meeting>.<version>.json`: the words (text, start, end, confidence) or speaker turns, and the times and resources. The scorer is in `eval/transcription/` (see its README).
+
+## WP3's measurements
+
+Each driver runs its steps one after another, logs each step's outcome to `~/.stylecode/transcription/spike/measure.log` (names, times and errors only), and carries on when a step fails. Set `STYLECODE_POWER` for all of them.
+
+```bash
+node --experimental-strip-types spikes/transcription/measure.ts words       # every words candidate on every meeting, clean and hard, and Whisper with the names hint
+node --experimental-strip-types spikes/transcription/measure.ts speakers    # both speaker models: with the count, and at thresholds 0.5, 0.7 and 0.9
+node --experimental-strip-types spikes/transcription/extraction.ts downstream <speakers run> <words run>...  # Phase 2's extraction on the engines' transcripts, and on the typed ones before and after
+node --experimental-strip-types spikes/transcription/extraction.ts sizes <words run> <speakers run>         # the hour-long meeting at parts of 4096, 6144 and 8192 tokens
+node --experimental-strip-types spikes/transcription/endtoend.ts <words> <speakers model> --count [<other words>...]  # end to end, and transcription during extraction
+node --experimental-strip-types spikes/transcription/live.ts whisper-turbo-gpu [--busy]                      # 30-second pieces at real-time pace
+```
+
+- **Speaker thresholds:** `--threshold <x>` (without `--count`) sets sherpa-onnx's clustering threshold; its default is 0.5, and a larger one gives fewer speakers. `--label <name>` records any run under another name, so a repeat doesn't replace the batch's record.
+- **Extraction** runs go to `eval/runs/p3-…/` and are scored by `npm run eval:score`. The engines' transcripts and translated keys they read are in `eval/transcription/extraction/`.
+- **End to end** writes `eval/transcription/endtoend/<words>.json`: one after the other, words and speakers at once, and each words candidate alone and during an extraction run, with the GPU's memory.
+- **Live** writes the lags to `eval/transcription/live/<engine>.<idle|busy>.json`, and the words as a run (`live-<engine>-<idle|busy>`), so the report scores them.
+- `steps.ts` holds what the drivers share.
