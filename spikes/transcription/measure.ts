@@ -1,22 +1,19 @@
 /**
- * Runs a batch of WP3's measurements one after another (Phase 3 brief,
+ * Runs batches of WP3's measurements one after another (Phase 3 brief,
  * decisions 8 and 9), never two at once, and carries on when one fails: the
  * failure is logged with its reason and the rest still run.
  *
- *   node --experimental-strip-types spikes/transcription/measure.ts words|speakers
+ *   node --experimental-strip-types spikes/transcription/measure.ts words|speakers [words|speakers]
  *
- * The log goes to `~/.stylecode/transcription/spike/measure.log`. It holds only
- * the runs' names, times and errors, never what an engine heard.
+ * A run whose result is already in eval/transcription/runs/ is skipped, so a
+ * stopped batch is started again with the same command. Progress goes to
+ * eval/transcription/progress.log (steps.ts).
  */
-import { spawn } from 'node:child_process';
-import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { SPIKE_HOME } from './files.ts';
+import { MEETINGS, ROOT, beginDriver, log, step } from './steps.ts';
 
-const MEETINGS = ['karoo-freight-kickoff', 'umoya-school-portal', 'veldt-vets-booking', 'bosveld-citrus-intake'];
 const VERSIONS = ['clean', 'hard'];
-const LOG = join(SPIKE_HOME, 'measure.log');
-const RUN = join(import.meta.dirname, 'run.ts');
+const RUNS = join(ROOT, 'eval', 'transcription', 'runs');
 
 const batches: Record<string, string[][]> = {
   words: [
@@ -33,37 +30,31 @@ const batches: Record<string, string[][]> = {
   ),
 };
 
-const which = process.argv[2];
-const batch = batches[which];
-if (!batch) {
-  console.error(`Usage: measure.ts ${Object.keys(batches).join('|')}`);
+/** The run's record, named as run.ts names it. */
+function resultOf([kind, candidate, meeting, version, ...opt]: string[]): string {
+  const runId =
+    kind === 'words'
+      ? `${candidate}${opt.includes('--names') ? '-names' : ''}`
+      : `speakers-${candidate}${opt[0] === '--count' ? '-count' : `-t${Number(opt[1])}`}`;
+  return join(RUNS, runId, `${meeting}.${version}.json`);
+}
+
+const which = process.argv.slice(2);
+if (!which.length || which.some((w) => !batches[w])) {
+  console.error(`Usage: measure.ts ${Object.keys(batches).join('|')} [...]`);
   process.exit(1);
 }
-mkdirSync(SPIKE_HOME, { recursive: true });
-const log = (line: string) => {
-  const stamped = `${new Date().toISOString()} ${line}`;
-  console.log(stamped);
-  appendFileSync(LOG, `${stamped}\n`);
-};
-
-log(`batch ${which}: ${batch.length} runs, power: ${process.env.STYLECODE_POWER ?? 'not recorded'}`);
-let failed = 0;
-for (const args of batch) {
-  const { code, out } = await new Promise<{ code: number; out: string }>((done) => {
-    const child = spawn(process.execPath, ['--experimental-strip-types', '--no-warnings', RUN, ...args], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    let out = '';
-    child.stdout.on('data', (d: Buffer) => (out += d.toString()));
-    child.stderr.on('data', (d: Buffer) => (out += d.toString()));
-    child.on('close', (c) => done({ code: c ?? -1, out }));
-    child.on('error', (e) => done({ code: -1, out: e.message }));
-  });
-  if (code === 0) log(`ok ${out.trim().split('\n').at(-1)}`);
-  else {
-    failed++;
-    // The runner prints errors and timings only; keep the last lines, which hold the reason.
-    log(`FAILED ${args.join(' ')} (exit ${code}): ${out.trim().split('\n').slice(-3).join(' | ')}`);
+beginDriver(`measure ${which.join(' ')}`);
+for (const name of which) {
+  const batch = batches[name];
+  log(`batch ${name}: ${batch.length} runs`);
+  let failed = 0;
+  let skipped = 0;
+  for (const args of batch) {
+    const r = await step(args.join(' '), 'spikes/transcription/run.ts', args, resultOf(args));
+    if (r.skipped) skipped++;
+    else if (r.code !== 0) failed++;
   }
+  log(`batch ${name} done: ${batch.length - failed - skipped} run, ${skipped} done before, ${failed} failed`);
 }
-log(`batch ${which} done: ${batch.length - failed} ok, ${failed} failed`);
+log(`driver measure ${which.join(' ')} done`);

@@ -10,7 +10,7 @@
  * (Phase 3, the downstream test): `<folder>/<consultation>.transcript.json`,
  * scored against `<folder>/<consultation>.key.json` (`npm run eval:transcripts`).
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { cpus, totalmem } from 'node:os';
 import { join, relative, resolve, sep } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -189,7 +189,9 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
       return { dropped: checked.dropped, shown: checked.proposals.length };
     })(),
   };
-  writeFileSync(join(out, `${id}.json`), `${JSON.stringify(run, null, 2)}\n`);
+  // Written whole and then renamed, so a stopped run never leaves a part-written record.
+  writeFileSync(join(out, `${id}.json.part`), `${JSON.stringify(run, null, 2)}\n`);
+  renameSync(join(out, `${id}.json.part`), join(out, `${id}.json`));
   console.log(`\n${id}: ${run.proposals.length} proposals in ${(durationMs / 1000).toFixed(1)} s (${run.chunks} parts)\n`);
   console.log(formatScore(scoreRun(transcript, key, run.proposals)));
   console.log();

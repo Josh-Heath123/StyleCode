@@ -17,7 +17,7 @@
  * as a run (eval/transcription/runs/live-<engine>-<idle|busy>/) so the
  * report scores them, and the lags go to eval/transcription/live/.
  */
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readWav, writeWav16 } from '../../eval/audio/wav.ts';
 import type { EngineWord } from '../../src/workspace/transcription/combine.ts';
@@ -25,7 +25,7 @@ import { readSherpaResults, sherpaWords } from '../../src/workspace/transcriptio
 import { readWhisperJson } from '../../src/workspace/transcription/whisper.ts';
 import { SPIKE_HOME } from './files.ts';
 import { hardware, runWatched } from './monitor.ts';
-import { HOUR_MEETING, MEETINGS, ROOT, extractionArgs, gpuLog, log, startScript, unloadModel } from './steps.ts';
+import { HOUR_MEETING, MEETINGS, ROOT, beginDriver, extractionArgs, gpuLog, log, startScript, unloadModel } from './steps.ts';
 
 const PIECE_MS = 30_000;
 const THREADS = 8;
@@ -103,10 +103,15 @@ async function keepBusy() {
   }
 }
 
+const condition = busy ? 'busy' : 'idle';
+const summaryFile = join(ROOT, 'eval', 'transcription', 'live', `${engine}.${condition}.json`);
+if (existsSync(summaryFile)) {
+  log(`skip live ${engine} ${condition}: done before`);
+  process.exit(0);
+}
+beginDriver(`live ${engine} ${condition}: ${pieces.length} pieces of 30 s`);
 mkdirSync(WORK, { recursive: true });
 await unloadModel();
-const condition = busy ? 'busy' : 'idle';
-log(`live ${engine} ${condition}: ${pieces.length} pieces of 30 s`);
 const busyLoop = busy ? keepBusy() : null;
 if (busy) await new Promise((r) => setTimeout(r, 20_000)); // let extraction load its model first
 const gpu = gpuLog();

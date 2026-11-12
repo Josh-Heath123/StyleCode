@@ -18,7 +18,7 @@
  * Run one at a time: two runs at once share the CPU and GPU and spoil each
  * other's times. Set STYLECODE_POWER to record how the laptop was powered.
  */
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readWav, writeWav16 } from '../../eval/audio/wav.ts';
 import type { EngineWord, SpeakerTurn } from '../../src/workspace/transcription/combine.ts';
@@ -208,7 +208,11 @@ const record = {
       }
     : { turns: result.turns.map((t) => [t.label, t.startMs, t.endMs]) }),
 };
-writeFileSync(join(dir, `${meeting}.${version}.json`), `${JSON.stringify(record)}\n`);
+// Written whole and then renamed, so a stopped run never leaves a part-written
+// record that measure.ts would take as done.
+const recordFile = join(dir, `${meeting}.${version}.json`);
+writeFileSync(`${recordFile}.part`, `${JSON.stringify(record)}\n`);
+renameSync(`${recordFile}.part`, recordFile);
 console.log(
   `${runId} ${meeting}.${version}: ${(wallMs / 1000).toFixed(1)} s for ${(audioMs / 60000).toFixed(1)} min (${record.minutesPerHour} min per hour of meeting)`,
 );

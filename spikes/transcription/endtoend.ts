@@ -14,13 +14,17 @@
  *    each started while that extraction is under way. Both times, and the
  *    GPU's memory, against the times alone.
  *
- * The summary goes to eval/transcription/endtoend/<words>.json.
+ * The summary goes to eval/transcription/endtoend/<words>.json, saved after
+ * each section. Started again, it keeps the sections already done and runs
+ * the rest; a section that was stopped runs again whole, since its times only
+ * mean something together.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   HOUR_MEETING,
   ROOT,
+  beginDriver,
   extractionArgs,
   gpuLog,
   log,
@@ -39,10 +43,17 @@ const others = more.slice(speakerOption.length);
 const wordsArgs = (candidate: string, label: string) => ['words', candidate, HOUR_MEETING, 'clean', '--label', label];
 const speakersArgs = (label: string) => ['speakers', speakersModel, HOUR_MEETING, 'clean', ...speakerOption, '--label', label];
 const RUN = 'spikes/transcription/run.ts';
-const summary: Record<string, unknown> = {
-  words,
-  speakers: `${speakersModel} ${speakerOption.join(' ')}`,
-  at: new Date().toISOString(),
+const OUT = join(ROOT, 'eval', 'transcription', 'endtoend');
+const OUT_FILE = join(OUT, `${words}.json`);
+const speakersSetting = `${speakersModel} ${speakerOption.join(' ')}`;
+const before = existsSync(OUT_FILE) ? (JSON.parse(readFileSync(OUT_FILE, 'utf8')) as Record<string, unknown>) : null;
+// Sections done before are kept only when they were measured with the same speakers setting.
+const summary: Record<string, unknown> =
+  before && before.speakers === speakersSetting ? before : { words, speakers: speakersSetting, at: new Date().toISOString() };
+const save = () => {
+  mkdirSync(OUT, { recursive: true });
+  writeFileSync(`${OUT_FILE}.part`, `${JSON.stringify(summary, null, 2)}\n`);
+  renameSync(`${OUT_FILE}.part`, OUT_FILE);
 };
 const brief = (r: StepResult) => ({
   name: r.name,
@@ -51,10 +62,15 @@ const brief = (r: StepResult) => ({
   ...(r.code === 0 ? {} : { error: r.tail }),
 });
 
-log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also ${others.join(', ') || 'nothing'}`);
+beginDriver(`end to end: ${words} with ${speakersSetting}; also ${others.join(', ') || 'nothing'}`);
+const doneBefore = (section: string) => {
+  if (!(section in summary)) return false;
+  log(`skip end to end ${section}: done before`);
+  return true;
+};
 
 // 1. One after the other.
-{
+if (!doneBefore('sequential')) {
   await unloadModel();
   const gpu = gpuLog();
   const w = await step('e2e sequential: words', RUN, wordsArgs(words, `e2e-seq-${words}`));
@@ -80,12 +96,14 @@ log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also
     totalMs: steps.reduce((n, x) => n + x.wallMs, 0),
     gpu: gpu.stop(),
   };
+  save();
 }
 
 // 2. Words and speakers at once.
-{
+if (!doneBefore('parallel')) {
   await unloadModel();
   const gpu = gpuLog();
+  log('start e2e parallel: words and speakers at once');
   const started = Date.now();
   const [w, s] = await Promise.all([
     startScript('e2e parallel: words', RUN, wordsArgs(words, `e2e-par-${words}`)).done,
@@ -115,23 +133,32 @@ log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also
     totalMs: both + b.wallMs + e.wallMs,
     gpu: gpu.stop(),
   };
+  save();
 }
 
 // 3. Transcription during an extraction run.
-{
-  const contention: Record<string, unknown>[] = [];
+if (!doneBefore('extractionAlone')) {
   await unloadModel();
-  let gpu = gpuLog();
+  const gpu = gpuLog();
   const alone = await step(
     'extraction alone',
     'eval/run.ts',
     extractionArgs('p3-gpu-extraction-alone', 6144, ['--only', HOUR_MEETING]),
   );
   summary.extractionAlone = { ...brief(alone), gpu: gpu.stop() };
-  for (const candidate of [words, ...others]) {
+  save();
+}
+const contention = (summary.contention ?? []) as Record<string, unknown>[];
+summary.contention = contention;
+for (const candidate of [words, ...others]) {
+  if (contention.some((c) => c.candidate === candidate)) {
+    log(`skip end to end contention ${candidate}: done before`);
+    continue;
+  }
+  {
     await unloadModel();
     await pause(30_000); // let the GPU cool a little between runs
-    gpu = gpuLog();
+    let gpu = gpuLog();
     const t = await step(`${candidate} alone`, RUN, wordsArgs(candidate, `gpu-alone-${candidate}`));
     const aloneGpu = gpu.stop();
     await unloadModel();
@@ -148,6 +175,7 @@ log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also
         if (/part 1 of/.test(line)) partStarted();
       },
     );
+    log(`start ${candidate} during extraction`);
     await Promise.race([firstPart, e.done]);
     await pause(10_000);
     const tw = await startScript(`${candidate} during extraction`, RUN, wordsArgs(candidate, `gpu-with-extraction-${candidate}`))
@@ -162,11 +190,9 @@ log(`end to end: ${words} with ${speakersModel} ${speakerOption.join(' ')}; also
       extraction: brief(ew),
       gpu: gpu.stop(),
     });
+    save();
   }
-  summary.contention = contention;
 }
-
-const out = join(ROOT, 'eval', 'transcription', 'endtoend');
-mkdirSync(out, { recursive: true });
-writeFileSync(join(out, `${words}.json`), `${JSON.stringify(summary, null, 2)}\n`);
-log('end to end done');
+summary.complete = true;
+save();
+log('driver end to end done');
