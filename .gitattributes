@@ -7,3 +7,5 @@
 # A sample kept with Windows line endings, as Zoom saves it (docs/phase-2/samples/README.md).
 docs/phase-2/samples/karoo-freight-kickoff/zoom-saved-transcript.txt text eol=crlf
 eval/consultations/veldt-vets-booking/zoom-saved-transcript.txt text eol=crlf
+# Windows batch files keep Windows line endings.
+*.cmd text eol=crlf

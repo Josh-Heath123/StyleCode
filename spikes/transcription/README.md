@@ -41,6 +41,8 @@ The result goes to `eval/transcription/runs/<run>/<meeting>.<version>.json`: the
 
 ## WP3's measurements
 
+**All of it in one go:** double-click `spikes/transcription/start-wp3.cmd`. It runs `wp3.ts` in its own minimised window: the words and speakers batches, then picks the speaker setup (the lowest share of speech under the wrong person on the clean meetings, fewer labels per person breaking ties), then the downstream extraction, the part sizes, end to end, and live. Steps needing Ollama with qwen3:4b are skipped when it is missing. Starting it again carries on where it stopped.
+
 Each driver runs its steps one after another, logs each step's start, end and outcome to `eval/transcription/progress.log` (git-ignored; names, times and errors only), and carries on when a step fails. Started again with the same command, it skips every step whose result is already on disk and clears the work folders a stopped run left behind. Run one driver at a time, in its own window rather than under a tool with a time limit. Set `STYLECODE_POWER` for all of them.
 
 ```bash
