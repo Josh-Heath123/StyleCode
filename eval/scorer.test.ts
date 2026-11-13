@@ -125,14 +125,15 @@ describe('scoring a run', () => {
     expect(open.total.correct).toBe(0);
 
     const csv = unclearCsv(open, key, run);
-    expect(csv.split('\r\n')[0]).toBe('proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match');
-    const answered = csv.replace(/,\r\n$/, ',yes\r\n');
+    expect(csv).not.toContain('\r'); // LF, as git stores it, so scoring again never rewrites a file
+    expect(csv.split('\n')[0]).toBe('proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match');
+    const answered = csv.replace(/,\n$/, ',yes\n');
     const settled = readSettled(answered);
     const closed = scoreRun(transcript, key, run, settled);
     expect(closed.unsettled).toBe(0);
     expect(closed.proposals[0]).toMatchObject({ matched: 'K1', how: 'settled' });
     expect(unclearCsv(closed, key, run, settled)).toBe(answered);
-    expect(scoreRun(transcript, key, run, readSettled(csv.replace(/,\r\n$/, ',no\r\n'))).total.correct).toBe(0);
+    expect(scoreRun(transcript, key, run, readSettled(csv.replace(/,\n$/, ',no\n'))).total.correct).toBe(0);
   });
 
   it('lists the same kind with similar words but no shared segment as unclear', () => {
@@ -163,7 +164,7 @@ describe('scoring a run', () => {
     ]);
     const run = [p('risk', 'Says "buried", then, a comma\nand a line', [['s1', 'we miss collections']])];
     const csv = unclearCsv(scoreRun(transcript, key, run), key, run);
-    expect(readSettled(csv.replace(/,\r\n$/, ',yes\r\n')).get('1:K1')).toBe(true);
+    expect(readSettled(csv.replace(/,\n$/, ',yes\n')).get('1:K1')).toBe(true);
   });
 
   it('formats a table', () => {
