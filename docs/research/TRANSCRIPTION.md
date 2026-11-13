@@ -52,7 +52,9 @@ Word errors are after the normaliser (case, punctuation, fillers, numbers, Briti
 | Parakeet TDT 0.6B v2, CPU | 2.9% (3.6%) | 3.6% (5.2%) | 86.8% / 85.9% | 11.2 | 3.0 GB RAM, no GPU |
 | whisper.cpp large-v3-turbo, CPU only | 2.5% (4.0%) | 4.2% (5.8%) | 88.3% / 87.8% | 49.1 | 1.5 GB RAM, no GPU |
 
-**Whisper writes words into noise.** On the hard hour-long meeting (background noise, echo, and two minutes of noise with no speech), large-v3-turbo inserted 837 words that weren't said on the GPU (13.1% errors) and 635 on the CPU (9.2%), against 62 and 68 on the clean audio. Small inserted 136, Parakeet 75. On the short meetings the hard version costs Whisper little. This is the known Whisper failure of continuing to "hear" text in long stretches without speech. Parakeet, which only sees the pieces Silero VAD found speech in, doesn't do it. whisper.cpp can also run Silero VAD first; that wasn't measured.
+**Whisper writes words into noise.** On the hard hour-long meeting (background noise, echo, and two minutes of noise with no speech), large-v3-turbo inserted 837 words that weren't said on the GPU (13.1% errors) and 635 on the CPU (9.2%), against 62 and 68 on the clean audio. Small inserted 136, Parakeet 75. On the short meetings the hard version costs Whisper little.
+
+In the two-minute pause alone (1,899 to 2,020 s), large-v3-turbo wrote 410 words on the GPU and 560 on the CPU: "It's in the file on my desk", the last sentence before the pause, over and over. Small wrote 20 "[no audio]" markers, and Parakeet nothing. The repeated sentence is real words from the meeting, so a quote of it would pass StyleCode's evidence check. Whisper is conditioning on its own previous text. The fix is in [Follow-up measurements](#follow-up-measurements).
 
 **Names the voices mangle.** The most-missed key terms are South African names: Marietjie (17 times, written as "mariachi", "marietje"…), Sipho ("sifo"), Ruan ("juan"), and product names (WeighMate, OptiSort). Part of this is Kokoro's pronunciation, which reads these names with American or British rules, so these misses say as much about the voices as the engines.
 
@@ -238,6 +240,48 @@ From 13 November, every heavy step of the measurements first waits for the GPU t
 
 The downstream extraction runs record no temperature. The rest of the words and speakers batches stayed at 60 to 89 °C.
 
+## Follow-up measurements
+
+Asked for at the check-in and run on 13 November 2026, from 14:29 to 15:38, with every step first waiting for the GPU to be under 70 °C (23 of the 26 waited, none for more than 105 s).
+
+### Whisper writing into the pause: VAD, or no previous text
+
+large-v3-turbo on the GPU, on all four meetings, clean and hard:
+- **with VAD:** whisper.cpp's `--vad`, with Silero VAD v6.2.0 converted to ggml (`ggml-org/whisper-vad` at `9ffd54a`, MIT, pinned by SHA-256 in `spikes/transcription/files.ts`). Only the stretches it finds speech in are transcribed;
+- **with no previous text:** `--max-context 0`, without VAD. Whisper no longer conditions each window on the text it wrote before.
+
+| large-v3-turbo, GPU | Clean: errors | Hard: errors | Words in the hard hour's pause | Key terms, clean / hard | Minutes per hour |
+| --- | --: | --: | --: | --: | --: |
+| As measured above | 2.4% | 6.0% | 410 | 88.5% / 85.9% | 2.6 |
+| With VAD | 3.2% | 4.3% | 3 | 86.0% / 86.0% | 2.0 |
+| **With no previous text** | **2.3%** | **2.5%** | 8 | 87.5% / 87.5% | **1.7** |
+
+- **VAD stops the pause, but costs 0.8 points on clean audio,** over the 0.5 allowed. Most of it is the clean hour-long meeting, where VAD cut real speech: 361 words missing, against 158.
+- **No previous text stops it too, and costs nothing:** 8 words in the pause ("Thank you. Thank you. Thank you. There he…"), errors slightly lower on clean audio and less than half on hard. It also stopped plain Whisper dropping 158 words of the clean hour (27 now), and is the fastest.
+- Words given the right speaker are unchanged (94.4% clean with ERes2Net at 0.7, against 94.3%).
+- Extraction wasn't run again on these transcripts.
+
+**One thing this changes:** with no previous text, Whisper is surer of itself. At 0.7 it marks 5.3% of clean words and catches 38% of the wrong ones, against 6.9% and 46% before. At 0.8 it marks 7.8% and catches 49%. A mark on a segment's lowest word would still cover 59% to 61% of segments.
+
+With VAD on, whisper.cpp v1.9.5 maps each segment's times back to the whole audio, but leaves its tokens' times on the clock of the speech alone. The reader (`src/workspace/transcription/whisper.ts`) puts them back with `{ vad: true }`, tested in `readers.test.ts`.
+
+### Speaker fragments
+
+ERes2Net at 0.7, dropping speech shorter than 1 s or 2 s (`--min-duration-on`; sherpa-onnx's default is 0.3 s). Means over the four clean meetings, then the hour-long meeting:
+
+| Shortest speech kept | Labels per person | Wrong speaker | Speech with no speaker | Words to the right speaker | Hour, clean: labels | Hour, hard: labels |
+| --- | --: | --: | --: | --: | --: | --: |
+| 0.3 s (as measured above) | 2.85 | 5.1% | 1.8% | 94.3% | 34 | 53 |
+| 1 s | 2.65 | 4.8% | 2.6% | 94.1% | 30 | 44 |
+| 2 s | 2.20 | 3.9% | 5.6% | 93.4% | 21 | 34 |
+
+- **2 s removes the most labels** (34 to 21 in the clean hour) and lowers the wrong-speaker share. But it leaves more speech with no speaker: 5.9% of the clean hour, and 11.2% of Veldt Vets, against 0.5% and 5.4%. Words in that speech get no speaker, and the share of words given the right speaker falls (92.7% in the clean hour, against 94.5%).
+- **1 s changes little:** 30 labels in the clean hour.
+- **Short labels hold little talk.** At 0.3 s, 26 of the clean hour's 34 labels hold under 30 s each, 148 s in all (4.6% of the talk); at 2 s, 13 of 21, 103 s (3.4%). In the hard hour at 0.3 s, 42 of 53, 224 s (7.1%).
+- **Merging a turn under 3 s into its neighbours, when both are the same label,** removes few labels and puts more speech under the wrong person: in the clean hour at 0.3 s, 34 labels become 26, and the wrong-speaker share rises from 5.7% to 8.2%; at 2 s, 21 become 20 (4.0% to 5.1%). The short turns between two of someone's turns are often another person's interjection. It isn't worth doing.
+- **Hiding short labels would hide people.** In Karoo Freight, Lerato Dlamini, a guest who wasn't asked for consent, speaks for 13 s in all, under one label holding 11 s at every setting; Pieter van Wyk's only label holds 28 s. A rule hiding labels under 30 s would drop both from the C11 warning. Ruan du Toit, the hour's late guest, keeps a label of 184 s or more at every setting.
+- **The CPU timing again:** these runs took 8 to 10 minutes per hour of meeting, against 19 to 21 for the same setup the night before. The setting doesn't explain it: the 0.8 run made the same morning took 9.
+
 ## Recommendation
 
 Decision 8's rule: the fastest setup whose transcripts keep extraction's recall within 10 points of the typed transcripts', and give at least 90% of words the right speaker on the clean meetings.
@@ -275,8 +319,8 @@ The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's beha
 ## Risks
 
 - **Real speech is harder** (decision 1). Accents, names, crosstalk and a laptop microphone will raise every error rate here. WP8's re-recorded meeting is the first real-room check.
-- **Whisper invents text in long noisy silences** (837 words on the hard hour). Running Silero VAD first, which whisper.cpp supports, may stop it; that wasn't measured. Until then, the "may be misheard" marking is the guard, and so is the consultant checking a finding against the audio (decision 21).
-- **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one. Matching them is real work for the consultant. Threshold 0.8 gave 23 in the clean hour at the same accuracy, but doubled the wrong-speaker share on short meetings.
+- **Whisper repeats itself into long pauses** (410 words in the hard hour's two-minute pause), and the repetition passes the evidence check. `--max-context 0` brings it down to 8 words at no cost to accuracy ([Follow-up measurements](#follow-up-measurements)). It's still worth the "may be misheard" marking and the consultant checking a finding against the audio (decision 21).
+- **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one, most of them holding under 30 s. Matching them is real work for the consultant. Dropping speech under 2 s brings it to 21 and 34, but leaves more speech with no speaker. Hiding short labels isn't safe: an unasked guest may speak for only seconds.
 - **Heat:** sustained jobs hold the GPU at 90 °C or more and slow it by up to 44%. Two at once cut the power. Better cooling (a raised back, clean vents, a cooling pad) would help every time here.
 - **The extraction scores rest on subagents' judgement** of 1,231 unclear pairs, and they split on a few kinds of pair (see "How the scores were settled"). Their agreement with Phase 2's answers and with each other (90% to 93%) puts that uncertainty at a few points of recall, smaller than one run's spread.
 - **Speakers' CPU time varied two-fold** for the same work, for a reason not found.
