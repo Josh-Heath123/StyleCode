@@ -41,7 +41,9 @@ export function gpuNow(): GpuSample | null {
 /** A process's working set in MiB, from `tasklist`, or null if it has ended. */
 function ramOf(pid: number): number | null {
   const out = spawnSync('tasklist', ['/FI', `PID eq ${pid}`, '/FO', 'CSV', '/NH'], { encoding: 'utf8' });
-  const m = /"([\d.,\s ]+) K"/.exec(out.stdout ?? '');
+  // The thousands separator depends on the console's code page (a space, a
+  // comma, or a byte that doesn't decode), so take any digits before " K".
+  const m = /"(\d[^"]*) K"/.exec(out.stdout ?? '');
   return m ? Number(m[1].replace(/[^\d]/g, '')) / 1024 : null;
 }
 
