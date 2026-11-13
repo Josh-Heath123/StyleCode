@@ -1,0 +1,304 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-12T23:46:33.660Z",
+  "durationMs": 181323,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to manage appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        },
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows by implementing a new online booking system",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "If I had to pick one, it's the phones. My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow pet owners to book appointments online via a website on their phone, select a clinic and service type, and receive a reminder the day before",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should automatically send vaccination reminders with a link to book appointments",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "VetDesk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow receptionists to view the day's appointments, move bookings around, and handle phone bookings for clients who prefer not to book online",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to manage appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        },
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows by implementing a new online booking system",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "If I had to pick one, it's the phones. My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow pet owners to book appointments online via a website on their phone, select a clinic and service type, and receive a reminder the day before",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should automatically send vaccination reminders with a link to book appointments",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "VetDesk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow receptionists to view the day's appointments, move bookings around, and handle phone bookings for clients who prefer not to book online",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to manage appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        },
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows by implementing a new online booking system",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "If I had to pick one, it's the phones. My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow pet owners to book appointments online via a website on their phone, select a clinic and service type, and receive a reminder the day before",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should automatically send vaccination reminders with a link to book appointments",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "VetDesk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow receptionists to view the day's appointments, move bookings around, and handle phone bookings for clients who prefer not to book online",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to manage appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        },
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must only show bookings and reminders, not medical history",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "No. Definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them. Bookings and reminders only."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "VetDesk is an existing system with an API that can share data, but it charges per clinic and takes three months to switch on",
+      "evidence": [
+        {
+          "segmentId": "s47",
+          "quote": "There is an API. Our rep mentioned it at a conference."
+        },
+        {
+          "segmentId": "s48",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to switch it on."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The system must run under two and a half thousand rand per month for all three clinics",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated one hundred and eighty thousand rand for the project",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The system should use the client's green color, have big buttons, and be a simple web page without an app download",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand. And no app to download, just a web page."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The system must be live by the first of February to handle vaccination season",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        },
+        {
+          "segmentId": "s51",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client wants to add pet food ordering and payment in the next year",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Ordering pet food online and paying for it, maybe. Next year."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 3,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 9
+  },
+  "shown": 11
+}

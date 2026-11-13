@@ -1,0 +1,3 @@
+proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match
+18,V19,other-kind,business-requirement,The project must ensure that owners cannot view their pet's medical history online during the booking process,decision,Owners will not see their pet's medical history or clinical notes online; the project is bookings and reminders only.,yes
+19,V19,other-kind,business-requirement,The project must provide online booking and reminder functionality only,decision,Owners will not see their pet's medical history or clinical notes online; the project is bookings and reminders only.,yes

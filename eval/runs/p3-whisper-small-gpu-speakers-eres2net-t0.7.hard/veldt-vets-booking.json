@@ -1,0 +1,359 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:27:33.547Z",
+  "durationMs": 166517,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.hard/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.hard/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has three clinics with separate landlines and paper diaries where receptionists manually find gaps and write pet names and owner numbers in pencil.",
+      "evidence": [
+        {
+          "segmentId": "e8",
+          "quote": "all three clinics centurion Irene and all even outwash have their own landline and their own paper diary at reception the receptionist finds a gap writes the pets name and the owners number in pencil and"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences high call volume between 8 and 10 AM with one receptionist per clinic who handles check-ins and payments, leading to missed calls and double bookings.",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double-booked because someone rubbed out a booking and someone else wrote over it and"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has approximately 20 no-shows per week across three clinics, each representing a 30-minute slot that goes unused.",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "no shows we have maybe 20 no shows a week across the three clinics each one is a 30 minute slot gone so"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's existing system has no proper diary despite using Vet Desk for clinical records, which receptionists dislike due to its calendar integration.",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "that desk pro yes that's where all the clinical records live the owners details vaccination history billing but it has no proper diary we tried its calendar years ago and the receptionists"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that is prone to errors such as double bookings due to manual overrides.",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "people get double-booked because someone rubbed out a booking and someone else wrote over it and"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows by implementing a new booking system.",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "if I'm hearing you right the goals are fewer missed calls no double bookings and fewer no shows"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client prioritizes addressing phone-related burnout among receptionists as the primary goal for the new system.",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "that's it if I had to pick one it's the phones my receptionists are burning out"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that is manually maintained by receptionists, leading to errors and inefficiencies.",
+      "evidence": [
+        {
+          "segmentId": "e8",
+          "quote": "all three clinics centurion Irene and all even outwash have their own landline and their own paper diary at reception the receptionist finds a gap writes the pets name and the owners number in pencil and"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that is prone to double bookings due to manual overrides.",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "people get double-booked because someone rubbed out a booking and someone else wrote over it and"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments with a daily average of approximately 120 bookings across all three clinics.",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "roughly how many appointments do you book in a day all three together across all three I'd say about a hundred and twenty a day and"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences seasonal spikes in appointments during February and March due to annual vaccinations and rabies drives.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "hugely annual vaccinations bunch up in February and March because so many of our clients got their puppies at Christmas and then there's the rabies drive in March as well it easily doubles then"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow pet owners to book appointments online via a website on their phone, select a clinic and service type, and receive a reminder the day before.",
+      "evidence": [
+        {
+          "segmentId": "e22",
+          "quote": "they go onto a website on their phone pick the clinic pick what it's for a vaccination a checkup a sick pet and see the open times they choose one and it's booked and then they get a reminder the day before and"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should automatically send vaccination reminders with a link to book appointments instead of manual phone calls.",
+      "evidence": [
+        {
+          "segmentId": "e23",
+          "quote": "the vaccination reminders vet desk knows when each animal is due right now Charmaine prints a list every month and the girls phone people if that could go out automatically with a link to book that's half the work gone"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system should allow receptionists to manage bookings and move appointments around in a single digital diary instead of paper.",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "the phones would stay but everything goes into one diary instead of paper"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client is unsure about the line between emergencies and non-emergencies for online bookings, as some clients may book slots for urgent situations.",
+      "evidence": [
+        {
+          "segmentId": "e29",
+          "quote": "home that's a good question I don't want someone booking a slot for tomorrow at 11 for a dog that's been hit by a car but a cat that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client prefers SMS over WhatsApp for reminders but needs to confirm with clients in the waiting room.",
+      "evidence": [
+        {
+          "segmentId": "e31",
+          "quote": "I think most of our clients would rather get what's out than SMS"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The client requires that owner phone numbers be used only for pet appointments and reminders, not for marketing or sharing with third parties.",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "them for their pets appointments and"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has a budget of 180,000 for the project and a monthly running cost limit of 2,500 for all three clinics",
+      "evidence": [
+        {
+          "segmentId": "e53",
+          "quote": "put aside a hundred and eighty thousand round to build it and the running costs the messages and the hosting must stay under two and a half thousand a month for all three clinics that's my limit"
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client requires the system to be ready by the 1st of February to handle vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e51",
+          "quote": "before vaccination season so live by the 1st of February at the latest"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client's existing system has an API that charges per clinic and takes three months to implement when requested by a practice",
+      "evidence": [
+        {
+          "segmentId": "e49",
+          "quote": "but they charge for it per clinic and when the Pretoria East practice asked for it it took vet desk three months to"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers a simple one-screen web interface with no app downloads",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "half the people booking are holding a puppy in the other hand and no app to download just a web page"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The client wants the system to have a simple booking screen with no more than 40 fields",
+      "evidence": [
+        {
+          "segmentId": "e56",
+          "quote": "simple one screen if possible the vet desk screens have about 40 fields on them I don't want that"
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 9,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 3
+  },
+  "shown": 18
+}

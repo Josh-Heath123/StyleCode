@@ -1,0 +1,172 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 1,
+  "startedAt": "2026-11-13T00:03:32.701Z",
+  "durationMs": 71451,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.clean/karoo-freight-kickoff.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.clean/karoo-freight-kickoff.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client misses collections because messages get buried in the current WhatsApp-based dispatch process",
+      "evidence": [
+        {
+          "segmentId": "e5",
+          "quote": "We miss collections because messages get buried."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The app must ensure every collection is assigned and confirmed by the driver",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "So the app has to make sure every collection is assigned and confirmed."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The driver needs to accept the job, mark it collected, take a photo of the weibull, and get a signature",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "the job, mark it collected, take a photo of the weibull, and get a signature"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The app must work offline and send data when back in range due to poor signal in the Colesburg to Beaufort West area",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "It has to work offline and send everything when"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a tracking system from a vendor to monitor truck locations",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "Our trucks have a tracking system from a vendor so we can see where they are"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Sage for invoicing",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "invoicing runs on Sage"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client's MD signs off any budget above 200,000 Rand",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Our MD signs off anything above 200,000 Rand"
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client wants a summary of the project by the end of January",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "I'd want to show her a figure by the end of January"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The Blomfontein depot experiences internet outages during load shedding due to the router not being on backup battery",
+      "evidence": [
+        {
+          "segmentId": "e23",
+          "quote": "Blomfontein goes down during load shedding because the router isn't on the backup battery"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "unresolved",
+      "statement": "The client has not yet checked how they are allowed to use drivers' locations as personal information",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "Not yet. HR would have to look at that with the drivers' union"
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client wants to eventually provide clients with a tracking link like a courier service",
+      "evidence": [
+        {
+          "segmentId": "e28",
+          "quote": "Eventually our clients should get a tracking link, like a courier"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers Afrikaans in the app for half of their drivers",
+      "evidence": [
+        {
+          "segmentId": "e29",
+          "quote": "And Afrikaans in the app. Half my drivers would prefer it."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The client agrees to start with a pilot at the Blomfontein depot",
+      "evidence": [
+        {
+          "segmentId": "e31",
+          "quote": "Yes, let's do Blomfontein first."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 1
+  },
+  "shown": 12
+}

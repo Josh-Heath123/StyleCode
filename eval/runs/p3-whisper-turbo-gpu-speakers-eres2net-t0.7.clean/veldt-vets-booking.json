@@ -1,0 +1,253 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-12T23:53:43.461Z",
+  "durationMs": 134177,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu+speakers-eres2net-t0.7.clean/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu+speakers-eres2net-t0.7.clean/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary for each clinic that receptionists use to record appointments",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "All three clinics, Centurion, Irene and Oli van Houtbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it. And the practice software."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Receptionists miss calls and double book appointments due to the paper diary system",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "are the worst. Between eight and ten, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double booked because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has no-shows that account for about twenty slots per week across three clinics",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "And no-shows. We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows",
+      "evidence": [
+        {
+          "segmentId": "e13",
+          "quote": "the goals are fewer missed calls, no double bookings, and fewer no-shows."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to have a system where pet owners can book appointments online",
+      "evidence": [
+        {
+          "segmentId": "e19",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should send automated reminders to pet owners via WhatsApp",
+      "evidence": [
+        {
+          "segmentId": "e28",
+          "quote": "I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses VetDesk Pro for clinical records, billing, and owner details",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live. The owner's details, vaccination history, billing."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments that doubles during vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "Hugely. Vaccinations bunch up in February and March because so many of our clients got their puppies at Christmas. And then there's the rabies drive in March as well. It easily doubles then."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper-based system for consent that is stored at each clinic",
+      "evidence": [
+        {
+          "segmentId": "e32",
+          "quote": "And every client signs the consent bit on the registration form. But that's on paper too, in a file at each clinic."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires that owners' phone numbers be used only for pet appointments and reminders, not for marketing or other purposes",
+      "evidence": [
+        {
+          "segmentId": "e31",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pets' appointments and reminders. But nothing else, no marketing."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires that the system must have a written agreement with a messaging service provider",
+      "evidence": [
+        {
+          "segmentId": "e33",
+          "quote": "And the company that sends the messages would be an operator under Popia. So you'd need a written agreement with them."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The client needs to determine the line between emergencies and non-emergencies for online booking",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "I need to talk to the other vets about where we draw that line."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where receptionists manually update the diary by writing in pencil",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments that varies by clinic and time of year",
+      "evidence": [
+        {
+          "segmentId": "e37",
+          "quote": "It's more like a hundred and sixty a day. I forgot that Oli van Houtbosch does a full Saturday morning now, and Centurion has two vets, not one."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated 180,000 rand for the project and requires monthly running costs for messages and hosting to stay under 2,500 rand",
+      "evidence": [
+        {
+          "segmentId": "e48",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client wants the system to be live by the first of February at the latest",
+      "evidence": [
+        {
+          "segmentId": "e46",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client prefers mid-January for the system to be live to allow two weeks for the team to get used to it",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "Ideally mid-January. The girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client wants a simple one-screen interface with large green buttons for ease of use while holding a puppy",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "buttons. Because half the people booking are holding a puppy in the other hand. And no app to download. Just a webpage."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses VetDesk, which has an API that charges per clinic and takes three months to activate",
+      "evidence": [
+        {
+          "segmentId": "e43",
+          "quote": "API. Our rep mentioned it at a conference."
+        },
+        {
+          "segmentId": "e44",
+          "quote": "But they charge for it per clinic. And when the Pretoria East practice asked for it, it took VetDesk three months to"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires the system to have no more than one screen to avoid overwhelming users with too many fields",
+      "evidence": [
+        {
+          "segmentId": "e51",
+          "quote": "One screen if possible. The VetDesk screens have about 40 fields on them. I don't want that."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 2,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 1
+  },
+  "shown": 17
+}

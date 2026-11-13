@@ -1,0 +1,232 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:21:33.722Z",
+  "durationMs": 135856,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.clean/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.clean/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that leads to missed calls and double bookings due to receptionists manually updating it.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Vet Desk Pro for clinical records, owners' details, vaccination history, and billing but not for appointment scheduling.",
+      "evidence": [
+        {
+          "segmentId": "e8",
+          "quote": "vet desk pro yes that's where all the clinical records live the owners details vaccination history billing but it has no proper diary we tried its calendar years ago and the receptionists hated it so the paper diary came back"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows by implementing a digital booking system.",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "if I'm hearing you right the goals are fewer missed calls no double bookings and fewer no shows"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client has three clinics with their own landlines and paper diaries for appointment scheduling.",
+      "evidence": [
+        {
+          "segmentId": "e6",
+          "quote": "so they phone all three clinics centurion Irene and oleven outbosh have their own landline and their own paper diary at reception the receptionist finds a gap writes the pets name and the owners number in pencil and that's it and the practice"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences high no-show rates, with approximately 20 no-shows per week across all three clinics.",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "shows we have maybe 20 no shows a week across the three clinics each one is a 30 minute slot gone so"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to allow pet owners to book appointments online via a website on their phone.",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "pick the clinic pick what it's for a vaccination a checkup a sick pet and see the open times they choose one and it's booked and then they get a reminder the day before"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually handling phone bookings and paper diaries, leading to double bookings and missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "diary mornings are the worst between 8 and 10 the phones just don't stop and there's one receptionist per clinic who is also checking people in and taking payments we miss a lot of calls and people get double booked because someone rubbed out a booking and someone else wrote over it and no"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has a budget of 180,000 rand for building the system and requires running costs for messages and hosting to stay under 2,500 rand per month for all three clinics.",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "aside 180,000 rand to build it and the running costs the messages and the hosting must stay under two and a half thousand a month for all three clinics that's my limit"
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client wants the system to be live by the first of February at the latest, with an ideal target of mid-January to allow two weeks for the team to get used to it before vaccination season.",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "before vaccination season so live by the first of February at the latest"
+        },
+        {
+          "segmentId": "e46",
+          "quote": "ideally mid-January so the girls have two weeks to get used to it before the rush"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers a simple one-screen web interface with no app download required, green color scheme, and large buttons for ease of use.",
+      "evidence": [
+        {
+          "segmentId": "e48",
+          "quote": "clear and how should it look any preferences a green the logo green big buttons because half the"
+        },
+        {
+          "segmentId": "e49",
+          "quote": "people booking are holding a puppy in the other hand and no app to download just a web page and"
+        },
+        {
+          "segmentId": "e50",
+          "quote": "simple one screen if possible the vet desk screens have about 40 fields on them I don't want that"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client has a constraint that the system must share data with another system via an API, but they charge per clinic for this service and it took the vet desk three months to switch it on.",
+      "evidence": [
+        {
+          "segmentId": "e42",
+          "quote": "there is an API our rep mentioned it at a conference"
+        },
+        {
+          "segmentId": "e43",
+          "quote": "but they charge for it per clinic and when the Pretoria East practice asked for it it took vet desk three"
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 6
+  },
+  "shown": 10
+}

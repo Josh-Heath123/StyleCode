@@ -1,0 +1,235 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T09:03:05.075Z",
+  "durationMs": 155748,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/parakeet+speakers-eres2net-t0.7.clean/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/parakeet+speakers-eres2net-t0.7.clean/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary system for appointments that leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "Mornings are the worst. Between eight and ten, the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls, and people get double booked because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high rate of no-shows, with approximately twenty per week across three clinics",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "and no shows. We have maybe twenty no shows a week across the three clinics. Each one is a thirty minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Vet Desk Pro for clinical records, owner details, vaccination history, and billing",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "Vet Desk Pro yes. That's where all the clinical records live, the owner's details, vaccination history billing."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current appointment booking process involves phone calls and paper diaries, leading to double bookings and missed calls",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "So they phone. All three clinics Centurion, Irene and Olivenhoutbosch have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's receptionists are burning out due to the current booking process",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls, double bookings, and no-shows through an online booking system",
+      "evidence": [
+        {
+          "segmentId": "e13",
+          "quote": "the goals are fewer missed calls, no double bookings and fewer no-shows."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments, with approximately 160 per day during normal periods",
+      "evidence": [
+        {
+          "segmentId": "e37",
+          "quote": "It's more like a hundred and sixty a day. I forgot that Oli van Houtbosch does a full Saturday morning now, and Centurion has two vets"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences a significant increase in appointments during vaccination seasons, doubling the normal volume",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "Hugely. Annual vaccinations bunch up in February and March, because so many of our clients got their puppies at Christmas, and then there's the rabies' drive in March as well. It easily doubles then."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The client wants owners to be able to choose a specific clinic for appointments",
+      "evidence": [
+        {
+          "segmentId": "e24",
+          "quote": "owners be able to choose a specific vet. Some would want to."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The client wants to send vaccination reminders via WhatsApp instead of SMS",
+      "evidence": [
+        {
+          "segmentId": "e28",
+          "quote": "WhatsApp? I think most of our clients would rather get WhatsApp than SMS."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires that owners' phone numbers be used only for pet appointments and reminders, with no marketing or sharing with third parties",
+      "evidence": [
+        {
+          "segmentId": "e31",
+          "quote": "Owners' phone numbers are personal information. We may use them for their pets' appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires that clients sign a consent form for online bookings",
+      "evidence": [
+        {
+          "segmentId": "e32",
+          "quote": "And every client signs the consent bit on the registration form, but that's on paper too, in a file"
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The client needs to determine the line between emergencies and non-emergencies for online booking",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "I need to talk to the other vets about where we draw that line."
+        }
+      ]
+    },
+    {
+      "kind": "scalability",
+      "status": "suggested",
+      "statement": "The client's system must handle up to 160 appointments per day with potential doubling during vaccination seasons",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "160 on a normal day, doubling in vaccination season."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Vitdesk for online booking and it has an API that can share data with another system",
+      "evidence": [
+        {
+          "segmentId": "e43",
+          "quote": "There is an API. Our rep mentioned it at a conference."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated 180,000 rand for the project and requires monthly running costs for messages and hosting to stay under 2,500 rand",
+      "evidence": [
+        {
+          "segmentId": "e48",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. and the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client wants the system to be live by mid-January to accommodate two weeks for the team to get used to it before vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e46",
+          "quote": "Before vaccination season. so live by the first of February at the latest."
+        },
+        {
+          "segmentId": "e47",
+          "quote": "ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers a simple web page with no app download, large buttons, and a green color scheme",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "people booking are holding a puppy in the other hand, and no app to download, just a web page."
+        },
+        {
+          "segmentId": "e51",
+          "quote": "And simple. One screen if possible. Vet desk screens have about 40 fields on them. I don't want that."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 18
+}

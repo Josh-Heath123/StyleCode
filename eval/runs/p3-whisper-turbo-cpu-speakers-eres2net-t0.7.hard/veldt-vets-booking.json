@@ -1,0 +1,290 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:52:30.854Z",
+  "durationMs": 142933,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-cpu+speakers-eres2net-t0.7.hard/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-cpu+speakers-eres2net-t0.7.hard/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary for each clinic that receptionists use to record appointments, which leads to double bookings and missed calls",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole Van Hout-Bosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences double bookings because receptionists rub out one booking and write over it",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high number of no-shows, approximately 20 per week across three clinics, each costing a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's phone lines are busy in the morning between 8 and 10, leading to missed calls",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Vet Desk Pro for clinical records, including owner details, vaccination history, and billing, but it lacks a proper diary",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "Vet Desk Pro, yes. That's where all the clinical records lie. The owner's details, vaccination history, billing. But it has no proper diary."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary that receptionists use to record appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole Van Hout-Bosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high number of no-shows, approximately 20 per week across three clinics, each costing a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's phone lines are busy in the morning between 8 and 10, leading to missed calls",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary for each clinic that receptionists use to record appointments, which leads to double bookings and missed calls",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole Van Hout-Bosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences double bookings because receptionists rub out one booking and write over it",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high number of no-shows, approximately 20 per week across three clinics, each costing a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's phone lines are busy in the morning between 8 and 10, leading to missed calls",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary for each clinic that receptionists use to record appointments, which leads to double bookings and missed calls",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole Van Hout-Bosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences double bookings because receptionists rub out one booking and write over it",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high number of no-shows, approximately 20 per week across three clinics, each costing a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's phone lines are busy in the morning between 8 and 10, leading to missed calls",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must ensure that no-shows for Saturday bookings are handled by collecting a small deposit of one hundred rand that is refunded upon arrival",
+      "evidence": [
+        {
+          "segmentId": "e41",
+          "quote": "ask for a small deposit, say a hundred rand, when someone books online for a Saturday, and refund it when they arrive"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must ensure that owners cannot view their pet's medical history online during the booking process",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "No, definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must provide online booking and reminder functionality only",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "Bookings and reminders only."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "VetDesk is an existing system that provides an API for data sharing but charges per clinic and has a slow onboarding process",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "There is an API."
+        },
+        {
+          "segmentId": "e48",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The project must be completed by the first of February to avoid vaccination season delays",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The project has a budget of one hundred and eighty thousand rand for development, with monthly running costs for messages and hosting capped at two and a half thousand rand",
+      "evidence": [
+        {
+          "segmentId": "e52",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages, and the hosting must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The project must have a green color scheme with the logo color, large buttons, and no mobile app download",
+      "evidence": [
+        {
+          "segmentId": "e53",
+          "quote": "And simple. One screen, if possible. The VetDesk screens have about forty fields on them. I don't want that."
+        },
+        {
+          "segmentId": "e54",
+          "quote": "And no app to download, just a webpage."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 13
+  },
+  "shown": 9
+}

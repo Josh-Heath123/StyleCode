@@ -1,0 +1,148 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 1,
+  "startedAt": "2026-11-12T23:44:44.423Z",
+  "durationMs": 12878,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client misses collections because messages get buried in WhatsApp",
+      "evidence": [
+        {
+          "segmentId": "s5",
+          "quote": "We miss collections because messages get buried."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The app must ensure every collection is assigned and confirmed",
+      "evidence": [
+        {
+          "segmentId": "s11",
+          "quote": "So the app has to make sure every collection is assigned and confirmed."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Drivers need to accept jobs, mark collections as completed, take photos of waybills, and get signatures",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Accept the job, mark it collected, take a photo of the waybill, and get a signature."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The app must work offline and sync when drivers are back online",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "It has to work offline and send everything when they're back in range."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a truck tracking system from a vendor and Sage for invoicing",
+      "evidence": [
+        {
+          "segmentId": "s17",
+          "quote": "Our trucks have a tracking system from a vendor, so we can see where they are. And invoicing runs on Sage."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client's MD signs off on budgets above two hundred thousand rand",
+      "evidence": [
+        {
+          "segmentId": "s19",
+          "quote": "Our MD signs off anything above two hundred thousand rand."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client wants a summary of the project by the end of January",
+      "evidence": [
+        {
+          "segmentId": "s19",
+          "quote": "I'd want to show her a figure by the end of January."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The app must handle offline use at the Bloemfontein depot due to unreliable internet",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "Bloemfontein goes down during load-shedding because the router isn't on the backup battery."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The client has not yet checked how they are allowed to use drivers' locations as personal information",
+      "evidence": [
+        {
+          "segmentId": "s25",
+          "quote": "Not yet. HR would have to look at that with the drivers' union."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client wants the app to support Afrikaans for half the drivers",
+      "evidence": [
+        {
+          "segmentId": "s28",
+          "quote": "And Afrikaans in the app. Half my drivers would prefer it."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The client agrees to start with a pilot at the Bloemfontein depot",
+      "evidence": [
+        {
+          "segmentId": "s30",
+          "quote": "Yes, let's do Bloemfontein first."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 11
+}

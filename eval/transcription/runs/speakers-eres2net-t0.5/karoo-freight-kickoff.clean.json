@@ -1,0 +1,68 @@
+{
+  "kind": "speakers",
+  "run": "speakers-eres2net-t0.5",
+  "meeting": "karoo-freight-kickoff",
+  "version": "clean",
+  "audioMs": 206965,
+  "wallMs": 62460,
+  "minutesPerHour": 18.11,
+  "at": "2026-11-12T19:20:47.219Z",
+  "hardware": {
+    "computer": "Intel Core i7-12700H, 16 GB RAM, Windows 11",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB",
+    "power": "plugged in, OMEN performance mode, Windows best performance, lid open"
+  },
+  "settings": ["--segmentation.num-threads=8", "--embedding.num-threads=8", "--clustering.cluster-threshold=0.5"],
+  "stages": [
+    {
+      "name": "speakers",
+      "wallMs": 62460,
+      "resources": {
+        "peakRamMiB": 339.36328125,
+        "peakGpuMemoryMiB": 203,
+        "gpuMemoryBeforeMiB": 155,
+        "gpu": [
+          { "atMs": 1420, "clockMHz": 300, "temperatureC": 75, "memoryMiB": 171, "utilisation": 22, "powerW": 17.98 },
+          { "atMs": 16709, "clockMHz": 210, "temperatureC": 75, "memoryMiB": 148, "utilisation": 16, "powerW": 17.69 },
+          { "atMs": 31856, "clockMHz": 210, "temperatureC": 74, "memoryMiB": 139, "utilisation": 21, "powerW": 17.53 },
+          { "atMs": 46870, "clockMHz": 330, "temperatureC": 74, "memoryMiB": 164, "utilisation": 15, "powerW": 17.48 },
+          { "atMs": 62019, "clockMHz": 210, "temperatureC": 73, "memoryMiB": 140, "utilisation": 24, "powerW": 17.63 }
+        ]
+      }
+    }
+  ],
+  "turns": [
+    ["speaker_00", 1027, 16231],
+    ["speaker_03", 16670, 18037],
+    ["speaker_00", 18830, 28448],
+    ["speaker_06", 29073, 31030],
+    ["speaker_03", 31030, 46032],
+    ["speaker_00", 46538, 48935],
+    ["speaker_03", 49981, 54166],
+    ["speaker_10", 55297, 61135],
+    ["speaker_03", 62300, 69910],
+    ["speaker_00", 70400, 76610],
+    ["speaker_04", 77217, 89975],
+    ["speaker_10", 89975, 91291],
+    ["speaker_10", 91814, 95746],
+    ["speaker_04", 96337, 104538],
+    ["speaker_03", 105652, 108672],
+    ["speaker_11", 109482, 112553],
+    ["speaker_03", 113127, 123775],
+    ["speaker_00", 124248, 126307],
+    ["speaker_03", 126610, 132652],
+    ["speaker_03", 133343, 135976],
+    ["speaker_16", 135976, 138507],
+    ["speaker_00", 139064, 145240],
+    ["speaker_16", 145949, 154150],
+    ["speaker_04", 154910, 157812],
+    ["speaker_00", 158453, 168730],
+    ["speaker_03", 169085, 172848],
+    ["speaker_00", 173388, 179682],
+    ["speaker_03", 180779, 184964],
+    ["speaker_04", 185926, 190027],
+    ["speaker_00", 190887, 198667],
+    ["speaker_03", 199392, 201569],
+    ["speaker_00", 201957, 205973]
+  ]
+}

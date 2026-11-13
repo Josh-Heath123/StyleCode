@@ -1,0 +1,242 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:15:34.640Z",
+  "durationMs": 138777,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.hard/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.hard/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to record appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole van Houtbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has double bookings due to receptionists manually updating the paper diary, which causes missed calls and no-shows",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls, and people get double booked, because someone rubbed out a booking, and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has no-shows that account for 20 appointments per week across three clinics, each no-show being a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "unresolved",
+      "statement": "The client uses Vet Desk Pro for clinical records, including owner details, vaccination history, and billing, but it lacks a proper diary functionality",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "Vet Desk Pro, yes. That's where all the clinical records lie. The owner's details, vaccination history, billing. But it has no proper diary."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists manually updating the paper diary, which leads to double bookings and missed calls",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls, and people get double booked, because someone rubbed out a booking, and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to the high volume of phone calls and manual diary updates",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has a paper diary that receptionists use to record appointments, which leads to missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "All three clinics, Centurion, Irene, and Ole van Houtbosch, have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has double bookings due to receptionists manually updating the paper diary, which causes missed calls and no-shows",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls, and people get double booked, because someone rubbed out a booking, and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has no-shows that account for 20 appointments per week across three clinics, each no-show being a 30-minute slot",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "We have maybe 20 no-shows a week, across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "unresolved",
+      "statement": "The client uses Vet Desk Pro for clinical records, including owner details, vaccination history, and billing, but it lacks a proper diary functionality",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "Vet Desk Pro, yes. That's where all the clinical records lie. The owner's details, vaccination history, billing. But it has no proper diary."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to the high volume of phone calls and manual diary updates",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must ensure that no-shows for Saturday bookings are handled by collecting a small deposit of one hundred rand, which is refunded upon arrival",
+      "evidence": [
+        {
+          "segmentId": "e41",
+          "quote": "ask for a small deposit, say a hundred rand, when someone books online for a Saturday, and refund it when they arrive"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must ensure that owners cannot view their pet's medical history online during the booking process",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "No, definitely not. Not in this project. The vets don't want owners reading clinical notes without someone explaining them."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must ensure that the system can share data with another system through an API",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "There is an API."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The project has a budget of one hundred and eighty thousand rand for development, with monthly running costs for messages and hosting limited to two and a half thousand rand",
+      "evidence": [
+        {
+          "segmentId": "e52",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages, and the hosting must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The project must have a simple interface with one screen, large buttons, and a green color scheme",
+      "evidence": [
+        {
+          "segmentId": "e53",
+          "quote": "A green. The logo green. Big buttons."
+        },
+        {
+          "segmentId": "e55",
+          "quote": "And simple. One screen if possible."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The project must be completed by the first of February at the latest",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "By the first of February, at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The project must handle a daily booking rate of one hundred and sixty appointments, which doubles during vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e43",
+          "quote": "It's more like a hundred and sixty a day. I forgot that Oli Van Hout Bosch does a full Saturday morning now, and Centurion has two vets"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The project must ensure that the API integration with VetDesk is completed within a timeframe that does not delay the project timeline",
+      "evidence": [
+        {
+          "segmentId": "e48",
+          "quote": "But they charge for it per clinic. And when the Pretoria East practice asked for it, it took VetDesk three months to switch it on."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 6
+  },
+  "shown": 12
+}

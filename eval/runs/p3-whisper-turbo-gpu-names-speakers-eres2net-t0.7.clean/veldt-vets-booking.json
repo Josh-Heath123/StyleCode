@@ -1,0 +1,304 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:08:10.007Z",
+  "durationMs": 172890,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.clean/veldt-vets-booking.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.clean/veldt-vets-booking.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper diary system that leads to double bookings and missed calls due to high phone volume in the morning.",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses VetDesk Pro for clinical records, but it lacks a proper diary functionality.",
+      "evidence": [
+        {
+          "segmentId": "e9",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live. The owner's details, vaccination history, billing. But it has no proper diary."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client experiences no-shows that result in 30-minute slots being wasted across three clinics.",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "And no-shows. We have maybe 20 no-shows a week across the three clinics. Each one is a 30-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to reduce missed calls and double bookings by moving from a paper diary to a digital system that integrates phone bookings.",
+      "evidence": [
+        {
+          "segmentId": "e13",
+          "quote": "the goals are fewer missed calls, no double bookings, and fewer no-shows."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's receptionists are burning out due to high phone volume and double bookings.",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "My receptionists are burning out."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client has three clinics with separate landlines and paper diaries at reception.",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "All three clinics, Centurion, Irene, and Oli van Houtbosch, have their own landline and their own paper diary at reception."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of phone calls during mornings between 8 and 10 that leads to missed calls.",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "Mornings are the worst. Between 8 and 10, the phones just don't stop. And there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system results in double bookings because receptionists rub out bookings and write over them.",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "people get double-booked because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client wants to move from paper diaries to a single digital diary that integrates phone bookings.",
+      "evidence": [
+        {
+          "segmentId": "e21",
+          "quote": "the phones would stay, but everything goes into one diary instead of paper."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a high volume of appointments that doubles during vaccination seasons due to annual events.",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "Hugely. Annual vaccinations bunch up in February and March because so many of our clients got their puppies at Christmas. And then there's the rabies drive in March as well. It easily doubles then."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a paper-based consent process that needs to be digitized for online bookings.",
+      "evidence": [
+        {
+          "segmentId": "e32",
+          "quote": "every client signs the consent bid on the registration form, but that's on paper too, in a file at each clinic."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners must manually print vaccination lists and call clients to send reminders, which is time-consuming.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Vet Desk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online but need to be reminded of vaccinations through a link to book.",
+      "evidence": [
+        {
+          "segmentId": "e19",
+          "quote": "They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online for vaccinations but need to be reminded of their due dates.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Vet Desk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online for check-ups and sick pets but needs to define what constitutes an emergency booking.",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "I don't want someone booking a slot for tomorrow at 11 for a dog that's been hit by a car. But a cat that's been vomiting, maybe. I need to talk to the other vets about where we draw that line."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online but need to be reminded of vaccinations through a link to book.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Vet Desk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online but need to be reminded of vaccinations through a link to book.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Vet Desk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where owners can book online but need to be reminded of vaccinations through a link to book.",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Vet Desk knows when each animal is due. Right now Charmaine prints a list every month and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated 180,000 rand for the project and requires monthly running costs for messages and hosting to stay under 2,500 rand",
+      "evidence": [
+        {
+          "segmentId": "e48",
+          "quote": "We've put aside 180,000 rand to build it. And the running costs, the messages, and the hosting must stay under 2,500 a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "objective",
+      "status": "suggested",
+      "statement": "The client wants the online booking system to be live by the first of February to handle vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e46",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client requires that the system must be live by mid-January to allow two weeks for the team to get used to it before vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The client expects the system to handle a daily booking volume of 160 appointments during normal days, doubling to 320 during vaccination season",
+      "evidence": [
+        {
+          "segmentId": "e37",
+          "quote": "It's more like a hundred and sixty a day. I forgot that Oli van Houtbosch does a full Saturday morning now, and Centurion has two vets, not"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses VetDesk, which has an API that can be used to share data with another system",
+      "evidence": [
+        {
+          "segmentId": "e43",
+          "quote": "There is an API. Our rep mentioned it at a conference."
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "suggested",
+      "statement": "The client identified a risk that VetDesk's API might take three months to switch on, which could delay the project timeline",
+      "evidence": [
+        {
+          "segmentId": "e44",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers the system to not use a green color scheme, as they explicitly stated they don't want that",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "I don't want that."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 1,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 6
+  },
+  "shown": 18
+}
