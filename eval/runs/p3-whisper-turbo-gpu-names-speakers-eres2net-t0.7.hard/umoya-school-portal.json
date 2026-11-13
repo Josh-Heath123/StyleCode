@@ -1,0 +1,348 @@
+{
+  "consultation": "umoya-school-portal",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:12:25.269Z",
+  "durationMs": 184307,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.hard/umoya-school-portal.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu-names+speakers-eres2net-t0.7.hard/umoya-school-portal.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Parents struggle to get information from the school because fee statements are printed and sent home in learner's bags but half never reach parents",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "Fee statements are printed every month and sent home in the learner's bags, and half of them never reach the parents."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Reports are printed, put in envelopes, and sent home, taking a week of admin staff's time every term for 900 learners",
+      "evidence": [
+        {
+          "segmentId": "e8",
+          "quote": "Printed, put in envelopes, sent home. For about 900 learners, that's a week of the admin staff's time every term."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Notices like sports fixtures or school closures go on WhatsApp broadcast lists and email but parents who change numbers fall off the list",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "Those go on WhatsApp broadcast lists and by email. But a broadcast list fills up, so we have five of them now, and parents who change their numbers just fall off."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Absence notes are handwritten in the learner's homework diary or emailed to the class teacher who may not pass them to the office, causing a learner to be marked absent for three days without office knowledge",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "Handwritten in the learner's homework diary or an email to the class teacher, who may or may not pass it on to the office. We had a learner marked absent for three days last term, and nobody at the office knew why."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "Parents need a place to see what they owe, their child's reports, and school notices, and to report when their child is sick",
+      "evidence": [
+        {
+          "segmentId": "e13",
+          "quote": "One place where a parent can see what they owe, their child's reports, and the school's notices, and tell us when their child is sick."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The school wants to stop printing reports to save time and costs",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "And for us to stop printing, that's a real cost in a lot of hours."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must provide the current balance, monthly statement as PDF, and reference for EFT payment",
+      "evidence": [
+        {
+          "segmentId": "e16",
+          "quote": "The current balance. The monthly statement as a PDF. And the reference to use for EFT."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must release term reports as PDF on the same day for all parents without delays",
+      "evidence": [
+        {
+          "segmentId": "e18",
+          "quote": "The term report as a PDF, the same when we print, released on the same day for everyone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to fill in absence notes with reason and dates, and have both class teacher and office see them immediately",
+      "evidence": [
+        {
+          "segmentId": "e23",
+          "quote": "Yes, the reason and the dates, and the class teacher and the office both see it straight away."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The school uses School Base 7, a server in the admin block from about 2014 that holds learners, parents' fees, and marks",
+      "evidence": [
+        {
+          "segmentId": "e25",
+          "quote": "a server in the admin block. It's school base 7, from about 2014, I think. It holds the learners, the parents' fees, and marks."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must be light, small pages, and PDFs only downloaded when opened to accommodate parents with limited data",
+      "evidence": [
+        {
+          "segmentId": "e33",
+          "quote": "Yes, and could it be zero-rated? I heard some schools have arranged that with the networks."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "Only a learner's own parents or guardians may see information about that learner, with court orders for some divorced parents",
+      "evidence": [
+        {
+          "segmentId": "e36",
+          "quote": "These are children's records. Reports, the medical reasons on absence notes family addresses. Only a learner's own parents or guardians may see anything about that learner."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "The portal must respect restrictions per parent and allow the office to set them, including court orders for about a dozen files",
+      "evidence": [
+        {
+          "segmentId": "e37",
+          "quote": "And with some divorced parents, one of them may not see anything at all. There's a court order on about a dozen files."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The finance committee has proposed 250,000 rand for the first year, but the board must approve it by January 28th",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "The finance committee has proposed 250,000 rand for the first year all in, but the board has to approve it, and they only meet on the 28th of January."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal should use the school's maroon color instead of a generic blue",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "Oh, and please use the school's maroon, not some generic blue."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must support Issy Zulu language for notices and main screens to accommodate grandparents who are more comfortable in that language",
+      "evidence": [
+        {
+          "segmentId": "e44",
+          "quote": "If the notices and the main screens could be in Issy Zulu too, that would mean a lot."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must have big, clear text for parents with eye problems and support for screen readers",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "And big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The data must be hosted in South Africa as per the board's decision",
+      "evidence": [
+        {
+          "segmentId": "e41",
+          "quote": "The board said it must be hosted in South Africa. That came out of the last board meeting."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project must host data in South Africa",
+      "evidence": [
+        {
+          "segmentId": "e41",
+          "quote": "The board said it must be hosted in South Africa. That came out of the last board meeting."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must support Issy Zulu language for notices and main screens",
+      "evidence": [
+        {
+          "segmentId": "e44",
+          "quote": "If the notices and the main screens could be in Issy Zulu too, that would mean a lot."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must have large, clear text for users with vision impairments",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "big, clear text"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must be accessible to screen readers for blind users",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "we have a blind parent on the PTA who uses a screen reader"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must use the school's maroon color scheme",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "please use the school's maroon, not some generic blue"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The first year budget is 250,000 rand, approved by the board on January 28",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "committee has proposed 250,000 rand for the first year all in, but the board has to approve it, and they only meet on the 28th of January."
+        }
+      ]
+    },
+    {
+      "kind": "objective",
+      "status": "suggested",
+      "statement": "Parents should receive term two reports through the portal by June 26",
+      "evidence": [
+        {
+          "segmentId": "e49",
+          "quote": "The term two reports go out on the 26th of June. We'd like parents to get those through the portal."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The school has 1,650 parent contacts, not 1,400 as previously thought",
+      "evidence": [
+        {
+          "segmentId": "e50",
+          "quote": "It's not 1,400 parent contacts. It's about 1,650. A lot of families have both parents and a grandparent listed."
+        }
+      ]
+    },
+    {
+      "kind": "risk",
+      "status": "suggested",
+      "statement": "If the first report day goes poorly, parents may lose trust in the portal immediately",
+      "evidence": [
+        {
+          "segmentId": "e51",
+          "quote": "if the first report day goes badly, parents lose trust in the portal straight away"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The school has only one IT person who works two days a week",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "I'm the only IT person, and only two days a week"
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "Booking slots for parent evenings is planned for later",
+      "evidence": [
+        {
+          "segmentId": "e57",
+          "quote": "booking slots for parents' evenings"
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 6,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 23
+}

@@ -1,0 +1,290 @@
+{
+  "consultation": "umoya-school-portal",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T00:19:07.326Z",
+  "durationMs": 141461,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.clean/umoya-school-portal.transcript.json",
+  "keyFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.clean/umoya-school-portal.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Parents struggle to get information from the school because fee statements are printed and sent home in learner's bags but half never reach parents, and parents phone for fee information",
+      "evidence": [
+        {
+          "segmentId": "e7",
+          "quote": "Fee statements are printed every month and sent home in the learner's bags, and half of them never reach the parents. Then, I have parents phoning me about fees."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Parents who change their numbers fall off broadcast lists, causing missed notices and communications",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "a broadcast list fills up, so we have five of them now, and parents who change their numbers just fall"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Absence notes are handwritten in learner's homework diaries or emailed to class teachers who may not pass them to the office, leading to missing absence records",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "Absence notes. Handwritten in the learner's homework diary or an email to the class teacher, who may or may not pass it on to the office. We had a learner marked absent for three days last term and nobody at the office knew"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "Parents need to see their current balance, monthly statement as PDF, and reference for EFT payments",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "The current balance. The monthly statement as a PDF and the reference to use for EFT."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "Reports must be released on the same day for all parents to avoid discrepancies in timing",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "We don't want some families seeing them before others. That day is the problem."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The portal must allow parents to report when their child is sick",
+      "evidence": [
+        {
+          "segmentId": "e14",
+          "quote": "tell us when their child is sick"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The portal must stop printing reports to reduce costs and admin staff time",
+      "evidence": [
+        {
+          "segmentId": "e15",
+          "quote": "And for us to stop printing, that's a real cost and a lot of"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "School base is a system running on a server in the admin block since about 2014 that holds learners, parents fees, and marks",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "On a server in the admin block, it's school base seven from about 2014, I think. It holds the learners, the parents fees and marks."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must be lightweight with small pages and PDFs only downloaded when opened to accommodate parents with limited data plans",
+      "evidence": [
+        {
+          "segmentId": "e35",
+          "quote": "the portal has to be light small pages and the PDFs only downloaded when someone actually opens"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must be in Isizulu for some parents and have big, clear text for parents with vision issues",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must use the school's maroon color scheme instead of generic blue",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "please use the school's maroon, not some generic blue"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "Only a learner's own parents or guardians may see their records, and the system must respect court orders for some files",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "one of them may not see anything at all. There's a court order on about a dozen files."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The finance committee has proposed 250,000 rand for the first year, but the board must approve it by January 28th",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "The finance committee has proposed 250,000 rand for the first year all in, but the board has to approve it, and they only meet on the 28th of January."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The portal data must be hosted in South Africa per the board's decision",
+      "evidence": [
+        {
+          "segmentId": "e42",
+          "quote": "The board said it must be hosted in South Africa. That came out of the last board meeting."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The school base system does not have API's, and the supplier has not responded to inquiries about this",
+      "evidence": [
+        {
+          "segmentId": "e28",
+          "quote": "Not that I know of. I've asked the supplier and they haven't answered yet."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "The portal's data may need to be zero rated by the network to accommodate parents with limited data plans",
+      "evidence": [
+        {
+          "segmentId": "e35",
+          "quote": "could it be zero rated? I heard some schools have arranged that with the"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has only one IT person who works two days a week and may not be able to handle report night issues",
+      "evidence": [
+        {
+          "segmentId": "e55",
+          "quote": "Me honestly, I'm the only IT person and only two days a week. If something breaks on report night, there's nobody."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has proposed a budget of 250,000 rand for the first year, but the board must approve it",
+      "evidence": [
+        {
+          "segmentId": "e47",
+          "quote": "The finance committee has proposed 250,000 rand for the first year all in, but the board has to approve it, and they only meet on the 28th of January."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The portal must support Isizulu language and large, clear text for parents with visual impairments",
+      "evidence": [
+        {
+          "segmentId": "e44",
+          "quote": "If the notices and the main screens could be in Isizulu too, that would mean a"
+        },
+        {
+          "segmentId": "e45",
+          "quote": "big, clear text. Some of our parents struggle with their eyesight, and we have a blind parent on the PTA who uses a screen reader."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The portal should use the school's maroon color instead of a generic blue",
+      "evidence": [
+        {
+          "segmentId": "e45",
+          "quote": "please use the school's maroon, not some generic blue."
+        }
+      ]
+    },
+    {
+      "kind": "objective",
+      "status": "suggested",
+      "statement": "The client wants the portal to deliver term reports to parents by the 26th of June",
+      "evidence": [
+        {
+          "segmentId": "e49",
+          "quote": "The term \"two reports\" go out on the 26th of June. We'd like parents to get those through the"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client has a risk that if the first report day goes poorly, parents will lose trust in the portal immediately",
+      "evidence": [
+        {
+          "segmentId": "e51",
+          "quote": "A risk I see is that if the first report day goes badly, parents lose trust in the portal straight away."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The client has decided to start with a trial for grade 8 in April",
+      "evidence": [
+        {
+          "segmentId": "e52",
+          "quote": "I like that. Let's do grade 8 in April as the trial."
+        },
+        {
+          "segmentId": "e53",
+          "quote": "Agreed. Grade 8 first."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 3,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 2
+  },
+  "shown": 18
+}

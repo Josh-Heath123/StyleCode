@@ -32,8 +32,13 @@ for (const model of readdirSync(RUNS).sort()) {
     .sort()) {
     const run = JSON.parse(readFileSync(join(RUNS, model, file), 'utf8')) as RecordedRun;
     const dir = join(DIR, 'consultations', run.consultation);
-    const transcript = JSON.parse(readFileSync(join(dir, 'transcript.json'), 'utf8')) as EvalTranscript;
-    const key = JSON.parse(readFileSync(join(dir, 'answer-key.json'), 'utf8')) as AnswerKey;
+    // A run on an engine's transcript (Phase 3) names the transcript and the translated key it goes with.
+    const transcript = JSON.parse(
+      readFileSync(run.transcriptFile ? join(DIR, run.transcriptFile) : join(dir, 'transcript.json'), 'utf8'),
+    ) as EvalTranscript;
+    const key = JSON.parse(
+      readFileSync(run.keyFile ? join(DIR, run.keyFile) : join(dir, 'answer-key.json'), 'utf8'),
+    ) as AnswerKey;
     const csvPath = join(RUNS, model, file.replace(/\.json$/, '.matches.csv'));
     const settled = existsSync(csvPath) ? readSettled(readFileSync(csvPath, 'utf8')) : new Map<string, boolean>();
     const score = scoreRun(transcript, key, run.proposals, settled);

@@ -1,0 +1,176 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 1,
+  "startedAt": "2026-11-13T00:23:59.287Z",
+  "durationMs": 69018,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.hard/karoo-freight-kickoff.transcript.json",
+  "keyFile": "transcription/extraction/whisper-small-gpu+speakers-eres2net-t0.7.hard/karoo-freight-kickoff.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client misses collections because messages get buried in WhatsApp",
+      "evidence": [
+        {
+          "segmentId": "e5",
+          "quote": "We miss collections because messages get buried."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The app must ensure every collection is assigned and confirmed",
+      "evidence": [
+        {
+          "segmentId": "e10",
+          "quote": "So the app has to make sure every collection is assigned and confirmed."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Drivers need to accept jobs, mark collections as completed, take photos of labels, and get signatures",
+      "evidence": [
+        {
+          "segmentId": "e11",
+          "quote": "Accept the job, mark it collected,"
+        },
+        {
+          "segmentId": "e12",
+          "quote": "take a photo of the label, and get a signature"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The app must work offline and sync data when drivers are back online",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "It has to work offline and send everything"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The app must function without internet for drivers between Colesburg and Beaufort West",
+      "evidence": [
+        {
+          "segmentId": "e12",
+          "quote": "between Colesburg and Beaufort West, there's no signal for hours"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a tracking system from a vendor for truck locations and Sage for invoicing",
+      "evidence": [
+        {
+          "segmentId": "e17",
+          "quote": "Our trucks have a tracking system from a vendor so we can see where they are, and invoicing runs on sage"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client's MD signs off any budget above 200,000 rand",
+      "evidence": [
+        {
+          "segmentId": "e19",
+          "quote": "MD signs off anything above 200,000 rand"
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client wants a summary of the project by the end of January",
+      "evidence": [
+        {
+          "segmentId": "e19",
+          "quote": "I'd want to show her a figure by the end"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The depot at Blomfontein has unreliable internet due to load shedding",
+      "evidence": [
+        {
+          "segmentId": "e22",
+          "quote": "Blown Fontein goes down during load shedding because the router isn't on the backup battery"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "unresolved",
+      "statement": "The client has not checked how they can use driver's locations as personal information",
+      "evidence": [
+        {
+          "segmentId": "e25",
+          "quote": "Not yet. HR would have to look at that with the driver's union."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client wants to add client tracking links in a future phase",
+      "evidence": [
+        {
+          "segmentId": "e27",
+          "quote": "Eventually our clients should get a tracking link, like a courier, but not nows"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "Half of the drivers prefer the app to be in African languages",
+      "evidence": [
+        {
+          "segmentId": "e28",
+          "quote": "Africans in the app. Half my drivers would prefer it."
+        }
+      ]
+    },
+    {
+      "kind": "decision",
+      "status": "suggested",
+      "statement": "The client agrees to start with a pilot at the Blomfontein depot",
+      "evidence": [
+        {
+          "segmentId": "e30",
+          "quote": "Yes, let's do Blown Fontein first."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 0
+  },
+  "shown": 13
+}

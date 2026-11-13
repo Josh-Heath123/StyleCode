@@ -1,0 +1,5 @@
+proposal,key,reason,proposed kind,proposed statement,key kind,key statement,match
+1,K2,other-kind,operational-challenge,The client misses collections because messages get buried in WhatsApp,existing-system,"Dispatch is posted in a WhatsApp group, and someone types it into a shared spreadsheet at night.",no
+1,K20,other-kind,operational-challenge,The client misses collections because messages get buried in WhatsApp,scalability,"Karoo Freight runs forty trucks between Gauteng and the Western Cape, out of two depots, Midrand and Bloemfontein.",no
+3,K6,other-kind,functional-requirement,"Drivers need to accept jobs, mark collections as completed, take photos of the weyble, and get signatures",constraint,The driver's app must work offline for hours (no signal between Colesberg and Beaufort West) and send everything when back in range.,no
+5,K11,other-kind,existing-system,The client uses a tracking system from a vendor to monitor truck locations,future-consideration,"Pulling truck positions from the tracking system would be useful, but isn't needed at the start.",no

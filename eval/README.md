@@ -8,6 +8,7 @@ Every meeting here is role-played: the people, companies and numbers are made up
 
 | Folder | Meeting | Exported as | Turns | Findings in the key |
 | --- | --- | --- | --: | --: |
+| `bosveld-citrus-intake` | A citrus co-op's intake and grower system, an hour long (Phase 3, decision 4) | Microsoft Teams `.vtt` | 555 | 96 |
 | `karoo-freight-kickoff` | A freight company's dispatch app (the Phase 2 samples) | Microsoft Teams `.vtt` | 31 | 20 |
 | `veldt-vets-booking` | Online booking for three vet clinics | Zoom saved transcript `.txt` | 59 | 25 |
 | `umoya-school-portal` | A school's parent portal | Google Meet `.txt` | 59 | 25 |
@@ -19,7 +20,7 @@ Each folder has:
 - `answer-key.json`: the findings a careful consultant would record, each with its kind, status and the turns that support it;
 - `README.md`: the scenario, and a note on consent.
 
-**The keys.** The reviewer (Claude) drafted Karoo Freight's key, and a subagent drafted the other two. Then a subagent that hadn't seen how they were written checked all three against the transcripts. The user may correct them at any time: edit `turns`, `kind`, `status` or `statement`, then run `npm run eval:build`, which fills in the segment ids. A key's `alsoAccept` lists other kinds a careful consultant could reasonably choose, and a match on any of them counts.
+**The keys.** The reviewer (Claude) drafted Karoo Freight's key, and a subagent drafted the other two. Then a subagent that hadn't seen how they were written checked all three against the transcripts. Bosveld Citrus's key (Phase 3) was drafted by a subagent and checked by another that hadn't seen how it was written, including the findings added when the meeting was lengthened (B77 to B96). The user may correct them at any time: edit `turns`, `kind`, `status` or `statement`, then run `npm run eval:build`, which fills in the segment ids. A key's `alsoAccept` lists other kinds a careful consultant could reasonably choose, and a match on any of them counts.
 
 ## Running and scoring
 

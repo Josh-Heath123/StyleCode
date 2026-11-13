@@ -1,0 +1,1516 @@
+{
+  "consultation": "bosveld-citrus-intake",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 8192,
+  "chunks": 13,
+  "startedAt": "2026-11-13T02:25:00.976Z",
+  "durationMs": 730926,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "transcriptFile": "transcription/extraction/whisper-turbo-gpu+speakers-eres2net-t0.7.clean/bosveld-citrus-intake.transcript.json",
+  "keyFile": "transcription/extraction/whisper-turbo-gpu+speakers-eres2net-t0.7.clean/bosveld-citrus-intake.key.json",
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for generating grower statements involves manual data entry and reconciliation that takes three to four weeks after the month ends",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a handwritten carbon copy delivery ticket system with three physical copies for the weighbridge, grower, and office",
+      "evidence": [
+        {
+          "segmentId": "e19",
+          "quote": "It's a carbon book, three copies. White carpy for the grower, pink for the office, yellow stays in the book."
+        },
+        {
+          "segmentId": "e20",
+          "quote": "Handwritten. Handwritten. The weighbridge has a little computer with the scale program on it. It's called Weymate, and it prints the weight on a slip."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses an optical grader system called optisort that photographs fruit and sorts it into export and local market classes",
+      "evidence": [
+        {
+          "segmentId": "e23",
+          "quote": "The optical grader, the optisort, that photographs every fruit and sorts it into classes. Class one for export, class two for the local market, and then juice."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a spreadsheet for monthly calculations of advance payments to growers, which is manually updated by the office staff",
+      "evidence": [
+        {
+          "segmentId": "e26",
+          "quote": "Tani Marietje in the office prints them out every afternoon and files them, and then she types the totals into a spreadsheet."
+        },
+        {
+          "segmentId": "e29",
+          "quote": "So the spreadsheet is, ah, the heart of the whole thing, unfortunately. Every delivery is a row. Marietje types in the ticket from the pink copy, and then she adds the pack out from the grader report."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for handling grower payments involves manual reconciliation with the bank that takes time, causing delays in payment statements",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client needs a system to automate the calculation of advance payments to growers based on the monthly delivery data",
+      "evidence": [
+        {
+          "segmentId": "e29",
+          "quote": "So the spreadsheet is, ah, the heart of the whole thing, unfortunately. Every delivery is a row. Marietje types in the ticket from the pink copy, and then she adds the pack out from the grader report."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client needs a system to generate and distribute grower payment statements within a shorter timeframe than the current three to four weeks",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for handling the citrus packing season involves manual data entry and waiting periods that can extend up to two days for fruit to be processed",
+      "evidence": [
+        {
+          "segmentId": "e22",
+          "quote": "How long do they wait? It depends. In the peak, sometimes two days. The early mandarins have to go through to greening first, in the rooms at the back, so it can be a while."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses a weighbridge system called Weymate that prints weight on a slip and is used for delivery tickets",
+      "evidence": [
+        {
+          "segmentId": "e20",
+          "quote": "Handwritten. Handwritten. The weighbridge has a little computer with the scale program on it. It's called Weymate, and it prints the weight on a slip."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for generating monthly payment statements involves manual data entry and reconciliation that takes three to four weeks after the month ends",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Growers receive payment statements three weeks after the month ends due to manual processing and reconciliation with the bank",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Growers experience confusion about packout percentages due to manual ticketing and labeling errors",
+      "evidence": [
+        {
+          "segmentId": "e41",
+          "quote": "He delivered 30 bins two weeks ago, and he doesn't know whether they packed out at 80% or 40%"
+        },
+        {
+          "segmentId": "e44",
+          "quote": "Because the cardboard tag fell off, or the ticket number was written badly, and someone read a 7 as a 1"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Manual processing of tickets and packout data leads to frequent phone calls from growers",
+      "evidence": [
+        {
+          "segmentId": "e42",
+          "quote": "How many calls are we"
+        },
+        {
+          "segmentId": "e43",
+          "quote": "Marietje gets 40, 50 calls a day"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Growers receive payment statements with delayed information due to manual reconciliation processes",
+      "evidence": [
+        {
+          "segmentId": "e38",
+          "quote": "Um, honestly, three weeks. Sometimes more. Because everything has to be typed first and checked. And then I have to reconcile with the bank."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The current system requires manual typing of tickets and packout data by Marietje for three to four hours daily",
+      "evidence": [
+        {
+          "segmentId": "e59",
+          "quote": "Meraichi types for, what, three, four hours a day in the season"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The current system lacks traceability of bins due to cardboard tags that fall off or have poor labeling",
+      "evidence": [
+        {
+          "segmentId": "e70",
+          "quote": "The co-op has about, uh, 3,000 of its own bins that we lend out to the small growers"
+        },
+        {
+          "segmentId": "e72",
+          "quote": "Maybe the barcode is on the tag, not on the bin. A plastic tag that you clip on, and it comes back to the waybridge"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Growers receive maturity test results via WhatsApp after lab testing, but the process is paper-based",
+      "evidence": [
+        {
+          "segmentId": "e52",
+          "quote": "The QC lady takes a photo of the sheet and sends it"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "Spray records are stored in physical files and must be provided to buyers for residue testing",
+      "evidence": [
+        {
+          "segmentId": "e54",
+          "quote": "Every grower has to give us his spray records before we can pack his fruit for export because the European buyers test for residues"
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects to reduce phone calls from 50 per day to 25 per day",
+      "evidence": [
+        {
+          "segmentId": "e65",
+          "quote": "Half. If the calls go down by half, I'd be happy"
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects payment statements to be issued within five working days after the month ends",
+      "evidence": [
+        {
+          "segmentId": "e65",
+          "quote": "statements within, let's say, five working days after the month end"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers to use barcodes for bin traceability instead of cardboard tags",
+      "evidence": [
+        {
+          "segmentId": "e72",
+          "quote": "Maybe the barcode is on the tag, not on the bin. A plastic tag that you clip on, and it comes back to the waybridge"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "unresolved",
+      "statement": "The client needs to maintain manual processing of tickets and packout data for the current system",
+      "evidence": [
+        {
+          "segmentId": "e59",
+          "quote": "Meraichi types for, what, three, four hours a day in the season"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The waybridge must work offline to prevent trucks from waiting at the gate",
+      "evidence": [
+        {
+          "segmentId": "e92",
+          "quote": "It has to. We cannot stop trucks at the gate. If a truck waits, the fruit sits in the sun, and the next 20 trucks are behind it on the"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "Waymate is an old system that writes weighings to a database file and can export CSV reports",
+      "evidence": [
+        {
+          "segmentId": "e94",
+          "quote": "Waymate is old. It runs on a Windows PC under the counter at the gate. It writes every weighing to a little database file, and it can export a CSV at the end of the day."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The OptiSort system is locked down and cannot be accessed for data export without voiding the support contract",
+      "evidence": [
+        {
+          "segmentId": "e96",
+          "quote": "The OptiSort was bought in 2019 from the supplier overseas through their agent in Cape Town. Its computer is locked down. The reports come out as PDFs. There might be a database underneath, but we don't have the password and the agent says if we touch it, we void the support contract."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses Ledger 1 for accounting and creates batch files for bank payments through spreadsheets",
+      "evidence": [
+        {
+          "segmentId": "e105",
+          "quote": "We use Ledger 1 for the books. The payments to the growers go out through the bank in a batch file that I upload to the bank's business banking. The spreadsheet makes the batch file, actually. Well, it makes a list, and I copy it into the bank's template."
+        }
+      ]
+    },
+    {
+      "kind": "objective",
+      "status": "suggested",
+      "statement": "The payment calculation for advances should remain in the client's spreadsheet for Phase 1",
+      "evidence": [
+        {
+          "segmentId": "e109",
+          "quote": "Hem, honestly, keep it in my spreadsheet for now. The rules change every season. The board decides different advance rates for different cultivars and sizes, and I don't want to phone a developer every time the board changes its mind."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The new system must provide deliveries and pack-out data as an export for the client's spreadsheet",
+      "evidence": [
+        {
+          "segmentId": "e111",
+          "quote": "the new system gives him the deliveries and pack-out as an export he can open in the spreadsheet"
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "Growers can only change their bank details with a letter from the bank",
+      "evidence": [
+        {
+          "segmentId": "e122",
+          "quote": "Only me. And only with a letter from the bank."
+        }
+      ]
+    },
+    {
+      "kind": "security",
+      "status": "suggested",
+      "statement": "Changing bank details requires manual verification by the office to prevent fraud",
+      "evidence": [
+        {
+          "segmentId": "e123",
+          "quote": "Because there's fraud. M.M. We phoned, pretending to be one of our growers, and asked us to change his bank account. Luckily, Marietje knew his voice."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must work on cheap Android phones with slow internet connections without consuming excessive data",
+      "evidence": [
+        {
+          "segmentId": "e151",
+          "quote": "So whatever the grower's use has to work on a cheap Android phone, on a slow connection, without eating their data."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "Growers need to see their own deliveries and pack-outs but not bank details or payments",
+      "evidence": [
+        {
+          "segmentId": "e118",
+          "quote": "A grower must only see his own stuff. If grower can see what grower be got paid, I'll have a war on my hands."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must store data in South African data centers to comply with legal requirements",
+      "evidence": [
+        {
+          "segmentId": "e137",
+          "quote": "The board said the data must stay in South Africa. One of our members is a lawyer, and he was very firm about that at the last meeting."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must have an audit trail for changes to deliveries, including who made the change, when, and the reason",
+      "evidence": [
+        {
+          "segmentId": "e128",
+          "quote": "audit trail on every change to a delivery. Who changed it? When, what it was before, and the reason."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The system must not require additional apps for growers to avoid data download issues",
+      "evidence": [
+        {
+          "segmentId": "e152",
+          "quote": "I don't want them to have to download an app. Last time somebody made us an app. For the, ah, the study group, nobody installed it. Twelve people out of a hundred and forty."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must not store bank details on the tablet at the gate to prevent theft",
+      "evidence": [
+        {
+          "segmentId": "e142",
+          "quote": "Then it should need a PIN or a login, and it shouldn't hold more than it needs. The day's deliveries and the grower list, not bank details."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "Growers keep records for five years due to tax requirements, but some records are damaged by mice",
+      "evidence": [
+        {
+          "segmentId": "e145",
+          "quote": "The orderers say five years for anything financial. The tickets we keep, ah, I think also five years in boxes in the storeroom. The mice eat some of them."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must allow for manual updates of bank details with verification to prevent fraud",
+      "evidence": [
+        {
+          "segmentId": "e122",
+          "quote": "Only me. And only with a letter from the bank."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must send SMS notifications when a grower's batch is graded with delivery details and a link to view the rest",
+      "evidence": [
+        {
+          "segmentId": "e156",
+          "quote": "When their batch is graded. Your delivery number four, four, seven, one, packed out at 78% class one, something like that, with a link to see the"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must allow growers to log in using an SMS code sent to their existing phone number without requiring passwords",
+      "evidence": [
+        {
+          "segmentId": "e165",
+          "quote": "One option is a code sent by SMS to the phone number you already have on file for them. They type the code, and they are in."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must be usable on cheap Android phones with slow connections without consuming data",
+      "evidence": [
+        {
+          "segmentId": "e151",
+          "quote": "So whatever the grower's use has to work on a cheap Android phone, on a slow connection, without eating their data."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must have a rugged tablet at Weybridge that is readable in sunlight and can be charged daily",
+      "evidence": [
+        {
+          "segmentId": "e180",
+          "quote": "A rugged one. The PC is under the counter, and the clerk has to go inside the little office to use it, while the driver waits."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must use English as the primary language with possible additional translations for zitsonga and afrikaans",
+      "evidence": [
+        {
+          "segmentId": "e170",
+          "quote": "English Afrikaans zitsonga sepedi. Most of the small growers are zitsonga speakers."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must print a small slip for each grower's delivery when the truck leaves",
+      "evidence": [
+        {
+          "segmentId": "e190",
+          "quote": "A small printed slip is fine, like a till slip. So a small printer next to the tablet, that prints a slip for each grower on the truck."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "Growers change their phone numbers, so the system must update phone numbers through the office like bank details",
+      "evidence": [
+        {
+          "segmentId": "e167",
+          "quote": "updating a phone number would go through the office, like the bank details, so nobody can take over someone else's account by changing the number."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must handle up to 70 trucks per day with varying bin counts per truck",
+      "evidence": [
+        {
+          "segmentId": "e198",
+          "quote": "In the peak, 60, 70 trucks."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must allow for quick entry of paper tickets after the tablet breaks",
+      "evidence": [
+        {
+          "segmentId": "e195",
+          "quote": "I'll write it down as a strong preference for a rugged tablet at the Weybridge, and I'll check the hardware cost."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to split one truck's weight across several growers by their number of bins without weighing each bin individually",
+      "evidence": [
+        {
+          "segmentId": "e202",
+          "quote": "one truck comes over the Weybridge with seven grower's bins on it. We weigh the whole truck, and then we have to split the weight by grower, by the number of bins each one has on the truck."
+        },
+        {
+          "segmentId": "e205",
+          "quote": "can't weigh each bin"
+        },
+        {
+          "segmentId": "e206",
+          "quote": "the full truck minus the empty truck, divided by the bins, and each grower gets his share."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for handling truck deliveries at Weybridge takes four to five minutes per truck during peak times",
+      "evidence": [
+        {
+          "segmentId": "e212",
+          "quote": "Four, five minutes when it's going well."
+        },
+        {
+          "segmentId": "e213",
+          "quote": "The riding takes the time."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must capture a delivery at Weybridge in under a minute for the clerk",
+      "evidence": [
+        {
+          "segmentId": "e216",
+          "quote": "What would be good enough for the clerk? Under a minute."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must handle up to 2,400 bins per day during peak periods",
+      "evidence": [
+        {
+          "segmentId": "e218",
+          "quote": "2,400 bins in one day."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must handle up to 1,800 bins per day during normal season periods",
+      "evidence": [
+        {
+          "segmentId": "e211",
+          "quote": "about 1,800 bins a day at the peak."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a process where the contractor collects from multiple growers in one trip and splits the weight by number of bins",
+      "evidence": [
+        {
+          "segmentId": "e202",
+          "quote": "one truck comes over the Weybridge with seven grower's bins on it. We weigh the whole truck, and then we have to split the weight by grower, by the number of bins each one has on the truck."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current process for generating daily reports for management takes time because the clerk manually looks up information in a notebook",
+      "evidence": [
+        {
+          "segmentId": "e238",
+          "quote": "It's a very good notebook. It's a very good notebook, but when I'm in Johannesburg at the citrus meeting, I can't walk over."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must provide a daily summary for management showing bins received and packout per cultivar for the previous day",
+      "evidence": [
+        {
+          "segmentId": "e240",
+          "quote": "daily summary for management, bins received, and the packout per cultivar for the day before"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must send a daily email summary to management at six in the morning",
+      "evidence": [
+        {
+          "segmentId": "e241",
+          "quote": "An email at six in the morning would be perfect"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must handle up to 162 growers with multiple users per farm",
+      "evidence": [
+        {
+          "segmentId": "e224",
+          "quote": "a hundred and sixty-two"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must load a grower's page in three seconds on a 3G connection",
+      "evidence": [
+        {
+          "segmentId": "e232",
+          "quote": "three seconds on a 3G connection"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must handle a 10% annual increase in volume for the next five years",
+      "evidence": [
+        {
+          "segmentId": "e222",
+          "quote": "10% more volume a year for the next five years"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must generate a monthly report for the board including volumes, packout, and advances paid",
+      "evidence": [
+        {
+          "segmentId": "e243",
+          "quote": "The board wants a monthly report. Volumes, packout, advances paid."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The client needs a daily summary for management that includes bins received and packout per cultivar for the previous day",
+      "evidence": [
+        {
+          "segmentId": "e240",
+          "quote": "daily summary for management, bins received, and the packout per cultivar for the day before"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should indicate when a delivery's last bin has been scanned at the tipper to close the batch on the grader",
+      "evidence": [
+        {
+          "segmentId": "e247",
+          "quote": "the line knows to close the batch on the grader"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The current process requires the line foreman to shout to the grader operator to identify the last bin of a delivery",
+      "evidence": [
+        {
+          "segmentId": "e247",
+          "quote": "He shouts. He shouts. He shouts. Last bin, four, four, four, seven, one."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client currently uses a spreadsheet for monthly reports including volumes, packout, and advances paid",
+      "evidence": [
+        {
+          "segmentId": "e243",
+          "quote": "I make that by hand, too, in the spreadsheet"
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has approved a budget of 580,000 rand excluding VAT for the system development and up to 4,500 rand per month for running costs",
+      "evidence": [
+        {
+          "segmentId": "e265",
+          "quote": "The board approves an amount of up to 580,000 rand, excluding VAT, for the development of a grower information system and running costs of up to 4,500 rand per month"
+        }
+      ]
+    },
+    {
+      "kind": "performance",
+      "status": "suggested",
+      "statement": "The system must be ready for the weighbridge intake by March 1, 2027",
+      "evidence": [
+        {
+          "segmentId": "e284",
+          "quote": "The intake at the Weybridge must be working by the 1st of March"
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers the export to be per grower, per cultivar, per class for the month with totals and delivery numbers",
+      "evidence": [
+        {
+          "segmentId": "e277",
+          "quote": "Totals, and the delivery numbers next to them"
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The client has a constraint that the weighbridge clerks are comfortable with computers but the tipper staff are less comfortable",
+      "evidence": [
+        {
+          "segmentId": "e254",
+          "quote": "They use the weighmate screen"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client currently uses a notebook for daily tracking of bins received and packout per cultivar",
+      "evidence": [
+        {
+          "segmentId": "e238",
+          "quote": "It's a very good notebook"
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The Weybridge system must be live by March 1, 2027 to handle fruit intake before the season starts",
+      "evidence": [
+        {
+          "segmentId": "e284",
+          "quote": "The intake at the Weybridge must be working by the 1st of March."
+        },
+        {
+          "segmentId": "e285",
+          "quote": "The Weybridge intake live by the 1st of March, 2027."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "Grower pages must be available by the end of April to allow growers to view their statements",
+      "evidence": [
+        {
+          "segmentId": "e284",
+          "quote": "The grower pages can come a bit later."
+        },
+        {
+          "segmentId": "e285",
+          "quote": "The grower pages by the end of April."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must warn clerks when a grower hasn't provided spray records for export",
+      "evidence": [
+        {
+          "segmentId": "e304",
+          "quote": "If a grower hasn't given us his spray records, the Weybridge must warn the clerk that this fruit can't go for export."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system must mark deliveries as not for export when spray records are missing",
+      "evidence": [
+        {
+          "segmentId": "e309",
+          "quote": "missing spray records mark a delivery as not for export at the Weybridge and at the tipper."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "Grower data is messy with inconsistent columns and different years having different data entry methods",
+      "evidence": [
+        {
+          "segmentId": "e294",
+          "quote": "The old data is messy. Different years, different columns. Some years Marachi's niece did the typing."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "Growers must upload spray records for each orchard block before export",
+      "evidence": [
+        {
+          "segmentId": "e303",
+          "quote": "The growers could upload their spray records on the portal for each orchard block."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system must integrate with the existing process where growers provide spray records via paper, email, or WhatsApp",
+      "evidence": [
+        {
+          "segmentId": "e302",
+          "quote": "Paper, email, photos on WhatsApp, whatever they like."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must be able to handle Saturday mornings when growers check their pages",
+      "evidence": [
+        {
+          "segmentId": "e331",
+          "quote": "Saturday morning is when the growers have time to look."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The system must include the truck registration and driver's name for gate security",
+      "evidence": [
+        {
+          "segmentId": "e328",
+          "quote": "the truck registration and the driver's name. For the gate security so we know who was on the property."
+        }
+      ]
+    },
+    {
+      "kind": "open-question",
+      "status": "unresolved",
+      "statement": "Whether digital spray records are acceptable to auditors",
+      "evidence": [
+        {
+          "segmentId": "e310",
+          "quote": "I don't know. I think digital is fine, but I'd have to ask them."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to track the empty weight of vehicles for accurate weighing, but currently the empty weight is recorded on a list stuck on the wall that is updated only once per season",
+      "evidence": [
+        {
+          "segmentId": "e370",
+          "quote": "The registration and the tear weight. How often is the list updated?"
+        },
+        {
+          "segmentId": "e371",
+          "quote": "Honestly, it's every season. At the start of the season, we weigh every vehicle empty and"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should include the driver's name in the intake screen for gate security purposes",
+      "evidence": [
+        {
+          "segmentId": "e328",
+          "quote": "the driver's name. For the gate security so we know who was on the property"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should show the packout immediately after grading or only after the clerk checks it, depending on the client's preference",
+      "evidence": [
+        {
+          "segmentId": "e336",
+          "quote": "Should the grower see the packout immediately or only after I've checked the report?"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow growers to raise queries about packouts directly on their page without having to phone the clerk",
+      "evidence": [
+        {
+          "segmentId": "e341",
+          "quote": "Could the grower raise a query on his page instead? He presses a button on that delivery, writes what's wrong and it lands with you with the delivery, the scans and the grader report attached"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should display the average packout performance for growers, calculated per cultivar for the week, but only when at least five growers are active in the system",
+      "evidence": [
+        {
+          "segmentId": "e354",
+          "quote": "The grower would see his pack out next to an average. The average of all the growers for that cultivar for that week"
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should show the size groups in the packout report for growers to see how they are priced",
+      "evidence": [
+        {
+          "segmentId": "e360",
+          "quote": "The grader doesn't only give the classes. It gives the sizes, too. The count how many fruit fit in a carton"
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system should send a warning when a vehicle's empty weight is more than a month old, to prevent inaccurate payments due to trailer modifications",
+      "evidence": [
+        {
+          "segmentId": "e373",
+          "quote": "must remind us when a tear weight is old, say, older than a month, because a farmer puts new sides on his trailer and suddenly it's heavier and then he gets paid for wood, not oranges"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs a system to track where deliveries are in the holding area and how long they've been waiting",
+      "evidence": [
+        {
+          "segmentId": "e376",
+          "quote": "Do you need to know where the bins are in there?"
+        },
+        {
+          "segmentId": "e377",
+          "quote": "Oh, yes. That's my other headache. The mandarins go into the degreening rooms. We have four"
+        },
+        {
+          "segmentId": "e378",
+          "quote": "They stay there two, three days with the atheline and the oranges wait in rows in the holding area under the roof with the forklifts going up and down and sometimes a delivery gets forgotten in a corner behind the others. Forgotten."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has forgotten deliveries in the holding area that have been waiting for up to six days",
+      "evidence": [
+        {
+          "segmentId": "e379",
+          "quote": "Forgotten. Last season, we found twelve bins of nadderkarts that had been in the holding area for six days. They were salved."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to know which deliveries are waiting in the degreening rooms and for how long",
+      "evidence": [
+        {
+          "segmentId": "e382",
+          "quote": "So it would help to see which deliveries"
+        },
+        {
+          "segmentId": "e383",
+          "quote": "are waiting, where, and for how long."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs a system to alert when a delivery has been waiting more than three days in the holding area",
+      "evidence": [
+        {
+          "segmentId": "e384",
+          "quote": "Yes. A list of what's waiting, oldest first, and in which room. And if something has been waiting more than"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs a way to scan deliveries moving into degreening rooms without requiring the forklift driver to scan",
+      "evidence": [
+        {
+          "segmentId": "e385",
+          "quote": "Who would tell the system that a delivery has moved into a degreening room. Is that another scan? Hum. The forklift"
+        },
+        {
+          "segmentId": "e386",
+          "quote": "driver."
+        },
+        {
+          "segmentId": "e387",
+          "quote": "But he won't scan."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to know the number of cartons packed per cultivar and class for the export agent by Monday morning",
+      "evidence": [
+        {
+          "segmentId": "e402",
+          "quote": "Every week they want to know how many cartons we packed per cultivar and class and what's in the cold store waiting for a container. They plan the ships from that so if our numbers are late our fruit misses a ship."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client currently uses a spreadsheet to generate reports for the export agent, taking an hour or more each Monday",
+      "evidence": [
+        {
+          "segmentId": "e405",
+          "quote": "I make a spreadsheet and email it. It takes me an hour, an hour and a half every Monday."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a problem with the Wi-Fi not reaching inside the degreening rooms, requiring additional access points",
+      "evidence": [
+        {
+          "segmentId": "e391",
+          "quote": "The Wi-Fi doesn't reach inside the degreening rooms. The walls are insulated panels."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to track the cold store pallets separately from the holding area deliveries",
+      "evidence": [
+        {
+          "segmentId": "e408",
+          "quote": "The cold store is pallets. That's a different thing."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client has a system where one phone number can belong to multiple growers, causing privacy concerns",
+      "evidence": [
+        {
+          "segmentId": "e419",
+          "quote": "Yeah, but then the mother sees the son's payment."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "When growers share a phone, does whoever has the phone see all of those growers or does each grower need his own number?",
+      "evidence": [
+        {
+          "segmentId": "e422",
+          "quote": "When growers share a phone, does whoever has the phone see all of those growers or does each grower need his own number? It touches the rule that a grower only sees his own."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should allow one phone number to belong to multiple grower numbers",
+      "evidence": [
+        {
+          "segmentId": "e415",
+          "quote": "The Mothebula family, for example, one phone for three grower numbers."
+        },
+        {
+          "segmentId": "e417",
+          "quote": "The Mothebula family, for example, one phone for three grower numbers."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should show the packing fee per carton, the bin higher for growers who use the co-op's bins, and transport costs if they used the co-op's truck",
+      "evidence": [
+        {
+          "segmentId": "e425",
+          "quote": "The packing fee per carton, the bin higher for the growers who use the co-op's bins. That's 35 rand per bin per season. Transport if they used our truck, but that's only a few. And the levees."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The system should display the previous month's payment and current month's payment for comparison",
+      "evidence": [
+        {
+          "segmentId": "e425",
+          "quote": "And at the bottom, what he got last month and what he got this month because they always compare."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow growers to update their own blocks on their page with approval from the office",
+      "evidence": [
+        {
+          "segmentId": "e449",
+          "quote": "Update yes, but someone in the office must approve it. Otherwise, they'll make mistakes and the spray records go with the block."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow growers to update their hectares on their page with approval from the office",
+      "evidence": [
+        {
+          "segmentId": "e452",
+          "quote": "And the hectares."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The system should collect crop estimates from growers in February for the upcoming season",
+      "evidence": [
+        {
+          "segmentId": "e453",
+          "quote": "Every grower sends us an estimate in February. How many bins they expect?"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers replant blocks or pull out navels and plant mandarins",
+      "evidence": [
+        {
+          "segmentId": "e444",
+          "quote": "When a grower replants a block or pulls out navels and plants mandarins, how do you hear about it?"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers make mistakes in cultivar assignments",
+      "evidence": [
+        {
+          "segmentId": "e447",
+          "quote": "writes the wrong cultivar and it goes into the wrong batch."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their blocks and hectares",
+      "evidence": [
+        {
+          "segmentId": "e450",
+          "quote": "So the grower proposes the change and the office approves it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers send crop estimates in February",
+      "evidence": [
+        {
+          "segmentId": "e455",
+          "quote": "On a form, paper, and Maraichi phones the ones who don't send it, which is most of them."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their bank details",
+      "evidence": [
+        {
+          "segmentId": "e451",
+          "quote": "Yeah, like the bank details but less strict."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their crop estimates",
+      "evidence": [
+        {
+          "segmentId": "e457",
+          "quote": "It would help a lot, but I don't know if it's for this year. February is when everything else is happening."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their block information",
+      "evidence": [
+        {
+          "segmentId": "e454",
+          "quote": "How do they send it?"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their block information with approval from the office",
+      "evidence": [
+        {
+          "segmentId": "e449",
+          "quote": "Update yes, but someone in the office must approve it. Otherwise, they'll make mistakes and the spray records go with the block."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their block information with approval from the office",
+      "evidence": [
+        {
+          "segmentId": "e450",
+          "quote": "So the grower proposes the change and the office approves it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The system should allow the office to track when growers update their block information with approval from the office",
+      "evidence": [
+        {
+          "segmentId": "e451",
+          "quote": "Yeah, like the bank details but less strict."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client needs to ensure that the system is accessible to small growers through study group days where they can view it on their phones",
+      "evidence": [
+        {
+          "segmentId": "e465",
+          "quote": "Yeah, we'll have to do something at the study group days. Show them on their phones."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses outdated membership forms from 2005 that do not specify how they use Popia information",
+      "evidence": [
+        {
+          "segmentId": "e470",
+          "quote": "The forms are from 2005. Nothing about Popia."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must be available during working hours from 6 AM to 6 PM, Monday to Saturday, with maintenance occurring outside of working hours or during off-season",
+      "evidence": [
+        {
+          "segmentId": "e476",
+          "quote": "So in the season, the grower pages should be up during working hours, say 6 in the morning to 6 at night, Monday to Saturday, and any maintenance happens at night or out of season."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must have daily backups stored in a second location within South Africa",
+      "evidence": [
+        {
+          "segmentId": "e478",
+          "quote": "Daily backups, kept in a second location, also in South Africa."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has a hardware budget that includes tablets costing approximately eight and a half thousand rand each, with two tablets needed for the Weybridge and Tipper locations plus a spare",
+      "evidence": [
+        {
+          "segmentId": "e482",
+          "quote": "the tablets, I can get rugged ones from a supplier in Poliquin, I think about eight and a half thousand rand each. We'd need two, one at the Weybridge and one at the Tipper plus a spare."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client plans to merge with the Blyde Co-op, which has about 60 growers, potentially requiring the system to handle a second packhouse in two to three years",
+      "evidence": [
+        {
+          "segmentId": "e490",
+          "quote": "there's talk of merging with the co-op in Hodesprout, the Blyde Co-op. They're smaller, about 60 growers. Nothing is signed, but it's on the boards table. If that happens, there'd be a second packhouse."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client loses approximately one hundred bins annually due to poor tracking, with some bins being on farms or in people's gardens with tomatoes",
+      "evidence": [
+        {
+          "segmentId": "e496",
+          "quote": "We lose about a hundred a year. Nobody knows where they are. Some of them are on farms. Some of them are, I think, in people's gardens with tomatoes growing in them."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects a fixed price for phase one with a separate cost for the greater connection, and training for clerks, Marietje, Sifo, and a short manual with pictures",
+      "evidence": [
+        {
+          "segmentId": "e502",
+          "quote": "A price. A fixed price, please. The board doesn't like open-ended things. Last time we paid by the hour and the hours never stopped."
+        }
+      ]
+    },
+    {
+      "kind": "non-functional-requirement",
+      "status": "suggested",
+      "statement": "The system must be available for at least one hour during the season without interruption for the growers' pages",
+      "evidence": [
+        {
+          "segmentId": "e475",
+          "quote": "For the growers' pages, an hour is fine. A day is not fine. The phones start again."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The hosting account must be in the co-op's name to prevent loss of the website when developers move away",
+      "evidence": [
+        {
+          "segmentId": "e499",
+          "quote": "The hosting account must be in the co-op's name. Not yours, not mine. The last developer had everything in his own name, and when he moved to Australia, we lost the website."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the consultant to provide training for clerks and specific individuals with a short manual that includes pictures",
+      "evidence": [
+        {
+          "segmentId": "e502",
+          "quote": "Good, and we want training for the clerks and for Marietje and Sifo and a manual, a short one."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the consultant to include seasonal support for the system that can be contacted on Saturday mornings in May",
+      "evidence": [
+        {
+          "segmentId": "e504",
+          "quote": "someone we can phone when it breaks on a Saturday morning in May because it will break on a Saturday morning in May."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the consultant to show progress updates every two weeks for half an hour via Teams",
+      "evidence": [
+        {
+          "segmentId": "e508",
+          "quote": "Every two weeks, a short update. Half an hour on Teams is fine."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the consultant to design the main screens first and review them with a few growers before building anything",
+      "evidence": [
+        {
+          "segmentId": "e507",
+          "quote": "Yes, I'll design the main screens first and we'll go through them together with a few of the growers too before anything gets built."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "unresolved",
+      "statement": "The client has not yet determined who at the co-op will handle day-to-day system tasks such as adding growers, clerks, or resetting tablets",
+      "evidence": [
+        {
+          "segmentId": "e511",
+          "quote": "Who at the co-op would look after the system day-to-day? Adding a new grower, a new clerk, resetting a tablet."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The consultant will send a summary of the meeting by Friday and a fixed-price proposal for Phase 1 within two weeks",
+      "evidence": [
+        {
+          "segmentId": "e518",
+          "quote": "I'll send you a summary of today by Friday and a proposal with a fixed price for Phase 1 within two weeks."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 22,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 13
+  },
+  "shown": 94
+}

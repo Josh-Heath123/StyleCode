@@ -1,0 +1,268 @@
+{
+  "consultation": "karoo-freight-kickoff",
+  "title": "Karoo Freight dispatch app kick-off",
+  "startsAt": "2026-11-05T08:00:00.000Z",
+  "timeZone": "Africa/Johannesburg",
+  "source": {
+    "fileName": "whisper-small-gpu+speakers-eres2net-t0.7.clean",
+    "layout": "transcribed"
+  },
+  "segments": [
+    {
+      "id": "e1",
+      "turn": "E1",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 910,
+      "endMs": 16490,
+      "text": "Morning, everyone. Thanks for making the time. Before we start, I'd like to confirm what we agreed by email. I'm using the meeting's transcript to write up the requirements, and the AI that helps me runs on my own computer. Is that still fine with both of you?"
+    },
+    {
+      "id": "e2",
+      "turn": "E2",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 16600,
+      "endMs": 18500,
+      "text": "Yes, that's fine with me."
+    },
+    {
+      "id": "e3",
+      "turn": "E3",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 18500,
+      "endMs": 29000,
+      "text": "You're fine. Thank you. So the goal today is to understand how dispatch works now, and what the app has to do. Tandy, do you want to start with the problem?"
+    },
+    {
+      "id": "e4",
+      "turn": "E4",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 29000,
+      "endMs": 32110,
+      "text": "Sure. We run 40 trucks between Gorteng and the Western"
+    },
+    {
+      "id": "e5",
+      "turn": "E5",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 32110,
+      "endMs": 46500,
+      "text": "Cape, out of two depots, Midrand and Blomfontein. Dispatch happens on WhatsApp. The controller posts the collections in a group, the drivers reply, and then somebody types it all into a shared spreadsheet at night. We miss collections because messages get buried."
+    },
+    {
+      "id": "e6",
+      "turn": "E6",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 46500,
+      "endMs": 49400,
+      "text": "How many collections is that on a normal"
+    },
+    {
+      "id": "e7",
+      "turn": "E7",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 49400,
+      "endMs": 55000,
+      "text": "day? About 120 a day. In November and December it roughly doubles."
+    },
+    {
+      "id": "e8",
+      "turn": "E8",
+      "speakerLabel": "Pieter van Wyk",
+      "startMs": 55000,
+      "endMs": 55750,
+      "text": "On the bad"
+    },
+    {
+      "id": "e9",
+      "turn": "E9",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 56030,
+      "endMs": 61480,
+      "text": "days in December we've had 260. And what does a missed collection cost"
+    },
+    {
+      "id": "e10",
+      "turn": "E10",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 61480,
+      "endMs": 70130,
+      "text": "you? A re-delivery is about 1800 rand, and we lose the client's trust which is worse. Last December we lost one retail account over it. So"
+    },
+    {
+      "id": "e11",
+      "turn": "E11",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 70130,
+      "endMs": 77000,
+      "text": "the app has to make sure every collection is assigned and confirmed. What does a driver need to do on the road?"
+    },
+    {
+      "id": "e12",
+      "turn": "E12",
+      "speakerLabel": "Pieter van Wyk",
+      "startMs": 77000,
+      "endMs": 90010,
+      "text": "Accept the job, mark it collected, take a photo of the label, and get a signature. But you must understand, between Colesburg and Beaufort West, there's no signal for hours. It has to work offline and send everything when they're"
+    },
+    {
+      "id": "e13",
+      "turn": "E13",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 90010,
+      "endMs": 94700,
+      "text": "back in range. That's an important constraint. Do the drivers all have"
+    },
+    {
+      "id": "e14",
+      "turn": "E14",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 95020,
+      "endMs": 96000,
+      "text": "smartphones?"
+    },
+    {
+      "id": "e15",
+      "turn": "E15",
+      "speakerLabel": "Pieter van Wyk",
+      "startMs": 96000,
+      "endMs": 104770,
+      "text": "Most have Android phones, their own. I think they all do, but I'd have to check. A few of the older guys still use basic phones."
+    },
+    {
+      "id": "e16",
+      "turn": "E16",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 105000,
+      "endMs": 108800,
+      "text": "We'd rather not buy phones for everyone if we can avoid it."
+    },
+    {
+      "id": "e17",
+      "turn": "E17",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 109000,
+      "endMs": 112810,
+      "text": "Understood. Which systems would this have to work with?"
+    },
+    {
+      "id": "e18",
+      "turn": "E18",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 113000,
+      "endMs": 124000,
+      "text": "Our trucks have a tracking system from a vendor so we can see where they are, and invoicing runs on sage. It would be nice if the app could pull positions from the tracking system, but it's not essential at the start."
+    },
+    {
+      "id": "e19",
+      "turn": "E19",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 124000,
+      "endMs": 126060,
+      "text": "Who decides on the budget for"
+    },
+    {
+      "id": "e20",
+      "turn": "E20",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 126360,
+      "endMs": 136020,
+      "text": "this? Our MD signs off anything above 200,000 rand. I'd want to show her a figure by the end of January. Sorry I'm late, I was stuck in another call. I look"
+    },
+    {
+      "id": "e21",
+      "turn": "E21",
+      "speakerLabel": "Lerato Dlamini (Guest)",
+      "startMs": 136090,
+      "endMs": 139000,
+      "text": "after their network and the depot computers."
+    },
+    {
+      "id": "e22",
+      "turn": "E22",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 139000,
+      "endMs": 145240,
+      "text": "Welcome, Lerato. We were just talking about offline use. How reliable is the internet at the"
+    },
+    {
+      "id": "e23",
+      "turn": "E23",
+      "speakerLabel": "Lerato Dlamini (Guest)",
+      "startMs": 145250,
+      "endMs": 154450,
+      "text": "depots? Mid-Rand is fine. Blown Fontaine goes down during load shedding because the router isn't on the backup battery. That should be fixed, but it isn't"
+    },
+    {
+      "id": "e24",
+      "turn": "E24",
+      "speakerLabel": "Pieter van Wyk",
+      "startMs": 154450,
+      "endMs": 158000,
+      "text": "yet. And when it's down, the controller can't see anything."
+    },
+    {
+      "id": "e25",
+      "turn": "E25",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 158000,
+      "endMs": 169000,
+      "text": "Then the controller's screen needs to cope with the depot being offline too. One more thing, driver's locations are personal information. Have you checked how you're allowed to use them?"
+    },
+    {
+      "id": "e26",
+      "turn": "E26",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 169000,
+      "endMs": 172800,
+      "text": "Not yet. HR would have to look at that with the driver's union."
+    },
+    {
+      "id": "e27",
+      "turn": "E27",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 173000,
+      "endMs": 180000,
+      "text": "I'll note it as an open question. Last thing is there anything you'd want later, but not in the first version?"
+    },
+    {
+      "id": "e28",
+      "turn": "E28",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 180000,
+      "endMs": 185300,
+      "text": "Eventually our clients should get a tracking link, like a courier, but not nows. And"
+    },
+    {
+      "id": "e29",
+      "turn": "E29",
+      "speakerLabel": "Pieter van Wyk",
+      "startMs": 186030,
+      "endMs": 190000,
+      "text": "Africans in the app, half my drivers would prefer it."
+    },
+    {
+      "id": "e30",
+      "turn": "E30",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 190000,
+      "endMs": 199000,
+      "text": "Good. My suggestion is to start with a pilot at the Blown Fontaine depot since it has the hardest conditions. Does that work?"
+    },
+    {
+      "id": "e31",
+      "turn": "E31",
+      "speakerLabel": "Thandi Mokoena",
+      "startMs": 199000,
+      "endMs": 201880,
+      "text": "Yes, let's do Blown Fontaine first. Great. I'll"
+    },
+    {
+      "id": "e32",
+      "turn": "E32",
+      "speakerLabel": "Sam Naidoo",
+      "startMs": 202030,
+      "endMs": 206000,
+      "text": "send a summary this afternoon. Thank you everyone."
+    }
+  ]
+}

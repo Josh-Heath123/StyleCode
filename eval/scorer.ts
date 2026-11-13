@@ -234,7 +234,10 @@ function csvField(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
-/** The unclear pairs, for a person to settle: write yes or no in the last column. Answers already given are kept. */
+/**
+ * The unclear pairs, for a person to settle: write yes or no in the last column. Answers already given are kept.
+ * Lines end in LF, as git stores them (.gitattributes), so scoring again never rewrites a settled file.
+ */
 export function unclearCsv(score: Score, answers: AnswerKey, proposals: RunProposal[], settled: Settled = new Map()): string {
   const rows = score.unclear.map((u) => {
     const p = proposals[u.proposal - 1];
@@ -251,7 +254,7 @@ export function unclearCsv(score: Score, answers: AnswerKey, proposals: RunPropo
       answer === undefined ? '' : answer ? 'yes' : 'no',
     ];
   });
-  return [CSV_HEADER, ...rows].map((r) => r.map(csvField).join(',')).join('\r\n') + '\r\n';
+  return [CSV_HEADER, ...rows].map((r) => r.map(csvField).join(',')).join('\n') + '\n';
 }
 
 /** Reads one CSV row at a time, with quoted fields. */

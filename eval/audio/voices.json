@@ -1,0 +1,85 @@
+{
+  "about": "One Kokoro v1.0 voice per speaker, by the speaker label in the meeting's transcript.json (Phase 3 brief, decision 2). Each meeting mixes men and women and both accents, and has at least one pair of speakers of the same sex and accent, the hardest case for telling speakers apart. The voices are synthetic; their sex and accent need not match the role-played person's.",
+  "tool": "sherpa-onnx v1.13.8 with kokoro-multi-lang-v1_0 (eval/audio/tools.ts)",
+  "meetings": {
+    "karoo-freight-kickoff": {
+      "Sam Naidoo": {
+        "voice": "am_michael",
+        "accent": "us"
+      },
+      "Thandi Mokoena": {
+        "voice": "bf_emma",
+        "accent": "gb"
+      },
+      "Pieter van Wyk": {
+        "voice": "bm_george",
+        "accent": "gb"
+      },
+      "Lerato Dlamini (Guest)": {
+        "voice": "bf_isabella",
+        "accent": "gb"
+      }
+    },
+    "umoya-school-portal": {
+      "Priya Govender": {
+        "voice": "bf_alice",
+        "accent": "gb"
+      },
+      "Lindiwe Zulu": {
+        "voice": "af_nicole",
+        "accent": "us"
+      },
+      "Graham Fortuin": {
+        "voice": "am_fenrir",
+        "accent": "us"
+      },
+      "Ayanda Ngcobo": {
+        "voice": "am_puck",
+        "accent": "us"
+      }
+    },
+    "veldt-vets-booking": {
+      "Nomvula Khumalo": {
+        "voice": "af_heart",
+        "accent": "us"
+      },
+      "Hennie Swanepoel": {
+        "voice": "bm_fable",
+        "accent": "gb"
+      },
+      "Charmaine Pillay": {
+        "voice": "af_bella",
+        "accent": "us"
+      }
+    },
+    "bosveld-citrus-intake": {
+      "Ayesha Patel": {
+        "voice": "af_sarah",
+        "accent": "us"
+      },
+      "Johan Steenkamp": {
+        "voice": "bm_daniel",
+        "accent": "gb"
+      },
+      "Precious Maluleke": {
+        "voice": "bf_lily",
+        "accent": "gb"
+      },
+      "Sipho Ngobeni": {
+        "voice": "bm_lewis",
+        "accent": "gb"
+      },
+      "Ruan du Toit (Guest)": {
+        "voice": "am_eric",
+        "accent": "us"
+      }
+    }
+  },
+  "sameSexAndAccent": {
+    "karoo-freight-kickoff": ["Thandi Mokoena", "Lerato Dlamini (Guest)"],
+    "umoya-school-portal": ["Graham Fortuin", "Ayanda Ngcobo"],
+    "veldt-vets-booking": ["Nomvula Khumalo", "Charmaine Pillay"],
+    "bosveld-citrus-intake": ["Johan Steenkamp", "Sipho Ngobeni"]
+  },
+  "swaps": []
+}

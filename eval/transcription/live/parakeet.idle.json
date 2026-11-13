@@ -1,0 +1,940 @@
+{
+  "engine": "parakeet",
+  "condition": "idle",
+  "meeting": "bosveld-citrus-intake",
+  "pieceMs": 30000,
+  "audioMs": 1200000,
+  "pieces": 40,
+  "failed": 0,
+  "lagMs": {
+    "median": 4562,
+    "p90": 4810,
+    "max": 5608
+  },
+  "meanWordDelayMs": 19947,
+  "at": "2026-11-13T07:30:09.435Z",
+  "hardware": {
+    "computer": "Intel Core i7-12700H, 16 GB RAM, Windows 11",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB",
+    "power": "plugged in, OMEN performance mode, Windows best performance, lid open"
+  },
+  "gpu": {
+    "peakMemoryMiB": 336,
+    "samples": [
+      {
+        "atMs": 1082,
+        "clockMHz": 270,
+        "temperatureC": 87,
+        "memoryMiB": 197,
+        "utilisation": 17,
+        "powerW": 26.84
+      },
+      {
+        "atMs": 16179,
+        "clockMHz": 570,
+        "temperatureC": 84,
+        "memoryMiB": 198,
+        "utilisation": 29,
+        "powerW": 20.93
+      },
+      {
+        "atMs": 31753,
+        "clockMHz": 600,
+        "temperatureC": 82,
+        "memoryMiB": 197,
+        "utilisation": 30,
+        "powerW": 20.36
+      },
+      {
+        "atMs": 46884,
+        "clockMHz": 555,
+        "temperatureC": 80,
+        "memoryMiB": 194,
+        "utilisation": 29,
+        "powerW": 20.48
+      },
+      {
+        "atMs": 61983,
+        "clockMHz": 457,
+        "temperatureC": 79,
+        "memoryMiB": 192,
+        "utilisation": 32,
+        "powerW": 20.15
+      },
+      {
+        "atMs": 77173,
+        "clockMHz": 562,
+        "temperatureC": 78,
+        "memoryMiB": 192,
+        "utilisation": 29,
+        "powerW": 19.83
+      },
+      {
+        "atMs": 92813,
+        "clockMHz": 420,
+        "temperatureC": 77,
+        "memoryMiB": 192,
+        "utilisation": 54,
+        "powerW": 22.57
+      },
+      {
+        "atMs": 107893,
+        "clockMHz": 570,
+        "temperatureC": 75,
+        "memoryMiB": 192,
+        "utilisation": 29,
+        "powerW": 19.43
+      },
+      {
+        "atMs": 123019,
+        "clockMHz": 465,
+        "temperatureC": 75,
+        "memoryMiB": 192,
+        "utilisation": 30,
+        "powerW": 19.31
+      },
+      {
+        "atMs": 138117,
+        "clockMHz": 442,
+        "temperatureC": 74,
+        "memoryMiB": 192,
+        "utilisation": 29,
+        "powerW": 19.12
+      },
+      {
+        "atMs": 153752,
+        "clockMHz": 210,
+        "temperatureC": 72,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 13.06
+      },
+      {
+        "atMs": 168857,
+        "clockMHz": 210,
+        "temperatureC": 70,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.97
+      },
+      {
+        "atMs": 183967,
+        "clockMHz": 210,
+        "temperatureC": 69,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.55
+      },
+      {
+        "atMs": 199070,
+        "clockMHz": 210,
+        "temperatureC": 68,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.24
+      },
+      {
+        "atMs": 214841,
+        "clockMHz": 210,
+        "temperatureC": 67,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.15
+      },
+      {
+        "atMs": 229956,
+        "clockMHz": 210,
+        "temperatureC": 66,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.94
+      },
+      {
+        "atMs": 245057,
+        "clockMHz": 210,
+        "temperatureC": 66,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.2
+      },
+      {
+        "atMs": 260159,
+        "clockMHz": 210,
+        "temperatureC": 64,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.71
+      },
+      {
+        "atMs": 275740,
+        "clockMHz": 210,
+        "temperatureC": 65,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 12.4
+      },
+      {
+        "atMs": 290839,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.9
+      },
+      {
+        "atMs": 305959,
+        "clockMHz": 210,
+        "temperatureC": 64,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 13.28
+      },
+      {
+        "atMs": 321054,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.96
+      },
+      {
+        "atMs": 336736,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.91
+      },
+      {
+        "atMs": 351808,
+        "clockMHz": 210,
+        "temperatureC": 62,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.73
+      },
+      {
+        "atMs": 366913,
+        "clockMHz": 210,
+        "temperatureC": 62,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.8
+      },
+      {
+        "atMs": 381999,
+        "clockMHz": 210,
+        "temperatureC": 62,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.71
+      },
+      {
+        "atMs": 397094,
+        "clockMHz": 210,
+        "temperatureC": 62,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.77
+      },
+      {
+        "atMs": 412208,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.76
+      },
+      {
+        "atMs": 427813,
+        "clockMHz": 210,
+        "temperatureC": 62,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.73
+      },
+      {
+        "atMs": 442920,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.72
+      },
+      {
+        "atMs": 458029,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.67
+      },
+      {
+        "atMs": 473116,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.46
+      },
+      {
+        "atMs": 488770,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.54
+      },
+      {
+        "atMs": 503873,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.46
+      },
+      {
+        "atMs": 518991,
+        "clockMHz": 210,
+        "temperatureC": 61,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.52
+      },
+      {
+        "atMs": 534092,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.51
+      },
+      {
+        "atMs": 549735,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.61
+      },
+      {
+        "atMs": 564840,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.53
+      },
+      {
+        "atMs": 579955,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.62
+      },
+      {
+        "atMs": 595064,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.41
+      },
+      {
+        "atMs": 610759,
+        "clockMHz": 210,
+        "temperatureC": 60,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.47
+      },
+      {
+        "atMs": 625864,
+        "clockMHz": 210,
+        "temperatureC": 59,
+        "memoryMiB": 218,
+        "utilisation": 0,
+        "powerW": 11.35
+      },
+      {
+        "atMs": 641012,
+        "clockMHz": 757,
+        "temperatureC": 61,
+        "memoryMiB": 336,
+        "utilisation": 24,
+        "powerW": 17.23
+      },
+      {
+        "atMs": 656119,
+        "clockMHz": 855,
+        "temperatureC": 62,
+        "memoryMiB": 282,
+        "utilisation": 20,
+        "powerW": 17.6
+      },
+      {
+        "atMs": 671953,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 261,
+        "utilisation": 32,
+        "powerW": 16.02
+      },
+      {
+        "atMs": 687073,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 282,
+        "utilisation": 0,
+        "powerW": 14.56
+      },
+      {
+        "atMs": 702736,
+        "clockMHz": 210,
+        "temperatureC": 63,
+        "memoryMiB": 270,
+        "utilisation": 0,
+        "powerW": 15.58
+      },
+      {
+        "atMs": 717865,
+        "clockMHz": 1425,
+        "temperatureC": 65,
+        "memoryMiB": 262,
+        "utilisation": 8,
+        "powerW": 31.09
+      },
+      {
+        "atMs": 732998,
+        "clockMHz": 1035,
+        "temperatureC": 66,
+        "memoryMiB": 245,
+        "utilisation": 8,
+        "powerW": 23.69
+      },
+      {
+        "atMs": 748108,
+        "clockMHz": 465,
+        "temperatureC": 64,
+        "memoryMiB": 215,
+        "utilisation": 31,
+        "powerW": 18.12
+      },
+      {
+        "atMs": 763885,
+        "clockMHz": 570,
+        "temperatureC": 64,
+        "memoryMiB": 215,
+        "utilisation": 29,
+        "powerW": 18.49
+      },
+      {
+        "atMs": 779005,
+        "clockMHz": 600,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 30,
+        "powerW": 18.43
+      },
+      {
+        "atMs": 794144,
+        "clockMHz": 712,
+        "temperatureC": 64,
+        "memoryMiB": 236,
+        "utilisation": 48,
+        "powerW": 22.8
+      },
+      {
+        "atMs": 809273,
+        "clockMHz": 570,
+        "temperatureC": 65,
+        "memoryMiB": 220,
+        "utilisation": 28,
+        "powerW": 28.81
+      },
+      {
+        "atMs": 824913,
+        "clockMHz": 570,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 28,
+        "powerW": 17.85
+      },
+      {
+        "atMs": 840013,
+        "clockMHz": 465,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 31,
+        "powerW": 18.11
+      },
+      {
+        "atMs": 855147,
+        "clockMHz": 570,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 18.38
+      },
+      {
+        "atMs": 870296,
+        "clockMHz": 592,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 31,
+        "powerW": 18.05
+      },
+      {
+        "atMs": 885948,
+        "clockMHz": 420,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 17.82
+      },
+      {
+        "atMs": 901068,
+        "clockMHz": 435,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 32,
+        "powerW": 20.59
+      },
+      {
+        "atMs": 916183,
+        "clockMHz": 435,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 17.28
+      },
+      {
+        "atMs": 931637,
+        "clockMHz": 592,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 60,
+        "powerW": 19.58
+      },
+      {
+        "atMs": 946930,
+        "clockMHz": 570,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 18.12
+      },
+      {
+        "atMs": 962864,
+        "clockMHz": 465,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 31,
+        "powerW": 17.8
+      },
+      {
+        "atMs": 977973,
+        "clockMHz": 570,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 56,
+        "powerW": 18.13
+      },
+      {
+        "atMs": 994068,
+        "clockMHz": 577,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 31,
+        "powerW": 17.85
+      },
+      {
+        "atMs": 1009189,
+        "clockMHz": 420,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 55,
+        "powerW": 18.08
+      },
+      {
+        "atMs": 1024899,
+        "clockMHz": 600,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 18.46
+      },
+      {
+        "atMs": 1040041,
+        "clockMHz": 555,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 18.03
+      },
+      {
+        "atMs": 1055710,
+        "clockMHz": 570,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 29,
+        "powerW": 17.72
+      },
+      {
+        "atMs": 1070877,
+        "clockMHz": 585,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 30,
+        "powerW": 18.35
+      },
+      {
+        "atMs": 1085970,
+        "clockMHz": 585,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 36,
+        "powerW": 17.34
+      },
+      {
+        "atMs": 1101115,
+        "clockMHz": 570,
+        "temperatureC": 63,
+        "memoryMiB": 213,
+        "utilisation": 28,
+        "powerW": 16.68
+      },
+      {
+        "atMs": 1116795,
+        "clockMHz": 600,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 28,
+        "powerW": 17.88
+      },
+      {
+        "atMs": 1131883,
+        "clockMHz": 577,
+        "temperatureC": 64,
+        "memoryMiB": 213,
+        "utilisation": 31,
+        "powerW": 18.28
+      },
+      {
+        "atMs": 1147024,
+        "clockMHz": 427,
+        "temperatureC": 65,
+        "memoryMiB": 213,
+        "utilisation": 30,
+        "powerW": 18.18
+      },
+      {
+        "atMs": 1162153,
+        "clockMHz": 210,
+        "temperatureC": 64,
+        "memoryMiB": 296,
+        "utilisation": 0,
+        "powerW": 14.82
+      },
+      {
+        "atMs": 1177933,
+        "clockMHz": 210,
+        "temperatureC": 64,
+        "memoryMiB": 277,
+        "utilisation": 0,
+        "powerW": 12.4
+      },
+      {
+        "atMs": 1193045,
+        "clockMHz": 210,
+        "temperatureC": 65,
+        "memoryMiB": 238,
+        "utilisation": 30,
+        "powerW": 15.64
+      }
+    ]
+  },
+  "results": [
+    {
+      "piece": 0,
+      "readyAfterMs": 35608,
+      "lagMs": 5608,
+      "wallMs": 5588,
+      "words": 97
+    },
+    {
+      "piece": 1,
+      "readyAfterMs": 64699,
+      "lagMs": 4699,
+      "wallMs": 4669,
+      "words": 92
+    },
+    {
+      "piece": 2,
+      "readyAfterMs": 94810,
+      "lagMs": 4810,
+      "wallMs": 4794,
+      "words": 83
+    },
+    {
+      "piece": 3,
+      "readyAfterMs": 124691,
+      "lagMs": 4691,
+      "wallMs": 4683,
+      "words": 91
+    },
+    {
+      "piece": 4,
+      "readyAfterMs": 154436,
+      "lagMs": 4436,
+      "wallMs": 4426,
+      "words": 87
+    },
+    {
+      "piece": 5,
+      "readyAfterMs": 184491,
+      "lagMs": 4491,
+      "wallMs": 4474,
+      "words": 81
+    },
+    {
+      "piece": 6,
+      "readyAfterMs": 214484,
+      "lagMs": 4484,
+      "wallMs": 4472,
+      "words": 93
+    },
+    {
+      "piece": 7,
+      "readyAfterMs": 244571,
+      "lagMs": 4571,
+      "wallMs": 4546,
+      "words": 86
+    },
+    {
+      "piece": 8,
+      "readyAfterMs": 274500,
+      "lagMs": 4500,
+      "wallMs": 4481,
+      "words": 81
+    },
+    {
+      "piece": 9,
+      "readyAfterMs": 304533,
+      "lagMs": 4533,
+      "wallMs": 4511,
+      "words": 100
+    },
+    {
+      "piece": 10,
+      "readyAfterMs": 334547,
+      "lagMs": 4547,
+      "wallMs": 4537,
+      "words": 89
+    },
+    {
+      "piece": 11,
+      "readyAfterMs": 364507,
+      "lagMs": 4507,
+      "wallMs": 4491,
+      "words": 97
+    },
+    {
+      "piece": 12,
+      "readyAfterMs": 394574,
+      "lagMs": 4574,
+      "wallMs": 4507,
+      "words": 81
+    },
+    {
+      "piece": 13,
+      "readyAfterMs": 424559,
+      "lagMs": 4559,
+      "wallMs": 4536,
+      "words": 98
+    },
+    {
+      "piece": 14,
+      "readyAfterMs": 454470,
+      "lagMs": 4470,
+      "wallMs": 4459,
+      "words": 98
+    },
+    {
+      "piece": 15,
+      "readyAfterMs": 484567,
+      "lagMs": 4567,
+      "wallMs": 4545,
+      "words": 96
+    },
+    {
+      "piece": 16,
+      "readyAfterMs": 514596,
+      "lagMs": 4596,
+      "wallMs": 4574,
+      "words": 88
+    },
+    {
+      "piece": 17,
+      "readyAfterMs": 544483,
+      "lagMs": 4483,
+      "wallMs": 4472,
+      "words": 89
+    },
+    {
+      "piece": 18,
+      "readyAfterMs": 574584,
+      "lagMs": 4584,
+      "wallMs": 4566,
+      "words": 94
+    },
+    {
+      "piece": 19,
+      "readyAfterMs": 604555,
+      "lagMs": 4555,
+      "wallMs": 4542,
+      "words": 95
+    },
+    {
+      "piece": 20,
+      "readyAfterMs": 634615,
+      "lagMs": 4615,
+      "wallMs": 4604,
+      "words": 92
+    },
+    {
+      "piece": 21,
+      "readyAfterMs": 664627,
+      "lagMs": 4627,
+      "wallMs": 4614,
+      "words": 83
+    },
+    {
+      "piece": 22,
+      "readyAfterMs": 694821,
+      "lagMs": 4821,
+      "wallMs": 4797,
+      "words": 86
+    },
+    {
+      "piece": 23,
+      "readyAfterMs": 724611,
+      "lagMs": 4611,
+      "wallMs": 4596,
+      "words": 111
+    },
+    {
+      "piece": 24,
+      "readyAfterMs": 754479,
+      "lagMs": 4479,
+      "wallMs": 4470,
+      "words": 101
+    },
+    {
+      "piece": 25,
+      "readyAfterMs": 784460,
+      "lagMs": 4460,
+      "wallMs": 4433,
+      "words": 96
+    },
+    {
+      "piece": 26,
+      "readyAfterMs": 814494,
+      "lagMs": 4494,
+      "wallMs": 4483,
+      "words": 91
+    },
+    {
+      "piece": 27,
+      "readyAfterMs": 844466,
+      "lagMs": 4466,
+      "wallMs": 4446,
+      "words": 83
+    },
+    {
+      "piece": 28,
+      "readyAfterMs": 874493,
+      "lagMs": 4493,
+      "wallMs": 4479,
+      "words": 103
+    },
+    {
+      "piece": 29,
+      "readyAfterMs": 904773,
+      "lagMs": 4773,
+      "wallMs": 4710,
+      "words": 86
+    },
+    {
+      "piece": 30,
+      "readyAfterMs": 934493,
+      "lagMs": 4493,
+      "wallMs": 4473,
+      "words": 101
+    },
+    {
+      "piece": 31,
+      "readyAfterMs": 964562,
+      "lagMs": 4562,
+      "wallMs": 4542,
+      "words": 84
+    },
+    {
+      "piece": 32,
+      "readyAfterMs": 994824,
+      "lagMs": 4824,
+      "wallMs": 4805,
+      "words": 82
+    },
+    {
+      "piece": 33,
+      "readyAfterMs": 1024442,
+      "lagMs": 4442,
+      "wallMs": 4422,
+      "words": 84
+    },
+    {
+      "piece": 34,
+      "readyAfterMs": 1054579,
+      "lagMs": 4579,
+      "wallMs": 4561,
+      "words": 81
+    },
+    {
+      "piece": 35,
+      "readyAfterMs": 1084537,
+      "lagMs": 4537,
+      "wallMs": 4516,
+      "words": 93
+    },
+    {
+      "piece": 36,
+      "readyAfterMs": 1114546,
+      "lagMs": 4546,
+      "wallMs": 4529,
+      "words": 101
+    },
+    {
+      "piece": 37,
+      "readyAfterMs": 1144729,
+      "lagMs": 4729,
+      "wallMs": 4704,
+      "words": 89
+    },
+    {
+      "piece": 38,
+      "readyAfterMs": 1174602,
+      "lagMs": 4602,
+      "wallMs": 4580,
+      "words": 86
+    },
+    {
+      "piece": 39,
+      "readyAfterMs": 1204803,
+      "lagMs": 4803,
+      "wallMs": 4782,
+      "words": 95
+    }
+  ]
+}

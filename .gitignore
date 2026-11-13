@@ -24,3 +24,6 @@ site/
 
 # Check-in screenshots for the reviewer, not for the repo
 .checkins/
+
+# Synthetic test audio (Workspace Phase 3, decision 3): made on the computer, never committed.
+eval/audio/out/

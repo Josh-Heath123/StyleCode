@@ -185,6 +185,10 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 
 **Depends on:** Workspace Phase 2 (the transcript model, review and extraction are reused).
 
+**Decided at the transcription test (13 November 2026, `docs/research/TRANSCRIPTION.md`):** Phase 3 supports one engine, whisper.cpp large-v3-turbo on an NVIDIA GPU that its CUDA build can use. On a computer without one, Transcribe isn't offered and the session says why.
+
+**Later:** transcription on the CPU for computers without such a GPU, with NVIDIA Parakeet TDT 0.6B v2 run by sherpa-onnx (CC-BY-4.0, English only). Measured on the user's laptop at about 11 minutes per hour of meeting, with errors close to Whisper's, against 49 minutes for Whisper on the CPU.
+
 ### Workspace Phase 4: Canvas in context
 
 **Scope:** the StyleCode editor in each engagement, informed by the record (ADR-0007).

@@ -1,0 +1,4436 @@
+{
+  "consultation": "bosveld-citrus-intake",
+  "title": "Bosveld Citrus grower system: first consultation",
+  "startsAt": "2026-11-18T07:00:00.000Z",
+  "timeZone": "Africa/Johannesburg",
+  "source": {
+    "fileName": "whisper-turbo-gpu-names+speakers-eres2net-t0.7.hard",
+    "layout": "transcribed"
+  },
+  "segments": [
+    {
+      "id": "e1",
+      "turn": "E1",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 0,
+      "endMs": 18500,
+      "text": "Morning, everyone. Thank you for having me, and thanks for the coffee, Johan. Um, before we start, there's one thing I need to check with all of you. I'd like to keep a transcript of this meeting so I can write up the requirements properly afterwards. And I use an AI assistant that runs on my own laptop to help me sort through the transcript."
+    },
+    {
+      "id": "e2",
+      "turn": "E2",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 18500,
+      "endMs": 22500,
+      "text": "Nothing goes to an outside service. Are you all comfortable with that?"
+    },
+    {
+      "id": "e3",
+      "turn": "E3",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 22500,
+      "endMs": 24500,
+      "text": "Ja, that's fine with me."
+    },
+    {
+      "id": "e4",
+      "turn": "E4",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 24500,
+      "endMs": 26500,
+      "text": "Yes, no problem."
+    },
+    {
+      "id": "e5",
+      "turn": "E5",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 26500,
+      "endMs": 29040,
+      "text": "Fine, buy me. As long as it doesn't,"
+    },
+    {
+      "id": "e6",
+      "turn": "E6",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 29050,
+      "endMs": 31200,
+      "text": "I'll end up on the internet somewhere. It"
+    },
+    {
+      "id": "e7",
+      "turn": "E7",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 31200,
+      "endMs": 45000,
+      "text": "won't. It stays on this laptop, and if anyone wants me to stop at any point, just say so. Okay. How was the road this morning, by the way? I came in on the R71 from Poliquane, and the stop and go at the pass was terrible."
+    },
+    {
+      "id": "e8",
+      "turn": "E8",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 45000,
+      "endMs": 47000,
+      "text": "Ag, those road works."
+    },
+    {
+      "id": "e9",
+      "turn": "E9",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 47000,
+      "endMs": 52360,
+      "text": "They've been there since Easter. My wife says they're building a new road one spade at a"
+    },
+    {
+      "id": "e10",
+      "turn": "E10",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 52400,
+      "endMs": 53780,
+      "text": "time. It's worse in the"
+    },
+    {
+      "id": "e11",
+      "turn": "E11",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 54030,
+      "endMs": 66500,
+      "text": "afternoon. The drugs. I'll leave early then. Okay, so I've read the email you sent, Johan, but I'd really like to hear it from you in your own words. Maybe start with the co-op itself, and then what made you pick up the phone?"
+    },
+    {
+      "id": "e12",
+      "turn": "E12",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 66500,
+      "endMs": 69160,
+      "text": "Sure. So, Barsfeld Citrus"
+    },
+    {
+      "id": "e13",
+      "turn": "E13",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 69160,
+      "endMs": 85000,
+      "text": "Co-operative. We're in Lettsidele, about 25 kilometers outside Tizani. We pack citrus for our members, mostly oranges, valentias, and navels, then some lemons, and a fair amount of soft citrus, the mandarins. The co-op was started in 1978 by 11 farmers."
+    },
+    {
+      "id": "e14",
+      "turn": "E14",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 85000,
+      "endMs": 101500,
+      "text": "Amen. And today we've got, uh, about 140 member growers. Some of them are big commercial farms with a few hundred hectares, and some are small growers from the Enkau-Enkau side with five or six hectares. Everybody's fruit comes through the one packhouse here, behind this office."
+    },
+    {
+      "id": "e15",
+      "turn": "E15",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 101500,
+      "endMs": 102460,
+      "text": "And the packhouse"
+    },
+    {
+      "id": "e16",
+      "turn": "E16",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 102530,
+      "endMs": 104740,
+      "text": "runs all year? No, no. The"
+    },
+    {
+      "id": "e17",
+      "turn": "E17",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 104740,
+      "endMs": 117660,
+      "text": "season is roughly from the end of March with the early mandarins until about the middle of September, when the last valentias go through. Outside of that we do maintenance, we do the books, and we argue about prices. Mostly"
+    },
+    {
+      "id": "e18",
+      "turn": "E18",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 117660,
+      "endMs": 120790,
+      "text": "we argue about prices. Yeah,"
+    },
+    {
+      "id": "e19",
+      "turn": "E19",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 121030,
+      "endMs": 137000,
+      "text": "mostly. So what made me pick up the phone? Honestly, it's the growers. They phone us all day. Where's my fruit? What was my pack-out? When do I get paid? Why did my bins get downgraded? And we can't answer them quickly, because the information is in, I'd say, five different places."
+    },
+    {
+      "id": "e20",
+      "turn": "E20",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 137000,
+      "endMs": 139360,
+      "text": "And some of it is on paper. Five"
+    },
+    {
+      "id": "e21",
+      "turn": "E21",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 139410,
+      "endMs": 142430,
+      "text": "different places? Can you walk me through"
+    },
+    {
+      "id": "e22",
+      "turn": "E22",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 142440,
+      "endMs": 147000,
+      "text": "them? Precious can do that better than me. She lives in the packhouse."
+    },
+    {
+      "id": "e23",
+      "turn": "E23",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 148000,
+      "endMs": 153090,
+      "text": "Yeah, okay. So it starts at the Weybridge. A grower's truck comes in,"
+    },
+    {
+      "id": "e24",
+      "turn": "E24",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 153090,
+      "endMs": 170000,
+      "text": "or a contractor's truck with bins on the back. Each bin is about 400 kilos when it's full. Okay. The truck goes over the Weybridge, and our clerk writes a delivery ticket. It's a carbon book, three copies. White copy for the grower, pink for the office, yellow stays in the book."
+    },
+    {
+      "id": "e25",
+      "turn": "E25",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 171000,
+      "endMs": 177000,
+      "text": "Handwritten. Handwritten. The Weybridge has a little computer with the scale program on it."
+    },
+    {
+      "id": "e26",
+      "turn": "E26",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 177000,
+      "endMs": 185000,
+      "text": "It's called Weymate, and it prints the weight on a slip. Then the clerk copies the weight onto the ticket, with the grower number, the farm, the orchard block,"
+    },
+    {
+      "id": "e27",
+      "turn": "E27",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 185120,
+      "endMs": 195000,
+      "text": "the cultivar, and the number of bins. So the weight comes from the machine, but everything else is written by hand. Exactly. Then the bins go into the holding area."
+    },
+    {
+      "id": "e28",
+      "turn": "E28",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 195000,
+      "endMs": 211000,
+      "text": "They get a, uh, a cardboard tag tied on with the ticket number, and they wait for the line. How long do they wait? It depends. In the peak, sometimes two days. The early mandarins have to go through to greening first, in the rooms at the back, so it can be a while."
+    },
+    {
+      "id": "e29",
+      "turn": "E29",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 211000,
+      "endMs": 228000,
+      "text": "The oranges usually go the next day. Okay, and then? Then the bins go onto the line. We've got an optical grader, the Arptisort, that photographs every fruit and sorts it into classes. Class one for export, class two for the local market, and then juice."
+    },
+    {
+      "id": "e30",
+      "turn": "E30",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 228000,
+      "endMs": 238000,
+      "text": "The grader's computer makes a report for each batch. A batch is basically one delivery ticket. Right. And the report says how many cartons of each class and the percentages."
+    },
+    {
+      "id": "e31",
+      "turn": "E31",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 239000,
+      "endMs": 247960,
+      "text": "That's what we call the pack-out. And the report lives on the grader's computer. It lives on the grader's computer. Tani Mariachi in the"
+    },
+    {
+      "id": "e32",
+      "turn": "E32",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 248030,
+      "endMs": 254000,
+      "text": "office prints them out every afternoon and files them, and then she types the totals into a spreadsheet."
+    },
+    {
+      "id": "e33",
+      "turn": "E33",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 255000,
+      "endMs": 258000,
+      "text": "My spreadsheet. Well, it's the co-op's spreadsheet, but I built it."
+    },
+    {
+      "id": "e34",
+      "turn": "E34",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 259000,
+      "endMs": 262960,
+      "text": "Okay. So Sifo, the spreadsheet is yours. What does it do?"
+    },
+    {
+      "id": "e35",
+      "turn": "E35",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 264000,
+      "endMs": 279000,
+      "text": "So the spreadsheet is, ah, the heart of the whole thing, unfortunately. Every delivery is a wrap. Mariachi types in the ticket from the pink carpet. And then she adds the pack-out from the grader report. And then at the end of each month, I use that to work out the advance payments to the growers."
+    },
+    {
+      "id": "e36",
+      "turn": "E36",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 280000,
+      "endMs": 281000,
+      "text": "Advanced payments meaning?"
+    },
+    {
+      "id": "e37",
+      "turn": "E37",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 282000,
+      "endMs": 297000,
+      "text": "So in citrus, you don't get paid the full price when you deliver. The fruit gets exported. It goes on a ship. It gets sold in Raderdam or wherever. And only months later do we know the final price. So we pay the growers an advance. So much per carton of class one."
+    },
+    {
+      "id": "e38",
+      "turn": "E38",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 297000,
+      "endMs": 299960,
+      "text": "So much per carton of class two. A few rand per bin of juice."
+    },
+    {
+      "id": "e39",
+      "turn": "E39",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 301000,
+      "endMs": 306000,
+      "text": "MMHM. After the season, there's a final pool payment when all the money is in."
+    },
+    {
+      "id": "e40",
+      "turn": "E40",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 307000,
+      "endMs": 312000,
+      "text": "Right. So the monthly calculation is the advance. And the pool payment is once a year."
+    },
+    {
+      "id": "e41",
+      "turn": "E41",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 313000,
+      "endMs": 317000,
+      "text": "Once a year. Usually in February. And that one's a beast. I can"
+    },
+    {
+      "id": "e42",
+      "turn": "E42",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 317000,
+      "endMs": 321000,
+      "text": "imagine. And the growers, how do they find out what they've been paid and why?"
+    },
+    {
+      "id": "e43",
+      "turn": "E43",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 322000,
+      "endMs": 334000,
+      "text": "They get a statement. I make it in the spreadsheet. And Maraichi prints it and posts it or emails it to those who have email. Some of them still come and collect it at the office. They like to have a cup of tea with her."
+    },
+    {
+      "id": "e44",
+      "turn": "E44",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 334000,
+      "endMs": 336000,
+      "text": "How long after the month ends do they get it?"
+    },
+    {
+      "id": "e45",
+      "turn": "E45",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 337000,
+      "endMs": 343730,
+      "text": "Um, honestly. Three weeks. Sometimes more. Because everything has to be typed first in check. And then I have to"
+    },
+    {
+      "id": "e46",
+      "turn": "E46",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 343760,
+      "endMs": 345840,
+      "text": "reconcile with the bank. And that's when the"
+    },
+    {
+      "id": "e47",
+      "turn": "E47",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 346030,
+      "endMs": 347000,
+      "text": "phone starts ringing."
+    },
+    {
+      "id": "e48",
+      "turn": "E48",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 348000,
+      "endMs": 352000,
+      "text": "So the growers are phoning. Because they don't know where they stand for three, four weeks."
+    },
+    {
+      "id": "e49",
+      "turn": "E49",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 353000,
+      "endMs": 368000,
+      "text": "Exactly. And look, I understand them. A small grower with six hectares. That's his whole income for the year. He delivered 30 bins two weeks ago. And he doesn't know whether they packed out at 80% or 40%. Of course, he's going to phone."
+    },
+    {
+      "id": "e50",
+      "turn": "E50",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 369000,
+      "endMs": 375030,
+      "text": "How many calls are we talking about? In the season. I'd say, uh, Maraichi gets 40,"
+    },
+    {
+      "id": "e51",
+      "turn": "E51",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 375030,
+      "endMs": 393000,
+      "text": "50 calls a day. And I get the ones about the grading, maybe 10 a day. Those are the angry ones. Why angry? Because when a batch packs out badly, the grower thinks we made a mistake. He thinks his bins got mixed up with someone else's. And sometimes, to be honest, they did."
+    },
+    {
+      "id": "e52",
+      "turn": "E52",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 393000,
+      "endMs": 408000,
+      "text": "Because the cardboard tag fell off. Or the ticket number was written badly. And someone read a seven as a one. Okay, that's important. How often does that happen? Not often. Maybe, I don't know, two or three times a week in the peak."
+    },
+    {
+      "id": "e53",
+      "turn": "E53",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 408000,
+      "endMs": 415000,
+      "text": "But every time it happens, it's a big fight. And it takes a day to sort out. I have to go through the grader reports and the tickets"
+    },
+    {
+      "id": "e54",
+      "turn": "E54",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 415000,
+      "endMs": 419060,
+      "text": "and phone the driver. Let me make sure I've got the picture. A"
+    },
+    {
+      "id": "e55",
+      "turn": "E55",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 419060,
+      "endMs": 437000,
+      "text": "truck comes in. It goes over the weighbridge. The clerk writes a ticket by hand with the wait from waymate. The bins get a cardboard tag. They wait. They go through the optisort grader. The grader report gets printed. Maraichi types the ticket and the packout into Sifo's spreadsheet. And Sifo works out the advance at the end of the month and makes a statement."
+    },
+    {
+      "id": "e56",
+      "turn": "E56",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 438000,
+      "endMs": 440350,
+      "text": "That's it. That's the whole sad"
+    },
+    {
+      "id": "e57",
+      "turn": "E57",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 440350,
+      "endMs": 442960,
+      "text": "story. And the fifth place. Johan said five."
+    },
+    {
+      "id": "e58",
+      "turn": "E58",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 444000,
+      "endMs": 459000,
+      "text": "Oh, the QC lab. Sorry. Before a grower picks an orchard, our lab tests samples. The sugar and the acid and the juice percentage to see if the fruit is mature enough for export. Maturity tests. That's on paper too. And the results go to the grower by WhatsApp."
+    },
+    {
+      "id": "e59",
+      "turn": "E59",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 459000,
+      "endMs": 462000,
+      "text": "Our QC lady takes a photo of the sheet and sends it."
+    },
+    {
+      "id": "e60",
+      "turn": "E60",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 462000,
+      "endMs": 466220,
+      "text": "Okay. And spray records. You mentioned export. Yeah,"
+    },
+    {
+      "id": "e61",
+      "turn": "E61",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 466220,
+      "endMs": 479000,
+      "text": "that's a sixth place. Now that you mention it. Every grower has to give us his spray records before we can pack his fruit for export. Because the European buyers test for residues. Those are in a lever arch file in my office. So there's"
+    },
+    {
+      "id": "e62",
+      "turn": "E62",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 479000,
+      "endMs": 483000,
+      "text": "paper and spreadsheets everywhere. And the growers can't see any of it themselves."
+    },
+    {
+      "id": "e63",
+      "turn": "E63",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 483000,
+      "endMs": 488000,
+      "text": "That's really helpful. What's the most painful part for you if you had to pick one?"
+    },
+    {
+      "id": "e64",
+      "turn": "E64",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 488000,
+      "endMs": 497000,
+      "text": "What? The phone calls. No, wait. The statements. Because if the statements came out in a week, half the phone calls would go away."
+    },
+    {
+      "id": "e65",
+      "turn": "E65",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 497000,
+      "endMs": 502060,
+      "text": "For me, it's the typing. Maraichi types for, what, three, four hours a day in"
+    },
+    {
+      "id": "e66",
+      "turn": "E66",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 502070,
+      "endMs": 504970,
+      "text": "the season. And she's retiring. When?"
+    },
+    {
+      "id": "e67",
+      "turn": "E67",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 505000,
+      "endMs": 505750,
+      "text": "End of"
+    },
+    {
+      "id": "e68",
+      "turn": "E68",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 505760,
+      "endMs": 511000,
+      "text": "June next year. Right in the middle of the season. Which is a whole other problem."
+    },
+    {
+      "id": "e69",
+      "turn": "E69",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 511000,
+      "endMs": 515000,
+      "text": "That's a real risk. Is there someone to take over from her?"
+    },
+    {
+      "id": "e70",
+      "turn": "E70",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 515000,
+      "endMs": 526000,
+      "text": "Not yet. We'll advertise. But nobody else knows that spreadsheet like her and Sifo. She knows every grower by name. She knows whose son is farming now and whose wife does the books."
+    },
+    {
+      "id": "e71",
+      "turn": "E71",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 526000,
+      "endMs": 532200,
+      "text": "Okay. So let's talk about what you'd like. If this goes well, a year from now, what's different? The"
+    },
+    {
+      "id": "e72",
+      "turn": "E72",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 532200,
+      "endMs": 544120,
+      "text": "growers can see their own deliveries and their pack out on their phones the same day or the day after. They get their statements in a few days, not three weeks. And we start answering fifty phone calls a day. Is"
+    },
+    {
+      "id": "e73",
+      "turn": "E73",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 544120,
+      "endMs": 548000,
+      "text": "there a number you'd want to hit? Fewer calls, faster statements."
+    },
+    {
+      "id": "e74",
+      "turn": "E74",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 549000,
+      "endMs": 556000,
+      "text": "Half. If the calls go down by half, I'd be happy. And statements within, let's say, five working days after the month end."
+    },
+    {
+      "id": "e75",
+      "turn": "E75",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 557000,
+      "endMs": 562000,
+      "text": "Five working days is tight, but yeah. If I don't have to wait for the typing, it's passable."
+    },
+    {
+      "id": "e76",
+      "turn": "E76",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 563000,
+      "endMs": 569560,
+      "text": "Good. I'll write those down as the goals. Precious from the pack house side. For May, it's the tickets. I want the"
+    },
+    {
+      "id": "e77",
+      "turn": "E77",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 569560,
+      "endMs": 578000,
+      "text": "Weybridge to be quicker and I want the bins to be traceable without a cardboard tag that falls off in the rain. If every bin had a barcode or something"
+    },
+    {
+      "id": "e78",
+      "turn": "E78",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 578000,
+      "endMs": 589130,
+      "text": "and you scanned it, then we'd always know whose fruit is on the line. Do the bins have anything on them today? And numbers? The bins belong to the growers, mostly. Some have numbers"
+    },
+    {
+      "id": "e79",
+      "turn": "E79",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 589130,
+      "endMs": 596910,
+      "text": "painted on, some don't. The co-op has about, uh, three thousand of its own bins that we lend out to the small growers. And those have numbers"
+    },
+    {
+      "id": "e80",
+      "turn": "E80",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 597030,
+      "endMs": 604840,
+      "text": "burnt into the plastic. So putting a permanent label on each bin isn't straightforward. No. That's why I"
+    },
+    {
+      "id": "e81",
+      "turn": "E81",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 605030,
+      "endMs": 616000,
+      "text": "said barcode or something. Maybe the barcode is on the tag, not on the bin. A plastic tag that you clip on and it comes back to the Weybridge. I don't know, you're the expert."
+    },
+    {
+      "id": "e82",
+      "turn": "E82",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 617000,
+      "endMs": 625020,
+      "text": "I'm not sure I'm the expert on bins, but I'll look into what other pack houses do. Let me note that as something to work out together. So scanning a tag at intake and again"
+    },
+    {
+      "id": "e83",
+      "turn": "E83",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 625020,
+      "endMs": 631000,
+      "text": "when the bin goes onto the line. Yes, at the tipper where they tip the bins into the water."
+    },
+    {
+      "id": "e84",
+      "turn": "E84",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 631000,
+      "endMs": 633000,
+      "text": "That's where we'd scan."
+    },
+    {
+      "id": "e85",
+      "turn": "E85",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 634000,
+      "endMs": 636160,
+      "text": "Hi, sorry, sorry. Is this the system"
+    },
+    {
+      "id": "e86",
+      "turn": "E86",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 636410,
+      "endMs": 641000,
+      "text": "meeting? Joman said half past nine, I think. Or I heard half past nine."
+    },
+    {
+      "id": "e87",
+      "turn": "E87",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 642000,
+      "endMs": 647000,
+      "text": "It was nine, Ruen. Come in, sit. Ayesha, this is Ruen. He does our IT."
+    },
+    {
+      "id": "e88",
+      "turn": "E88",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 647000,
+      "endMs": 652000,
+      "text": "He's not staff, he's a contractor. But he's here every Wednesday and whenever something breaks."
+    },
+    {
+      "id": "e89",
+      "turn": "E89",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 653000,
+      "endMs": 661000,
+      "text": "Hi, Ruen. Nice to meet you. We've just been through how a delivery goes from the Weybridge to the statement and Precious was talking about scanning bins at the tipper."
+    },
+    {
+      "id": "e90",
+      "turn": "E90",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 662000,
+      "endMs": 667040,
+      "text": "Ah, okay. Yaw the scanning. Precious has been on about the scanning for a year. Because"
+    },
+    {
+      "id": "e91",
+      "turn": "E91",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 667040,
+      "endMs": 669000,
+      "text": "it's needed."
+    },
+    {
+      "id": "e92",
+      "turn": "E92",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 669000,
+      "endMs": 671000,
+      "text": "No, I agree, I agree."
+    },
+    {
+      "id": "e93",
+      "turn": "E93",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 672000,
+      "endMs": 677000,
+      "text": "Juen, it's actually a good moment for you. What's the network like? At the Weybridge and at the tipper?"
+    },
+    {
+      "id": "e94",
+      "turn": "E94",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 678000,
+      "endMs": 694000,
+      "text": "Uh, so, the office and the pack house are on fiber. It came in two years ago and it's okay. Yeah. But the Weybridge is at the gate, about 300 meters from the office and it's on a wireless link point to point. When it rains hard or when there's load shedding and the battery at the gate runs flat, it drops."
+    },
+    {
+      "id": "e95",
+      "turn": "E95",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 694000,
+      "endMs": 710000,
+      "text": "The tipper is inside the pack house, so that's fine, the Wi-Fi in there is decent. How often does the Weybridge drop? In the season, maybe once a week, for an hour or so. And when the whole area's fiber goes down, which happens, someone digs up a cable next to the R36 or whatever, then everything's off."
+    },
+    {
+      "id": "e96",
+      "turn": "E96",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 711000,
+      "endMs": 711960,
+      "text": "Last year we had a full day once."
+    },
+    {
+      "id": "e97",
+      "turn": "E97",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 713000,
+      "endMs": 716000,
+      "text": "So the Weybridge has to keep working without the network. It has"
+    },
+    {
+      "id": "e98",
+      "turn": "E98",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 716000,
+      "endMs": 724000,
+      "text": "to. We cannot stop trucks at the gate. If a truck waits, the fruit sits in the sun and the next twenty trucks are behind it on the road."
+    },
+    {
+      "id": "e99",
+      "turn": "E99",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 725000,
+      "endMs": 730960,
+      "text": "Okay. So the intake has to work offline and catch up when the link is back. I'll write that as a firm requirement."
+    },
+    {
+      "id": "e100",
+      "turn": "E100",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 732000,
+      "endMs": 739220,
+      "text": "Yeah. And to be honest, I can put a bigger battery on the gate. That's not expensive. But the fiber outages I can't fix. Let's talk about"
+    },
+    {
+      "id": "e101",
+      "turn": "E101",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 739220,
+      "endMs": 743000,
+      "text": "WeyMate for a second. Is it something you can get data out of?"
+    },
+    {
+      "id": "e102",
+      "turn": "E102",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 744000,
+      "endMs": 762000,
+      "text": "WeyMate is old. It runs on a Windows PC under the counter at the gate. It writes every way into a little database file and it can export a CSV at the end of the day. MM. And I think the scale indicator is connected to the PC by a serial cable. So if you wanted the wait live, you could probably read it straight from the indicator without WeyMate at all."
+    },
+    {
+      "id": "e103",
+      "turn": "E103",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 763000,
+      "endMs": 763000,
+      "text": "That's"
+    },
+    {
+      "id": "e104",
+      "turn": "E104",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 763000,
+      "endMs": 766000,
+      "text": "useful. And the grader, the OptiSort."
+    },
+    {
+      "id": "e105",
+      "turn": "E105",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 767000,
+      "endMs": 783000,
+      "text": "That's the problem one. The OptiSort was bought in 2019 from the supplier overseas through their agent in Cape Town. Its computer is locked down. The reports come out as PDFs. There might be a database underneath, but we don't have the password and the agent says if we touch it, we void the support contract."
+    },
+    {
+      "id": "e106",
+      "turn": "E106",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 784000,
+      "endMs": 788000,
+      "text": "So getting the packout out of the grader automatically is uncertain. Very"
+    },
+    {
+      "id": "e107",
+      "turn": "E107",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 788000,
+      "endMs": 795000,
+      "text": "uncertain. I can ask the agent whether they have an export, a CSV or an API or something. They might want money for it."
+    },
+    {
+      "id": "e108",
+      "turn": "E108",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 796000,
+      "endMs": 800510,
+      "text": "Would you mind asking them? That's probably the biggest unknown we've got. Well,"
+    },
+    {
+      "id": "e109",
+      "turn": "E109",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 800510,
+      "endMs": 803000,
+      "text": "as I'll send them an email this week."
+    },
+    {
+      "id": "e110",
+      "turn": "E110",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 804000,
+      "endMs": 811150,
+      "text": "Thank you. And if the answer is no, the fallback is someone typing the totals from the report, which is what Mariachi does now. Or reading the"
+    },
+    {
+      "id": "e111",
+      "turn": "E111",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 811150,
+      "endMs": 815890,
+      "text": "PDF automatically. Can't a computer read a PDF?"
+    },
+    {
+      "id": "e112",
+      "turn": "E112",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 817000,
+      "endMs": 822920,
+      "text": "Sometimes, if the PDF has real text in it and the layout never changes, I'd need to see a few. Can someone send me"
+    },
+    {
+      "id": "e113",
+      "turn": "E113",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 822920,
+      "endMs": 829000,
+      "text": "some greater reports from last season? I'll send you some. Good batches and bad ones."
+    },
+    {
+      "id": "e114",
+      "turn": "E114",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 830000,
+      "endMs": 834140,
+      "text": "Perfect. And on the accounting side, Sypho, what do you use? We"
+    },
+    {
+      "id": "e115",
+      "turn": "E115",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 834140,
+      "endMs": 848000,
+      "text": "use Ledger 1 for the books. The payments to the growers go out through the bank in a batch file that I upload to the bank's business banking. The spreadsheet makes the batch file, actually. Well, it makes a list and I copy it into the bank's template."
+    },
+    {
+      "id": "e116",
+      "turn": "E116",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 849000,
+      "endMs": 853000,
+      "text": "So the payment calculation is in your spreadsheet and Ledger 1 gets the totals. The"
+    },
+    {
+      "id": "e117",
+      "turn": "E117",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 853000,
+      "endMs": 857000,
+      "text": "totals? Yeah. I journal them in at the end of the month."
+    },
+    {
+      "id": "e118",
+      "turn": "E118",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 858000,
+      "endMs": 863370,
+      "text": "Would you want the new system to calculate the advances or do you want to keep that in your spreadsheet for now? Hemp,"
+    },
+    {
+      "id": "e119",
+      "turn": "E119",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 863370,
+      "endMs": 881000,
+      "text": "honestly. Keep it in my spreadsheet for now. The rules change every season. The board decides different advance rates for different cultivars and sizes. And I don't want to phone a developer every time the board changes its mind. If the system gives me the deliveries and the pack out clean, I'll do the sums."
+    },
+    {
+      "id": "e120",
+      "turn": "E120",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 882000,
+      "endMs": 885000,
+      "text": "I agree. Let's not build the payment engine in the first round."
+    },
+    {
+      "id": "e121",
+      "turn": "E121",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 886000,
+      "endMs": 900960,
+      "text": "Okay, so that's a decision. The payment calculation stays in Sypho's spreadsheet for phase 1. And the new system gives him the deliveries and pack out as an export he can open in the spreadsheet. And then the statement. Does the statement come from the new system or from the spreadsheet?"
+    },
+    {
+      "id": "e122",
+      "turn": "E122",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 902000,
+      "endMs": 903930,
+      "text": "Done. That's a good question. If the advance is"
+    },
+    {
+      "id": "e123",
+      "turn": "E123",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 903930,
+      "endMs": 909880,
+      "text": "worked out in my spreadsheet, the statement has to show the advance. So either I upload the amounts back"
+    },
+    {
+      "id": "e124",
+      "turn": "E124",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 909890,
+      "endMs": 914000,
+      "text": "into the system every month or the statement stays in the spreadsheet."
+    },
+    {
+      "id": "e125",
+      "turn": "E125",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 915000,
+      "endMs": 921000,
+      "text": "I'll leave that one open for now. I'll come back with a couple of options. It depends on how much work an upload would be for you each month."
+    },
+    {
+      "id": "e126",
+      "turn": "E126",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 922000,
+      "endMs": 923320,
+      "text": "Okay. Can we"
+    },
+    {
+      "id": "e127",
+      "turn": "E127",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 923320,
+      "endMs": 927000,
+      "text": "talk about the growers' information for a bit? What do you hold about them?"
+    },
+    {
+      "id": "e128",
+      "turn": "E128",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 928000,
+      "endMs": 936000,
+      "text": "Names, ID numbers for the growers who farm as individuals, company registration numbers for the farms that are companies, VAT numbers,"
+    },
+    {
+      "id": "e129",
+      "turn": "E129",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 936000,
+      "endMs": 942000,
+      "text": "bank account details, physical addresses, phone numbers, email, and their delivery history, their pack outs"
+    },
+    {
+      "id": "e130",
+      "turn": "E130",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 942000,
+      "endMs": 943000,
+      "text": "and what they've been paid."
+    },
+    {
+      "id": "e131",
+      "turn": "E131",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 944000,
+      "endMs": 954010,
+      "text": "Okay. So for the small growers who farm in their own name, that's all personal information under Popia and the bank details need care in any case. Who should be able to see what? A grower must"
+    },
+    {
+      "id": "e132",
+      "turn": "E132",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 954010,
+      "endMs": 969000,
+      "text": "only see his own stuff. That's the number one thing. If grower can see what grower be got paid, I'll have a war on my hands. Right. Seriously. These people are neighbors. Their kids go to the same school. They sit next to each other in church."
+    },
+    {
+      "id": "e133",
+      "turn": "E133",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 974000,
+      "endMs": 977000,
+      "text": "I don't want to see the money. I don't want to see the money. So the roles are"
+    },
+    {
+      "id": "e134",
+      "turn": "E134",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 977000,
+      "endMs": 983660,
+      "text": "something like this. The office and management see everything. The pack-house staff see deliveries and"
+    },
+    {
+      "id": "e135",
+      "turn": "E135",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 983660,
+      "endMs": 989490,
+      "text": "grading, but not bank details or payments. And growers see their"
+    },
+    {
+      "id": "e136",
+      "turn": "E136",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 989490,
+      "endMs": 991950,
+      "text": "own. Who changes a grower's name?"
+    },
+    {
+      "id": "e137",
+      "turn": "E137",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 993000,
+      "endMs": 1005800,
+      "text": "Who changes a grower's bank details today? Only me and only with a letter from the bank. Because"
+    },
+    {
+      "id": "e138",
+      "turn": "E138",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1005800,
+      "endMs": 1007630,
+      "text": "there's"
+    },
+    {
+      "id": "e139",
+      "turn": "E139",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1007630,
+      "endMs": 1009000,
+      "text": "fraud."
+    },
+    {
+      "id": "e140",
+      "turn": "E140",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1010000,
+      "endMs": 1010970,
+      "text": "I amends."
+    },
+    {
+      "id": "e141",
+      "turn": "E141",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1012000,
+      "endMs": 1019030,
+      "text": "phone, pretending to be one of our growers, and asked us to change his bank account. Luckily, Maraichi knew his voice. That's"
+    },
+    {
+      "id": "e142",
+      "turn": "E142",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1019030,
+      "endMs": 1028360,
+      "text": "exactly the kind of thing to design for, so changing bank details stays a manual, checked process in the office, and a grower can't change them from their phone."
+    },
+    {
+      "id": "e143",
+      "turn": "E143",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1029360,
+      "endMs": 1030810,
+      "text": "Definitely not. Good. And the"
+    },
+    {
+      "id": "e144",
+      "turn": "E144",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1030950,
+      "endMs": 1035100,
+      "text": "weights. What if someone changes a weight or a bin count"
+    },
+    {
+      "id": "e145",
+      "turn": "E145",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1035140,
+      "endMs": 1043950,
+      "text": "after the fact? That must be recorded. Who changed it and why? Because that's where the fights are. So an audit trail on"
+    },
+    {
+      "id": "e146",
+      "turn": "E146",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1043950,
+      "endMs": 1048090,
+      "text": "every change to a delivery, who changed it, when, what it was before, and the reason?"
+    },
+    {
+      "id": "e147",
+      "turn": "E147",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1048840,
+      "endMs": 1052800,
+      "text": "Yes. And the grower should be able to see that it was changed, I think."
+    },
+    {
+      "id": "e148",
+      "turn": "E148",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1053660,
+      "endMs": 1054810,
+      "text": "Hmm. Maybe not the reason."
+    },
+    {
+      "id": "e149",
+      "turn": "E149",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1054810,
+      "endMs": 1062000,
+      "text": "Sometimes the reason is, you know, the driver counted wrong because he was in a hurry to get to the bottle store. Okay."
+    },
+    {
+      "id": "e150",
+      "turn": "E150",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1062000,
+      "endMs": 1063100,
+      "text": "Maybe not the"
+    },
+    {
+      "id": "e151",
+      "turn": "E151",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1063110,
+      "endMs": 1067040,
+      "text": "reason. I'll note that the grower sees that a delivery"
+    },
+    {
+      "id": "e152",
+      "turn": "E152",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1067040,
+      "endMs": 1075010,
+      "text": "was corrected, and whether they also see the reason is still to be decided. Juwen, where would all this live? Do you have a preference for hosting? Not"
+    },
+    {
+      "id": "e153",
+      "turn": "E153",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1075010,
+      "endMs": 1082730,
+      "text": "on a server in the office, please. I don't want another thing to look after, and the power here isn't reliable. Some cloud thing is fine. The"
+    },
+    {
+      "id": "e154",
+      "turn": "E154",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1082730,
+      "endMs": 1090040,
+      "text": "board said the data must stay in South Africa. One of our members is a lawyer, and he was very firm about that at the last"
+    },
+    {
+      "id": "e155",
+      "turn": "E155",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1090040,
+      "endMs": 1097280,
+      "text": "meeting. Okay, so hosting in a South African data center. That's a constraint, and it's possible with most of the big providers now."
+    },
+    {
+      "id": "e156",
+      "turn": "E156",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1097740,
+      "endMs": 1100300,
+      "text": "Yeah, they've got Johansburg and Cape Town regions."
+    },
+    {
+      "id": "e157",
+      "turn": "E157",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1101420,
+      "endMs": 1108740,
+      "text": "Exactly. And for the Weybridge, the tablet or PC at the gate would keep its own copy of the day's deliveries and send them up when the link is back."
+    },
+    {
+      "id": "e158",
+      "turn": "E158",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1109320,
+      "endMs": 1111000,
+      "text": "And if the tablet gets stolen?"
+    },
+    {
+      "id": "e159",
+      "turn": "E159",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1111740,
+      "endMs": 1119820,
+      "text": "Good point. Then it should need a PIN or a login, and it shouldn't hold more than it needs. The day's deliveries and the grower list, not bank details."
+    },
+    {
+      "id": "e160",
+      "turn": "E160",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1120920,
+      "endMs": 1122320,
+      "text": "Okay, that works for me."
+    },
+    {
+      "id": "e161",
+      "turn": "E161",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1123160,
+      "endMs": 1126280,
+      "text": "How long do you keep the records now? Tickets and statements?"
+    },
+    {
+      "id": "e162",
+      "turn": "E162",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1127360,
+      "endMs": 1127820,
+      "text": "The auditor say five"
+    },
+    {
+      "id": "e163",
+      "turn": "E163",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1127820,
+      "endMs": 1136940,
+      "text": "years for anything financial. The tickets we keep are, I think also five years, in boxes in the store. The mice eat some of them."
+    },
+    {
+      "id": "e164",
+      "turn": "E164",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1137660,
+      "endMs": 1141840,
+      "text": "Five years then, for deliveries and statements. And when a grower leaves the co-op?"
+    },
+    {
+      "id": "e165",
+      "turn": "E165",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1142660,
+      "endMs": 1148860,
+      "text": "We keep his records for the five years, for tax, and then, honestly, nobody has ever thrown anything away."
+    },
+    {
+      "id": "e166",
+      "turn": "E166",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1150120,
+      "endMs": 1162620,
+      "text": "That's common. I'll suggest that the system keeps a lever's records for five years, and then flags them for deletion, and you decide. Let's talk about the growers themselves. How do they use their phones? What kind of phones? Everything."
+    },
+    {
+      "id": "e167",
+      "turn": "E167",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1162690,
+      "endMs": 1175640,
+      "text": "The big farmers have iPhones and laptops, and their own farm managers. The small growers, a lot of them have cheap Android phones, and data is expensive. Some of them, the older ones, their kids do the phone stuff for them."
+    },
+    {
+      "id": "e168",
+      "turn": "E168",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1176640,
+      "endMs": 1182640,
+      "text": "So whatever the growers use has to work on a cheap Android phone, on a slow connection, without eating their data."
+    },
+    {
+      "id": "e169",
+      "turn": "E169",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1183640,
+      "endMs": 1193290,
+      "text": "Yeah, and I don't want them to have to download an app. Last time somebody made us an app, for the, uh, the study group, nobody installed it. Twelve people out of a hundred and forty."
+    },
+    {
+      "id": "e170",
+      "turn": "E170",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1194360,
+      "endMs": 1199040,
+      "text": "A web page they open from a link, then. One they can save to the home screen, like an app."
+    },
+    {
+      "id": "e171",
+      "turn": "E171",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1200040,
+      "endMs": 1200900,
+      "text": "That's fine."
+    },
+    {
+      "id": "e172",
+      "turn": "E172",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1201980,
+      "endMs": 1218920,
+      "text": "And SMS. Not everybody uses WhatsApp properly, but everybody gets SMS. What would you send them? When their batch is graded. Your delivery number four, four, seven, one, packed out at seventy-eight percent class one, something like that, with a"
+    },
+    {
+      "id": "e173",
+      "turn": "E173",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1218920,
+      "endMs": 1220000,
+      "text": "link to see the rest."
+    },
+    {
+      "id": "e174",
+      "turn": "E174",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1220920,
+      "endMs": 1223980,
+      "text": "That's a nice one. Johan, are you happy with SMS?"
+    },
+    {
+      "id": "e175",
+      "turn": "E175",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1224740,
+      "endMs": 1229600,
+      "text": "SMS is fine. WhatsApp costs money if you do it through the business, doesn't it ruin?"
+    },
+    {
+      "id": "e176",
+      "turn": "E176",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1230860,
+      "endMs": 1237680,
+      "text": "Yeah, it's per message through one of the providers. But SMS also costs, about, I think, twenty-five, thirty cents a message."
+    },
+    {
+      "id": "e177",
+      "turn": "E177",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1238140,
+      "endMs": 1244380,
+      "text": "Then let's say, SMS for the grading notifications to start with, and maybe WhatsApp later. Are you all okay with that?"
+    },
+    {
+      "id": "e178",
+      "turn": "E178",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1245160,
+      "endMs": 1246620,
+      "text": "Yeah, fine."
+    },
+    {
+      "id": "e179",
+      "turn": "E179",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1247680,
+      "endMs": 1252840,
+      "text": "Good, that's decided. And how does a grower log in? Most of them won't want another password."
+    },
+    {
+      "id": "e180",
+      "turn": "E180",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1253800,
+      "endMs": 1256900,
+      "text": "No passwords. They'll forget it and phone us."
+    },
+    {
+      "id": "e181",
+      "turn": "E181",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1257740,
+      "endMs": 1264440,
+      "text": "One option is a code sent by SMS to the phone number you already have on file for them. They type the code, and they are in."
+    },
+    {
+      "id": "e182",
+      "turn": "E182",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1265440,
+      "endMs": 1270040,
+      "text": "That works if the number on file is right. Some of them change their numbers."
+    },
+    {
+      "id": "e183",
+      "turn": "E183",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1270680,
+      "endMs": 1278280,
+      "text": "Then updating a phone number would go through the office, like the bank details, so nobody can take over someone else's account by changing the number."
+    },
+    {
+      "id": "e184",
+      "turn": "E184",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1279220,
+      "endMs": 1280560,
+      "text": "Yeah, same rule."
+    },
+    {
+      "id": "e185",
+      "turn": "E185",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1281900,
+      "endMs": 1283980,
+      "text": "Now language. The growers speak."
+    },
+    {
+      "id": "e186",
+      "turn": "E186",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1284440,
+      "endMs": 1289440,
+      "text": "English Afrikaans zitsonga sepedi. Most of the small growers are zitsonga speakers."
+    },
+    {
+      "id": "e187",
+      "turn": "E187",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1290300,
+      "endMs": 1291760,
+      "text": "My mother would want it in"
+    },
+    {
+      "id": "e188",
+      "turn": "E188",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1291890,
+      "endMs": 1297910,
+      "text": "zitsonga, but she reads English, too. Do you want the grower pages translated?"
+    },
+    {
+      "id": "e189",
+      "turn": "E189",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1299360,
+      "endMs": 1306910,
+      "text": "Hmm, I don't know. It would be nice, but the statements are in English now, and nobody complains. The statements have to be in"
+    },
+    {
+      "id": "e190",
+      "turn": "E190",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1307040,
+      "endMs": 1309840,
+      "text": "English for the orderers, anyway. So the"
+    },
+    {
+      "id": "e191",
+      "turn": "E191",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1309840,
+      "endMs": 1318300,
+      "text": "minimum is English. Whether we also do zitsonga, and maybe Afrikaans, for the grower pages, I'll leave open, and I'll tell you what it would cost to add."
+    },
+    {
+      "id": "e192",
+      "turn": "E192",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1319580,
+      "endMs": 1321030,
+      "text": "Yeah, let's see the cost first."
+    },
+    {
+      "id": "e193",
+      "turn": "E193",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1321780,
+      "endMs": 1325340,
+      "text": "And how should it look? Do you have any preferences? Colors, style."
+    },
+    {
+      "id": "e194",
+      "turn": "E194",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1326360,
+      "endMs": 1336190,
+      "text": "Our colors are orange and dark green. The logo is an orange with a leaf on it. Use that. For the Weybridge big buttons, the clerk"
+    },
+    {
+      "id": "e195",
+      "turn": "E195",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1336190,
+      "endMs": 1343880,
+      "text": "sometimes has gloves on in winter, and it's dusty. And it's outside, under the roof,"
+    },
+    {
+      "id": "e196",
+      "turn": "E196",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1344010,
+      "endMs": 1352960,
+      "text": "but outside, so the screen must be readable in the sun. Would that be a tablet at the Weybridge, or the PC? A tablet, I think. A rugged"
+    },
+    {
+      "id": "e197",
+      "turn": "E197",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1353210,
+      "endMs": 1360100,
+      "text": "one. The PC is under the counter, and the clerk has to go inside the little office to use it, while the driver waits."
+    },
+    {
+      "id": "e198",
+      "turn": "E198",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1360600,
+      "endMs": 1363620,
+      "text": "Then it needs to be charged every day, and with the battery at the gate."
+    },
+    {
+      "id": "e199",
+      "turn": "E199",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1364540,
+      "endMs": 1366360,
+      "text": "We'll keep it charged, Ruan."
+    },
+    {
+      "id": "e200",
+      "turn": "E200",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1367780,
+      "endMs": 1368600,
+      "text": "Okay, okay."
+    },
+    {
+      "id": "e201",
+      "turn": "E201",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1369240,
+      "endMs": 1379480,
+      "text": "I'll write it down as a strong preference for a rugged tablet at the Weybridge, and I'll check the hardware cost. And for the growers, plain and simple, their deliveries, their pack-out, their statements, and not much else."
+    },
+    {
+      "id": "e202",
+      "turn": "E202",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1380440,
+      "endMs": 1385890,
+      "text": "Not much else. If it's complicated, they'll phone us to ask how it works, which defeats the whole point."
+    },
+    {
+      "id": "e203",
+      "turn": "E203",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1387080,
+      "endMs": 1390140,
+      "text": "When the truck leaves, does the driver still need a paper ticket?"
+    },
+    {
+      "id": "e204",
+      "turn": "E204",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1391000,
+      "endMs": 1397140,
+      "text": "Yes. The driver must leave with something in his hand, otherwise the grower phones to ask if the fruit arrived."
+    },
+    {
+      "id": "e205",
+      "turn": "E205",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1397420,
+      "endMs": 1411300,
+      "text": "A small printed slip is fine, like a till slip. So a small printer next to the tablet, that prints a slip for each grower on the truck. Yes. And the SMS too, if they want it. But the slip always."
+    },
+    {
+      "id": "e206",
+      "turn": "E206",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1412020,
+      "endMs": 1413420,
+      "text": "The old ones like paper."
+    },
+    {
+      "id": "e207",
+      "turn": "E207",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1414380,
+      "endMs": 1427070,
+      "text": "And if the tablet itself breaks on a busy morning. We keep the carbon books in the drawer, just in case. Then someone types them in afterwards. That's sensible. I'll make sure there's a quick way to enter"
+    },
+    {
+      "id": "e208",
+      "turn": "E208",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1427210,
+      "endMs": 1429960,
+      "text": "the paper tickets afterwards, so nothing gets lost."
+    },
+    {
+      "id": "e209",
+      "turn": "E209",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1430840,
+      "endMs": 1434000,
+      "text": "Yeah, I'll keep the books. Tablets always die at the worst moment."
+    },
+    {
+      "id": "e210",
+      "turn": "E210",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1434960,
+      "endMs": 1437870,
+      "text": "Okay. Let's talk volumes. How many trucks come"
+    },
+    {
+      "id": "e211",
+      "turn": "E211",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1437870,
+      "endMs": 1441660,
+      "text": "through the Weybridge in a day? In the peak, 60, 70"
+    },
+    {
+      "id": "e212",
+      "turn": "E212",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1441910,
+      "endMs": 1449250,
+      "text": "trucks. Mostly between 6 and 10 in the morning, because they pick in the, no, actually that's not right. They pick in the morning,"
+    },
+    {
+      "id": "e213",
+      "turn": "E213",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1449250,
+      "endMs": 1466470,
+      "text": "and they deliver late morning. Between 7 and 11, say. And each truck carries how many bins? It depends on the truck. A small grower's backy with a trailer, 6 bins. A big truck, 40 bins. Does one truck always carry one grower's fruit?"
+    },
+    {
+      "id": "e214",
+      "turn": "E214",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1467520,
+      "endMs": 1470830,
+      "text": "No, and that's another headache. The small growers around"
+    },
+    {
+      "id": "e215",
+      "turn": "E215",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1470830,
+      "endMs": 1487920,
+      "text": "Enkau and Kau share transport. There's a contractor, Mr. Shirinza, with two trucks, and he collects from 6 or 7 growers in one tray. Right. We weigh the whole truck, and then we have to split the weight by grower, by the number of bins each one"
+    },
+    {
+      "id": "e216",
+      "turn": "E216",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1487920,
+      "endMs": 1490030,
+      "text": "has on the truck. The clerk does it with"
+    },
+    {
+      "id": "e217",
+      "turn": "E217",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1490090,
+      "endMs": 1499120,
+      "text": "a calculator. So one truck can carry several growers' bins, and the weight gets shared out. Is it always by the number of bins? By bins?"
+    },
+    {
+      "id": "e218",
+      "turn": "E218",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1499420,
+      "endMs": 1508780,
+      "text": "We can't weigh each bin separately. There's no bin scale. So it's the full truck minus the empty truck, divided by the bins, and each grower gets his share. And the"
+    },
+    {
+      "id": "e219",
+      "turn": "E219",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1508780,
+      "endMs": 1510460,
+      "text": "growers accept that."
+    },
+    {
+      "id": "e220",
+      "turn": "E220",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1511160,
+      "endMs": 1512000,
+      "text": "They accept it"
+    },
+    {
+      "id": "e221",
+      "turn": "E221",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1512190,
+      "endMs": 1516880,
+      "text": "because it's always been like that. Mostly. I'll make sure the intake can split"
+    },
+    {
+      "id": "e222",
+      "turn": "E222",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1516920,
+      "endMs": 1525260,
+      "text": "one truck's weight across several growers by their number of bins, and that each grower's ticket shows his own share. Does the contractor need to see anything?"
+    },
+    {
+      "id": "e223",
+      "turn": "E223",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1526300,
+      "endMs": 1530920,
+      "text": "No. The contractor gets paid by the growers directly. That's not our business."
+    },
+    {
+      "id": "e224",
+      "turn": "E224",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1531800,
+      "endMs": 1537390,
+      "text": "So how many bins in a day at the peak? About 1,800 bins a day at the peak."
+    },
+    {
+      "id": "e225",
+      "turn": "E225",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1538400,
+      "endMs": 1543980,
+      "text": "And how long does a truck take at the Weybridge now? Four, five minutes when it's going well. The riding"
+    },
+    {
+      "id": "e226",
+      "turn": "E226",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1543980,
+      "endMs": 1548950,
+      "text": "is what takes the time. When there's a queue, it backs up onto the road, and then the traffic"
+    },
+    {
+      "id": "e227",
+      "turn": "E227",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1548950,
+      "endMs": 1550380,
+      "text": "department phones Johan."
+    },
+    {
+      "id": "e228",
+      "turn": "E228",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1551220,
+      "endMs": 1552480,
+      "text": "Twice last season."
+    },
+    {
+      "id": "e229",
+      "turn": "E229",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1553140,
+      "endMs": 1569460,
+      "text": "What would be good enough for the clerk? Under a minute. If they can scan and tap and go under a minute for the clerk's part. So capturing a delivery at the Weybridge should take the clerk less than a minute, and it must keep up with 70 trucks in about four hours. Yes."
+    },
+    {
+      "id": "e230",
+      "turn": "E230",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1569880,
+      "endMs": 1572050,
+      "text": "Oh, and sorry I said 1,800 bins."
+    },
+    {
+      "id": "e231",
+      "turn": "E231",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1572640,
+      "endMs": 1580510,
+      "text": "That's what we do on a normal day in June, July. The peak last season in the Big Valencia week was 2,400 bins in one day."
+    },
+    {
+      "id": "e232",
+      "turn": "E232",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1580740,
+      "endMs": 1581670,
+      "text": "2,400."
+    },
+    {
+      "id": "e233",
+      "turn": "E233",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1583260,
+      "endMs": 1590280,
+      "text": "2,400 at the peak, and about 1,800 on a normal day in the middle of the season. Thank you. That matters for the sizing."
+    },
+    {
+      "id": "e234",
+      "turn": "E234",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1591000,
+      "endMs": 1598010,
+      "text": "And it's growing. We've got two new members planting, and the old naval orchards are being replaced with mandarins, which means smaller"
+    },
+    {
+      "id": "e235",
+      "turn": "E235",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1598110,
+      "endMs": 1599820,
+      "text": "fruit and more cartons per bin."
+    },
+    {
+      "id": "e236",
+      "turn": "E236",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1600360,
+      "endMs": 1601760,
+      "text": "Any idea how much growth?"
+    },
+    {
+      "id": "e237",
+      "turn": "E237",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1602780,
+      "endMs": 1610260,
+      "text": "The board's plan says 10% more volume a year for the next five years. Whether that happens with the prices the way they are, I don't know."
+    },
+    {
+      "id": "e238",
+      "turn": "E238",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1610820,
+      "endMs": 1616840,
+      "text": "I'll design for that anyway. It's not a big number for a system like this. And how many growers would use the portal?"
+    },
+    {
+      "id": "e239",
+      "turn": "E239",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1617700,
+      "endMs": 1624020,
+      "text": "Well, all 140. Johan, it's 162. 140 delivered"
+    },
+    {
+      "id": "e240",
+      "turn": "E240",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1624020,
+      "endMs": 1632980,
+      "text": "last season, but we have 162 members. The others haven't delivered for a season or two, but they can come back any time, and they still get the newsletter."
+    },
+    {
+      "id": "e241",
+      "turn": "E241",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1634260,
+      "endMs": 1637920,
+      "text": "You're okay, 162. He's the one with the list."
+    },
+    {
+      "id": "e242",
+      "turn": "E242",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1638700,
+      "endMs": 1639900,
+      "text": "So, up to 162"
+    },
+    {
+      "id": "e243",
+      "turn": "E243",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1639900,
+      "endMs": 1646630,
+      "text": "growers, and some will have more than one person logging in. The big farms,"
+    },
+    {
+      "id": "e244",
+      "turn": "E244",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1646630,
+      "endMs": 1650880,
+      "text": "yes. The owner and his manager, and maybe his bookkeeper."
+    },
+    {
+      "id": "e245",
+      "turn": "E245",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1651580,
+      "endMs": 1659160,
+      "text": "So, a few hundred users at most. That's small. The bigger load is the morning rush at the Weybridge, and the notifications going out after grading."
+    },
+    {
+      "id": "e246",
+      "turn": "E246",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1659820,
+      "endMs": 1663820,
+      "text": "And when everybody opens their statement on the same morning. Yeah,"
+    },
+    {
+      "id": "e247",
+      "turn": "E247",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1663860,
+      "endMs": 1673140,
+      "text": "that too. Still small numbers, but the pages should be quick on a slow phone. I'd aim for Grower's Page loading in. Say, three seconds on a 3G connection."
+    },
+    {
+      "id": "e248",
+      "turn": "E248",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1674140,
+      "endMs": 1677060,
+      "text": "That's fine. Most of them have 3G at least."
+    },
+    {
+      "id": "e249",
+      "turn": "E249",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1677380,
+      "endMs": 1682080,
+      "text": "Some of the farms up towards the mountain have nothing, but then they come down to town. Except"
+    },
+    {
+      "id": "e250",
+      "turn": "E250",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1682080,
+      "endMs": 1692440,
+      "text": "after the hail. Did you hear Ayasha? Last Saturday, a hailstorm went right over Lettside. Ten minutes, some of the farms on the Rubbervale Road lost half the crop on the trees."
+    },
+    {
+      "id": "e251",
+      "turn": "E251",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 1693200,
+      "endMs": 1699020,
+      "text": "Oh no, that's terrible. My cousin's farm, a whole block of navels, all marked. It's Jews now."
+    },
+    {
+      "id": "e252",
+      "turn": "E252",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1699860,
+      "endMs": 1703300,
+      "text": "It happens every few years. That's farming anyway."
+    },
+    {
+      "id": "e253",
+      "turn": "E253",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1704780,
+      "endMs": 1709200,
+      "text": "Johan, apart from the growers, what do you need to see as the manager? Day to day."
+    },
+    {
+      "id": "e254",
+      "turn": "E254",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1711480,
+      "endMs": 1720020,
+      "text": "I want to know what came in yesterday, how many bins per cultivar, and what the packout was. Right now I walk over to Precious and ask her, and she looks in her notebook."
+    },
+    {
+      "id": "e255",
+      "turn": "E255",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1720620,
+      "endMs": 1722070,
+      "text": "It's a very good notebook."
+    },
+    {
+      "id": "e256",
+      "turn": "E256",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1722820,
+      "endMs": 1728160,
+      "text": "It's a very good notebook, but when I'm in Johansberg at the citrus meeting, I can't walk over."
+    },
+    {
+      "id": "e257",
+      "turn": "E257",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1729360,
+      "endMs": 1735940,
+      "text": "So a daily summary for management. Bins received and the packout per cultivar for the day before. On the phone or by email."
+    },
+    {
+      "id": "e258",
+      "turn": "E258",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1736600,
+      "endMs": 1741510,
+      "text": "Both. An email at 6 in the morning would be perfect. And a page I can look at."
+    },
+    {
+      "id": "e259",
+      "turn": "E259",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1742520,
+      "endMs": 1746580,
+      "text": "Okay. Any other reports? For the board or for the export agent?"
+    },
+    {
+      "id": "e260",
+      "turn": "E260",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1747500,
+      "endMs": 1755600,
+      "text": "The board wants a monthly report. Volumes, packout, advances, paid. I make that by hand too, in the spreadsheet, and it takes me a day."
+    },
+    {
+      "id": "e261",
+      "turn": "E261",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1756280,
+      "endMs": 1765300,
+      "text": "That one I'd probably leave in your spreadsheet for the first phase, since the advances are there. But the volumes and packout could come straight from the system. Does that sound right?"
+    },
+    {
+      "id": "e262",
+      "turn": "E262",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1765700,
+      "endMs": 1766940,
+      "text": "That sounds right."
+    },
+    {
+      "id": "e263",
+      "turn": "E263",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1767340,
+      "endMs": 1769970,
+      "text": "Okay. Precious, at the tipper, what happens when a bin is"
+    },
+    {
+      "id": "e264",
+      "turn": "E264",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1769970,
+      "endMs": 1775080,
+      "text": "scanned? What would you want to see? The grower, the blark, the cultivars."
+    },
+    {
+      "id": "e265",
+      "turn": "E265",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1775320,
+      "endMs": 1791440,
+      "text": "And if it's the last bin of that delivery, so the line knows to close the batch on the grader. Right now, the line foreman shouts. He shouts. He shouts. Last bin, 4471. Okay. And the grader operator types it in."
+    },
+    {
+      "id": "e266",
+      "turn": "E266",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1791660,
+      "endMs": 1793940,
+      "text": "If he doesn't hear, two growers' fruit go into"
+    },
+    {
+      "id": "e267",
+      "turn": "E267",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1794070,
+      "endMs": 1810090,
+      "text": "one batch. MM. So the scan at the tipper should tell the operator when a delivery's last bin has gone in. Yes. That alone would save me half my fights. That's a good one. Can I ask about the clerks? How many people would use the Weybridge and tipper"
+    },
+    {
+      "id": "e268",
+      "turn": "E268",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1810090,
+      "endMs": 1810700,
+      "text": "screens?"
+    },
+    {
+      "id": "e269",
+      "turn": "E269",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1811780,
+      "endMs": 1817000,
+      "text": "Two clerks at the Weybridge. One in the morning shift, one in the afternoon, and in the peak both together. And"
+    },
+    {
+      "id": "e270",
+      "turn": "E270",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 1817000,
+      "endMs": 1833520,
+      "text": "at the tipper, three people over the shifts. cross me, cross the foreman. And how comfortable are they with computers? The Weybridge clerks, okay. They use WhatsApp, they use the Weymates screen. The tipper guys, less. They'll want one button."
+    },
+    {
+      "id": "e271",
+      "turn": "E271",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1834500,
+      "endMs": 1840200,
+      "text": "One button. I like that. Before we get to money, have you looked at buying a packhouse system off the shelf?"
+    },
+    {
+      "id": "e272",
+      "turn": "E272",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1840780,
+      "endMs": 1854620,
+      "text": "We did, three years ago. There's a big one that the large packhouses use, from Cape Town. They wanted, I think, two million rand plus a yearly license, and it does a hundred things we don't need. For a co-op our size, it doesn't make sense. And"
+    },
+    {
+      "id": "e273",
+      "turn": "E273",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1854620,
+      "endMs": 1859200,
+      "text": "it didn't have the small grower stuff. The sharing of trucks, the SMS."
+    },
+    {
+      "id": "e274",
+      "turn": "E274",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1860240,
+      "endMs": 1864640,
+      "text": "That's helpful to know. So buying the big system was ruled out, mainly on cost."
+    },
+    {
+      "id": "e275",
+      "turn": "E275",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1865840,
+      "endMs": 1870400,
+      "text": "On cost, and because the people who sold it never came back to us after the demo."
+    },
+    {
+      "id": "e276",
+      "turn": "E276",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 1871060,
+      "endMs": 1874770,
+      "text": "Okay. Can we talk about budget? Do you have a figure in mind?"
+    },
+    {
+      "id": "e277",
+      "turn": "E277",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 1875560,
+      "endMs": 1881720,
+      "text": "The board approved, uh, 650,000 rand for the system. That was at the August meeting."
+    },
+    {
+      "id": "e278",
+      "turn": "E278",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1882600,
+      "endMs": 1892100,
+      "text": "I'm not sure that's right, Johan. I think it was less. Was it? I remember 650. 650 was what Ruan's friend quoted us last year"
+    },
+    {
+      "id": "e279",
+      "turn": "E279",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 1892100,
+      "endMs": 1901080,
+      "text": "for the app thing. The board approved something lower. Let me grab the resolution. One sec. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e280",
+      "turn": "E280",
+      "speakerLabel": null,
+      "startMs": 1901080,
+      "endMs": 1916820,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e281",
+      "turn": "E281",
+      "speakerLabel": null,
+      "startMs": 1916820,
+      "endMs": 1932810,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e282",
+      "turn": "E282",
+      "speakerLabel": null,
+      "startMs": 1932820,
+      "endMs": 1947840,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e283",
+      "turn": "E283",
+      "speakerLabel": null,
+      "startMs": 1947840,
+      "endMs": 1962920,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e284",
+      "turn": "E284",
+      "speakerLabel": null,
+      "startMs": 1962920,
+      "endMs": 1978020,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk."
+    },
+    {
+      "id": "e285",
+      "turn": "E285",
+      "speakerLabel": null,
+      "startMs": 1978020,
+      "endMs": 2006530,
+      "text": "It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file on my desk. It's in the file"
+    },
+    {
+      "id": "e286",
+      "turn": "E286",
+      "speakerLabel": null,
+      "startMs": 2006530,
+      "endMs": 2011290,
+      "text": "on my"
+    },
+    {
+      "id": "e287",
+      "turn": "E287",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2011290,
+      "endMs": 2025860,
+      "text": "desk. There he is. Did you find it? Yeah. Okay. Sorry about"
+    },
+    {
+      "id": "e288",
+      "turn": "E288",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2025860,
+      "endMs": 2037390,
+      "text": "that. Here it is. Resolution of the 21st of August. Okay. The board approves an amount of up to 580,000 Rand, excluding VAT, for the development of a grower information"
+    },
+    {
+      "id": "e289",
+      "turn": "E289",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2037390,
+      "endMs": 2043800,
+      "text": "system and running costs of up to 4,500 Rand per month. So it's 580, not 650. 580."
+    },
+    {
+      "id": "e290",
+      "turn": "E290",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2043840,
+      "endMs": 2048000,
+      "text": "Okay. I stand corrected. Thank you,"
+    },
+    {
+      "id": "e291",
+      "turn": "E291",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2048000,
+      "endMs": 2059610,
+      "text": "Sifo. It's helpful to have it exactly. 580,000, excluding VAT for the build, and up to 4,500 a month to run it. Does the 4 and a half include the SM"
+    },
+    {
+      "id": "e292",
+      "turn": "E292",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2059610,
+      "endMs": 2064300,
+      "text": "says? It doesn't say. I'd assume it includes the SM"
+    },
+    {
+      "id": "e293",
+      "turn": "E293",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2064300,
+      "endMs": 2075160,
+      "text": "says, and the hosting, and I'll show you the monthly breakdown, so you can check it against the resolution. Is the build amount for this financial year? Our year ends"
+    },
+    {
+      "id": "e294",
+      "turn": "E294",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2075160,
+      "endMs": 2077930,
+      "text": "in February, so whatever we spend before the"
+    },
+    {
+      "id": "e295",
+      "turn": "E295",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2077930,
+      "endMs": 2083650,
+      "text": "end of February comes from this year's budget. After that, it would have to go to the board"
+    },
+    {
+      "id": "e296",
+      "turn": "E296",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2083890,
+      "endMs": 2090290,
+      "text": "again. Okay, that's good to know. That probably means paying in stages, with most of it before the end of February. Yeah,"
+    },
+    {
+      "id": "e297",
+      "turn": "E297",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2090290,
+      "endMs": 2092030,
+      "text": "that would suit us. And"
+    },
+    {
+      "id": "e298",
+      "turn": "E298",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2092030,
+      "endMs": 2096570,
+      "text": "the export to your spreadsheet, Sifo. How do you want it laid out? Per grower,"
+    },
+    {
+      "id": "e299",
+      "turn": "E299",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2096570,
+      "endMs": 2104060,
+      "text": "per cultivar, per class, for the month. That's how my sheet works. If it's one row per bin, I'll drown. Per"
+    },
+    {
+      "id": "e300",
+      "turn": "E300",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2104060,
+      "endMs": 2108920,
+      "text": "grower, per cultivar, per class, for the month. Totals, not bins. Totals,"
+    },
+    {
+      "id": "e301",
+      "turn": "E301",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2108920,
+      "endMs": 2114840,
+      "text": "and the delivery numbers next to them, so I can check against the tickets, if a grower complains. And"
+    },
+    {
+      "id": "e302",
+      "turn": "E302",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2114840,
+      "endMs": 2118150,
+      "text": "timing, when do you need it working? Before"
+    },
+    {
+      "id": "e303",
+      "turn": "E303",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2118150,
+      "endMs": 2123970,
+      "text": "the season, the first mandarins come in at the end of March, so February. February"
+    },
+    {
+      "id": "e304",
+      "turn": "E304",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2124040,
+      "endMs": 2129020,
+      "text": "is too late for me. If the clerks must learn a new Weybridge system, I want them"
+    },
+    {
+      "id": "e305",
+      "turn": "E305",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2129020,
+      "endMs": 2144520,
+      "text": "to practice in February. But there's no fruit in February, hum. That's a real problem. There's nothing to practice on, before the season starts. We can practice with empty bins. Or no, we can make up deliveries. Fake drugs."
+    },
+    {
+      "id": "e306",
+      "turn": "E306",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2145720,
+      "endMs": 2147160,
+      "text": "Training with made up deliveries"
+    },
+    {
+      "id": "e307",
+      "turn": "E307",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2147160,
+      "endMs": 2150170,
+      "text": "in February, that works. So what's the hard date? The"
+    },
+    {
+      "id": "e308",
+      "turn": "E308",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2150170,
+      "endMs": 2160680,
+      "text": "intake at the Weybridge must be working by the 1st of March. The grower pages can come a bit later. The growers can wait until, say, the end of April for their first statements. So two"
+    },
+    {
+      "id": "e309",
+      "turn": "E309",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2160830,
+      "endMs": 2167960,
+      "text": "dates. The Weybridge intake live by the 1st of March, 2027, and the grower pages by the end of April."
+    },
+    {
+      "id": "e310",
+      "turn": "E310",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2167960,
+      "endMs": 2169560,
+      "text": "Yeah. That's about"
+    },
+    {
+      "id": "e311",
+      "turn": "E311",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2169600,
+      "endMs": 2181240,
+      "text": "15 weeks from now, with the December break in the middle. It's doable for the intake, if we keep it tight. But I want to be honest with you. The greater connection is the part that could slip, because we don't control it."
+    },
+    {
+      "id": "e312",
+      "turn": "E312",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2181270,
+      "endMs": 2188960,
+      "text": "Understood. If the greater part is late, Marachi keeps typing for a bit. It's not the end of the world. When"
+    },
+    {
+      "id": "e313",
+      "turn": "E313",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2188960,
+      "endMs": 2193870,
+      "text": "we start, what do we bring over from the spreadsheet? The grower list, for sure. The grower"
+    },
+    {
+      "id": "e314",
+      "turn": "E314",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2193870,
+      "endMs": 2201390,
+      "text": "list, with the orchard blocks and the cultivars. That's in a separate sheet, about 600 blocks. Some of it's out of date."
+    },
+    {
+      "id": "e315",
+      "turn": "E315",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2202360,
+      "endMs": 2203910,
+      "text": "Who could check it? Marachi,"
+    },
+    {
+      "id": "e316",
+      "turn": "E316",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2203910,
+      "endMs": 2208150,
+      "text": "she'd know which blocks were pulled out and replanted. And last"
+    },
+    {
+      "id": "e317",
+      "turn": "E317",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2208160,
+      "endMs": 2212360,
+      "text": "season's deliveries. Would the growers want to see those on their pages?"
+    },
+    {
+      "id": "e318",
+      "turn": "E318",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2212920,
+      "endMs": 2217960,
+      "text": "Hum, it'd be nice for comparing this year against last year. But it's not essential."
+    },
+    {
+      "id": "e319",
+      "turn": "E319",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2219000,
+      "endMs": 2225720,
+      "text": "The old data is messy. I'll warn you now. Different years, different columns. Some years, Marachi's niece did the typing."
+    },
+    {
+      "id": "e320",
+      "turn": "E320",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2226840,
+      "endMs": 2236200,
+      "text": "Then I'd suggest we bring over the grower list, and the blocks for sure. And last season's deliveries only if it's cheap. Once I've seen the spreadsheet, we can decide that after I've had a look."
+    },
+    {
+      "id": "e321",
+      "turn": "E321",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2237560,
+      "endMs": 2240280,
+      "text": "I'll send you a copy, without the bank details."
+    },
+    {
+      "id": "e322",
+      "turn": "E322",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2240760,
+      "endMs": 2247160,
+      "text": "Without the bank details, please. Just the grower numbers, names, blocks, and the deliveries. That's all I need to see."
+    },
+    {
+      "id": "e323",
+      "turn": "E323",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2248200,
+      "endMs": 2249080,
+      "text": "Yeah, of course."
+    },
+    {
+      "id": "e324",
+      "turn": "E324",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2250280,
+      "endMs": 2254110,
+      "text": "You mentioned spray records earlier, Johan. Do you want those in the system?"
+    },
+    {
+      "id": "e325",
+      "turn": "E325",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2255000,
+      "endMs": 2260000,
+      "text": "Yeah, if possible. Every grower must give us his spray program for each orchard before we"
+    },
+    {
+      "id": "e326",
+      "turn": "E326",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2260000,
+      "endMs": 2271230,
+      "text": "pack for export. Sure. The European market tests for residues, and if one container fails, it's a disaster. For the whole co-op, not just for that grower. And our auditors check that we have the records."
+    },
+    {
+      "id": "e327",
+      "turn": "E327",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2272360,
+      "endMs": 2274120,
+      "text": "How do the growers give them to you now?"
+    },
+    {
+      "id": "e328",
+      "turn": "E328",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2275320,
+      "endMs": 2281640,
+      "text": "Paper, email, photos on WhatsApp, whatever they like. And my PA files them in the lever arch file."
+    },
+    {
+      "id": "e329",
+      "turn": "E329",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2282600,
+      "endMs": 2286680,
+      "text": "So the growers could upload their spray records on the portal for each orchard block."
+    },
+    {
+      "id": "e330",
+      "turn": "E330",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2287560,
+      "endMs": 2295880,
+      "text": "Yes, and then this is the important part. If a grower hasn't given us his spray records, the Weybridge must warn the clerk that this fruit can't go for export."
+    },
+    {
+      "id": "e331",
+      "turn": "E331",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2296440,
+      "endMs": 2298440,
+      "text": "A warning, or does it stop the delivery?"
+    },
+    {
+      "id": "e332",
+      "turn": "E332",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2299320,
+      "endMs": 2305160,
+      "text": "A warning. We still take the fruit. It can go to the local market or to juice, but it must not go into"
+    },
+    {
+      "id": "e333",
+      "turn": "E333",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2305160,
+      "endMs": 2306200,
+      "text": "an export batch."
+    },
+    {
+      "id": "e334",
+      "turn": "E334",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2307560,
+      "endMs": 2310040,
+      "text": "Then I need to see it at the tipper too."
+    },
+    {
+      "id": "e335",
+      "turn": "E335",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2310040,
+      "endMs": 2314860,
+      "text": "When I scan the bin, it must say no export. That's clear. So missing"
+    },
+    {
+      "id": "e336",
+      "turn": "E336",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2314880,
+      "endMs": 2322680,
+      "text": "spray records mark a delivery as not for export at the Weybridge and at the Tipper. Do the auditors accept digital records, or do they want paper?"
+    },
+    {
+      "id": "e337",
+      "turn": "E337",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2323160,
+      "endMs": 2328600,
+      "text": "I don't know. I think digital is fine, but I'd have to ask them. Their next audit is in May."
+    },
+    {
+      "id": "e338",
+      "turn": "E338",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2329720,
+      "endMs": 2333080,
+      "text": "Okay, I'll leave that as an open question for you to check with them."
+    },
+    {
+      "id": "e339",
+      "turn": "E339",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2333480,
+      "endMs": 2334280,
+      "text": "I'll ask them."
+    },
+    {
+      "id": "e340",
+      "turn": "E340",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2334920,
+      "endMs": 2338040,
+      "text": "Let's talk about the training a bit more. Who needs it and when?"
+    },
+    {
+      "id": "e341",
+      "turn": "E341",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2339000,
+      "endMs": 2346680,
+      "text": "The Weybridge clerks and the Tipper guys in February, like we said. Two sessions because of the shift. And I want to be in both."
+    },
+    {
+      "id": "e342",
+      "turn": "E342",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2347320,
+      "endMs": 2353480,
+      "text": "And me, separately, for the export to my spreadsheet. I don't need to know the Weybridge. I need to know my numbers are right."
+    },
+    {
+      "id": "e343",
+      "turn": "E343",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2354680,
+      "endMs": 2361320,
+      "text": "That makes sense. A session for the Packhouse team twice, and one for the office. And a few practice days with made-up trucks."
+    },
+    {
+      "id": "e344",
+      "turn": "E344",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2362440,
+      "endMs": 2378170,
+      "text": "Yes. And on the first real day, the 1st of March, or whenever the first Mandarin's come, I want you here. Or someone. I'll be here for the first two mornings of the season. That I can promise. Good. Because the first morning, something"
+    },
+    {
+      "id": "e345",
+      "turn": "E345",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2378170,
+      "endMs": 2382990,
+      "text": "will go wrong. Something always does. And the Growers. How do they"
+    },
+    {
+      "id": "e346",
+      "turn": "E346",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2382990,
+      "endMs": 2384280,
+      "text": "find out about the portal?"
+    },
+    {
+      "id": "e347",
+      "turn": "E347",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2384840,
+      "endMs": 2392440,
+      "text": "The AGM is on the 11th of March. Most of the members come for the lunch, if nothing else. We can show it on the big screen there."
+    },
+    {
+      "id": "e348",
+      "turn": "E348",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2393480,
+      "endMs": 2400840,
+      "text": "That's a good moment. And then each grower gets an SMS with a link from the office, and Mr. Bailoy helps the small growers who get stuck."
+    },
+    {
+      "id": "e349",
+      "turn": "E349",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2401400,
+      "endMs": 2403980,
+      "text": "Yeah. And Mariachi can help too. She'll still"
+    },
+    {
+      "id": "e350",
+      "turn": "E350",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2403980,
+      "endMs": 2412670,
+      "text": "be here then. She'll want a farewell with a cake in June, by the way. A big one. I'm just saying. She'll get a cake, Sifo."
+    },
+    {
+      "id": "e351",
+      "turn": "E351",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2413560,
+      "endMs": 2419870,
+      "text": "Precious, at the Weybridge, apart from the grower, the block and the bins, is there anything else the clerk writes down today? The"
+    },
+    {
+      "id": "e352",
+      "turn": "E352",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2419870,
+      "endMs": 2436760,
+      "text": "truck registration and the driver's name. For the gate security, so we know who was on the property. That's in a different book at the guard hut. Should that move to the tablet as well? If it's on the same screen, yes. Then the guard doesn't need his book."
+    },
+    {
+      "id": "e353",
+      "turn": "E353",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2436910,
+      "endMs": 2439240,
+      "text": "But it's not the important part. Okay,"
+    },
+    {
+      "id": "e354",
+      "turn": "E354",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2439280,
+      "endMs": 2446120,
+      "text": "I'll include it as a small extra on the intake screen. And while we're talking about the season, does the pack house work weekends?"
+    },
+    {
+      "id": "e355",
+      "turn": "E355",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2447400,
+      "endMs": 2449100,
+      "text": "Saturday is in the peak until"
+    },
+    {
+      "id": "e356",
+      "turn": "E356",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2449100,
+      "endMs": 2462840,
+      "text": "one o'clock. Never Sundays. Then the grower pages need to be up on Saturdays, too. Yeah, they must. Saturday morning is when the growers have time to look. And the maturity tests, the lab. Nice"
+    },
+    {
+      "id": "e357",
+      "turn": "E357",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2462840,
+      "endMs": 2468690,
+      "text": "to have. The QC lady, Nthabaisung, she'd love it. But it's not the main thing. Let's"
+    },
+    {
+      "id": "e358",
+      "turn": "E358",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2468690,
+      "endMs": 2473000,
+      "text": "put that down for later, then. Not the first phase. Yeah."
+    },
+    {
+      "id": "e359",
+      "turn": "E359",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2473000,
+      "endMs": 2473700,
+      "text": "Oh, one"
+    },
+    {
+      "id": "e360",
+      "turn": "E360",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2473760,
+      "endMs": 2486930,
+      "text": "more thing about the pack-out. Should the grower see the pack-out immediately, or only after I've checked the report? Sometimes the grader gets it wrong. The camera gets dirty, or the light changes, and I redo the batch."
+    },
+    {
+      "id": "e361",
+      "turn": "E361",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2488360,
+      "endMs": 2490520,
+      "text": "Hmm, I'd say after you've checked."
+    },
+    {
+      "id": "e362",
+      "turn": "E362",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2491400,
+      "endMs": 2496190,
+      "text": "But then I'm the bottleneck. In the peak, I'm checking 60 batches a day."
+    },
+    {
+      "id": "e363",
+      "turn": "E363",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2497320,
+      "endMs": 2499480,
+      "text": "You got it well. Let's think about it."
+    },
+    {
+      "id": "e364",
+      "turn": "E364",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2500520,
+      "endMs": 2513020,
+      "text": "I'll leave that one open. Whether the pack-out goes to the grower straight from the grader, or only after Precious has checked it, I can show you how both would work. Okay. Precious, when a grower disagrees"
+    },
+    {
+      "id": "e365",
+      "turn": "E365",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2513150,
+      "endMs": 2522670,
+      "text": "with a pack-out, what should happen? Today he phones you. Today he phones me, or he arrives at my office with his son. Could the grower raise a query on his page"
+    },
+    {
+      "id": "e366",
+      "turn": "E366",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2522670,
+      "endMs": 2530200,
+      "text": "instead? He presses a button on that delivery, writes what's wrong, and it lands with you, with the delivery, the scans and the grader report attached."
+    },
+    {
+      "id": "e367",
+      "turn": "E367",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2530200,
+      "endMs": 2536860,
+      "text": "Yes, that would be much better. Then I have everything in front of me when I phone him back. But he"
+    },
+    {
+      "id": "e368",
+      "turn": "E368",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2536860,
+      "endMs": 2541010,
+      "text": "must still be able to phone. Some of them won't type. Of"
+    },
+    {
+      "id": "e369",
+      "turn": "E369",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2541020,
+      "endMs": 2548060,
+      "text": "course. The phone stays. The query on the page is an extra. And I want to see how many queries"
+    },
+    {
+      "id": "e370",
+      "turn": "E370",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2548060,
+      "endMs": 2554890,
+      "text": "each grower sends. Some growers query every single batch. Amen. I won't say who. Yeah,"
+    },
+    {
+      "id": "e371",
+      "turn": "E371",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2554890,
+      "endMs": 2559960,
+      "text": "she won't. Ayesha, while we're on the growers, there's something I forgot earlier. The"
+    },
+    {
+      "id": "e372",
+      "turn": "E372",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2559960,
+      "endMs": 2566280,
+      "text": "comparison. The comparison. Every grower wants to know how he did against the others. Yeah."
+    },
+    {
+      "id": "e373",
+      "turn": "E373",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2567720,
+      "endMs": 2573720,
+      "text": "Was my 80% good, or was everybody on 90 this week? Right now they phone Precious and ask her."
+    },
+    {
+      "id": "e374",
+      "turn": "E374",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2574760,
+      "endMs": 2581640,
+      "text": "And I tell them roughly. I say ag. The valentias from the lower farms were all around 75 this week."
+    },
+    {
+      "id": "e375",
+      "turn": "E375",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2582840,
+      "endMs": 2588760,
+      "text": "So the grower would see his pack out next to an average. The average of all the growers for that cultivar for that week."
+    },
+    {
+      "id": "e376",
+      "turn": "E376",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2590040,
+      "endMs": 2594600,
+      "text": "Yeah, exactly. But never another grower's name. Never. Just the average."
+    },
+    {
+      "id": "e377",
+      "turn": "E377",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2595880,
+      "endMs": 2602120,
+      "text": "And only if there are enough growers in it. If there are two growers with, ahem, wait. Say there are only two growers"
+    },
+    {
+      "id": "e378",
+      "turn": "E378",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2602120,
+      "endMs": 2606840,
+      "text": "with lemons in one week. Then the average tells you exactly what the other one got."
+    },
+    {
+      "id": "e379",
+      "turn": "E379",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2607800,
+      "endMs": 2617000,
+      "text": "That's a really good point, Sypho. So the average only shows when, say, at least five growers delivered that cultivar in that week. Otherwise it's hidden. Five."
+    },
+    {
+      "id": "e380",
+      "turn": "E380",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2617000,
+      "endMs": 2620120,
+      "text": "Okay, fine. Five is fair."
+    },
+    {
+      "id": "e381",
+      "turn": "E381",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2621160,
+      "endMs": 2629010,
+      "text": "I'll write that down. A cultivar averaged for the week. Shown only when at least five growers are in it. And never with a name. Can I add something"
+    },
+    {
+      "id": "e382",
+      "turn": "E382",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2629040,
+      "endMs": 2644920,
+      "text": "about the pack out? The grader doesn't only give the classes. It gives the sizes too. The count how many fruit fit in a carton. And the growers care about the sizes. Very much. The big sizes get a better price."
+    },
+    {
+      "id": "e383",
+      "turn": "E383",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2644920,
+      "endMs": 2648910,
+      "text": "Especially the navels. And Sypho's advance is different per size."
+    },
+    {
+      "id": "e384",
+      "turn": "E384",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2649480,
+      "endMs": 2655640,
+      "text": "Per size group. We have three groups. Large, medium and small. The board sets a rate for each one."
+    },
+    {
+      "id": "e385",
+      "turn": "E385",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2656200,
+      "endMs": 2661060,
+      "text": "So the pack out the grower sees should show the classes and the size groups. And your export should"
+    },
+    {
+      "id": "e386",
+      "turn": "E386",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2661320,
+      "endMs": 2662320,
+      "text": "have the size groups"
+    },
+    {
+      "id": "e387",
+      "turn": "E387",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2662320,
+      "endMs": 2667400,
+      "text": "too. Yeah. Otherwise I have to go back to the PDFs anyway. And then what's the point?"
+    },
+    {
+      "id": "e388",
+      "turn": "E388",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2668200,
+      "endMs": 2678270,
+      "text": "That depends on what the grader can give us, of course. If the agent's export has the sizes, it's easy. If we have to read the PDFs, I need to check that the sizes are in them. They are"
+    },
+    {
+      "id": "e389",
+      "turn": "E389",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2678270,
+      "endMs": 2686000,
+      "text": "in them, on the second page. I'll send you some with the second page. Thank you. Can I go"
+    },
+    {
+      "id": "e390",
+      "turn": "E390",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2686110,
+      "endMs": 2694520,
+      "text": "back to the Weybridge for a minute? When a truck comes in full, you weigh it. Do you weigh it again when it leaves empty? The big trucks, yes."
+    },
+    {
+      "id": "e391",
+      "turn": "E391",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2694520,
+      "endMs": 2702080,
+      "text": "In and out. The backies and the tractors with trailers, no. We use the weight we've got written down for that vehicle. The"
+    },
+    {
+      "id": "e392",
+      "turn": "E392",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2702080,
+      "endMs": 2711940,
+      "text": "tear. Where is that written down? On a list stuck on the wall in the Weybridge office. The registration and the tear weight. How often is the list"
+    },
+    {
+      "id": "e393",
+      "turn": "E393",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2712000,
+      "endMs": 2723400,
+      "text": "updated? Every month. No, sorry, it should be every month. Honestly, it's every season. At the start of the season, we weigh every vehicle empty, and that's it."
+    },
+    {
+      "id": "e394",
+      "turn": "E394",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2724280,
+      "endMs": 2730920,
+      "text": "So the system should keep each vehicle's empty weight, so the clerk doesn't need the list on the wall, and the big trucks still weigh in and out."
+    },
+    {
+      "id": "e395",
+      "turn": "E395",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2731400,
+      "endMs": 2736840,
+      "text": "Yes. And it must remind us when a tear weight is old. Say, older than a month."
+    },
+    {
+      "id": "e396",
+      "turn": "E396",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2736840,
+      "endMs": 2741970,
+      "text": "Because a farmer puts new sides on his trailer, and suddenly it's heavier, and then he gets paid for"
+    },
+    {
+      "id": "e397",
+      "turn": "E397",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2742060,
+      "endMs": 2749300,
+      "text": "wood, not oranges. So a reminder when a vehicle's empty weight is more than a month old. Is that a hard stop, or a warning?"
+    },
+    {
+      "id": "e398",
+      "turn": "E398",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2750140,
+      "endMs": 2754900,
+      "text": "A warning. Then the clerk weighs that vehicle out that time, and the new tear goes in."
+    },
+    {
+      "id": "e399",
+      "turn": "E399",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2755400,
+      "endMs": 2761900,
+      "text": "Okay. And between the Weybridge and the Tipper, there's the holding area. Do you need to know where the bins are in there? Oh, yes."
+    },
+    {
+      "id": "e400",
+      "turn": "E400",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2761900,
+      "endMs": 2777240,
+      "text": "That's my other headache. The mandarins go into the degreening rooms. We have four rooms. They stay there two, three days with the atheline. And the oranges wait in rows in the holding area under the roof, with the forklifts going up and down."
+    },
+    {
+      "id": "e401",
+      "turn": "E401",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2777240,
+      "endMs": 2788020,
+      "text": "And sometimes a delivery gets forgotten in a corner behind the others. Forgotten. Forgotten. Last season, we found twelve bins of nadorcarts that had been"
+    },
+    {
+      "id": "e402",
+      "turn": "E402",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2788020,
+      "endMs": 2794740,
+      "text": "in the holding area for six days. They were sold. M.M. Jew, sir. Straight to Jew, sir."
+    },
+    {
+      "id": "e403",
+      "turn": "E403",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2795280,
+      "endMs": 2797450,
+      "text": "And the grower wanted to be paid for export."
+    },
+    {
+      "id": "e404",
+      "turn": "E404",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2797980,
+      "endMs": 2814260,
+      "text": "And he was right, actually. It was our fault. So it would help to see which deliveries are waiting, where, and for how long. Yes, sir. A list of what's waiting, oldest first, and in which room. And if something has been waiting more than three days, it must go red."
+    },
+    {
+      "id": "e405",
+      "turn": "E405",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2815040,
+      "endMs": 2822200,
+      "text": "Who would tell the system that a delivery has moved into a degreening room? Is that another scan? Hum, the forklift driver."
+    },
+    {
+      "id": "e406",
+      "turn": "E406",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2822200,
+      "endMs": 2826820,
+      "text": "But he won't scan. He's got both hands on the forklift."
+    },
+    {
+      "id": "e407",
+      "turn": "E407",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2827520,
+      "endMs": 2829560,
+      "text": "Could he have a tablet on the forklift?"
+    },
+    {
+      "id": "e408",
+      "turn": "E408",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2830360,
+      "endMs": 2840980,
+      "text": "Few and no. I'm not sure yet where that scan should happen. Okay."
+    },
+    {
+      "id": "e409",
+      "turn": "E409",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2840980,
+      "endMs": 2842770,
+      "text": "But the list I want."
+    },
+    {
+      "id": "e410",
+      "turn": "E410",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2843940,
+      "endMs": 2852680,
+      "text": "Just so you know, the Wi-Fi doesn't reach inside the degreening rooms. The walls are insulated panels. If someone has to scan at the doors, I'll need another access point there."
+    },
+    {
+      "id": "e411",
+      "turn": "E411",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2853960,
+      "endMs": 2859290,
+      "text": "Good to know. How much would that be? An outdoor one with the cabling, maybe five, six thousand"
+    },
+    {
+      "id": "e412",
+      "turn": "E412",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2859330,
+      "endMs": 2859820,
+      "text": "rand."
+    },
+    {
+      "id": "e413",
+      "turn": "E413",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2860720,
+      "endMs": 2864080,
+      "text": "You and the packhouse side. When there's load shedding, what keeps running?"
+    },
+    {
+      "id": "e414",
+      "turn": "E414",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2864460,
+      "endMs": 2875860,
+      "text": "The packhouse has a generator. A big diesel one, it runs the line. It takes about, oh, thirty seconds to kick in. The Wi-Fi access points are on the generator too, but in those thirty seconds, everything drops."
+    },
+    {
+      "id": "e415",
+      "turn": "E415",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2876400,
+      "endMs": 2879380,
+      "text": "So the tipper scanner loses the network for half a minute."
+    },
+    {
+      "id": "e416",
+      "turn": "E416",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2880240,
+      "endMs": 2888150,
+      "text": "Half a minute, and sometimes the access points take another two minutes to come back up. I could put a small UPS on them. That's maybe three thousand rand."
+    },
+    {
+      "id": "e417",
+      "turn": "E417",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2889160,
+      "endMs": 2897180,
+      "text": "That would be worth it, I think. And the tipper screen should hold its scans for a few minutes if the network drops, the same as the Weybridge, and send them when it's back."
+    },
+    {
+      "id": "e418",
+      "turn": "E418",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2898220,
+      "endMs": 2903600,
+      "text": "Yeah, I'll price the UPS. Just do it, Ryuan. It's three thousand rand."
+    },
+    {
+      "id": "e419",
+      "turn": "E419",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 2904240,
+      "endMs": 2906200,
+      "text": "Okay, okay. I'll do it."
+    },
+    {
+      "id": "e420",
+      "turn": "E420",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2907300,
+      "endMs": 2912440,
+      "text": "Who else needs information from you? Outside the co-op, I mean. You mentioned an export agent."
+    },
+    {
+      "id": "e421",
+      "turn": "E421",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2913160,
+      "endMs": 2927890,
+      "text": "The marketer. Our fruit is sold by an export agent in Durban. Every week they want to know how many cartons we packed, per cultivar and class, and what's in the cold store waiting for a container. They plan the ships from that, so if our numbers are late, our fruit misses a ship."
+    },
+    {
+      "id": "e422",
+      "turn": "E422",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2929180,
+      "endMs": 2935480,
+      "text": "Every Friday. No, sorry. Monday morning. They changed it this year, by nine o'clock on Monday morning."
+    },
+    {
+      "id": "e423",
+      "turn": "E423",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2936200,
+      "endMs": 2937630,
+      "text": "And how do they get it now?"
+    },
+    {
+      "id": "e424",
+      "turn": "E424",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2938280,
+      "endMs": 2943280,
+      "text": "I make a spreadsheet and email it. It takes me an hour, an hour and a half, every Monday."
+    },
+    {
+      "id": "e425",
+      "turn": "E425",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2944120,
+      "endMs": 2952020,
+      "text": "So a weekly report for the export agent, with the cartons packed per cultivar and class, ready by nine on Monday. Do they want a particular format?"
+    },
+    {
+      "id": "e426",
+      "turn": "E426",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2953140,
+      "endMs": 2956340,
+      "text": "They sent us a template. I'll send it to you."
+    },
+    {
+      "id": "e427",
+      "turn": "E427",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2957420,
+      "endMs": 2959270,
+      "text": "Please. And the cold store, is that something"
+    },
+    {
+      "id": "e428",
+      "turn": "E428",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2959270,
+      "endMs": 2967110,
+      "text": "you tracked today? The cold store is pallets. That's a different thing. The pallets get a sticker with the pallet"
+    },
+    {
+      "id": "e429",
+      "turn": "E429",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 2967120,
+      "endMs": 2970040,
+      "text": "number, and the cold store manager has his own book."
+    },
+    {
+      "id": "e430",
+      "turn": "E430",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2971160,
+      "endMs": 2978180,
+      "text": "Then I'd keep the cold store out of the first phase, and the weekly report has the packed cartons only, unless that's not enough for the agent."
+    },
+    {
+      "id": "e431",
+      "turn": "E431",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 2979100,
+      "endMs": 2983720,
+      "text": "Hum, they'll want the cold store, but let's start with the cartons. Okay. I'll"
+    },
+    {
+      "id": "e432",
+      "turn": "E432",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 2983930,
+      "endMs": 2993880,
+      "text": "note the cold store as something for later. Saifo, you said earlier that some of the numbers on file are wrong. How many growers do you think we have a good cell phone number for?"
+    },
+    {
+      "id": "e433",
+      "turn": "E433",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 2994680,
+      "endMs": 3004580,
+      "text": "Good question. I'd say 130, maybe 135. The rest, either there's no number, or it's a landline, or it's the number of someone who has passed away."
+    },
+    {
+      "id": "e434",
+      "turn": "E434",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3005500,
+      "endMs": 3007960,
+      "text": "So about 30 need checking before the season."
+    },
+    {
+      "id": "e435",
+      "turn": "E435",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3008960,
+      "endMs": 3017740,
+      "text": "Yeah. And there's another thing. Some families share three growers, a mother and two sons, each with their own blocks and their own grower number, and one phone number."
+    },
+    {
+      "id": "e436",
+      "turn": "E436",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3017740,
+      "endMs": 3018100,
+      "text": "M-M."
+    },
+    {
+      "id": "e437",
+      "turn": "E437",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3019100,
+      "endMs": 3023580,
+      "text": "The Macebula family, for example. One phone for three grower numbers."
+    },
+    {
+      "id": "e438",
+      "turn": "E438",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3024380,
+      "endMs": 3030040,
+      "text": "So one phone number can belong to more than one grower. When they log in, they choose which grower they're looking at."
+    },
+    {
+      "id": "e439",
+      "turn": "E439",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3031260,
+      "endMs": 3034350,
+      "text": "Yeah, but then the mother sees the son's payment. That's"
+    },
+    {
+      "id": "e440",
+      "turn": "E440",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3034350,
+      "endMs": 3038860,
+      "text": "their business. They're a family. If they share a phone, they share."
+    },
+    {
+      "id": "e441",
+      "turn": "E441",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3039860,
+      "endMs": 3045300,
+      "text": "Heavenly. I'm not so sure. What if they find? Then they get their own phones."
+    },
+    {
+      "id": "e442",
+      "turn": "E442",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3046020,
+      "endMs": 3056660,
+      "text": "Let me put that down as a question. When growers share a phone, does whoever has the phone see all of those growers, or does each grower need his own number? It touches the rule that a grower only sees his own."
+    },
+    {
+      "id": "e443",
+      "turn": "E443",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3057120,
+      "endMs": 3061000,
+      "text": "Yeah, leave it open. I want to ask the lawyer member about that one."
+    },
+    {
+      "id": "e444",
+      "turn": "E444",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3061640,
+      "endMs": 3066000,
+      "text": "While we're on statements, what's on a statement besides the advance? Are there deductions?"
+    },
+    {
+      "id": "e445",
+      "turn": "E445",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3066540,
+      "endMs": 3083100,
+      "text": "The packing fee per carton. The bin height for the growers who use the co-op's bins. That's 35 rand per bin per season. Transport if they used our truck, but that's only a few. And the levees. And at the barroom, what he got last month and what he got this month, because they always compare."
+    },
+    {
+      "id": "e446",
+      "turn": "E446",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3083880,
+      "endMs": 3090620,
+      "text": "Okay. Even if the statement stays in your spreadsheet for now, it'd help me to see one. To see what the growers are used to reading."
+    },
+    {
+      "id": "e447",
+      "turn": "E447",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3091360,
+      "endMs": 3094480,
+      "text": "I'll send you a statement with a fake name on it."
+    },
+    {
+      "id": "e448",
+      "turn": "E448",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3094980,
+      "endMs": 3096430,
+      "text": "Perfect. A fake name."
+    },
+    {
+      "id": "e449",
+      "turn": "E449",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3097500,
+      "endMs": 3107970,
+      "text": "You know what would be cool drones. My cousin is using a drone to count the fruit on the trees. Then you'd know before the picking how many bins are coming. He says it's quite accurate within 10%. Not"
+    },
+    {
+      "id": "e450",
+      "turn": "E450",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3108060,
+      "endMs": 3109340,
+      "text": "today."
+    },
+    {
+      "id": "e451",
+      "turn": "E451",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3110100,
+      "endMs": 3113780,
+      "text": "He says this every meeting. One day you'll thank me."
+    },
+    {
+      "id": "e452",
+      "turn": "E452",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3114820,
+      "endMs": 3116940,
+      "text": "Actually, ruin isn't completely off. Do you know in"
+    },
+    {
+      "id": "e453",
+      "turn": "E453",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3116950,
+      "endMs": 3133720,
+      "text": "advance what's coming in tomorrow? The big farms send me a WhatsApp the day before. Tomorrow, 40 bins of McKnight's from Block 7. The small growers know. They just arrive. Would it help if the big farms could put that on their page instead of on WhatsApp?"
+    },
+    {
+      "id": "e454",
+      "turn": "E454",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3133880,
+      "endMs": 3140940,
+      "text": "It would help me plan the lines, but I don't want it compulsory. If they have to fill in a form, they'll just stop"
+    },
+    {
+      "id": "e455",
+      "turn": "E455",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3140940,
+      "endMs": 3141740,
+      "text": "telling me."
+    },
+    {
+      "id": "e456",
+      "turn": "E456",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3143300,
+      "endMs": 3144730,
+      "text": "Optional. Nice to have."
+    },
+    {
+      "id": "e457",
+      "turn": "E457",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3145560,
+      "endMs": 3156920,
+      "text": "Then I'll keep it as a nice-to-have for a later phase, unless it turns out to be cheap to add. One more practical thing. For the first weeks of the season, would you be willing to run the old way and the new way side by side?"
+    },
+    {
+      "id": "e458",
+      "turn": "E458",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3157120,
+      "endMs": 3165970,
+      "text": "The carbon book and the tablet both. Both? That's double the work at the gate. It is, but it means that if something's wrong in the"
+    },
+    {
+      "id": "e459",
+      "turn": "E459",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3166010,
+      "endMs": 3173360,
+      "text": "new system, you've got the paper to check against. And Sifo can compare the export with Mariet G's typing for the first month end."
+    },
+    {
+      "id": "e460",
+      "turn": "E460",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3174180,
+      "endMs": 3181040,
+      "text": "I'd like that, actually. For the first month end, I want to compare. I'm not paying groves or numbers. I haven't checked."
+    },
+    {
+      "id": "e461",
+      "turn": "E461",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3181860,
+      "endMs": 3186330,
+      "text": "Tumble. For two weeks, okay. Not the whole of April's. Two"
+    },
+    {
+      "id": "e462",
+      "turn": "E462",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3186330,
+      "endMs": 3190340,
+      "text": "weeks at the gate, and Sifo compares the first month. Agreed."
+    },
+    {
+      "id": "e463",
+      "turn": "E463",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3191120,
+      "endMs": 3193900,
+      "text": "Good. Two weeks of both at the Weybridge, and a check of the"
+    },
+    {
+      "id": "e464",
+      "turn": "E464",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3193900,
+      "endMs": 3196340,
+      "text": "first month's export against the spreadsheet."
+    },
+    {
+      "id": "e465",
+      "turn": "E465",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3197220,
+      "endMs": 3200160,
+      "text": "But then I want an extra clerk for those two weeks."
+    },
+    {
+      "id": "e466",
+      "turn": "E466",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3201160,
+      "endMs": 3206500,
+      "text": "We'll get someone. There's always a student from the college in Tizani looking for a few weeks' work."
+    },
+    {
+      "id": "e467",
+      "turn": "E467",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3207220,
+      "endMs": 3213460,
+      "text": "The orchard blocks. When a grower replants a block, or pulls out navels and plants mandarins, how do you hear about it? When"
+    },
+    {
+      "id": "e468",
+      "turn": "E468",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3213460,
+      "endMs": 3218600,
+      "text": "he delivers mandarins from a block that was navels, then Marietu phones him."
+    },
+    {
+      "id": "e469",
+      "turn": "E469",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3219440,
+      "endMs": 3223200,
+      "text": "Or the clerk writes the wrong cultivar, and it goes into the wrong batch."
+    },
+    {
+      "id": "e470",
+      "turn": "E470",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3224380,
+      "endMs": 3229700,
+      "text": "Should growers be able to update their own blocks on their page? Say Block 7 is now nattercot, planted in"
+    },
+    {
+      "id": "e471",
+      "turn": "E471",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3229700,
+      "endMs": 3230760,
+      "text": "2025."
+    },
+    {
+      "id": "e472",
+      "turn": "E472",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3231880,
+      "endMs": 3240510,
+      "text": "Update, yes, but someone in the office must approve it. Otherwise, they'll make mistakes, and the spray records go with the block. So a wrong block means a wrong spray record."
+    },
+    {
+      "id": "e473",
+      "turn": "E473",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3241040,
+      "endMs": 3244100,
+      "text": "So the grower proposes the change, and the office approves it."
+    },
+    {
+      "id": "e474",
+      "turn": "E474",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3244720,
+      "endMs": 3247360,
+      "text": "Yeah, like the bank details, but less strict."
+    },
+    {
+      "id": "e475",
+      "turn": "E475",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3248060,
+      "endMs": 3248960,
+      "text": "And the hectares?"
+    },
+    {
+      "id": "e476",
+      "turn": "E476",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3249740,
+      "endMs": 3254930,
+      "text": "Hectares, yeah. We need those for the estimate. The board wants an estimate of the crop before the season"
+    },
+    {
+      "id": "e477",
+      "turn": "E477",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3254930,
+      "endMs": 3260100,
+      "text": "per cultivar. Every grower sends us an estimate in February, how many bins they expect."
+    },
+    {
+      "id": "e478",
+      "turn": "E478",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3260920,
+      "endMs": 3262180,
+      "text": "How do they send it?"
+    },
+    {
+      "id": "e479",
+      "turn": "E479",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3262700,
+      "endMs": 3268000,
+      "text": "On a foreign paper, and Marietu phones the ones who don't send it, which is most of them."
+    },
+    {
+      "id": "e480",
+      "turn": "E480",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3268880,
+      "endMs": 3271660,
+      "text": "Would it help to collect the estimates on the grower's page?"
+    },
+    {
+      "id": "e481",
+      "turn": "E481",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3272580,
+      "endMs": 3278760,
+      "text": "It would help a lot, but I don't know if it's for this year. February is when everything else is happening."
+    },
+    {
+      "id": "e482",
+      "turn": "E482",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3279340,
+      "endMs": 3286400,
+      "text": "Then it's a candidate for Phase 1 if there's time, otherwise next season. I'll price it separately, so the board can see what it costs on its own."
+    },
+    {
+      "id": "e483",
+      "turn": "E483",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3287160,
+      "endMs": 3290480,
+      "text": "Price it separately? Okay. What else do you need from us?"
+    },
+    {
+      "id": "e484",
+      "turn": "E484",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3291520,
+      "endMs": 3301780,
+      "text": "Can I raise a few things that worry me a bit, so you know what I'm thinking? First, Mariet G retiring in June, in the middle of the first season with a new system. A lot of the knowledge is in her head."
+    },
+    {
+      "id": "e485",
+      "turn": "E485",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3302720,
+      "endMs": 3304420,
+      "text": "That's my biggest worry, too."
+    },
+    {
+      "id": "e486",
+      "turn": "E486",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3305420,
+      "endMs": 3307590,
+      "text": "Could she be part of testing it before she goes?"
+    },
+    {
+      "id": "e487",
+      "turn": "E487",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3309160,
+      "endMs": 3313020,
+      "text": "Definitely. She'd want to. She's been here 31 years."
+    },
+    {
+      "id": "e488",
+      "turn": "E488",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3313700,
+      "endMs": 3318100,
+      "text": "Second, the growers. If the small growers don't use it, the phone calls don't go down."
+    },
+    {
+      "id": "e489",
+      "turn": "E489",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3319420,
+      "endMs": 3323860,
+      "text": "Yeah. We'll have to do something at the study group days. Show them on their phones."
+    },
+    {
+      "id": "e490",
+      "turn": "E490",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3325020,
+      "endMs": 3328780,
+      "text": "The extension officer can help. Mr. Baloy. He visits the small"
+    },
+    {
+      "id": "e491",
+      "turn": "E491",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3328860,
+      "endMs": 3331060,
+      "text": "growers every second week."
+    },
+    {
+      "id": "e492",
+      "turn": "E492",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3332000,
+      "endMs": 3339080,
+      "text": "Good. That helps a lot. Third, the grader, which we've talked about. And fourth, the internet at the gate, which the offline part covers."
+    },
+    {
+      "id": "e493",
+      "turn": "E493",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3340320,
+      "endMs": 3341920,
+      "text": "And the gate battery, which I'll do."
+    },
+    {
+      "id": "e494",
+      "turn": "E494",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3342600,
+      "endMs": 3356460,
+      "text": "And the gate battery. Thanks, Ruan. Jorn. One more on Popia. The growers will be getting SM Says, and their details will be on the new system. Do your membership forms say anything about how you use their information?"
+    },
+    {
+      "id": "e495",
+      "turn": "E495",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3357160,
+      "endMs": 3361680,
+      "text": "The forms are from 2005. Nothing about Popia. I'm"
+    },
+    {
+      "id": "e496",
+      "turn": "E496",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3361680,
+      "endMs": 3367280,
+      "text": "the information officer, apparently. I registered last year. The lawyer member made me. Then"
+    },
+    {
+      "id": "e497",
+      "turn": "E497",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3367280,
+      "endMs": 3377520,
+      "text": "it'd be worth updating the forms, or sending the members a short notice about the portal and the SM Says before the season. I'm not a lawyer, so I'd ask your lawyer member to look at the wording."
+    },
+    {
+      "id": "e498",
+      "turn": "E498",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3378520,
+      "endMs": 3380480,
+      "text": "He'll enjoy that. And how bad"
+    },
+    {
+      "id": "e499",
+      "turn": "E499",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3380480,
+      "endMs": 3384480,
+      "text": "is it if the system is down for an hour in the season? At the"
+    },
+    {
+      "id": "e500",
+      "turn": "E500",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3384480,
+      "endMs": 3393740,
+      "text": "Weybridge, it can't be down. That's why we said offline. For the growers' pages, an hour is fine. A day is not fine. The phones start again."
+    },
+    {
+      "id": "e501",
+      "turn": "E501",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3394380,
+      "endMs": 3403450,
+      "text": "So in the season, the grower pages should be up during working hours, say 6 in the morning to 6 at night, Monday to Saturday, and any maintenance happens at night or out of season."
+    },
+    {
+      "id": "e502",
+      "turn": "E502",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3404160,
+      "endMs": 3407660,
+      "text": "In backups, daily plays, and not only in the same place."
+    },
+    {
+      "id": "e503",
+      "turn": "E503",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3408800,
+      "endMs": 3412560,
+      "text": "Daily backups, kept in a second location, also in South Africa."
+    },
+    {
+      "id": "e504",
+      "turn": "E504",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3413760,
+      "endMs": 3424640,
+      "text": "Yeah, and one more thing from me. The hosting account must be in the co-op's name. Not yours, not mine. The last developer had everything in his own name, and when he moved to Australia, we lost the website."
+    },
+    {
+      "id": "e505",
+      "turn": "E505",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3425720,
+      "endMs": 3427420,
+      "text": "Two years, we had no website."
+    },
+    {
+      "id": "e506",
+      "turn": "E506",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3428700,
+      "endMs": 3435090,
+      "text": "That's fair, and it's how I'd do it anyway. The account's in the co-op's name, and I get access as long as I'm working for you."
+    },
+    {
+      "id": "e507",
+      "turn": "E507",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3436140,
+      "endMs": 3449300,
+      "text": "While we're on my side of things, the tablets, I can get rugged ones from a supplier in Poliquing. I think about eight and a half thousand rand each. We'd need two, one at the Weybridge and one at the Tipper, plus a spare. And the little slip printer, maybe two thousand."
+    },
+    {
+      "id": "e508",
+      "turn": "E508",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3450560,
+      "endMs": 3453140,
+      "text": "Is the hardware part of the 580 or separate?"
+    },
+    {
+      "id": "e509",
+      "turn": "E509",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3454460,
+      "endMs": 3462190,
+      "text": "Hem, the resolution, says development. I'd say the hardware is separate from the equipment budget, but I'd have to check with the orderer."
+    },
+    {
+      "id": "e510",
+      "turn": "E510",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3462620,
+      "endMs": 3463730,
+      "text": "Put it separate. We buy"
+    },
+    {
+      "id": "e511",
+      "turn": "E511",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3463730,
+      "endMs": 3465050,
+      "text": "equipment every year"
+    },
+    {
+      "id": "e512",
+      "turn": "E512",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3465050,
+      "endMs": 3465760,
+      "text": "anyway."
+    },
+    {
+      "id": "e513",
+      "turn": "E513",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3466140,
+      "endMs": 3470930,
+      "text": "Okay, I'll show the hardware as a separate line in the proposal, so it's clear either way, and"
+    },
+    {
+      "id": "e514",
+      "turn": "E514",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3470930,
+      "endMs": 3472460,
+      "text": "Sypho checks where it goes."
+    },
+    {
+      "id": "e515",
+      "turn": "E515",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3473260,
+      "endMs": 3474710,
+      "text": "I'll check. Don't worry."
+    },
+    {
+      "id": "e516",
+      "turn": "E516",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3475400,
+      "endMs": 3479580,
+      "text": "Is there anything you know is coming that I should keep in mind, even if it's not for now?"
+    },
+    {
+      "id": "e517",
+      "turn": "E517",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3480400,
+      "endMs": 3492200,
+      "text": "Two things, sir. There's talk of merging with the co-op in Hodespreet, the Blyde co-op. They're smaller, about 60 growers. Nothing is signed, but it's on the board's table. If that happens, there'd be a second packhouse."
+    },
+    {
+      "id": "e518",
+      "turn": "E518",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3492680,
+      "endMs": 3495840,
+      "text": "So the system should be able to handle more than one packhouse later."
+    },
+    {
+      "id": "e519",
+      "turn": "E519",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3496640,
+      "endMs": 3505220,
+      "text": "Later, maybe in two, three years. And the second thing is the export documents. Every container needs a pile of paperwork, and that's another spreadsheet."
+    },
+    {
+      "id": "e520",
+      "turn": "E520",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3506500,
+      "endMs": 3506500,
+      "text": "Two"
+    },
+    {
+      "id": "e521",
+      "turn": "E521",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3506500,
+      "endMs": 3510640,
+      "text": "spreadsheets. Two spreadsheets, sir. But that's for later."
+    },
+    {
+      "id": "e522",
+      "turn": "E522",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3511280,
+      "endMs": 3513040,
+      "text": "And the pool payment, maybe, next"
+    },
+    {
+      "id": "e523",
+      "turn": "E523",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3513040,
+      "endMs": 3514980,
+      "text": "year, if phase one works."
+    },
+    {
+      "id": "e524",
+      "turn": "E524",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3516040,
+      "endMs": 3523930,
+      "text": "Okay, I'll note those for later, and I'll design the data so that a second packhouse doesn't mean starting over. What about the co-op's own bins? You said you"
+    },
+    {
+      "id": "e525",
+      "turn": "E525",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3523930,
+      "endMs": 3530130,
+      "text": "lend out 3,000. Ag the bins. We lose about a hundred a year. Nobody knows"
+    },
+    {
+      "id": "e526",
+      "turn": "E526",
+      "speakerLabel": "Precious Maluleke",
+      "startMs": 3530130,
+      "endMs": 3536900,
+      "text": "where they are. Some of them are on farms. Some of them are, I think, in people's gardens with tomatoes growing in them."
+    },
+    {
+      "id": "e527",
+      "turn": "E527",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3537900,
+      "endMs": 3538960,
+      "text": "Not now, precious."
+    },
+    {
+      "id": "e528",
+      "turn": "E528",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3540280,
+      "endMs": 3545940,
+      "text": "Not now, but one day. I'll note Ben tracking as an idea for later, too. Okay,"
+    },
+    {
+      "id": "e529",
+      "turn": "E529",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3545940,
+      "endMs": 3548510,
+      "text": "what do you expect from me, from here on?"
+    },
+    {
+      "id": "e530",
+      "turn": "E530",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3549000,
+      "endMs": 3557180,
+      "text": "A price. A fixed price, please. The board doesn't like open-ended things. Last time we paid by the hour, and the hours never stopped."
+    },
+    {
+      "id": "e531",
+      "turn": "E531",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3558260,
+      "endMs": 3564650,
+      "text": "That's fine. A fixed price for phase one, with a greater connection priced separately, because it depends on what the agent says."
+    },
+    {
+      "id": "e532",
+      "turn": "E532",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3565400,
+      "endMs": 3570800,
+      "text": "Good, and we want training for the clerks, and for Marietje and Sypho, and a manual. A short one."
+    },
+    {
+      "id": "e533",
+      "turn": "E533",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3571520,
+      "endMs": 3577150,
+      "text": "With pictures. Training, and a short manual with pictures, and support during the first season."
+    },
+    {
+      "id": "e534",
+      "turn": "E534",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3578080,
+      "endMs": 3584780,
+      "text": "Yeah, someone we can phone when it breaks on a Saturday morning in May, because it will break on a Saturday morning in May."
+    },
+    {
+      "id": "e535",
+      "turn": "E535",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3585380,
+      "endMs": 3592840,
+      "text": "That's a fair expectation. I'll include season support in the proposal, with its cost, so you can see it against the four and a half thousand a month."
+    },
+    {
+      "id": "e536",
+      "turn": "E536",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3593920,
+      "endMs": 3599940,
+      "text": "Good, and before you build anything, I want to see what the growers will see. Pictures, or whatever you call them."
+    },
+    {
+      "id": "e537",
+      "turn": "E537",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3600940,
+      "endMs": 3607340,
+      "text": "Yes. I'll design the main screens first, and we'll go through them together, with a few of the growers too, before anything gets built."
+    },
+    {
+      "id": "e538",
+      "turn": "E538",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3608400,
+      "endMs": 3619760,
+      "text": "With a few growers, yeah. Good idea. Mr. Balloy can choose some. And while you're building, I want to know where it stands. Every two weeks, a short update. Half an hour on Teams is fine."
+    },
+    {
+      "id": "e539",
+      "turn": "E539",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3621080,
+      "endMs": 3626240,
+      "text": "Every two weeks, half an hour. I'll set it up, and I'll show you whatever is working by then, not slides."
+    },
+    {
+      "id": "e540",
+      "turn": "E540",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3626760,
+      "endMs": 3628040,
+      "text": "Not slides. Good."
+    },
+    {
+      "id": "e541",
+      "turn": "E541",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3628840,
+      "endMs": 3636220,
+      "text": "One more question from my side. Who at the co-op would look after the system day to day? Adding a new grower, a new clerk, resetting a tablet."
+    },
+    {
+      "id": "e542",
+      "turn": "E542",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3637060,
+      "endMs": 3641460,
+      "text": "Hum. Good question, Ruan. No, Ruan's only here on Wednesdays."
+    },
+    {
+      "id": "e543",
+      "turn": "E543",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3642040,
+      "endMs": 3644560,
+      "text": "I can do the tablets, but not the growers."
+    },
+    {
+      "id": "e544",
+      "turn": "E544",
+      "speakerLabel": "Sipho Ngobeni",
+      "startMs": 3645220,
+      "endMs": 3647020,
+      "text": "Not me. I've got enough."
+    },
+    {
+      "id": "e545",
+      "turn": "E545",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3648040,
+      "endMs": 3652560,
+      "text": "Let me think about that one. Maybe the new person who replaces Mariah G."
+    },
+    {
+      "id": "e546",
+      "turn": "E546",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3653020,
+      "endMs": 3656780,
+      "text": "Okay, I'll leave it with you. It'd help to know before we start training, so that"
+    },
+    {
+      "id": "e547",
+      "turn": "E547",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3656860,
+      "endMs": 3658760,
+      "text": "person is in the first sessions."
+    },
+    {
+      "id": "e548",
+      "turn": "E548",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3659820,
+      "endMs": 3661490,
+      "text": "I'll come back to you. Then I"
+    },
+    {
+      "id": "e549",
+      "turn": "E549",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3661490,
+      "endMs": 3682320,
+      "text": "think that's a good place to stop. Let me run through what happens next. I'll send you a summary of today by Friday, and a proposal with a fixed price for Phase 1 within two weeks. Geoin will ask the greater agent about an export. Precious will send me some greater reports, and Johan will check with the auditors about digital spray records, and think about who looks after the system."
+    },
+    {
+      "id": "e550",
+      "turn": "E550",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3683200,
+      "endMs": 3686260,
+      "text": "That's right. Thanks, Ayesha. Good meeting."
+    },
+    {
+      "id": "e551",
+      "turn": "E551",
+      "speakerLabel": "Ayesha Patel",
+      "startMs": 3687120,
+      "endMs": 3687900,
+      "text": "Thank you."
+    },
+    {
+      "id": "e552",
+      "turn": "E552",
+      "speakerLabel": "Johan Steenkamp",
+      "startMs": 3688780,
+      "endMs": 3689940,
+      "text": "Thanks, Ayesha."
+    },
+    {
+      "id": "e553",
+      "turn": "E553",
+      "speakerLabel": "Ruan du Toit (Guest)",
+      "startMs": 3690660,
+      "endMs": 3691590,
+      "text": "Cheers, everyone."
+    }
+  ]
+}

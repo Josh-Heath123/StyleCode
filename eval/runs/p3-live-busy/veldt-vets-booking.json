@@ -1,0 +1,365 @@
+{
+  "consultation": "veldt-vets-booking",
+  "provider": "ollama",
+  "model": "qwen3:4b",
+  "promptVersion": "2",
+  "contextSize": 6144,
+  "chunks": 2,
+  "startedAt": "2026-11-13T07:51:30.647Z",
+  "durationMs": 147816,
+  "unreadableReplies": 0,
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "think": false,
+  "proposals": [
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to high call volumes and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to high call volumes and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should reduce missed calls, double bookings, and no-shows",
+      "evidence": [
+        {
+          "segmentId": "s14",
+          "quote": "The goals are fewer missed calls, no double bookings, and fewer no-shows"
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses VetDesk Pro for clinical records, owners' details, vaccination history, and billing",
+      "evidence": [
+        {
+          "segmentId": "s10",
+          "quote": "VetDesk Pro, yes. That's where all the clinical records live, the owners' details, vaccination history, billing."
+        }
+      ]
+    },
+    {
+      "kind": "existing-system",
+      "status": "suggested",
+      "statement": "The client uses paper diaries at reception for booking appointments",
+      "evidence": [
+        {
+          "segmentId": "s8",
+          "quote": "All three clinics, Centurion, Irene and Olievenhoutbosch, have their own landline and their own paper diary at reception."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has high call volumes that cause missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has no-shows that take up thirty-minute slots",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should allow pet owners to book appointments online via a website",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should send reminders to pet owners the day before an appointment",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should automatically send vaccination reminders with a link to book",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The project should allow receptionists to see the day's schedule for their clinic",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The project should allow receptionists to add phone bookings",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to high call volumes and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has high call volumes that cause missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has no-shows that take up thirty-minute slots",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should allow pet owners to book appointments online via a website",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They go onto a website on their phone, pick the clinic, pick what it's for, a vaccination, a check-up, a sick pet, and see the open times. They choose one and it's booked."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should send reminders to pet owners the day before an appointment",
+      "evidence": [
+        {
+          "segmentId": "s21",
+          "quote": "They choose one and it's booked. And then they get a reminder the day before."
+        }
+      ]
+    },
+    {
+      "kind": "business-requirement",
+      "status": "suggested",
+      "statement": "The project should automatically send vaccination reminders with a link to book",
+      "evidence": [
+        {
+          "segmentId": "s22",
+          "quote": "If that could go out automatically with a link to book, that's half the work gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The project should allow receptionists to see the day's schedule for their clinic",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The project should allow receptionists to add phone bookings",
+      "evidence": [
+        {
+          "segmentId": "s24",
+          "quote": "They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has receptionists burning out due to high call volumes and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s15",
+          "quote": "My receptionists are burning out"
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has high call volumes that cause missed calls and double bookings",
+      "evidence": [
+        {
+          "segmentId": "s12",
+          "quote": "Mornings are the worst. Between eight and ten the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls. And people get double-booked, because someone rubbed out a booking and someone else wrote over it."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "unresolved",
+      "statement": "The client's current system has no-shows that take up thirty-minute slots",
+      "evidence": [
+        {
+          "segmentId": "s13",
+          "quote": "We have maybe twenty no-shows a week across the three clinics. Each one is a thirty-minute slot gone."
+        }
+      ]
+    },
+    {
+      "kind": "functional-requirement",
+      "status": "suggested",
+      "statement": "The online booking system must only show bookings and reminders, not medical history",
+      "evidence": [
+        {
+          "segmentId": "s45",
+          "quote": "No. Definitely not, not in this project. The vets don't want owners reading clinical notes without someone explaining them. Bookings and reminders only."
+        }
+      ]
+    },
+    {
+      "kind": "constraint",
+      "status": "suggested",
+      "statement": "The system must not share data with another system due to VetDesk's API charges and slow implementation",
+      "evidence": [
+        {
+          "segmentId": "s47",
+          "quote": "There is an API."
+        },
+        {
+          "segmentId": "s48",
+          "quote": "But they charge for it per clinic, and when the Pretoria East practice asked for it, it took VetDesk three months to switch it on."
+        }
+      ]
+    },
+    {
+      "kind": "expectation",
+      "status": "suggested",
+      "statement": "The client expects the system to be live by mid-January to accommodate vaccination season",
+      "evidence": [
+        {
+          "segmentId": "s50",
+          "quote": "Before vaccination season. So live by the first of February at the latest."
+        },
+        {
+          "segmentId": "s51",
+          "quote": "Ideally mid-January, so the girls have two weeks to get used to it before the rush."
+        }
+      ]
+    },
+    {
+      "kind": "budget",
+      "status": "suggested",
+      "statement": "The client has allocated 180,000 rand for development and 2,500 rand per month for running costs across three clinics",
+      "evidence": [
+        {
+          "segmentId": "s53",
+          "quote": "We've put aside a hundred and eighty thousand rand to build it. And the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+        }
+      ]
+    },
+    {
+      "kind": "design-preference",
+      "status": "suggested",
+      "statement": "The client prefers a simple web interface with big buttons, green color scheme, and no app download",
+      "evidence": [
+        {
+          "segmentId": "s55",
+          "quote": "Our green, the logo green. Big buttons, because half the people booking are holding a puppy in the other hand. And no app to download, just a web page."
+        }
+      ]
+    },
+    {
+      "kind": "operational-challenge",
+      "status": "suggested",
+      "statement": "The client currently has a system that requires 40 fields per screen, which they want to simplify",
+      "evidence": [
+        {
+          "segmentId": "s56",
+          "quote": "And simple. One screen if possible. The VetDesk screens have about forty fields on them, I don't want that."
+        }
+      ]
+    },
+    {
+      "kind": "future-consideration",
+      "status": "suggested",
+      "statement": "The client plans to add online pet food ordering and payment in the next year",
+      "evidence": [
+        {
+          "segmentId": "s58",
+          "quote": "Ordering pet food online and paying for it, maybe. Next year."
+        }
+      ]
+    }
+  ],
+  "dropped": {
+    "passage-changed": 0,
+    "unknown-passage": 0,
+    "quote-not-found": 0,
+    "quote-too-short": 0,
+    "no-evidence": 0,
+    "no-statement": 0,
+    "bad-kind": 0,
+    "bad-status": 0,
+    "repeat": 14
+  },
+  "shown": 16
+}

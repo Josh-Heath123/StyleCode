@@ -1,0 +1,428 @@
+{
+  "consultation": "veldt-vets-booking",
+  "title": "Veldt Vets online booking",
+  "startsAt": "2026-11-12T12:00:00.000Z",
+  "timeZone": "Africa/Johannesburg",
+  "source": {
+    "fileName": "parakeet+speakers-eres2net-t0.7.clean",
+    "layout": "transcribed"
+  },
+  "segments": [
+    {
+      "id": "e1",
+      "turn": "E1",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 1070,
+      "endMs": 16510,
+      "text": "Afternoon, both of you. Thanks for making the time between consults. Before we start, I'd like to confirm what we agreed by email. I'm using this meeting's transcript to write up your requirements, and the AI that helps me with that runs on my own laptop, so nothing goes to an outside service."
+    },
+    {
+      "id": "e2",
+      "turn": "E2",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 16510,
+      "endMs": 18350,
+      "text": "Are you both still okay with that?"
+    },
+    {
+      "id": "e3",
+      "turn": "E3",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 19006,
+      "endMs": 20766,
+      "text": "Yes, that's fine with me."
+    },
+    {
+      "id": "e4",
+      "turn": "E4",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 21598,
+      "endMs": 26238,
+      "text": "Yaw, no problem. Thank you. Henny, are you at the Centurion Clinic today?"
+    },
+    {
+      "id": "e5",
+      "turn": "E5",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 27118,
+      "endMs": 33198,
+      "text": "I am, yes. Sorry about the noise. There's a great Dane in the waiting room who does not want his injection."
+    },
+    {
+      "id": "e6",
+      "turn": "E6",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 33886,
+      "endMs": 43582,
+      "text": "He's been complaining since one o'clock, shame. Poor thing. Okay, so to start, can you walk me through how bookings work today, from the moment someone wants an appointment?"
+    },
+    {
+      "id": "e7",
+      "turn": "E7",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 43902,
+      "endMs": 58814,
+      "text": "So they phone. All three clinics Centurion, Irene and Olivenhoutbosch have their own landline and their own paper diary at reception. The receptionist finds a gap, writes the pet's name and the owner's number in pencil, and that's it. And the"
+    },
+    {
+      "id": "e8",
+      "turn": "E8",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 58814,
+      "endMs": 61774,
+      "text": "practice software, I saw a vet desk on your invoice."
+    },
+    {
+      "id": "e9",
+      "turn": "E9",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 62462,
+      "endMs": 77118,
+      "text": "Vet Desk Pro yes. That's where all the clinical records live, the owner's details, vaccination history billing. but it has no proper diary. We tried its calendar years ago and the receptionists hated it, so the paper diary came back."
+    },
+    {
+      "id": "e10",
+      "turn": "E10",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 78798,
+      "endMs": 80798,
+      "text": "What goes wrong with the phones and the diary?"
+    },
+    {
+      "id": "e11",
+      "turn": "E11",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 81118,
+      "endMs": 95758,
+      "text": "Mornings are the worst. Between eight and ten, the phones just don't stop, and there's one receptionist per clinic who is also checking people in and taking payments. We miss a lot of calls, and people get double booked because someone rubbed out a booking and someone else wrote over it."
+    },
+    {
+      "id": "e12",
+      "turn": "E12",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 96254,
+      "endMs": 103726,
+      "text": "and no shows. We have maybe twenty no shows a week across the three clinics. Each one is a thirty minute slot gone."
+    },
+    {
+      "id": "e13",
+      "turn": "E13",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 104478,
+      "endMs": 110238,
+      "text": "So if I'm hearing you right, the goals are fewer missed calls, no double bookings and fewer no-shows."
+    },
+    {
+      "id": "e14",
+      "turn": "E14",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 110238,
+      "endMs": 116030,
+      "text": "That's it. If I had to pick one, it's the phones. My receptionists are burning out."
+    },
+    {
+      "id": "e15",
+      "turn": "E15",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 116798,
+      "endMs": 123982,
+      "text": "Okay, roughly how many appointments do you book in a day, all three together. Across all three, I'd say about a hundred and twenty"
+    },
+    {
+      "id": "e16",
+      "turn": "E16",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 123982,
+      "endMs": 126894,
+      "text": "a day. And does that change through the year?"
+    },
+    {
+      "id": "e17",
+      "turn": "E17",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 127438,
+      "endMs": 138798,
+      "text": "Hugely. Annual vaccinations bunch up in February and March, because so many of our clients got their puppies at Christmas, and then there's the rabies' drive in March as well. It easily doubles then."
+    },
+    {
+      "id": "e18",
+      "turn": "E18",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 140270,
+      "endMs": 148174,
+      "text": "Noted, so what would the new system have to do? Imagine it's working well. What does a pet owner do? They go onto a website on their phone,"
+    },
+    {
+      "id": "e19",
+      "turn": "E19",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 148174,
+      "endMs": 157614,
+      "text": "pick the clinic, pick what it's for a vaccination, a check up, a sick pet, and see the open times. They choose one and it's booked. And then they get a reminder the day before."
+    },
+    {
+      "id": "e20",
+      "turn": "E20",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 158462,
+      "endMs": 172030,
+      "text": "and the vaccination reminders. Vetdesk knows when each animal is due. Right now Charmaine prints a list every month, and the girls phone people. If that could go out automatically with a link to book, that's half the work gone."
+    },
+    {
+      "id": "e21",
+      "turn": "E21",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 172606,
+      "endMs": 188510,
+      "text": "That makes sense, and on the reception side. They need to see the day for their clinic, move bookings around, and put in phone bookings too, because some of our older clients will never book online. So the phones would stay, but everything goes into one diary instead of paper."
+    },
+    {
+      "id": "e22",
+      "turn": "E22",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 189134,
+      "endMs": 195070,
+      "text": "Yes, the paper diary goes. Now we've decided, the phones stay but the paper goes."
+    },
+    {
+      "id": "e23",
+      "turn": "E23",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 196270,
+      "endMs": 196990,
+      "text": "Good. Should"
+    },
+    {
+      "id": "e24",
+      "turn": "E24",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 196990,
+      "endMs": 203326,
+      "text": "owners be able to choose a specific vet. Some would want to. Doctor Makona at Irene has her regulars,"
+    },
+    {
+      "id": "e25",
+      "turn": "E25",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 203326,
+      "endMs": 208766,
+      "text": "but it mustn't be required. And emergencies should a sick animal be bookable online?"
+    },
+    {
+      "id": "e26",
+      "turn": "E26",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 209758,
+      "endMs": 223694,
+      "text": "Hum, that's a good question. I don't want someone booking a slot for to morrow at eleven for a dog that's been hit by a car. but a cat that's been vomiting, maybe. I need to talk to the other vets about where we draw that line."
+    },
+    {
+      "id": "e27",
+      "turn": "E27",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 225182,
+      "endMs": 228622,
+      "text": "I'll put that down as open. What about the reminders SMS or"
+    },
+    {
+      "id": "e28",
+      "turn": "E28",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 228622,
+      "endMs": 238542,
+      "text": "WhatsApp? I think most of our clients would rather get WhatsApp than SMS. That's my feeling from the front desk, anyway. We'd need to check, maybe ask people in the waiting room for a week."
+    },
+    {
+      "id": "e29",
+      "turn": "E29",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 239422,
+      "endMs": 244062,
+      "text": "We do already pay for an SMS bundle through Vetdesk, for the account statements."
+    },
+    {
+      "id": "e30",
+      "turn": "E30",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 245134,
+      "endMs": 249054,
+      "text": "Okay, now the phone numbers. You mentioned Popia in your email."
+    },
+    {
+      "id": "e31",
+      "turn": "E31",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 249662,
+      "endMs": 264878,
+      "text": "Yes. Our attorney went through it with us last year. Owners' phone numbers are personal information. We may use them for their pets' appointments and reminders, but nothing else, no marketing, and we may not hand them to another company to use for its own purposes."
+    },
+    {
+      "id": "e32",
+      "turn": "E32",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 265502,
+      "endMs": 271102,
+      "text": "And every client signs the consent bit on the registration form, but that's on paper too, in a file"
+    },
+    {
+      "id": "e33",
+      "turn": "E33",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 271102,
+      "endMs": 285182,
+      "text": "at each clinic. Then whatever we build has to record that consent itself, and anyone who books online has to agree before we send them anything. And the company that sends the messages would be an operator under Popia, so you'd need a written agreement with them."
+    },
+    {
+      "id": "e34",
+      "turn": "E34",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 285694,
+      "endMs": 288174,
+      "text": "Agreed, that has to be in from day one."
+    },
+    {
+      "id": "e35",
+      "turn": "E35",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 289310,
+      "endMs": 297950,
+      "text": "One thing I'd suggest for the no-shows, ask for a small deposit, say a hundred Rand, when someone books online for a Saturday, and refund it when they arrive."
+    },
+    {
+      "id": "e36",
+      "turn": "E36",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 297950,
+      "endMs": 304078,
+      "text": "I see the point, but I'm not sure our clients will like it. Let me talk to the partners before we decide anything."
+    },
+    {
+      "id": "e37",
+      "turn": "E37",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 305678,
+      "endMs": 317118,
+      "text": "Sorry, can I go back to the numbers? I've just opened last week's diaries. It's more like a hundred and sixty a day. I forgot that Oli van Houtbosch does a full Saturday morning now, and Centurion has two vets,"
+    },
+    {
+      "id": "e38",
+      "turn": "E38",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 317118,
+      "endMs": 323422,
+      "text": "not one. Thanks that's helpful. So 160 on a normal day, doubling in vaccination season."
+    },
+    {
+      "id": "e39",
+      "turn": "E39",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 324286,
+      "endMs": 325726,
+      "text": "That sounds right."
+    },
+    {
+      "id": "e40",
+      "turn": "E40",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 326334,
+      "endMs": 331934,
+      "text": "Would you want owners to see their pet's medical history online while they're there? Some practices do that."
+    },
+    {
+      "id": "e41",
+      "turn": "E41",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 333166,
+      "endMs": 343262,
+      "text": "No, definitely not in this project. The vets don't want owners reading clinical notes without someone explaining them. bookings and reminders only."
+    },
+    {
+      "id": "e42",
+      "turn": "E42",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 344030,
+      "endMs": 348910,
+      "text": "Understood, let's talk about Vitdesk, can it share its data with another system?"
+    },
+    {
+      "id": "e43",
+      "turn": "E43",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 349310,
+      "endMs": 353438,
+      "text": "There is an API. Our rep mentioned it at a conference."
+    },
+    {
+      "id": "e44",
+      "turn": "E44",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 354430,
+      "endMs": 359950,
+      "text": "But they charge for it per clinic, and when the Pretoria East Practice asked for it, it took Vet Desk three"
+    },
+    {
+      "id": "e45",
+      "turn": "E45",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 359950,
+      "endMs": 368958,
+      "text": "months to switch it on. Then that's a risk to the timeline. I'd ask them for the price and a date in writing as soon as possible. When do you need this working?"
+    },
+    {
+      "id": "e46",
+      "turn": "E46",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 369726,
+      "endMs": 374798,
+      "text": "Before vaccination season. so live by the first of February at the latest."
+    },
+    {
+      "id": "e47",
+      "turn": "E47",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 376174,
+      "endMs": 382094,
+      "text": "ideally mid-January, so the girls have two weeks to get used to it before the rush. And the budget?"
+    },
+    {
+      "id": "e48",
+      "turn": "E48",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 382414,
+      "endMs": 393502,
+      "text": "We've put aside a hundred and eighty thousand rand to build it. and the running costs, the messages and the hosting, must stay under two and a half thousand a month for all three clinics. That's my limit."
+    },
+    {
+      "id": "e49",
+      "turn": "E49",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 394494,
+      "endMs": 400910,
+      "text": "Clear, and how should it look? Any preferences? A green, the logo green, big buttons because half the"
+    },
+    {
+      "id": "e50",
+      "turn": "E50",
+      "speakerLabel": "Charmaine Pillay",
+      "startMs": 400910,
+      "endMs": 405870,
+      "text": "people booking are holding a puppy in the other hand, and no app to download, just a web page."
+    },
+    {
+      "id": "e51",
+      "turn": "E51",
+      "speakerLabel": "Hennie Swanepoel",
+      "startMs": 406270,
+      "endMs": 413374,
+      "text": "And simple. One screen if possible. Vet desk screens have about 40 fields on them. I don't want that."
+    },
+    {
+      "id": "e52",
+      "turn": "E52",
+      "speakerLabel": "Nomvula Khumalo",
+      "startMs": 414286,
+      "endMs": 430126,
+      "text": "Great. Is there anything you'd want later? But not in the first version. Ordering pet food online and paying for it maybe next year. Okay, I'll send a summary, with the open questions, to morrow morning. Thank you both, and good luck with the Great Dane."
+    }
+  ]
+}
