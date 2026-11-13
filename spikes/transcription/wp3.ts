@@ -17,6 +17,11 @@
  *    the other candidates are timed against an extraction run too (decision 10).
  * 5. Live: whisper-turbo-gpu and Parakeet, with Ollama idle and busy (decision 11).
  *
+ * Every heavy step, here and in the drivers, first waits for the GPU to be
+ * under 70 °C, and logs the wait (`coolGpu` in steps.ts): the laptop cut out
+ * at 94 °C on 13 November, and it starts every timing from the same
+ * temperature.
+ *
  * Steps 3 and 4 and live's busy runs need Ollama with qwen3:4b. Without it
  * they are logged as skipped, and a later start picks them up.
  */

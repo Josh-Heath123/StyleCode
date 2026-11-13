@@ -96,13 +96,15 @@ export function startScript(
 /**
  * Runs a step to its end, logging its start and outcome. A failed step is
  * logged and returned, not thrown. With `result`, the step is skipped when that
- * file already exists, so a stopped batch can be started again.
+ * file already exists, so a stopped batch can be started again. A step that
+ * runs first waits for the GPU to cool (`coolGpu`); its time starts after.
  */
 export async function step(name: string, script: string, args: string[], result?: string): Promise<StepResult> {
   if (result && existsSync(result)) {
     log(`skip ${name}: done before`);
     return { name, code: 0, startedMs: Date.now(), wallMs: 0, tail: '', skipped: true };
   }
+  await coolGpu(name);
   log(`start ${name}`);
   const r = await startScript(name, script, args).done;
   log(
@@ -155,3 +157,31 @@ export async function unloadModel(): Promise<void> {
 }
 
 export const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Heavy steps start with the GPU under this, so each timing starts from the same temperature. */
+export const COOL_C = 70;
+/** Longest wait for it; after that the step starts anyway, and the log says how warm the GPU was. */
+const COOL_MAX_MS = 20 * 60_000;
+
+/**
+ * Waits until the GPU is under COOL_C (nvidia-smi, every 15 seconds), logging
+ * the wait. Added after the laptop cut out at 94 °C during a GPU-sharing run
+ * (13 November): it gives the laptop room to breathe between heavy steps.
+ * Without nvidia-smi it returns at once.
+ */
+export async function coolGpu(before: string): Promise<void> {
+  let g = gpuNow();
+  if (!g || g.temperatureC < COOL_C) return;
+  const from = g.temperatureC;
+  const started = Date.now();
+  log(`wait before ${before}: GPU at ${from} °C, waiting for under ${COOL_C} °C`);
+  while (g && g.temperatureC >= COOL_C) {
+    if (Date.now() - started > COOL_MAX_MS) {
+      log(`waited ${COOL_MAX_MS / 60_000} min before ${before}: GPU still at ${g.temperatureC} °C, starting anyway`);
+      return;
+    }
+    await pause(15_000);
+    g = gpuNow();
+  }
+  log(`cooled before ${before}: ${from} to ${g?.temperatureC ?? '?'} °C in ${((Date.now() - started) / 1000).toFixed(0)} s`);
+}

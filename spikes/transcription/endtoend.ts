@@ -25,6 +25,7 @@ import {
   HOUR_MEETING,
   ROOT,
   beginDriver,
+  coolGpu,
   extractionArgs,
   gpuLog,
   log,
@@ -111,6 +112,7 @@ if (!doneBefore('sequential')) {
 // 2. Words and speakers at once.
 if (!doneBefore('parallel')) {
   await unloadModel();
+  await coolGpu('e2e parallel: words and speakers at once');
   const gpu = gpuLog();
   log('start e2e parallel: words and speakers at once');
   const started = Date.now();
@@ -167,12 +169,12 @@ for (const candidate of [words, ...others]) {
   }
   {
     await unloadModel();
-    await pause(30_000); // let the GPU cool a little between runs
+    await coolGpu(`${candidate} alone`); // step() would too; here so the GPU log starts after the wait
     let gpu = gpuLog();
     const t = await step(`${candidate} alone`, RUN, wordsArgs(candidate, `gpu-alone-${candidate}`));
     const aloneGpu = gpu.stop();
     await unloadModel();
-    await pause(30_000);
+    await coolGpu(`extraction with ${candidate}`);
     gpu = gpuLog();
     // Start the transcription once extraction is sending its first part, so the model is on the GPU.
     let partStarted: () => void = () => undefined;
