@@ -103,6 +103,18 @@ export const CANDIDATE_FILES: CandidateFile[] = [
     installed: 'models/silero_vad.onnx',
   },
   {
+    // whisper.cpp's own VAD (`--vad`), so Whisper skips stretches without speech (reviewer, 13 November).
+    // Checked on 2026-11-13: the repository's licence is MIT; whisper.cpp v1.9.5's download-vad-model.sh offers v5.1.2 and v6.2.0.
+    id: 'silero-vad-ggml',
+    name: 'Silero VAD v6.2.0, converted to ggml for whisper.cpp',
+    version: 'ggml-org/whisper-vad@9ffd54a',
+    url: 'https://huggingface.co/ggml-org/whisper-vad/resolve/9ffd54a1e1ee413ddf265af9913beaf518d1639b/ggml-silero-v6.2.0.bin',
+    bytes: 885098,
+    sha256: '2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987',
+    licence: 'MIT (https://huggingface.co/ggml-org/whisper-vad)',
+    installed: 'models/ggml-silero-v6.2.0.bin',
+  },
+  {
     id: 'pyannote-segmentation-3.0',
     name: 'pyannote segmentation-3.0, converted to ONNX by sherpa-onnx',
     version: 'sherpa-onnx speaker-segmentation-models release',

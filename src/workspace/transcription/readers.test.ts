@@ -33,6 +33,35 @@ describe('whisper.cpp', () => {
     ]);
   });
 
+  it('with VAD, places tokens across their segment’s times, since their own are on the clock without pauses', () => {
+    // From whisper-cli -ojf --vad on Karoo Freight's last segment: the segment at 204.8 s, its tokens at 191.1 s.
+    const vad = {
+      transcription: [
+        {
+          offsets: { from: 204800, to: 205700 },
+          text: ' Thank you, everyone.',
+          tokens: [
+            { text: ' Thank', offsets: { from: 191140, to: 191140 }, p: 0.9 },
+            { text: ' you', offsets: { from: 191140, to: 191280 }, p: 0.99 },
+            { text: ',', offsets: { from: 191280, to: 191390 }, p: 0.8 },
+            { text: ' everyone', offsets: { from: 191390, to: 191850 }, p: 0.97 },
+            { text: '.', offsets: { from: 191850, to: 192040 }, p: 0.99 },
+            { text: '[_TT_948]', offsets: { from: 192040, to: 192040 }, p: 0.5 },
+          ],
+        },
+      ],
+    };
+    expect(readWhisperJson(vad, { vad: true })).toEqual(
+      [
+        { text: 'Thank', startMs: 204800, endMs: 204800 },
+        { text: 'you,', startMs: 204800, endMs: 205050 },
+        { text: 'everyone.', startMs: 205050, endMs: 205700 },
+      ].map((w, i) => ({ ...w, confidence: [0.9, 0.8, 0.97][i] })),
+    );
+    // Read without the option, every token would start a word before its segment.
+    expect(readWhisperJson(vad).map((w) => w.text)).toEqual(['Thank', 'you', ',', 'everyone', '.']);
+  });
+
   it('spreads a segment’s words over its time when there are no tokens, and refuses other JSON', () => {
     const plain = { transcription: [{ offsets: { from: 0, to: 1000 }, text: ' Yes fine.' }] };
     expect(readWhisperJson(plain)).toEqual([

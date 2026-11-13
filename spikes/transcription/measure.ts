@@ -10,7 +10,7 @@
  * eval/transcription/progress.log (steps.ts).
  */
 import { join } from 'node:path';
-import { MEETINGS, ROOT, beginDriver, log, step } from './steps.ts';
+import { HOUR_MEETING, MEETINGS, ROOT, beginDriver, log, step } from './steps.ts';
 
 const VERSIONS = ['clean', 'hard'];
 const RUNS = join(ROOT, 'eval', 'transcription', 'runs');
@@ -30,14 +30,30 @@ const batches: Record<string, string[][]> = {
   ),
   // ERes2Net at 0.8, between 0.7 (5.1% wrong, 2.85 labels per person) and 0.9 (15.8%, 1.47): added on 13 November.
   speakers08: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['speakers', 'eres2net', m, v, '--threshold', '0.8'])),
+  // Added at the WP3 check-in (13 November): whisper.cpp's own VAD, on every meeting, clean and hard.
+  vad: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['words', 'whisper-turbo-gpu', m, v, '--vad'])),
+  // And the picked speaker setup dropping speech under 1 s and 2 s (default 0.3 s): the clean meetings and the hard hour.
+  fragments: ['1', '2'].flatMap((on) =>
+    [...MEETINGS.map((m) => [m, 'clean']), [HOUR_MEETING, 'hard']].map(([m, v]) => [
+      'speakers',
+      'eres2net',
+      m,
+      v,
+      '--threshold',
+      '0.7',
+      '--min-on',
+      on,
+    ]),
+  ),
 };
 
 /** The run's record, named as run.ts names it. */
 function resultOf([kind, candidate, meeting, version, ...opt]: string[]): string {
+  const after = (flag: string) => Number(opt[opt.indexOf(flag) + 1]);
   const runId =
     kind === 'words'
-      ? `${candidate}${opt.includes('--names') ? '-names' : ''}`
-      : `speakers-${candidate}${opt[0] === '--count' ? '-count' : `-t${Number(opt[1])}`}`;
+      ? `${candidate}${opt.includes('--names') ? '-names' : ''}${opt.includes('--vad') ? '-vad' : ''}`
+      : `speakers-${candidate}${opt[0] === '--count' ? '-count' : `-t${after('--threshold')}`}${opt.includes('--min-on') ? `-on${after('--min-on')}` : ''}`;
   return join(RUNS, runId, `${meeting}.${version}.json`);
 }
 

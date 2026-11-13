@@ -6,7 +6,8 @@
  *
  *   node --experimental-strip-types spikes/transcription/wp3.ts
  *
- * 1. The words and speakers batches (measure.ts).
+ * 1. The words and speakers batches (measure.ts), then whisper.cpp's VAD and
+ *    the speaker setup at --min-on 1 and 2 (added at the check-in).
  * 2. The speaker setup is picked: the lowest share of speech under the wrong
  *    person on the four clean meetings (their mean), fewer labels per person
  *    breaking ties (within 0.1 points).
@@ -106,6 +107,9 @@ log(
 );
 
 await step('wp3 words and speakers batches', `${T}measure.ts`, ['words', 'speakers', 'speakers08']);
+// Added at the WP3 check-in (13 November): whisper.cpp's VAD, and the speaker setup dropping short speech.
+// Their runs are named -vad and -on<s>, so the pick below never sees them.
+await step('wp3 vad and speaker fragments', `${T}measure.ts`, ['vad', 'fragments']);
 
 const picked = pickSpeakers();
 if (picked) log(`wp3: speaker setup picked: ${picked.run}`);
