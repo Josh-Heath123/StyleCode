@@ -238,6 +238,29 @@ Decision 8's rule: the fastest setup whose transcripts keep extraction's recall 
 - **Confidence threshold: 0.7** on Whisper's word confidence. It marks about 7% of words and catches about half the wrong ones.
 - **From the end of an hour-long meeting to the proposals: about 25 to 35 minutes,** most of it speakers, one step after another.
 
+## Decided at the check-in
+
+The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's behalf.
+
+**Accepted:**
+- whisper.cpp with large-v3-turbo-q5_0 on the GPU, without the names prompt.
+- ERes2Net without the count. Its threshold waits for the speaker-fragment measurements below.
+- One heavy job at a time, CPU or GPU, and no Ollama unload.
+- About 32 minutes from the end of an hour's meeting to the proposals.
+- **Slice B supports this one engine only.** Without an NVIDIA GPU that whisper.cpp's CUDA build can use, Transcribe isn't offered, and the session says why. Parakeet on the CPU is in `docs/ROADMAP.md` as the later fallback for computers without one.
+
+**Confidence: words are marked, not segments** (this changes decision 19). At 0.7, a mark on a segment's lowest word would cover 60% of segments on clean audio and 64% on hard (large-v3-turbo with ERes2Net 0.7, the four meetings, 662 and 691 segments of about 20 words). A mark on everything gets ignored. A mark on the segment's mean probability goes the other way: under 2% of segments, hiding most doubtful words. So in WP4:
+- a segment keeps its confidence (the mean word probability) and the character ranges of its words below 0.7;
+- the transcript shows those words with a dotted underline, and "may be misheard" on hover, on focus and for screen readers.
+
+**Part sizes:** 6144 stays for now. The choice waits for the settled scores.
+
+**Speakers' CPU time** (9 to 21 minutes per hour for the same work) isn't chased. Estimates use the slower figure, as the 32 minutes above does. Slice B's estimate of how long a transcription will take uses the computer's own past speeds.
+
+**The extraction scorer** writes `matches.csv` with LF line endings, as git stores them, so scoring again can't rewrite Phase 2's settled files.
+
+**The records:** every run record cited here is in the repository: `eval/transcription/runs/`, `endtoend/`, `live/` and `extraction/`, and `eval/runs/p3-*`. They hold role-played text, times and resources, no audio and no paths.
+
 ## Risks
 
 - **Real speech is harder** (decision 1). Accents, names, crosstalk and a laptop microphone will raise every error rate here. WP8's re-recorded meeting is the first real-room check.
