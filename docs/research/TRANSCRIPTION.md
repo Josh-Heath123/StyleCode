@@ -126,17 +126,28 @@ Phase 2's extraction (qwen3:4b at 6144) on each candidate's transcripts of the t
 
 | Transcripts | Clean: precision | Clean: recall | Hard: precision | Hard: recall |
 | --- | --: | --: | --: | --: |
-| Typed, before | 84% | 54% | | |
-| Typed, after | 77% | 56% | | |
-| whisper.cpp large-v3-turbo, GPU | 76% | 53% | 67% | 49% |
-| … with the names hint | 70% | 51% | 72% | 47% |
-| whisper.cpp small, GPU | 79% | 46% | 54% | 40% |
-| Parakeet | 77% | 50% | 73% | 51% |
-| whisper.cpp large-v3-turbo, CPU | 70% | 50% | 80% | 43% |
+| Typed, before | 89% | 57% | | |
+| Typed, after | 90% | 63% | | |
+| **whisper.cpp large-v3-turbo, GPU** | **88%** | **61%** | 91% | 61% |
+| … with the names hint | 86% | 64% | 79% | 50% |
+| whisper.cpp small, GPU | 89% | 51% | 72% | 57% |
+| Parakeet | 97% | 63% | 84% | 60% |
+| whisper.cpp large-v3-turbo, CPU | 80% | 56% | 80% | 49% |
 
-> **These scores aren't settled yet, so they are lower than they will be.** The scorer lists "unclear pairs" (a proposal that may match a finding) for a person to settle; an unsettled pair counts as no match (`eval/README.md`). Phase 2's runs were settled; these weren't. There are 1,231 unsettled pairs across Phase 3's 27 extraction runs, so compare these rows with each other, not with `EXTRACTION.md`.
+The typed runs differ by 6 points of recall with the same settings: Phase 2 saw the same spread (`EXTRACTION.md`).
 
-On clean audio, every candidate keeps recall within 10 points of the typed transcripts (decision 8's bar). Small is the closest to failing: 46% against 54% and 56%.
+**Against decision 8's bar** (recall within 10 points of the typed transcripts'): large-v3-turbo on the GPU (61%), Parakeet (63%), the names hint (64%) and large-v3-turbo on the CPU (56%) pass. **Small fails:** 51%, 12 points under the second typed run. On these meetings, large-v3-turbo's transcripts cost extraction nothing measurable.
+
+### How the scores were settled
+
+The scorer lists "unclear pairs", where a proposal may match a key finding (`eval/README.md`), and counts any pair nobody has settled as no match. Phase 3's 27 extraction runs had 1,231 of them. All are settled, by independent subagents as in Phase 2, on 13 November 2026:
+- **Blind:** each pair was shown with only its two statements and kinds, with no run name, transcript or score, in shuffled order, split across nine subagents in two rounds.
+- **The rule** was Phase 2's, written out again from its 151 settled pairs, since only the answers had been kept. Answer yes when both make the same main point, so a consultant would treat one as a record of the other, whatever their kinds. Answer no when they only share a topic or passage, when the finding is a side detail of the proposal, or when the proposal's main point is something else. In doubt, no.
+- **Checked against Phase 2:** 30 of Phase 2's settled pairs were hidden in each round. The subagents agreed with Phase 2's answers on 28 of 30 both times (93%; Cohen's κ 0.86 and 0.83).
+- **Checked against each other:** a second subagent settled a random 10% again (50 pairs, then 73). They agreed on 92% and 90% (κ 0.80 and 0.81). In the second round, 6 of the 7 disagreements were the second subagent saying yes, so the settled scores lean, if anything, slightly strict.
+- **The hard cases** were proposals stating one half of a two-part finding (two go-live dates, for example), and a problem set against the feature that solves it ("we lose 100 bins a year" against "track the co-op's bins"). Subagents split on the second kind.
+
+The answers are in the runs' `*.matches.csv` files.
 
 ## The hour-long meeting
 
@@ -146,14 +157,14 @@ Extraction of the hour-long meeting (96 findings in its key) at three part sizes
 
 | Transcript | Parts of | Proposed | Precision | Recall | Time |
 | --- | --: | --: | --: | --: | --: |
-| Typed | 4096 | 240 | 47% | **69%** | 1,329 s |
-| Typed | 6144 | 132 | 51% | 53% | 821 s |
-| Typed | 8192 | 121 | 55% | 46% | 732 s |
-| large-v3-turbo + ERes2Net 0.7 | 4096 | 235 | 51% | **73%** | 1,305 s |
-| large-v3-turbo + ERes2Net 0.7 | 6144 | 120 | 59% | 52% | 861 s |
-| large-v3-turbo + ERes2Net 0.7 | 8192 | 129 | 46% | 34% | 731 s |
+| Typed | 4096 | 240 | 61% | **82%** | 1,329 s |
+| Typed | 6144 | 132 | 73% | 70% | 821 s |
+| Typed | 8192 | 121 | 79% | 58% | 732 s |
+| large-v3-turbo + ERes2Net 0.7 | 4096 | 235 | 65% | **83%** | 1,305 s |
+| large-v3-turbo + ERes2Net 0.7 | 6144 | 120 | 76% | 65% | 861 s |
+| large-v3-turbo + ERes2Net 0.7 | 8192 | 129 | 71% | 54% | 731 s |
 
-**6144 doesn't find the most on an hour-long meeting: 4096 does,** by 16 to 21 points. It also proposes about twice as many findings, at lower precision, and takes about 1.6 times as long. These runs carry the most unsettled pairs (101 to 124 at 4096), so the gap may move when they are settled. Phase 2 chose 6144 on short meetings, where it was within 2 points of 4096 at far higher precision.
+**6144 doesn't find the most on an hour-long meeting: 4096 does,** by 12 to 18 points. It costs 11 to 12 points of precision, about twice the proposals for the consultant to review (235 to 240, against 120 to 132), and about 1.6 times as long (22 minutes, against 14). Settling the scores widened the gap rather than closing it. Phase 2 chose 6144 on short meetings, where it was within 2 points of 4096 at far higher precision. Each size was run once, and single runs vary by about 6 points.
 
 ### End to end
 
@@ -170,7 +181,7 @@ The minutes from the end of the meeting to the proposals, with ERes2Net at 0.7 a
 
 Speakers take most of the time, and their time varies (9 to 21 minutes per hour of meeting). So expect **about 25 to 35 minutes** from the end of an hour-long meeting to the proposals, and longer when the GPU is already hot. Extraction alone took 786 s one night and 1,130 s at 90 to 93 °C the next morning, on the same input. Running words and speakers at once saved 1.5 minutes with Whisper.
 
-Extraction on these end-to-end transcripts found 45% to 54% of the 96 findings, against 53% on the typed transcript at 6144. All of these are unsettled.
+Extraction on these end-to-end transcripts found 60% to 68% of the 96 findings, at 64% to 76% precision, against 66% to 72% in three runs on the typed transcript at 6144.
 
 ### Sharing the GPU (decision 10)
 
@@ -231,7 +242,7 @@ The downstream extraction runs record no temperature. The rest of the words and 
 
 Decision 8's rule: the fastest setup whose transcripts keep extraction's recall within 10 points of the typed transcripts', and give at least 90% of words the right speaker on the clean meetings.
 
-- **Engine and model: whisper.cpp with large-v3-turbo (5-bit), on the GPU.** It's the fastest that passes: 2.6 minutes per hour, 2.4% word errors on clean audio, 94% of words to the right speaker, and recall within 1 to 3 points of the typed transcripts. Without an NVIDIA GPU, **Parakeet on the CPU** (11 minutes per hour, and no burst of invented words in noise) is the fallback, not Whisper on the CPU (49 minutes per hour).
+- **Engine and model: whisper.cpp with large-v3-turbo (5-bit), on the GPU.** It's the fastest that passes: 2.6 minutes per hour, 2.4% word errors on clean audio, 94% of words to the right speaker, and extraction recall of 61% on its transcripts, between the two typed runs' 57% and 63%. Without an NVIDIA GPU, **Parakeet on the CPU** (11 minutes per hour, and no burst of invented words in noise) is the fallback, not Whisper on the CPU (49 minutes per hour).
 - **Speakers: sherpa-onnx with ERes2Net at threshold 0.7, without the count.** Giving the count merges people.
 - **The names hint: no.** It hurt clean audio.
 - **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Unloading Ollama before a transcription isn't needed for memory (they fit together), only if a model is still loaded when a transcription starts.
@@ -267,5 +278,5 @@ The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's beha
 - **Whisper invents text in long noisy silences** (837 words on the hard hour). Running Silero VAD first, which whisper.cpp supports, may stop it; that wasn't measured. Until then, the "may be misheard" marking is the guard, and so is the consultant checking a finding against the audio (decision 21).
 - **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one. Matching them is real work for the consultant. Threshold 0.8 gave 23 in the clean hour at the same accuracy, but doubled the wrong-speaker share on short meetings.
 - **Heat:** sustained jobs hold the GPU at 90 °C or more and slow it by up to 44%. Two at once cut the power. Better cooling (a raised back, clean vents, a cooling pad) would help every time here.
-- **The extraction scores are unsettled** (1,231 pairs). The 4096-against-6144 result in particular should be settled before Phase 2's choice of 6144 is changed.
+- **The extraction scores rest on subagents' judgement** of 1,231 unclear pairs, and they split on a few kinds of pair (see "How the scores were settled"). Their agreement with Phase 2's answers and with each other (90% to 93%) puts that uncertainty at a few points of recall, smaller than one run's spread.
 - **Speakers' CPU time varied two-fold** for the same work, for a reason not found.
