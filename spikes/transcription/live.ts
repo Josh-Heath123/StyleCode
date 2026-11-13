@@ -1,6 +1,7 @@
 /**
  * Live transcription, measured and not built (Phase 3 brief, decision 11):
- * the hour-long clean meeting is fed in 30-second pieces at real-time pace,
+ * the first 20 minutes of the hour-long clean meeting are fed in 30-second
+ * pieces at real-time pace,
  * as a recording would hand them over, and each piece is transcribed as soon
  * as it is complete (one at a time; a piece waits if the one before is still
  * running). Each piece's lag is the time from the end of its 30 seconds to
@@ -41,7 +42,11 @@ const WORK = join(SPIKE_HOME, 'work', 'live');
 
 const audio = readWav(new Uint8Array(readFileSync(join(ROOT, 'eval', 'audio', 'out', `${HOUR_MEETING}.clean.wav`))));
 const perMs = audio.sampleRate / 1000;
-const audioMs = Math.round(audio.samples.length / perMs);
+// The first 20 minutes, not the hour: long enough for the GPU to slow with
+// heat (after about a minute) and, when busy, to span a whole extraction run
+// (about 13 minutes), at a third of the laptop's time.
+const LIVE_MS = 20 * 60_000;
+const audioMs = Math.min(LIVE_MS, Math.round(audio.samples.length / perMs));
 const pieces = Array.from({ length: Math.ceil(audioMs / PIECE_MS) }, (_, i) => ({
   startMs: i * PIECE_MS,
   endMs: Math.min((i + 1) * PIECE_MS, audioMs),
@@ -166,6 +171,7 @@ const summary = {
   condition,
   meeting: HOUR_MEETING,
   pieceMs: PIECE_MS,
+  audioMs,
   pieces: pieces.length,
   failed: results.filter((r) => r.error).length,
   lagMs: { median: at(0.5), p90: at(0.9), max: lags.at(-1) ?? null },
@@ -197,7 +203,11 @@ writeFileSync(
     minutesPerHour: +((wallMs / audioMs) * 60).toFixed(2),
     at: summary.at,
     hardware: summary.hardware,
-    settings: ['30-second pieces at real-time pace', `--threads ${THREADS}`, ...(busy ? ['extraction running throughout'] : [])],
+    settings: [
+      'the first 20 minutes, in 30-second pieces at real-time pace',
+      `--threads ${THREADS}`,
+      ...(busy ? ['extraction running throughout'] : []),
+    ],
     stages: [{ name: 'transcribe (sum of pieces)', wallMs, resources: null }],
     words: words.map((w) => [w.text, w.startMs, w.endMs, w.confidence === null ? null : +w.confidence.toFixed(4)]),
   })}\n`,

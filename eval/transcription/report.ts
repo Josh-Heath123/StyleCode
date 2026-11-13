@@ -24,6 +24,12 @@ function timeline(meeting: string, version: string): TimelineTurnRef[] {
   }
   return timelineCache.get(key)!;
 }
+/**
+ * The turns a run heard: a run of only part of the audio (the live runs, the
+ * first 20 minutes) is scored against the turns that start within it.
+ */
+const heard = (turns: TimelineTurnRef[], audioMs: number) =>
+  turns.at(-1)!.endMs <= audioMs ? turns : turns.filter((t) => t.startMs < audioMs);
 
 const runs: RunRecord[] = existsSync(RUNS)
   ? readdirSync(RUNS)
@@ -43,7 +49,7 @@ console.log('| Run | Meeting | Version | Word errors | Raw | Sub / del / ins | K
 console.log('| --- | --- | --- | --: | --: | --- | --: | --: |');
 const scored = new Map<RunRecord, ReturnType<typeof scoreWords>>();
 for (const r of wordRuns) {
-  const s = scoreWords(timeline(r.meeting, r.version), r.words!);
+  const s = scoreWords(heard(timeline(r.meeting, r.version), r.audioMs), r.words!);
   scored.set(r, s);
   console.log(
     `| ${r.run} | ${r.meeting} | ${r.version} | ${pct(s.wer)} | ${pct(s.rawWer)} | ${s.sub} / ${s.del} / ${s.ins} | ${s.terms.found} of ${s.terms.occurrences} | ${r.minutesPerHour} |`,
@@ -68,7 +74,7 @@ console.log('| Words | Speakers | Meeting | Version | Right speaker |');
 console.log('| --- | --- | --- | --- | --: |');
 for (const w of wordRuns)
   for (const sp of speakerRuns.filter((s) => s.meeting === w.meeting && s.version === w.version)) {
-    const s = scoreSpeakers(timeline(w.meeting, w.version), w.words!, sp.turns!, scored.get(w)!.steps);
+    const s = scoreSpeakers(heard(timeline(w.meeting, w.version), w.audioMs), w.words!, sp.turns!, scored.get(w)!.steps);
     console.log(`| ${w.run} | ${sp.run} | ${w.meeting} | ${w.version} | ${pct(s.wordsRightSpeaker)} |`);
   }
 
