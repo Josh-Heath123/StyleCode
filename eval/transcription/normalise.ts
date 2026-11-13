@@ -125,7 +125,7 @@ const ISE_STEMS = [
 const ISE = new RegExp(`^(${ISE_STEMS.join('|')})is(e|es|ed|ing|ation|ations)$`);
 
 function spelling(word: string): string {
-  if (SPELLINGS[word]) return SPELLINGS[word];
+  if (Object.hasOwn(SPELLINGS, word)) return SPELLINGS[word];
   const m = ISE.exec(word);
   return m ? `${m[1]}iz${m[2]}` : word;
 }
@@ -140,13 +140,13 @@ function numberFrom(words: string[]): number | null {
       if (w === 'a') current = 1;
       continue;
     }
-    if (w in SMALL) {
+    if (Object.hasOwn(SMALL, w)) {
       current += SMALL[w];
       any = true;
     } else if (w === 'hundred') {
       current = (current || 1) * 100;
       any = true;
-    } else if (w in SCALES) {
+    } else if (Object.hasOwn(SCALES, w)) {
       total += (current || 1) * SCALES[w];
       current = 0;
       any = true;
@@ -155,7 +155,8 @@ function numberFrom(words: string[]): number | null {
   return any ? total + current : null;
 }
 
-const isNumberWord = (w: string) => w in SMALL || w in SCALES;
+const isNumberWord = (w: string) => Object.hasOwn(SMALL, w) || Object.hasOwn(SCALES, w);
+const isScale = (w: string) => Object.hasOwn(SCALES, w);
 
 /** A normalised word and the piece of text (an engine's word) it came from. */
 export interface TaggedWord {
@@ -174,7 +175,7 @@ function wordsToDigits(words: TaggedWord[]): TaggedWord[] {
   let i = 0;
   while (i < words.length) {
     const w = at(i);
-    const startsRun = isNumberWord(w) || (w === 'a' && at(i + 1) in SCALES);
+    const startsRun = isNumberWord(w) || (w === 'a' && isScale(at(i + 1)));
     // "oh" is a number only inside a run of digits ("oh eight two"), never on its own.
     if (!startsRun || (w === 'oh' && !isNumberWord(at(i + 1)))) {
       out.push(words[i]);
@@ -183,10 +184,10 @@ function wordsToDigits(words: TaggedWord[]): TaggedWord[] {
     }
     let j = i + 1;
     // "and" carries on a number only after a scale, as in "a hundred and twenty"; "two and three" stays as it is.
-    while (j < words.length && (isNumberWord(at(j)) || (at(j) === 'and' && at(j - 1) in SCALES && isNumberWord(at(j + 1))))) j++;
+    while (j < words.length && (isNumberWord(at(j)) || (at(j) === 'and' && isScale(at(j - 1)) && isNumberWord(at(j + 1))))) j++;
     const run = words.slice(i, j).map((x) => x.word);
     // A run of single digits ("oh eight two") is read digit by digit, as phone numbers are.
-    const digits = run.every((x) => x in SMALL && SMALL[x] < 10);
+    const digits = run.every((x) => Object.hasOwn(SMALL, x) && SMALL[x] < 10);
     const value = digits && run.length > 1 ? run.map((x) => SMALL[x]).join('') : numberFrom(run);
     if (value === null) out.push(...words.slice(i, j));
     else out.push({ word: String(value), from: words[i].from });

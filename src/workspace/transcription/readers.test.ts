@@ -58,8 +58,71 @@ describe('whisper.cpp', () => {
         { text: 'everyone.', startMs: 205050, endMs: 205700 },
       ].map((w, i) => ({ ...w, confidence: [0.9, 0.8, 0.97][i] })),
     );
-    // Read without the option, every token would start a word before its segment.
-    expect(readWhisperJson(vad).map((w) => w.text)).toEqual(['Thank', 'you', ',', 'everyone', '.']);
+    // Read without the option, the words would sit 13 seconds before their segment.
+    expect(readWhisperJson(vad).map((w) => w.startMs)).toEqual([191140, 191140, 191390]);
+  });
+
+  it('starts a word at each segment’s first token, even when its tokens end before the segment starts', () => {
+    // From whisper-cli -ojf on a live 30-second piece of Bosveld Citrus: the tokens' starts moved up to the segment's, their ends not.
+    const shifted = {
+      transcription: [
+        {
+          offsets: { from: 3400, to: 3680 },
+          text: ' them?',
+          tokens: [{ text: ' them?', offsets: { from: 3400, to: 3680 }, p: 0.99 }],
+        },
+        {
+          offsets: { from: 4580, to: 5000 },
+          text: ' Precious can do',
+          tokens: [
+            { text: ' P', offsets: { from: 4580, to: 3750 }, p: 0.97 },
+            { text: 'reci', offsets: { from: 4580, to: 4060 }, p: 0.99 },
+            { text: 'ous', offsets: { from: 4580, to: 4290 }, p: 0.99 },
+            { text: ' can', offsets: { from: 4580, to: 4520 }, p: 0.99 },
+            { text: ' do', offsets: { from: 4580, to: 4650 }, p: 1 },
+          ],
+        },
+      ],
+    };
+    const words = readWhisperJson(shifted);
+    expect(words.map((w) => w.text)).toEqual(['them?', 'Precious', 'can', 'do']);
+    expect(words.map((w) => [w.startMs, w.endMs])).toEqual([
+      [3400, 3680],
+      [4580, 4580],
+      [4580, 4580],
+      [4580, 4650],
+    ]);
+  });
+
+  it('leaves out Whisper’s notes on sounds, which aren’t speech', () => {
+    // From whisper-cli -ojf with small on the hard Bosveld Citrus, in its two-minute pause.
+    const noted = {
+      transcription: [
+        {
+          offsets: { from: 0, to: 1000 },
+          text: ' on my desk.',
+          tokens: [
+            { text: ' on', offsets: { from: 0, to: 300 }, p: 0.99 },
+            { text: ' my', offsets: { from: 300, to: 600 }, p: 0.99 },
+            { text: ' desk', offsets: { from: 600, to: 950 }, p: 0.99 },
+            { text: '.', offsets: { from: 950, to: 1000 }, p: 0.99 },
+          ],
+        },
+        {
+          offsets: { from: 21000, to: 25860 },
+          text: ' [no audio]',
+          tokens: [
+            { text: ' [', offsets: { from: 21000, to: 21300 }, p: 0.99 },
+            { text: 'no', offsets: { from: 21300, to: 22650 }, p: 0.99 },
+            { text: ' audio', offsets: { from: 22650, to: 25500 }, p: 1 },
+            { text: ']', offsets: { from: 25500, to: 25860 }, p: 1 },
+          ],
+        },
+        { offsets: { from: 26000, to: 27000 }, text: ' [BLANK_AUDIO]', tokens: [] },
+        { offsets: { from: 27000, to: 28000 }, text: ' (music) Right.' },
+      ],
+    };
+    expect(readWhisperJson(noted).map((w) => w.text)).toEqual(['on', 'my', 'desk.', 'Right.']);
   });
 
   it('spreads a segment’s words over its time when there are no tokens, and refuses other JSON', () => {

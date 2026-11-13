@@ -17,6 +17,11 @@ describe('the normaliser', () => {
     expect(n('Mm. Ja.')).toBe('ja');
   });
 
+  it('reads words that are also names on every JavaScript object as words', () => {
+    expect(n('The constructor said toString and valueOf')).toBe('the constructor said tostring and valueof');
+    expect(n('a constructor of two hundred')).toBe('a constructor of 200');
+  });
+
   it('writes numbers as digits, however they were said', () => {
     expect(n('about a hundred and twenty a day')).toBe('about 120 a day');
     expect(n('two thousand four hundred bins')).toBe('2400 bins');

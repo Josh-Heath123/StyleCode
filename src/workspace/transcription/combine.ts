@@ -6,7 +6,10 @@
  * - A segment ends where the speaker changes, at the end of a sentence once
  *   it is 15 seconds long, or at 30 seconds, so a quoted passage stays short.
  * - Each segment keeps its confidence: the lowest of its words', so one
- *   doubtful word marks the passage.
+ *   doubtful word marks the passage. WP3's check-in changed this
+ *   (`docs/research/TRANSCRIPTION.md`, "Decided at the check-in"): words are
+ *   marked, not segments, so in WP4 a segment keeps the mean of its words'
+ *   confidence and the character ranges of its words below 0.8.
  * - The labels are "Speaker 1", "Speaker 2"…, in the order they first speak.
  */
 

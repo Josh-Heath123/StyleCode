@@ -233,11 +233,11 @@ const CSV_HEADER = ['proposal', 'key', 'reason', 'proposed kind', 'proposed stat
 function csvField(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
+
 /**
  * The unclear pairs, for a person to settle: write yes or no in the last column. Answers already given are kept.
  * Lines end in LF, as git stores them (.gitattributes), so scoring again never rewrites a settled file.
  */
-/** The unclear pairs, for a person to settle: write yes or no in the last column. Answers already given are kept. */
 export function unclearCsv(score: Score, answers: AnswerKey, proposals: RunProposal[], settled: Settled = new Map()): string {
   const rows = score.unclear.map((u) => {
     const p = proposals[u.proposal - 1];
