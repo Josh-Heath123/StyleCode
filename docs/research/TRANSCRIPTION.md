@@ -290,7 +290,7 @@ Decision 8's rule: the fastest setup whose transcripts keep extraction's recall 
 - **Speakers: sherpa-onnx with ERes2Net at threshold 0.7, without the count.** Giving the count merges people.
 - **The names hint: no.** It hurt clean audio.
 - **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Unloading Ollama before a transcription isn't needed for memory (they fit together), only if a model is still loaded when a transcription starts.
-- **Confidence threshold: 0.7** on Whisper's word confidence. It marks about 7% of words and catches about half the wrong ones.
+- **Confidence threshold: 0.7** on Whisper's word confidence. It marks about 7% of words and catches about half the wrong ones. (With `--max-context 0`, decided later, the same balance is at 0.8.)
 - **From the end of an hour-long meeting to the proposals: about 25 to 35 minutes,** most of it speakers, one step after another.
 
 ## Decided at the check-in
@@ -308,7 +308,7 @@ The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's beha
 - a segment keeps its confidence (the mean word probability) and the character ranges of its words below 0.7;
 - the transcript shows those words with a dotted underline, and "may be misheard" on hover, on focus and for screen readers.
 
-**Part sizes:** 6144 stays for now. The choice waits for the settled scores.
+**Part sizes:** 6144 stays for now. The choice waits for the settled scores (decided below).
 
 **Speakers' CPU time** (9 to 21 minutes per hour for the same work) isn't chased. Estimates use the slower figure, as the 32 minutes above does. Slice B's estimate of how long a transcription will take uses the computer's own past speeds.
 
@@ -316,11 +316,36 @@ The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's beha
 
 **The records:** every run record cited here is in the repository: `eval/transcription/runs/`, `endtoend/`, `live/` and `extraction/`, and `eval/runs/p3-*`. They hold role-played text, times and resources, no audio and no paths.
 
+### After the follow-up measurements
+
+The reviewer's answers at the short check-in, 13 November 2026, on the user's behalf.
+
+**Whisper runs with `--max-context 0`, and VAD stays off.** It stops the repetition (8 words in the pause, against 410), has fewer word errors on clean and hard audio, and is faster. Slice B uses it.
+
+**The confidence threshold is 0.8** with `--max-context 0`: it marks 7.8% of words and catches 49% of the wrong ones, the balance 0.7 gave before. Words are marked, not segments, as decided above; the character ranges a segment keeps are of its words below 0.8.
+
+**Speakers: ERes2Net at 0.7, with sherpa-onnx's default shortest speech (0.3 s).** 1 s and 2 s remove few labels and leave more speech with no speaker (2.6% and 5.6% on average, 11.2% of Veldt Vets at 2 s), and speech nobody is given can't be matched or warned about. Slice B handles the many labels in the interface, never by hiding them:
+- the speaker list is sorted by talk time and shows each label's time;
+- labels under 30 s sit in one group, collapsed under a summary line ("26 short labels, 2 min 28 s in all"), and each shows its own words so it can be matched by reading;
+- a label can be matched from any of its segments in the transcript, as well as from the list;
+- C11 never drops a label: the warning names the unmatched main labels and sums up the short ones by count and time, with a link to them;
+- in the preview (decision 18), before the transcript is added and while the recording can still be played, the consultant can already match speakers and play a label's longest segment. Matches made there are kept when it's added.
+
+This is shown at WP7's screens check-in.
+
+**Part size: 6144 stays.** 4096 finds more on the hour-long meeting (82% to 83%, against 65% to 70%), but with about twice the proposals to review, lower precision and 1.6 times the time. On Phase 2's short meetings it gained 2 points of recall for 14 of precision. The likely cause: at 4096 a part holds about 500 tokens of transcript, against 2,036 at 6144, so it may be the transcript per part that matters, not the context size. And 8192 didn't test bigger parts: `PART_CONTEXT` (`src/workspace/extraction/prompt.ts`) caps a part's context at 6144, so 8192 made the same 13 parts. Both are open questions below.
+
+## Open questions
+
+For WP11 to carry into the Phase 4 notes:
+- **Transcript per part.** Recall on the hour-long meeting may depend on how much transcript a part holds rather than on the context size: 500 tokens at 4096 found 82% to 83%, 2,036 at 6144 found 65% to 70%. A tuning question, for example 6144 with about 1,000 tokens of transcript per part, measured for recall, precision, proposals per hour and time.
+- **The part cap.** `PART_CONTEXT` caps parts at 6144, so a larger context setting doesn't make larger parts. Any test of bigger parts has to raise the cap.
+
 ## Risks
 
 - **Real speech is harder** (decision 1). Accents, names, crosstalk and a laptop microphone will raise every error rate here. WP8's re-recorded meeting is the first real-room check.
 - **Whisper repeats itself into long pauses** (410 words in the hard hour's two-minute pause), and the repetition passes the evidence check. `--max-context 0` brings it down to 8 words at no cost to accuracy ([Follow-up measurements](#follow-up-measurements)). It's still worth the "may be misheard" marking and the consultant checking a finding against the audio (decision 21).
-- **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one, most of them holding under 30 s. Matching them is real work for the consultant. Dropping speech under 2 s brings it to 21 and 34, but leaves more speech with no speaker. Hiding short labels isn't safe: an unasked guest may speak for only seconds.
+- **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one, most of them holding under 30 s. Matching them is real work for the consultant. Dropping speech under 2 s brings it to 21 and 34, but leaves more speech with no speaker. Hiding short labels isn't safe: an unasked guest may speak for only seconds. Slice B groups them instead (decided above).
 - **Heat:** sustained jobs hold the GPU at 90 °C or more and slow it by up to 44%. Two at once cut the power. Better cooling (a raised back, clean vents, a cooling pad) would help every time here.
 - **The extraction scores rest on subagents' judgement** of 1,231 unclear pairs, and they split on a few kinds of pair (see "How the scores were settled"). Their agreement with Phase 2's answers and with each other (90% to 93%) puts that uncertainty at a few points of recall, smaller than one run's spread.
 - **Speakers' CPU time varied two-fold** for the same work, for a reason not found.
