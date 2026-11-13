@@ -32,6 +32,8 @@ const batches: Record<string, string[][]> = {
   speakers08: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['speakers', 'eres2net', m, v, '--threshold', '0.8'])),
   // Added at the WP3 check-in (13 November): whisper.cpp's own VAD, on every meeting, clean and hard.
   vad: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['words', 'whisper-turbo-gpu', m, v, '--vad'])),
+  // The fallback if VAD fails or costs too much (reviewer, 13 November): no VAD, but no conditioning on Whisper's own previous text.
+  nocontext: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['words', 'whisper-turbo-gpu', m, v, '--no-context'])),
   // And the picked speaker setup dropping speech under 1 s and 2 s (default 0.3 s): the clean meetings and the hard hour.
   fragments: ['1', '2'].flatMap((on) =>
     [...MEETINGS.map((m) => [m, 'clean']), [HOUR_MEETING, 'hard']].map(([m, v]) => [
@@ -52,7 +54,7 @@ function resultOf([kind, candidate, meeting, version, ...opt]: string[]): string
   const after = (flag: string) => Number(opt[opt.indexOf(flag) + 1]);
   const runId =
     kind === 'words'
-      ? `${candidate}${opt.includes('--names') ? '-names' : ''}${opt.includes('--vad') ? '-vad' : ''}`
+      ? `${candidate}${opt.includes('--names') ? '-names' : ''}${opt.includes('--vad') ? '-vad' : ''}${opt.includes('--no-context') ? '-mc0' : ''}`
       : `speakers-${candidate}${opt[0] === '--count' ? '-count' : `-t${after('--threshold')}`}${opt.includes('--min-on') ? `-on${after('--min-on')}` : ''}`;
   return join(RUNS, runId, `${meeting}.${version}.json`);
 }

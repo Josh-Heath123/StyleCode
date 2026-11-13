@@ -2,11 +2,13 @@
  * Runs one candidate on one test meeting and records what it heard, how long
  * it took and what it used (Phase 3 brief, WP2 and decision 8).
  *
- *   node --experimental-strip-types spikes/transcription/run.ts words <candidate> <meeting> <clean|hard> [--names] [--vad]
+ *   node --experimental-strip-types spikes/transcription/run.ts words <candidate> <meeting> <clean|hard> [--names] [--vad] [--no-context]
  *   node --experimental-strip-types spikes/transcription/run.ts speakers <campplus|eres2net> <meeting> <clean|hard> [--count | --threshold <x>] [--min-on <s>]
  *
  * Words: whisper-turbo-gpu, whisper-small-gpu, whisper-turbo-cpu, parakeet-cpu.
  * `--names` gives Whisper the session's names as a prompt (decision 9).
+ * `--no-context` stops Whisper conditioning on its own previous text
+ * (`--max-context 0`), which is what repeats a sentence through a pause.
  * `--vad` has whisper.cpp skip what Silero VAD (ggml) finds isn't speech, so it
  * can't write words into a pause.
  * `--min-on <s>` has the speaker engine drop speech shorter than that (its
@@ -67,6 +69,7 @@ interface Stage {
 const [kind, candidate, meeting, version] = process.argv.slice(2);
 const names = process.argv.includes('--names');
 const vad = process.argv.includes('--vad');
+const noContext = process.argv.includes('--no-context');
 const minOnAt = process.argv.indexOf('--min-on');
 const minOn = minOnAt > 0 ? Number(process.argv[minOnAt + 1]) : null;
 if (minOn !== null && !(minOn >= 0 && minOn <= 10)) throw new Error('--min-on takes seconds, from 0 to 10.');
@@ -81,11 +84,12 @@ if (threshold !== null && (count || !(threshold > 0 && threshold < 2)))
   throw new Error('--threshold takes a number, without --count.');
 if (!['words', 'speakers'].includes(kind) || !candidate || !meeting || !['clean', 'hard'].includes(version)) {
   console.error(
-    'Usage: run.ts words|speakers <candidate> <meeting> <clean|hard> [--names] [--vad] [--count | --threshold <x>] [--min-on <s>]',
+    'Usage: run.ts words|speakers <candidate> <meeting> <clean|hard> [--names] [--vad] [--no-context] [--count | --threshold <x>] [--min-on <s>]',
   );
   process.exit(1);
 }
-if (vad && !(kind === 'words' && candidate.startsWith('whisper-'))) throw new Error('--vad is for the Whisper words candidates.');
+if ((vad || noContext) && !(kind === 'words' && candidate.startsWith('whisper-')))
+  throw new Error('--vad and --no-context are for the Whisper words candidates.');
 if (minOn !== null && kind !== 'speakers') throw new Error('--min-on is for speakers.');
 const wav = join(AUDIO, `${meeting}.${version}.wav`);
 const audio = readWav(new Uint8Array(readFileSync(wav)));
@@ -106,6 +110,7 @@ async function whisper(
   const out = join(WORK, `${meeting}.${version}`);
   const args = ['-m', join(MODELS, model), '-f', wav, '-l', 'en', '-t', String(THREADS), '-ojf', '-of', out];
   if (names) args.push('--prompt', hint());
+  if (noContext) args.push('--max-context', '0');
   if (vad) args.push('--vad', '--vad-model', join(MODELS, 'ggml-silero-v6.2.0.bin'));
   const run = await runWatched(WHISPER[device], args);
   if (run.code !== 0) throw new Error(`whisper-cli failed (${run.code}).`);
@@ -264,7 +269,7 @@ const result = await (
 const runId =
   label ??
   (kind === 'words'
-    ? `${candidate}${names ? '-names' : ''}${vad ? '-vad' : ''}`
+    ? `${candidate}${names ? '-names' : ''}${vad ? '-vad' : ''}${noContext ? '-mc0' : ''}`
     : `speakers-${candidate}${count ? '-count' : threshold !== null ? `-t${threshold}` : ''}${minOn !== null ? `-on${minOn}` : ''}`);
 const dir = join(RUNS, runId);
 mkdirSync(dir, { recursive: true });
