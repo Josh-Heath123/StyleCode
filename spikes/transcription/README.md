@@ -48,6 +48,7 @@ Each driver runs its steps one after another, logs each step's start, end and ou
 ```bash
 node --experimental-strip-types spikes/transcription/measure.ts words       # every words candidate on every meeting, clean and hard, and Whisper with the names hint
 node --experimental-strip-types spikes/transcription/measure.ts speakers    # both speaker models: with the count, and at thresholds 0.5, 0.7 and 0.9
+node --experimental-strip-types spikes/transcription/measure.ts speakers08  # ERes2Net at threshold 0.8 (added after the first pass; reported, never picked)
 node --experimental-strip-types spikes/transcription/extraction.ts downstream <speakers run> <words run>...  # Phase 2's extraction on the engines' transcripts, and on the typed ones before and after
 node --experimental-strip-types spikes/transcription/extraction.ts sizes <words run> <speakers run>         # the hour-long meeting at parts of 4096, 6144 and 8192 tokens
 node --experimental-strip-types spikes/transcription/endtoend.ts <words> <speakers model> --count [<other words>...]  # end to end, and transcription during extraction

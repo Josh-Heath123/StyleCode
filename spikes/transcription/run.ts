@@ -38,6 +38,8 @@ const AUDIO = join(ROOT, 'eval', 'audio', 'out');
 const RUNS = join(ROOT, 'eval', 'transcription', 'runs');
 const WORK = join(SPIKE_HOME, 'work');
 const THREADS = 8;
+/** Pieces per sherpa-onnx-offline call for Parakeet (it decodes all it is given at once). */
+const PARAKEET_BATCH = 8;
 
 const WHISPER = {
   gpu: join(SPIKE_HOME, 'whisper-cuda', 'Release', 'whisper-cli.exe'),
@@ -130,44 +132,82 @@ async function parakeet(): Promise<{
     );
     return basename(file);
   });
-  // Run in the pieces' folder and name them without it: an hour's worth of
-  // full paths is longer than Windows allows a command line (32,767 characters).
-  const asr = await runWatched(
-    join(SHERPA, 'sherpa-onnx-offline.exe'),
-    [
-      `--tokens=${join(PARAKEET, 'tokens.txt')}`,
-      `--encoder=${join(PARAKEET, 'encoder.int8.onnx')}`,
-      `--decoder=${join(PARAKEET, 'decoder.int8.onnx')}`,
-      `--joiner=${join(PARAKEET, 'joiner.int8.onnx')}`,
-      '--model-type=nemo_transducer',
-      `--num-threads=${THREADS}`,
-      ...files,
-    ],
-    { cwd: dir },
-  );
-  rmSync(dir, { recursive: true, force: true });
-  if (asr.code !== 0) {
-    // Only the lines that read as errors: the rest of what it prints holds what it heard.
-    const errors = (asr.stdout + '\n' + asr.stderr)
-      .split(/\r?\n/)
-      .filter(
-        (l) => !l.trimStart().startsWith('{') && /error|exception|fail|abort|what\(\)|cannot|invalid|out of memory/i.test(l),
-      )
-      .slice(-3)
-      .map((l) => l.trim().slice(0, 200));
-    throw new Error(
-      `sherpa-onnx-offline failed (exit ${asr.code}, ${files.length} pieces): ${errors.join(' / ') || 'no error text'}`,
+  // sherpa-onnx-offline decodes every file it is given in one batch, so its
+  // memory grows with the audio (8.7 GB for 7 minutes): call it on a few
+  // pieces at a time, the same for every meeting. It runs in the pieces'
+  // folder and names them without it, to keep the command line short.
+  const calls: { wallMs: number; decodeMs: number | null; resources: Resources }[] = [];
+  const results: ReturnType<typeof readSherpaResults> = [];
+  for (let at = 0; at < files.length; at += PARAKEET_BATCH) {
+    const batch = files.slice(at, at + PARAKEET_BATCH);
+    const asr = await runWatched(
+      join(SHERPA, 'sherpa-onnx-offline.exe'),
+      [
+        `--tokens=${join(PARAKEET, 'tokens.txt')}`,
+        `--encoder=${join(PARAKEET, 'encoder.int8.onnx')}`,
+        `--decoder=${join(PARAKEET, 'decoder.int8.onnx')}`,
+        `--joiner=${join(PARAKEET, 'joiner.int8.onnx')}`,
+        '--model-type=nemo_transducer',
+        `--num-threads=${THREADS}`,
+        ...batch,
+      ],
+      { cwd: dir },
     );
+    const output = asr.stdout + '\n' + asr.stderr;
+    if (asr.code !== 0) {
+      rmSync(dir, { recursive: true, force: true });
+      // Only the lines that read as errors: the rest of what it prints holds what it heard.
+      const errors = output
+        .split(/\r?\n/)
+        .filter(
+          (l) => !l.trimStart().startsWith('{') && /error|exception|fail|abort|what\(\)|cannot|invalid|out of memory/i.test(l),
+        )
+        .slice(-3)
+        .map((l) => l.trim().slice(0, 200));
+      throw new Error(
+        `sherpa-onnx-offline failed (exit ${asr.code}, pieces ${at} to ${at + batch.length - 1}): ${errors.join(' / ') || 'no error text'}`,
+      );
+    }
+    const got = readSherpaResults(output);
+    if (got.length !== batch.length) throw new Error(`Expected ${batch.length} results from pieces ${at}…, got ${got.length}.`);
+    results.push(...got);
+    // It times its own decoding, from after the model is loaded; the rest of the call is start-up.
+    const elapsed = output.match(/Elapsed seconds:\s*([\d.]+)/);
+    calls.push({
+      wallMs: asr.wallMs,
+      decodeMs: elapsed ? Math.round(Number(elapsed[1]) * 1000) : null,
+      resources: asr.resources,
+    });
   }
-  const results = readSherpaResults(asr.stdout + '\n' + asr.stderr);
-  if (results.length !== pieces.length) throw new Error(`Expected ${pieces.length} results, got ${results.length}.`);
+  rmSync(dir, { recursive: true, force: true });
+  const sum = (f: (c: (typeof calls)[number]) => number) => calls.reduce((n, c) => n + f(c), 0);
+  const timed = calls.every((c) => c.decodeMs !== null);
+  const startups = timed ? calls.map((c) => c.wallMs - c.decodeMs!).sort((a, b) => a - b) : [];
+  const merged = (): Resources => ({
+    peakRamMiB: Math.max(...calls.map((c) => c.resources.peakRamMiB ?? 0)) || null,
+    peakGpuMemoryMiB: Math.max(...calls.map((c) => c.resources.peakGpuMemoryMiB ?? 0)) || null,
+    gpuMemoryBeforeMiB: calls[0]?.resources.gpuMemoryBeforeMiB ?? null,
+    gpu: calls.flatMap((c) => c.resources.gpu),
+  });
   return {
     words: results.flatMap((r, i) => sherpaWords(r, pieces[i].startMs)),
     stages: [
       { name: 'vad', wallMs: vad.wallMs, resources: vad.resources },
-      { name: 'transcribe', wallMs: asr.wallMs, resources: asr.resources },
+      // Start-up (loading the model) and decoding apart: the app would load the model once.
+      ...(timed
+        ? [
+            { name: `start-up, ${calls.length} calls`, wallMs: sum((c) => c.wallMs - c.decodeMs!), resources: merged() },
+            { name: 'transcribe', wallMs: sum((c) => c.decodeMs!), resources: merged() },
+          ]
+        : [{ name: `transcribe, ${calls.length} calls with start-up`, wallMs: sum((c) => c.wallMs), resources: merged() }]),
     ],
-    settings: ['silero-vad defaults', `pieces at most 30 s, ${pieces.length} pieces`, `--num-threads=${THREADS}`],
+    settings: [
+      'silero-vad defaults',
+      `pieces at most 30 s, ${pieces.length} pieces`,
+      `${PARAKEET_BATCH} pieces per call, ${calls.length} calls`,
+      ...(timed ? [`start-up per call: median ${startups[Math.floor(startups.length / 2)]} ms`] : []),
+      `--num-threads=${THREADS}`,
+    ],
   };
 }
 

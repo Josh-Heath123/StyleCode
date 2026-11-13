@@ -29,7 +29,14 @@ import { MEETINGS, MODEL, ROOT, log, step } from './steps.ts';
 const RUNS = join(ROOT, 'eval', 'transcription', 'runs');
 const WORDS_CANDIDATES = ['whisper-turbo-gpu', 'whisper-turbo-gpu-names', 'whisper-small-gpu', 'parakeet', 'whisper-turbo-cpu'];
 const MAIN_WORDS = 'whisper-turbo-gpu';
-const OTHER_WORDS = ['parakeet', 'whisper-small-gpu', 'whisper-turbo-cpu'];
+const OTHER_WORDS = ['whisper-small-gpu', 'whisper-turbo-cpu'];
+/** Parakeet has its own end to end (its GPU-sharing pair included), measured with its batched runner. */
+const PARAKEET = 'parakeet';
+/**
+ * Added after the pick was made (reviewer, 13 November): reported at the
+ * check-in, but never picked, so the downstream test isn't run again for it.
+ */
+const NOT_PICKED = ['speakers-eres2net-t0.8'];
 const T = 'spikes/transcription/';
 
 interface SpeakerSetup {
@@ -64,8 +71,10 @@ function pickSpeakers(): SpeakerSetup | null {
     Math.abs(a.wrong - b.wrong) < 0.001 ? a.labelsPerPerson - b.labelsPerPerson : a.wrong - b.wrong,
   );
   for (const s of setups)
-    log(`speaker setup ${s.run}: ${(s.wrong * 100).toFixed(1)}% wrong person, ${s.labelsPerPerson.toFixed(2)} labels per person`);
-  return setups[0] ?? null;
+    log(
+      `speaker setup ${s.run}: ${(s.wrong * 100).toFixed(1)}% wrong person, ${s.labelsPerPerson.toFixed(2)} labels per person${NOT_PICKED.includes(s.run) ? ' (reported, not picked)' : ''}`,
+    );
+  return setups.find((s) => !NOT_PICKED.includes(s.run)) ?? null;
 }
 
 /** The run.ts options for a speakers run's name. */
@@ -87,9 +96,11 @@ async function ollamaReady(): Promise<boolean> {
 }
 
 log(`wp3: started (pid ${process.pid}, power: ${process.env.STYLECODE_POWER ?? 'not recorded'})`);
-log(`wp3: downstream words runs ${WORDS_CANDIDATES.join(', ')}; end to end with ${MAIN_WORDS}, also ${OTHER_WORDS.join(', ')}`);
+log(
+  `wp3: downstream words runs ${WORDS_CANDIDATES.join(', ')}; end to end with ${MAIN_WORDS}, also ${OTHER_WORDS.join(', ')}; end to end with ${PARAKEET} on its own`,
+);
 
-await step('wp3 words and speakers batches', `${T}measure.ts`, ['words', 'speakers']);
+await step('wp3 words and speakers batches', `${T}measure.ts`, ['words', 'speakers', 'speakers08']);
 
 const picked = pickSpeakers();
 if (picked) log(`wp3: speaker setup picked: ${picked.run}`);
@@ -105,6 +116,10 @@ else log('wp3: skipped extraction sizes');
 if (picked && (await ollamaReady()))
   await step('wp3 end to end', `${T}endtoend.ts`, [MAIN_WORDS, ...speakerOptions(picked.run), ...OTHER_WORDS]);
 else log('wp3: skipped end to end');
+
+if (picked && (await ollamaReady()))
+  await step(`wp3 end to end ${PARAKEET}`, `${T}endtoend.ts`, [PARAKEET, ...speakerOptions(picked.run)]);
+else log(`wp3: skipped end to end ${PARAKEET}`);
 
 for (const engine of ['whisper-turbo-gpu', 'parakeet']) {
   await step(`wp3 live ${engine} idle`, `${T}live.ts`, [engine]);

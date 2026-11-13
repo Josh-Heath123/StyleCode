@@ -63,8 +63,17 @@ const brief = (r: StepResult) => ({
 });
 
 beginDriver(`end to end: ${words} with ${speakersSetting}; also ${others.join(', ') || 'nothing'}`);
+// A section, or a candidate's pair of runs, counts as done only when every step in it worked.
+type Brief = { ok: boolean };
+const allOk = (x: unknown): boolean => {
+  const s = x as { ok?: boolean; steps?: Brief[]; alone?: Brief; during?: Brief; extraction?: Brief } | undefined;
+  if (!s) return false;
+  if (s.steps) return s.steps.every((b) => b.ok);
+  if (s.alone) return [s.alone, s.during, s.extraction].every((b) => b?.ok);
+  return s.ok === true;
+};
 const doneBefore = (section: string) => {
-  if (!(section in summary)) return false;
+  if (!allOk(summary[section])) return false;
   log(`skip end to end ${section}: done before`);
   return true;
 };
@@ -74,20 +83,20 @@ if (!doneBefore('sequential')) {
   await unloadModel();
   const gpu = gpuLog();
   const w = await step('e2e sequential: words', RUN, wordsArgs(words, `e2e-seq-${words}`));
-  const s = await step('e2e sequential: speakers', RUN, speakersArgs('e2e-seq-speakers'));
+  const s = await step('e2e sequential: speakers', RUN, speakersArgs(`e2e-seq-speakers-${words}`));
   const b = await step('e2e sequential: together', 'eval/transcription/build.ts', [
     `e2e-seq-${words}`,
-    'e2e-seq-speakers',
+    `e2e-seq-speakers-${words}`,
     'clean',
   ]);
   const e = await step(
     'e2e sequential: extraction',
     'eval/run.ts',
-    extractionArgs('p3-e2e-sequential', 6144, [
+    extractionArgs(`p3-e2e-sequential-${words}`, 6144, [
       '--only',
       HOUR_MEETING,
       '--transcripts',
-      `eval/transcription/extraction/e2e-seq-${words}+e2e-seq-speakers.clean`,
+      `eval/transcription/extraction/e2e-seq-${words}+e2e-seq-speakers-${words}.clean`,
     ]),
   );
   const steps = [w, s, b, e];
@@ -107,24 +116,24 @@ if (!doneBefore('parallel')) {
   const started = Date.now();
   const [w, s] = await Promise.all([
     startScript('e2e parallel: words', RUN, wordsArgs(words, `e2e-par-${words}`)).done,
-    startScript('e2e parallel: speakers', RUN, speakersArgs('e2e-par-speakers')).done,
+    startScript('e2e parallel: speakers', RUN, speakersArgs(`e2e-par-speakers-${words}`)).done,
   ]);
   const both = Date.now() - started;
   for (const r of [w, s])
     log(`${r.code === 0 ? 'ok' : 'FAILED'} ${r.name}: ${(r.wallMs / 1000).toFixed(1)} s${r.code ? `: ${r.tail}` : ''}`);
   const b = await step('e2e parallel: together', 'eval/transcription/build.ts', [
     `e2e-par-${words}`,
-    'e2e-par-speakers',
+    `e2e-par-speakers-${words}`,
     'clean',
   ]);
   const e = await step(
     'e2e parallel: extraction',
     'eval/run.ts',
-    extractionArgs('p3-e2e-parallel', 6144, [
+    extractionArgs(`p3-e2e-parallel-${words}`, 6144, [
       '--only',
       HOUR_MEETING,
       '--transcripts',
-      `eval/transcription/extraction/e2e-par-${words}+e2e-par-speakers.clean`,
+      `eval/transcription/extraction/e2e-par-${words}+e2e-par-speakers-${words}.clean`,
     ]),
   );
   summary.parallel = {
@@ -143,12 +152,13 @@ if (!doneBefore('extractionAlone')) {
   const alone = await step(
     'extraction alone',
     'eval/run.ts',
-    extractionArgs('p3-gpu-extraction-alone', 6144, ['--only', HOUR_MEETING]),
+    extractionArgs(`p3-gpu-extraction-alone-${words}`, 6144, ['--only', HOUR_MEETING]),
   );
   summary.extractionAlone = { ...brief(alone), gpu: gpu.stop() };
   save();
 }
-const contention = (summary.contention ?? []) as Record<string, unknown>[];
+// Pairs that failed are dropped, and run again if their candidate is listed.
+const contention = ((summary.contention ?? []) as Record<string, unknown>[]).filter(allOk);
 summary.contention = contention;
 for (const candidate of [words, ...others]) {
   if (contention.some((c) => c.candidate === candidate)) {

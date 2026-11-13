@@ -28,6 +28,8 @@ const batches: Record<string, string[][]> = {
       MEETINGS.flatMap((m) => VERSIONS.map((v) => ['speakers', model, m, v, ...opt])),
     ),
   ),
+  // ERes2Net at 0.8, between 0.7 (5.1% wrong, 2.85 labels per person) and 0.9 (15.8%, 1.47): added on 13 November.
+  speakers08: MEETINGS.flatMap((m) => VERSIONS.map((v) => ['speakers', 'eres2net', m, v, '--threshold', '0.8'])),
 };
 
 /** The run's record, named as run.ts names it. */
