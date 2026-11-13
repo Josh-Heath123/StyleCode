@@ -146,7 +146,19 @@ async function parakeet(): Promise<{
     { cwd: dir },
   );
   rmSync(dir, { recursive: true, force: true });
-  if (asr.code !== 0) throw new Error(`sherpa-onnx-offline failed (${asr.code}).`);
+  if (asr.code !== 0) {
+    // Only the lines that read as errors: the rest of what it prints holds what it heard.
+    const errors = (asr.stdout + '\n' + asr.stderr)
+      .split(/\r?\n/)
+      .filter(
+        (l) => !l.trimStart().startsWith('{') && /error|exception|fail|abort|what\(\)|cannot|invalid|out of memory/i.test(l),
+      )
+      .slice(-3)
+      .map((l) => l.trim().slice(0, 200));
+    throw new Error(
+      `sherpa-onnx-offline failed (exit ${asr.code}, ${files.length} pieces): ${errors.join(' / ') || 'no error text'}`,
+    );
+  }
   const results = readSherpaResults(asr.stdout + '\n' + asr.stderr);
   if (results.length !== pieces.length) throw new Error(`Expected ${pieces.length} results, got ${results.length}.`);
   return {
@@ -184,10 +196,16 @@ const WORDS: Record<string, () => Promise<{ words: EngineWord[]; stages: Stage[]
   parakeet: parakeet,
 };
 
-const result =
+const result = await (
   kind === 'words'
-    ? await (WORDS[candidate] ?? (() => Promise.reject(new Error(`Unknown candidate ${candidate}.`))))()
-    : await speakers(candidate as 'campplus' | 'eres2net');
+    ? (WORDS[candidate] ?? (() => Promise.reject(new Error(`Unknown candidate ${candidate}.`))))()
+    : speakers(candidate as 'campplus' | 'eres2net')
+).catch((error: Error) => {
+  // The drivers log the last lines printed, so the reason goes last, after the stack.
+  console.error(error.stack);
+  console.error(`run.ts failed: ${error.message}`);
+  process.exit(1);
+});
 const runId =
   label ??
   (kind === 'words'
