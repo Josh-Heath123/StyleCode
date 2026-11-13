@@ -159,12 +159,28 @@ if (!doneBefore('extractionAlone')) {
   summary.extractionAlone = { ...brief(alone), gpu: gpu.stop() };
   save();
 }
+/**
+ * Pairs never to run again, and why (reviewer, 13 November). Cooling before a
+ * step can't stop heat building during it, and a second power cut risks the
+ * repository and the laptop. "Parakeet alone" finished (563.2 s by the
+ * progress log; its words are in runs/gpu-alone-parakeet/).
+ */
+const NOT_MEASURED: Record<string, { why: string; aloneMs?: number }> = {
+  parakeet: { why: 'the laptop cut out at 94 °C on 13 November', aloneMs: 563_200 },
+};
 // Pairs that failed are dropped, and run again if their candidate is listed.
-const contention = ((summary.contention ?? []) as Record<string, unknown>[]).filter(allOk);
+const contention = ((summary.contention ?? []) as Record<string, unknown>[]).filter((c) => allOk(c) || c.notMeasured);
 summary.contention = contention;
 for (const candidate of [words, ...others]) {
   if (contention.some((c) => c.candidate === candidate)) {
     log(`skip end to end contention ${candidate}: done before`);
+    continue;
+  }
+  const notMeasured = NOT_MEASURED[candidate];
+  if (notMeasured) {
+    log(`skip end to end contention ${candidate}: not measured, ${notMeasured.why}`);
+    contention.push({ candidate, notMeasured: notMeasured.why, aloneMs: notMeasured.aloneMs });
+    save();
     continue;
   }
   {
