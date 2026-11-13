@@ -42,7 +42,7 @@ The app's own setup (WP5) will fetch only the chosen engine and models.
 
 ## Words
 
-Word errors are after the normaliser (case, punctuation, fillers, numbers, British and American spelling); "raw" is before it. Key terms are the names, places and numbers in the scripts: 1,201 in the four meetings. Each figure is the mean over the four meetings (three short ones of 5 to 11 minutes, and the hour-long one), except key terms, which are pooled.
+Word errors are after the normaliser (case, punctuation, fillers, numbers, British and American spelling); "raw" is before it. Key terms are the names, places and numbers in the scripts: 1,201 in the four meetings. The numbers include every "one", which the normaliser writes as 1 even as a pronoun ("the one we use"), so some key terms are ordinary words; every candidate is scored the same way. Each figure is the mean over the four meetings (three short ones of 5 to 11 minutes, and the hour-long one), except key terms, which are pooled.
 
 | Candidate | Clean: errors (raw) | Hard: errors (raw) | Key terms found, clean / hard | Minutes per hour of meeting | Peak memory, hour meeting |
 | --- | --: | --: | --: | --: | --- |
@@ -52,9 +52,9 @@ Word errors are after the normaliser (case, punctuation, fillers, numbers, Briti
 | Parakeet TDT 0.6B v2, CPU | 2.9% (3.6%) | 3.6% (5.2%) | 86.8% / 85.9% | 11.2 | 3.0 GB RAM, no GPU |
 | whisper.cpp large-v3-turbo, CPU only | 2.5% (4.0%) | 4.2% (5.8%) | 88.3% / 87.8% | 49.1 | 1.5 GB RAM, no GPU |
 
-**Whisper writes words into noise.** On the hard hour-long meeting (background noise, echo, and two minutes of noise with no speech), large-v3-turbo inserted 837 words that weren't said on the GPU (13.1% errors) and 635 on the CPU (9.2%), against 62 and 68 on the clean audio. Small inserted 136, Parakeet 75. On the short meetings the hard version costs Whisper little.
+**Whisper writes words into noise.** On the hard hour-long meeting (background noise, echo, and two minutes of noise with no speech), large-v3-turbo inserted 837 words that weren't said on the GPU (13.1% errors) and 635 on the CPU (9.2%), against 62 and 68 on the clean audio. Small inserted 136, Parakeet 75. On the short meetings the hard version costs large-v3-turbo nothing on Karoo Freight (1.5% both), 1.6 points on Umoya (3.4%), and 4.3 on Veldt Vets (5.9%, against 1.6%), mostly words dropped (40).
 
-In the two-minute pause alone (1,899 to 2,020 s), large-v3-turbo wrote 410 words on the GPU and 560 on the CPU: "It's in the file on my desk", the last sentence before the pause, over and over. Small wrote 20 "[no audio]" markers, and Parakeet nothing. The repeated sentence is real words from the meeting, so a quote of it would pass StyleCode's evidence check. Whisper is conditioning on its own previous text. The fix is in [Follow-up measurements](#follow-up-measurements).
+In the two-minute pause alone (1,899 to 2,020 s), large-v3-turbo wrote 410 words on the GPU and 560 on the CPU: "It's in the file on my desk", the last sentence before the pause, over and over. Small wrote 20 "[no audio]" markers, and Parakeet nothing. (The reader counted those markers as words then; it now leaves Whisper's notes on sounds out.) The repeated sentence is real words from the meeting, so a quote of it would pass StyleCode's evidence check. Whisper is conditioning on its own previous text. The fix is in [Follow-up measurements](#follow-up-measurements).
 
 **Names the voices mangle.** The most-missed key terms are South African names: Marietjie (17 times, written as "mariachi", "marietje"…), Sipho ("sifo"), Ruan ("juan"), and product names (WeighMate, OptiSort). Part of this is Kokoro's pronunciation, which reads these names with American or British rules, so these misses say as much about the voices as the engines.
 
@@ -68,13 +68,13 @@ Whisper given a prompt of the meeting's title and participants, against without:
 | --- | --- | --- |
 | Word errors | 3.2%, worse than 2.4% | 3.9%, better than 6.0% |
 | Key terms found | 86.9%, worse than 88.5% | 87.0%, better than 85.9% |
-| Extraction recall (three short meetings) | 51%, against 53% | 47%, against 49% |
+| Extraction recall (three short meetings, settled) | 64%, against 61% | 50%, against 61% |
 
-It helped only on the hard hour-long meeting, where it cut the invented words from 837 to 517. On clean audio it hurt names and the rest. On the Veldt Vets meeting it dropped 44 words (4.9% errors, against 1.6%). Decision 9 adopts it only if it helps names and doesn't hurt the rest, **so it isn't adopted.**
+It helped words only on the hard hour-long meeting, where it cut the invented words from 837 to 517. On clean audio it hurt names and the rest. On the Veldt Vets meeting it dropped 44 words (4.9% errors, against 1.6%). Extraction found 3 points more on its clean transcripts, within a run's spread of about 6 points, and 11 points less on its hard ones. Decision 9 adopts it only if it helps names and doesn't hurt the rest, **so it isn't adopted.**
 
 ## Speakers
 
-pyannote segmentation with each embedding model, given the number of people ("count") or clustering at a threshold. Means over the four meetings. "Wrong speaker" is the share of speech given the wrong person after the best matching of labels to people.
+pyannote segmentation with each embedding model, given the number of people ("count") or clustering at a threshold. Means over the four meetings. "Wrong speaker" is the share of speech given the wrong person after the best matching of labels to people. "Minutes per hour" gives the clean and hard means; single meetings ranged more widely (19 to 24 at 0.7).
 
 | Setup | Clean: wrong speaker | Clean: labels per person | Hard: wrong speaker | Hard: labels per person | Minutes per hour |
 | --- | --: | --: | --: | --: | --: |
@@ -134,11 +134,11 @@ Phase 2's extraction (qwen3:4b at 6144) on each candidate's transcripts of the t
 | … with the names hint | 86% | 64% | 79% | 50% |
 | whisper.cpp small, GPU | 89% | 51% | 72% | 57% |
 | Parakeet | 97% | 63% | 84% | 60% |
-| whisper.cpp large-v3-turbo, CPU | 80% | 56% | 80% | 49% |
+| whisper.cpp large-v3-turbo, CPU | 80% | 56% | 88% | 49% |
 
 The typed runs differ by 6 points of recall with the same settings: Phase 2 saw the same spread (`EXTRACTION.md`).
 
-**Against decision 8's bar** (recall within 10 points of the typed transcripts'): large-v3-turbo on the GPU (61%), Parakeet (63%), the names hint (64%) and large-v3-turbo on the CPU (56%) pass. **Small fails:** 51%, 12 points under the second typed run. On these meetings, large-v3-turbo's transcripts cost extraction nothing measurable.
+**Against decision 8's bar** (recall within 10 points of the typed transcripts'): large-v3-turbo on the GPU (61%), Parakeet (63%), the names hint (64%) and large-v3-turbo on the CPU (56%) pass. **Small is on the line:** 51% is 12 points under the second typed run (63%) and 6 under the first (57%), so whether it passes depends on which run is the reference. It isn't recommended either way: large-v3-turbo is faster on the GPU and finds more. On these meetings, large-v3-turbo's transcripts cost extraction nothing measurable.
 
 ### How the scores were settled
 
@@ -211,7 +211,7 @@ The first 20 minutes of the hour-long clean meeting, fed in 30-second pieces at 
 | Parakeet, CPU | idle | 4.6 s | 4.8 s | 5.6 s | 19.9 s | 3.8% |
 | Parakeet, CPU ‡ | extracting | 6.6 s | 9.9 s | 12.0 s | 22.3 s | 3.8% |
 
-No piece failed. With Ollama extracting, Whisper's lag grew through the run, to 24 s per 30-second piece by the end: close to falling behind for good.
+No piece failed. Whisper's live word errors are a little high: in some 30-second pieces whisper.cpp wrote a segment's tokens with ends before their start, and the reader of the time split their words ("P reci ous" for "Precious"). The reader is fixed and tested; the live records hold the words, not whisper.cpp's output, so they can't be read again. With Ollama extracting, Whisper's lag grew through the run, to 24 s per 30-second piece by the end: close to falling behind for good.
 
 **What "live" can mean on this laptop:** text about 20 seconds behind the speaker, with nothing else running, and **without speakers**. Speakers need the whole recording, and take 9 to 21 minutes per hour after it ends. Live words would let the consultant glance at what was said. The transcript that's added, with speakers and confidence, still comes after the meeting. Under the one-heavy-job rule below, live transcription and extraction never run together.
 
@@ -320,7 +320,7 @@ The reviewer's answers at the WP3 check-in, 13 November 2026, on the user's beha
 
 The reviewer's answers at the short check-in, 13 November 2026, on the user's behalf.
 
-**Whisper runs with `--max-context 0`, and VAD stays off.** It stops the repetition (8 words in the pause, against 410), has fewer word errors on clean and hard audio, and is faster. Slice B uses it.
+**Whisper runs with `--max-context 0`, and VAD stays off.** It stops the repetition (8 words in the pause, against 410), has fewer word errors on clean and hard audio, and is faster. Slice B uses it. Extraction wasn't run on its transcripts, so decision 8's downstream bar was met by the setting without it (61%); with fewer word errors, it is expected to do as well, but that isn't measured.
 
 **The confidence threshold is 0.8** with `--max-context 0`: it marks 7.8% of words and catches 49% of the wrong ones, the balance 0.7 gave before. Words are marked, not segments, as decided above; the character ranges a segment keeps are of its words below 0.8.
 
