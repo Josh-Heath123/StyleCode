@@ -207,3 +207,28 @@ describe('recording routes (Phase 3)', () => {
     expect(((await notWav.json()) as { error: string }).error).toMatch(/Convert the recording to WAV first/);
   });
 });
+
+describe('transcription routes (Phase 3)', () => {
+  it('report what is installed and what to run, and need the workspace header', async () => {
+    expect((await fetch(`${base}/transcription`)).status).toBe(403);
+    const res = await call('/transcription');
+    expect(res.status).toBe(200);
+    const status = (await res.json()) as { ready: boolean; reason: string | null; setupCommand: string; installed: unknown[] };
+    expect(status.setupCommand).toBe('npm run transcription:setup');
+    expect(status.installed).toHaveLength(5);
+    if (!status.ready) expect(status.reason).toBeTruthy();
+  });
+
+  it('refuse a job for a session without recordings, and an unknown job', async () => {
+    const { workspace } = await newCompany('Umoya Transcriptions');
+    const id = workspace.company.id;
+    const job = await call(`/companies/${id}/transcriptions`, {
+      method: 'POST',
+      json: { sessionId: 'se_1', recordingIds: ['fi_1'] },
+    });
+    expect(job.status).toBe(409);
+    expect((await call(`/companies/${id}/transcriptions`)).status).toBe(200);
+    expect((await call(`/companies/${id}/transcriptions/tj_0123456789abcdef`)).status).toBe(404);
+    expect((await call(`/companies/${id}/transcriptions/tj_0123456789abcdef/result`)).status).toBe(404);
+  });
+});

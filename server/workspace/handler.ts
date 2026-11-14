@@ -4,6 +4,8 @@ import { MAX_ADDED_WAV_BYTES } from '../../src/workspace/model/recordings.ts';
 import { readBody, readJson, rejectReason, RequestError, sendJson, type RequestPolicy } from '../shared/requests.ts';
 import type { DataFolder } from './folder.ts';
 import { MAX_PIECE_BYTES, RecordingFiles } from './recordings.ts';
+import { TranscriptionJobs } from '../transcription/jobs.ts';
+import { transcriptionStatus } from '../transcription/status.ts';
 import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
 
 /**
@@ -24,6 +26,13 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   PUT    /api/workspace/companies/:id/recordings/:fileId?session=…&offset=…   write a piece of sound (the body)
  *   POST   /api/workspace/companies/:id/recordings/:fileId/finish[?recover=1]   write its header, giving size and length
  *   POST   /api/workspace/companies/:id/added-recordings  convert and store a WAV made elsewhere (the body)
+ *   GET    /api/workspace/transcription                what's installed, the versions, the GPU, and any job going
+ *   GET    /api/workspace/companies/:id/transcriptions  the client's jobs, and results kept until added or discarded
+ *   POST   /api/workspace/companies/:id/transcriptions  transcribe { sessionId, recordingIds }
+ *   GET    /api/workspace/companies/:id/transcriptions/:jobId          a job's state and progress
+ *   POST   /api/workspace/companies/:id/transcriptions/:jobId/cancel   stop it, keeping nothing
+ *   GET    /api/workspace/companies/:id/transcriptions/:jobId/result   its segments
+ *   DELETE /api/workspace/companies/:id/transcriptions/:jobId          discard its result
  *
  * They read and write clients' data, so every request passes the shared
  * checks (`server/shared/requests.ts`) and carries `x-stylecode-workspace`.
@@ -60,14 +69,17 @@ export function createWorkspaceHandler(
   folder: DataFolder,
   store = new WorkspaceStore(folder.path),
   recordings = new RecordingFiles(store),
+  transcriptions = new TranscriptionJobs(store),
 ) {
   // A recording left unfinished by a crash gets its header now; the app marks it recovered when the client opens.
   void recordings.closeUnfinished().catch(() => undefined);
+  // A transcription the server stopped mid-way left working files; they go (decision 17).
+  void transcriptions.clearLeftovers().catch(() => undefined);
   return async function workspaceHandler(req: IncomingMessage, res: ServerResponse, next: Next): Promise<void> {
     const url = new URL(req.url ?? '/', 'http://localhost');
     const parts = url.pathname.split('/').filter(Boolean);
     const [section, companyId, sub, fileId, ...rest] = parts;
-    if (!['info', 'settings', 'companies'].includes(section)) return next();
+    if (!['info', 'settings', 'companies', 'transcription'].includes(section)) return next();
 
     const reason = rejectReason(req, POLICY);
     if (reason) return sendJson(res, 403, { error: reason });
@@ -85,8 +97,14 @@ export function createWorkspaceHandler(
         if (method === 'PUT') return sendJson(res, 200, await store.saveSettings(await readJson(req, MAX_SMALL_BODY)));
         return notAllowed();
       }
+      if (section === 'transcription' && parts.length === 1) {
+        if (method !== 'GET') return notAllowed();
+        return sendJson(res, 200, await transcriptionStatus(transcriptions.busy()));
+      }
       const finishing = sub === 'recordings' && rest.length === 1 && rest[0] === 'finish';
-      if (section !== 'companies' || (rest.length && !finishing)) return sendJson(res, 404, { error: 'Not found.' });
+      const jobAction = sub === 'transcriptions' && rest.length === 1 && ['result', 'cancel'].includes(rest[0]) ? rest[0] : null;
+      if (section !== 'companies' || (rest.length && !finishing && !jobAction))
+        return sendJson(res, 404, { error: 'Not found.' });
 
       if (companyId === undefined) {
         if (method === 'GET') return sendJson(res, 200, { companies: await store.list() });
@@ -129,6 +147,28 @@ export function createWorkspaceHandler(
         const offset = Number(url.searchParams.get('offset'));
         const piece = await readBody(req, MAX_PIECE_BYTES);
         return sendJson(res, 200, await recordings.append(companyId, fileId, sessionId, offset, piece));
+      }
+      if (sub === 'transcriptions') {
+        if (fileId === undefined) {
+          if (method === 'GET') return sendJson(res, 200, { jobs: await transcriptions.list(companyId) });
+          if (method !== 'POST') return notAllowed();
+          const body = await readJson(req, MAX_SMALL_BODY);
+          return sendJson(res, 201, await transcriptions.start(companyId, body.sessionId, body.recordingIds));
+        }
+        if (jobAction === 'result') {
+          if (method !== 'GET') return notAllowed();
+          return sendJson(res, 200, await transcriptions.result(companyId, fileId));
+        }
+        if (jobAction === 'cancel') {
+          if (method !== 'POST') return notAllowed();
+          return sendJson(res, 200, transcriptions.cancel(companyId, fileId));
+        }
+        if (method === 'GET') return sendJson(res, 200, transcriptions.get(companyId, fileId));
+        if (method === 'DELETE') {
+          await transcriptions.discard(companyId, fileId);
+          return sendJson(res, 200, { deleted: fileId });
+        }
+        return notAllowed();
       }
       if (sub === 'added-recordings') {
         if (fileId !== undefined) return sendJson(res, 404, { error: 'Not found.' });
