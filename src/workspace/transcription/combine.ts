@@ -5,11 +5,10 @@
  * - Each word is given the speaker whose turn it falls in, by time.
  * - A segment ends where the speaker changes, at the end of a sentence once
  *   it is 15 seconds long, or at 30 seconds, so a quoted passage stays short.
- * - Each segment keeps its confidence: the lowest of its words', so one
- *   doubtful word marks the passage. WP3's check-in changed this
- *   (`docs/research/TRANSCRIPTION.md`, "Decided at the check-in"): words are
- *   marked, not segments, so in WP4 a segment keeps the mean of its words'
- *   confidence and the character ranges of its words below 0.8.
+ * - Words are marked, not segments (WP3's check-in changed decision 19;
+ *   `docs/research/TRANSCRIPTION.md`, "Decided at the check-in"): a segment
+ *   keeps the mean of its words' confidence, and the character ranges of its
+ *   words below `UNSURE_BELOW`, shown as "may be misheard".
  * - The labels are "Speaker 1", "Speaker 2"…, in the order they first speak.
  */
 
@@ -34,9 +33,18 @@ export interface TranscribedSegment {
   startMs: number;
   endMs: number;
   text: string;
+  /** The mean of its words' confidence, or null when the engine gives none. */
   confidence: number | null;
+  /** `[start, end)` in `text` of each word below `UNSURE_BELOW`, without the punctuation around it. */
+  unsureWords: [number, number][];
 }
 
+/**
+ * Words below this are marked "may be misheard". With `--max-context 0` it
+ * marks 7.8% of words and catches 49% of the wrong ones (TRANSCRIPTION.md,
+ * "After the follow-up measurements").
+ */
+export const UNSURE_BELOW = 0.8;
 export const SENTENCE_SPLIT_MS = 15_000;
 export const LONGEST_SEGMENT_MS = 30_000;
 
@@ -73,6 +81,20 @@ export function speakerNames(labelsInOrder: readonly (string | null)[]): Map<str
 }
 
 const endsSentence = (word: string) => /[.!?]["')\]]*$/.test(word);
+/** Punctuation that sits against the word before it. */
+const tight = (word: string) => /^[,.!?;:]/.test(word);
+const LETTER = /[\p{L}\p{N}]/u;
+
+/** The letters and digits of a word, without the punctuation around them, as `[start, end)` within it. */
+function core(word: string): [number, number] | null {
+  const start = word.search(LETTER);
+  if (start < 0) return null;
+  let end = word.length;
+  while (end > start && !LETTER.test(word[end - 1])) end--;
+  return [start, end];
+}
+
+type Open = Omit<TranscribedSegment, 'confidence'> & { sum: number; scored: number };
 
 /** The words joined into segments by speaker, following the rules above. Words must be in time order. */
 export function segmentsFrom(words: readonly EngineWord[], turns: readonly SpeakerTurn[] | null): TranscribedSegment[] {
@@ -81,29 +103,31 @@ export function segmentsFrom(words: readonly EngineWord[], turns: readonly Speak
     .map((w) => ({ ...w, label: turns ? speakerAt(turns, w.startMs, w.endMs) : null }));
   const names = speakerNames(labelled.map((w) => w.label));
   const segments: TranscribedSegment[] = [];
-  let current: (TranscribedSegment & { words: string[] }) | null = null;
+  let current: Open | null = null;
   const close = () => {
     if (current) {
-      const { words: parts, ...segment } = current;
-      segments.push({
-        ...segment,
-        text: parts
-          .join(' ')
-          .replace(/\s+([,.!?;:])/g, '$1')
-          .trim(),
-      });
+      const { sum, scored, ...segment } = current;
+      segments.push({ ...segment, confidence: scored ? sum / scored : null });
     }
     current = null;
   };
   for (const w of labelled) {
     const speaker = w.label === null ? null : names.get(w.label)!;
     if (current && (current.speakerLabel !== speaker || w.endMs - current.startMs > LONGEST_SEGMENT_MS)) close();
-    if (!current) current = { speakerLabel: speaker, startMs: w.startMs, endMs: w.endMs, text: '', confidence: null, words: [] };
-    current.words.push(w.text.trim());
+    if (!current)
+      current = { speakerLabel: speaker, startMs: w.startMs, endMs: w.endMs, text: '', unsureWords: [], sum: 0, scored: 0 };
+    const text = w.text.trim();
+    const spaced = current.text !== '' && !tight(text);
+    const at = current.text.length + (spaced ? 1 : 0);
+    current.text = spaced ? `${current.text} ${text}` : current.text + text;
     current.endMs = Math.max(current.endMs, w.endMs);
-    if (w.confidence !== null)
-      current.confidence = current.confidence === null ? w.confidence : Math.min(current.confidence, w.confidence);
-    if (endsSentence(w.text.trim()) && current.endMs - current.startMs >= SENTENCE_SPLIT_MS) close();
+    if (w.confidence !== null) {
+      current.sum += w.confidence;
+      current.scored += 1;
+      const letters = core(text);
+      if (w.confidence < UNSURE_BELOW && letters) current.unsureWords.push([at + letters[0], at + letters[1]]);
+    }
+    if (endsSentence(text) && current.endMs - current.startMs >= SENTENCE_SPLIT_MS) close();
   }
   close();
   return segments;

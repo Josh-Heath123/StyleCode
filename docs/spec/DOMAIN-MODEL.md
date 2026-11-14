@@ -10,7 +10,7 @@
 All data belongs to exactly one company. The model's top-level value is a `CompanyWorkspace`: the company, plus flat maps keyed by id of everything that belongs to it.
 
 ```
-CompanyWorkspace (format "stylecode-workspace", version 3)
+CompanyWorkspace (format "stylecode-workspace", version 4)
 ├── company            Company
 ├── knowledge          CompanyFact          (company knowledge, carried across engagements)
 ├── engagements        Engagement           → company
@@ -42,13 +42,13 @@ CompanyWorkspace (format "stylecode-workspace", version 3)
 | CompanyFact | statement, kind, status, provenance, source (or none), who and when | Company knowledge (vision §3; built in Workspace Phase 2, WP8). Only a finding in the record can be promoted, and only once while its fact exists. Promoting copies the finding's status, which can be edited on the fact afterwards with its statement and kind (`updateFact`, decision 17); its provenance and source stay as promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
 | Engagement | company, name, goal, status (active, or ended on a date) | The end date is what "keep until the engagement ends" in the consent form refers to (MVP Q5). |
 | DesignLink | engagement, name, StyleCode document id | A design belongs to one company: `sharedIds` also reports a document linked from two companies' workspaces. WP4 stores each design inside its company's data. |
-| Session | engagement, title, start time, time zone, audio files (Phase 3) | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. |
+| Session | engagement, title, start time, time zone, recordings, deleted recordings' lines | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. Its recordings are audio files, oldest first; a deleted one leaves a line: when it was recorded, how long it was, and when, by whom and why it was deleted (version 4). |
 | Participant | session, name, role, organisation, side (client or consultant), speaker labels | A speaker label belongs to at most one participant in a session. A person can have several labels ("Alex", "Alex (Guest)"). |
 | ConsentRecord | see "Consent" below | One per session, with amendments. |
-| Transcript | session, source (file: name, `vtt`, `docx` or `txt`, platform; or pasted), who imported it and when | One per session (MVP Q10). The file itself isn't kept: the segments are the transcript. Recording (Phase 3) adds a third source. |
-| TranscriptSegment | transcript, position, speaker label, start and end (ms), text, confidence | Kept exactly as imported (MVP Q9). Times and confidence only where the source has them; an end needs a start. Positions run from 0 without gaps. |
+| Transcript | session, source (file: name, `vtt`, `docx` or `txt`, platform; pasted; or recordings: each by start and length, the transcription engine and the speaker engine, with versions and models), who added it and when | One per session (MVP Q10). The file itself isn't kept: the segments are the transcript. A transcript made from recordings names them by start and length, so its source stays readable once they are deleted (version 4). |
+| TranscriptSegment | transcript, position, speaker label, start and end (ms), text, confidence, unsure words | Kept exactly as imported (MVP Q9). Times and confidence only where the source has them; an end needs a start. Positions run from 0 without gaps. A segment transcribed on this computer keeps the mean of its words' confidence and the character ranges of the words below 0.8, shown as "may be misheard" (version 4). |
 | Note | session, text, when written, when changed | Shown as a time of day and as time since the session started (MVP 5.1). |
-| FileRef | owner (company, engagement or session), purpose (document, audio, or consent attachment), name, media type, size, who added it and when | Audio belongs to a session and needs consent to recording (CONSENT.md, C1); a consent record's attachment must be a consent attachment. Stored in the company's folder by id (ADR-0006). |
+| FileRef | owner (company, engagement or session), purpose (document, audio, or consent attachment), name, media type, size, who added it and when; for a recording, its details | Audio belongs to a session, is listed by it, and needs consent to recording (CONSENT.md, C1) and a locked record (C4). A recording's details: recorded in StyleCode or added as a WAV, when, recording or finished, its length (at most 4 hours), its sample rate, the microphone settings (for a recording), whether it was recovered after a crash, and when it was transcribed (version 4). A consent record's attachment must be a consent attachment. Stored in the company's folder by id (ADR-0006). |
 | Finding | engagement, kind, statement, status, who set the status and when, provenance, evidence, origin | See "Findings". |
 | FindingRelation | type, from, to, who and when | influences · depends on · conflicts with · refines. Directed: "from influences to". |
 
@@ -124,6 +124,9 @@ Each rule is checked in code and covered by a unit test. `validateWorkspace` ret
 | External AI only if the client agreed, with the provider named; AI processing covers the session's notes too (MVP Q15) | `consent.provider` | `aiPermission`, `validate.ts` |
 | One consent record and one transcript per session; a speaker label belongs to one participant | `consent.duplicate`, `transcript.duplicate`, `participant.label` | `validate.ts` |
 | A consent attachment belongs to exactly one consent record | `consent.attachment` | `validate.ts`, `attachToConsent` |
+| Recording, or adding a recording, needs consent to recording and locks the record; a session lists its recordings and records one at a time | `consent.required`, `consent.lock`, `ref.missing`, `recording.inProgress` | `validate.ts`, `startRecording`, `addRecordingFile` |
+| A recording's details are complete, and it is at most 4 hours long; a deleted recording's line is complete | `recording.details`, `recording.deleted` | `validate.ts`, `finishRecording`, `removeRecordings` |
+| A transcript made from recordings names them and what made it; unsure words are ranges of their segment's text | `field.value` | `validate.ts`, `addRecordedTranscript` |
 | A session's time zone is one JavaScript knows | `field.value` | `validate.ts`, `isTimeZone` |
 
 **Nothing is repaired, and one bad entry doesn't lock a client out.** The editor's project loader repairs what it safely can. The workspace loader doesn't, because dropping a piece of evidence or a consent amendment would quietly change what the record says. Instead:
@@ -138,13 +141,14 @@ The validator reads entries of any shape without failing, which the tests check 
 
 ## Versioning
 
-The workspace carries `format: "stylecode-workspace"` and `version: 3`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
+The workspace carries `format: "stylecode-workspace"` and `version: 4`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
 
 | Version | Since | Changes |
 | --- | --- | --- |
 | 1 | Phase 0 | The first model. |
 | 2 | Workspace Phase 2 | Sessions keep their time zone (`timeZone`); a version 1 session gets the computer's zone at migration. Transcripts can come from `.txt` files (the source format `txt`), which needs no migration. |
 | 3 | Workspace Phase 2 (WP8) | Company facts have a status (decision 17). A version 2 fact takes its source finding's status if the finding is still there, otherwise "suggested", which claims nothing was agreed. |
+| 4 | Workspace Phase 3 (WP4) | Recordings, transcripts made from them, unsure words and the deleted recordings' lines. A version 3 session gets an empty list of deleted recordings, and a segment an empty list of unsure words; version 3 had no way to add audio, so nothing else changes. |
 
 ## Decisions
 
@@ -227,3 +231,14 @@ Each with a test in `src/workspace/model/knowledge.test.ts`. They raise the work
 - **A status on company facts** (decision 17): `promoteToKnowledge` copies the finding's status, and the validator checks it.
 - **One fact per finding:** promoting a finding that is company knowledge already is refused, so the same statement isn't listed twice; once the fact is removed, the finding can be promoted again.
 - **`addToKnowledge`** promotes and adds the fact in one step, and **`updateFact`** changes a fact's statement, kind or status, keeping its provenance and its copy of the source. `factFrom` finds the fact promoted from a finding.
+
+## Changes from Workspace Phase 3 (WP4)
+
+Made from the decisions in `docs/phase-3/PHASE-3-BRIEF.md`, as changed at the WP3 check-ins (`docs/research/TRANSCRIPTION.md`, "Decided at the check-in"), each with a test in `src/workspace/model/recordings.test.ts`. They raise the workspace to version 4 (see "Versioning").
+
+- **Recordings** (decisions 12, 13 and 15; `recordings.ts`): a recording is an audio file of its session with `audio` details. `startRecording` needs consent to recording (C1), locks the record if it isn't locked (C4), and adds the file while it records; a session records one at a time. `finishRecording` closes it with the length and size the server wrote, or as recovered after a crash. `addRecordingFile` adds a WAV made elsewhere, already converted to 16 kHz mono, with the same consent and lock. Recordings are numbered "Recording 1", "Recording 2"… across the session, deleted ones included. All of these are permanent, like files.
+- **Deleting a recording** (decision 24): `removeRecordings` deletes one or more, never one still recording, and keeps a line for each on its session: when it was recorded, how long it was, and when, by whom and why it was deleted (after transcription, its time was up, after a withdrawal, or by the consultant). No sound and no words are kept.
+- **A transcript from recordings** (decisions 18 and 22): `addRecordedTranscript` needs consent to transcription now (C1, C8), replaces a transcript under Phase 2's rules, and keeps the speakers matched in the preview. Under "deleted after transcription", the same step deletes the recordings it was made from, with "after transcription" lines (C10); otherwise it marks them transcribed. `deletesOnAdding` tells the preview which will happen.
+- **Unsure words** (decision 19, as changed at WP3): a segment keeps the mean of its words' confidence and the character ranges of its words below 0.8 (`unsureWords`), not a mark on the whole segment.
+- **C11 for recordings** (decision 20): `speakerWarning` works out a recorded transcript's warning now, from who the labels are matched to, so it follows the matching. An imported transcript keeps its warning as it was at import. `talkTimes` and `splitShort` sort labels by talk time and sum up those under 30 seconds, which the interface groups (decided at the WP3 check-in).
+- **Retention** (decisions 22 and 23): `keptUntil` says how long a recording is kept under its session's consent now. `recordingsPastTime` lists every finished recording whose time is up (N days from when it was recorded; the engagement's end date, in the session's zone; recording no longer agreed, or consent withdrawn; or transcribed under "deleted after transcription"), and, separately, those under "deleted after transcription" still here a day after they were made. Nothing is deleted on its own.

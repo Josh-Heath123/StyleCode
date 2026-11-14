@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { segmentsFrom, speakerAt, speakerNames, type EngineWord, type SpeakerTurn } from './combine';
+import { segmentsFrom, speakerAt, speakerNames, UNSURE_BELOW, type EngineWord, type SpeakerTurn } from './combine';
 
 /** Putting words and speakers together (Phase 3 brief, decisions 19 and 20). */
 
@@ -34,7 +34,7 @@ describe('speakers', () => {
 });
 
 describe('segments', () => {
-  it('end where the speaker changes, and keep the lowest confidence of their words', () => {
+  it('end where the speaker changes, and keep the mean confidence of their words and where the unsure ones are', () => {
     const words = [
       word('Morning', 100),
       word('all.', 500, 800, 0.4),
@@ -45,9 +45,9 @@ describe('segments', () => {
       word('bins.', 6000),
     ];
     expect(segmentsFrom(words, turns)).toEqual([
-      { speakerLabel: 'Speaker 1', startMs: 100, endMs: 800, text: 'Morning all.', confidence: 0.4 },
-      { speakerLabel: 'Speaker 2', startMs: 2200, endMs: 2900, text: 'Hi Sam.', confidence: 0.9 },
-      { speakerLabel: 'Speaker 1', startMs: 5300, endMs: 6300, text: 'So, the bins.', confidence: 0.9 },
+      { speakerLabel: 'Speaker 1', startMs: 100, endMs: 800, text: 'Morning all.', confidence: 0.65, unsureWords: [[8, 11]] },
+      { speakerLabel: 'Speaker 2', startMs: 2200, endMs: 2900, text: 'Hi Sam.', confidence: 0.9, unsureWords: [] },
+      { speakerLabel: 'Speaker 1', startMs: 5300, endMs: 6300, text: 'So, the bins.', confidence: 0.9, unsureWords: [] },
     ]);
   });
 
@@ -66,8 +66,18 @@ describe('segments', () => {
 
   it('without speakers, has none, and confidence null where the engine gives none', () => {
     expect(segmentsFrom([word('Hello', 0, 300, null), word('there.', 300, 600, null)], null)).toEqual([
-      { speakerLabel: null, startMs: 0, endMs: 600, text: 'Hello there.', confidence: null },
+      { speakerLabel: null, startMs: 0, endMs: 600, text: 'Hello there.', confidence: null, unsureWords: [] },
     ]);
+  });
+
+  it('marks each unsure word by its letters, never the punctuation, below 0.8 and not at it', () => {
+    const [s] = segmentsFrom(
+      [word("'Lindiwe,", 0, 300, 0.3), word('ja', 300, 600, 0.8), word(',', 600, 650, 0.1), word('Thabazimbi.', 700, 1000, 0.79)],
+      null,
+    );
+    expect(s.text).toBe("'Lindiwe, ja, Thabazimbi.");
+    expect(s.unsureWords.map(([a, b]) => s.text.slice(a, b))).toEqual(['Lindiwe', 'Thabazimbi']);
+    expect(UNSURE_BELOW).toBe(0.8);
   });
 
   it('leaves out empty words and keeps punctuation tight', () => {

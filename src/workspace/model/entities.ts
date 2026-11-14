@@ -99,6 +99,7 @@ export function createSession(
     startsAt: fields.startsAt,
     timeZone: fields.timeZone ?? currentTimeZone(),
     audioFileIds: [],
+    deletedRecordings: [],
     createdAt: at,
     updatedAt: at,
   };

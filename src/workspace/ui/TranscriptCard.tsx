@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { LAYOUT_LABELS, PLATFORM_LABELS, readPastedTranscript, readTranscriptFile, type TranscriptRead } from '../import/read';
 import { canCapture } from '../model/consent';
 import { isInRecord, keptFromSession } from '../model/findings';
+import { transcribedBy } from '../model/recordings';
 import {
   canReplaceTranscript,
   deleteTranscript,
@@ -142,6 +143,7 @@ const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1
 
 /** Where a transcript came from, in a line. */
 function sourceLine(t: Transcript): string {
+  if (t.source.kind === 'recording') return `${transcribedBy(t.source)}. Added by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;
   const from =
     t.source.kind === 'pasted' ? 'Pasted' : `Imported from ${t.source.fileName} (${PLATFORM_LABELS[t.source.platform]})`;
   return `${from} by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;

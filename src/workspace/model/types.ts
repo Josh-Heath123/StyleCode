@@ -274,10 +274,28 @@ export interface Session {
    * and a transcript's times of day are read in it (Phase 2 brief, decision 18).
    */
   timeZone: string;
-  /** Audio recordings of the session (Phase 3): FileRefs owned by this session. */
+  /** Audio recordings of the session (Phase 3): FileRefs owned by this session, purpose `audio`, oldest first. */
   audioFileIds: string[];
+  /**
+   * A line for each recording deleted since (Phase 3 brief, decision 24), so
+   * the session shows the promise to the client was kept. No sound and no words.
+   */
+  deletedRecordings: DeletedRecording[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+/** Why a recording was deleted (decision 24). */
+export const DELETION_REASONS = ['transcribed', 'retention', 'withdrawal', 'consultant'] as const;
+export type DeletionReason = (typeof DELETION_REASONS)[number];
+
+/** What is kept of a deleted recording: when it was made, how long it was, and when, by whom and why it was deleted. */
+export interface DeletedRecording {
+  recordedAt: Timestamp;
+  durationMs: number;
+  deletedAt: Timestamp;
+  deletedBy: string;
+  reason: DeletionReason;
 }
 
 export type Side = 'client' | 'consultant';
@@ -303,14 +321,30 @@ export type TranscriptPlatform = (typeof TRANSCRIPT_PLATFORMS)[number];
 export const TRANSCRIPT_FORMATS = ['vtt', 'docx', 'txt'] as const;
 export type TranscriptFormat = (typeof TRANSCRIPT_FORMATS)[number];
 
+/** A program that did part of a transcription, by name and version, with the models it used. */
+export interface EngineUsed {
+  name: string;
+  version: string;
+  models: string[];
+}
+
+/** A recording a transcript was made from, by its start and length, so the source stays readable once it is deleted. */
+export interface RecordingMark {
+  recordedAt: Timestamp;
+  durationMs: number;
+}
+
 /**
  * Where a transcript came from. The file itself isn't kept: its segments are
  * the transcript, so deleting them leaves no copy of the client's words
- * (Phase 2 brief, decision 4). Recording (Phase 3) will add
- * `{ kind: 'recording'; audioFileId }`.
+ * (Phase 2 brief, decision 4). A transcript made on this computer from the
+ * session's recordings (Phase 3) names them, the transcription engine and
+ * the speaker engine.
  */
 export type TranscriptSource =
-  { kind: 'file'; fileName: string; format: TranscriptFormat; platform: TranscriptPlatform } | { kind: 'pasted' };
+  | { kind: 'file'; fileName: string; format: TranscriptFormat; platform: TranscriptPlatform }
+  | { kind: 'pasted' }
+  | { kind: 'recording'; recordings: RecordingMark[]; transcriber: EngineUsed; speakers: EngineUsed | null };
 
 /** A session's transcript (one per session, MVP Q10). Its segments are kept exactly as imported (MVP Q9). */
 export interface Transcript {
@@ -322,7 +356,10 @@ export interface Transcript {
   /**
    * Speaker labels that, when the transcript was imported, matched neither a
    * client participant who was asked for consent nor someone on the
-   * consultant's side (CONSENT.md, rule C11). Kept as a warning.
+   * consultant's side (CONSENT.md, rule C11). Kept as a warning. A transcript
+   * made from recordings keeps the warning as it was when it was added, but
+   * its labels name nobody, so the interface shows the warning as it is now
+   * (`speakerWarning`, Phase 3 brief, decision 20).
    */
   unaskedSpeakers: string[];
   /** Whether some segments had no speaker label, so they couldn't be checked. */
@@ -340,8 +377,14 @@ export interface TranscriptSegment {
   startMs: number | null;
   endMs: number | null;
   text: string;
-  /** 0 to 1, where the source provides it (local transcription, later). */
+  /** 0 to 1, where the source provides it: the mean of its words' confidence, for a transcript made on this computer. */
   confidence: number | null;
+  /**
+   * The character ranges, `[start, end)` in `text`, of words the engine was
+   * unsure of, shown as "may be misheard" (decision 19, as changed at the WP3
+   * check-in). Empty when the source gives no confidence.
+   */
+  unsureWords: [number, number][];
 }
 
 export interface Note {
@@ -378,6 +421,41 @@ export interface FileRef {
   sizeBytes: number;
   addedBy: string;
   addedAt: Timestamp;
+  /** Set exactly on a recording (purpose `audio`). */
+  audio?: AudioDetails;
+}
+
+/**
+ * The microphone processing a recording used (Phase 3 brief, decision 12):
+ * by default echo cancellation and noise suppression off, automatic gain on.
+ */
+export interface RecordingSettings {
+  echoCancellation: boolean;
+  noiseSuppression: boolean;
+  autoGainControl: boolean;
+}
+
+/**
+ * A session's recording (Phase 3). The file is always 16 kHz mono 16-bit
+ * WAV: a recording is written as it arrives, and a WAV made elsewhere is
+ * converted when it is added (decision 15).
+ */
+export interface AudioDetails {
+  /** Recorded in StyleCode, or a WAV added from elsewhere. */
+  source: 'recorded' | 'added';
+  /** When recording started; for an added WAV, when it was added. */
+  recordedAt: Timestamp;
+  /** `recording` while sound is still arriving. */
+  state: 'recording' | 'finished';
+  durationMs: number;
+  /** The stored file's sample rate. */
+  sampleRate: number;
+  /** For a recording; null for an added WAV. */
+  settings: RecordingSettings | null;
+  /** Finished at start-up with what had arrived, after StyleCode or the computer stopped mid-recording. */
+  recovered: boolean;
+  /** When a transcript made from it was added to the session. */
+  transcribedAt: Timestamp | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -474,8 +552,9 @@ export const WORKSPACE_FORMAT = 'stylecode-workspace';
  * 1: the first version of the domain model (Phase 0).
  * 2: sessions keep their time zone; transcripts can come from `.txt` files (Workspace Phase 2).
  * 3: company facts have a status (Workspace Phase 2, decision 17).
+ * 4: recordings, transcripts made from them, and the lines kept when a recording is deleted (Workspace Phase 3).
  */
-export const WORKSPACE_VERSION = 3;
+export const WORKSPACE_VERSION = 4;
 
 /** One company and everything that belongs to it. */
 export interface CompanyWorkspace {

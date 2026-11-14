@@ -126,6 +126,9 @@ export type ParseWorkspaceResult =
  *   no change.
  * - 2 to 3: each company fact gets a status: its source finding's, if that is
  *   still there, otherwise "suggested", which claims nothing was agreed.
+ * - 3 to 4: each session gets an empty list of deleted recordings, and each
+ *   segment an empty list of unsure words. Version 3 had no way to add audio,
+ *   so there is nothing else to bring over.
  */
 /** Maps each object in a record, leaving anything that isn't one as it is. */
 function mapRecord(value: unknown, map: (item: Record<string, unknown>) => unknown): unknown {
@@ -176,6 +179,14 @@ function migrate(raw: Record<string, unknown>, timeZone: string): Record<string,
         const status = (finding as { status?: unknown } | undefined)?.status;
         return { ...fact, status: typeof status === 'string' ? status : 'suggested' };
       }),
+    };
+  }
+  if (ws.version === 3) {
+    ws = {
+      ...ws,
+      version: 4,
+      sessions: mapRecord(ws.sessions, (s) => ('deletedRecordings' in s ? s : { ...s, deletedRecordings: [] })),
+      segments: mapRecord(ws.segments, (s) => ('unsureWords' in s ? s : { ...s, unsureWords: [] })),
     };
   }
   return ws;

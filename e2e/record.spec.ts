@@ -35,6 +35,7 @@ async function engagementWithNotes(page: Page): Promise<string> {
     startsAt,
     timeZone: 'Africa/Johannesburg',
     audioFileIds: [],
+    deletedRecordings: [],
     createdAt: at,
     updatedAt: at,
   });

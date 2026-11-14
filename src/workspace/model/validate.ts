@@ -20,9 +20,12 @@ import {
   type ConsentTerms,
 } from './consent.ts';
 import { isInRecord } from './findings.ts';
+import { MAX_RECORDING_MS } from './recordings.ts';
+import { unsureWordsFit } from './transcripts.ts';
 import { wordingFor } from './wording.ts';
 import {
   AI_PROVENANCES,
+  DELETION_REASONS,
   ENTITY_MAPS,
   FILE_PURPOSES,
   FINDING_KINDS,
@@ -34,6 +37,7 @@ import {
   WORKSPACE_FORMAT,
   WORKSPACE_VERSION,
   type Actor,
+  type AudioDetails,
   type CompanyWorkspace,
   type ConsentRecord,
   type EntityMap,
@@ -201,7 +205,19 @@ function checkSessions(ws: CompanyWorkspace, report: Report) {
           report('ref.missing', 'A session lists audio that is not one of its audio files.', 'sessions', s.id);
         }
       }
+      if (new Set(s.audioFileIds).size !== s.audioFileIds.length)
+        report('field.value', 'A session lists a recording twice.', 'sessions', s.id);
     }
+    // The lines kept when a recording is deleted (Phase 3 brief, decision 24).
+    if (!Array.isArray(s.deletedRecordings))
+      report('field.type', "A session's deleted recordings must be a list.", 'sessions', s.id);
+    else if (!s.deletedRecordings.every(isDeletedLine))
+      report(
+        'recording.deleted',
+        'A deleted recording says when it was recorded, how long it was, and when, by whom and why it was deleted.',
+        'sessions',
+        s.id,
+      );
     checkTimes(s, 'sessions', report);
   }
 
@@ -378,6 +394,7 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
     const src = t.source as { kind?: unknown; fileName?: unknown; format?: unknown; platform?: unknown } | undefined;
     const sourceOk =
       src?.kind === 'pasted' ||
+      (src?.kind === 'recording' && isRecordingSource(src as Record<string, unknown>)) ||
       (src?.kind === 'file' &&
         isNonEmptyText(src.fileName) &&
         oneOf(TRANSCRIPT_FORMATS, src.format) &&
@@ -423,6 +440,8 @@ function checkTranscripts(ws: CompanyWorkspace, report: Report) {
     if (s.confidence !== null && !(typeof s.confidence === 'number' && s.confidence >= 0 && s.confidence <= 1)) {
       report('field.value', "A segment's confidence must be between 0 and 1.", 'segments', s.id);
     }
+    if (!isText(s.text) || !unsureWordsFit(s.text, s.unsureWords))
+      report('field.value', "A segment's unsure words are ranges of its text, in order.", 'segments', s.id);
   }
   for (const [transcriptId, list] of indexes) {
     const sorted = [...list].sort((a, b) => a - b);
@@ -442,6 +461,7 @@ function checkNotes(ws: CompanyWorkspace, report: Report) {
 }
 
 function checkFiles(ws: CompanyWorkspace, report: Report) {
+  const recording = new Set<string>();
   for (const f of Object.values(ws.files)) {
     const owner = f.owner as { kind?: unknown; engagementId?: unknown; sessionId?: unknown } | undefined;
     const ownerOk =
@@ -460,20 +480,101 @@ function checkFiles(ws: CompanyWorkspace, report: Report) {
       const sessionId = owner?.kind === 'session' ? (owner.sessionId as string) : null;
       const consent = sessionId ? Object.values(ws.consents).find((c) => c.sessionId === sessionId) : undefined;
       if (!sessionId) report('field.value', 'Audio belongs to a session.', 'files', f.id);
-      else if (
-        !consent ||
-        !consent.confirmed ||
-        !isTimestamp(f.addedAt) ||
-        !consentState(consent, f.addedAt).given.audioRecording
-      )
-        report('consent.required', 'Audio was added without consent to recording.', 'files', f.id);
+      else {
+        if (!consent || !consent.confirmed || !isTimestamp(f.addedAt) || !consentState(consent, f.addedAt).given.audioRecording)
+          report('consent.required', 'Audio was added without consent to recording.', 'files', f.id);
+        // Rule C4: starting a recording, or adding one, locks the consent record.
+        else if (consent.lockedAt === null || (isTimestamp(consent.lockedAt) && time(consent.lockedAt) > time(f.addedAt)))
+          report('consent.lock', 'Recording locks the consent record.', 'files', f.id);
+        const session = get(ws.sessions, sessionId);
+        if (session && Array.isArray(session.audioFileIds) && !session.audioFileIds.includes(f.id))
+          report('ref.missing', 'A recording is not listed by its session.', 'files', f.id);
+      }
+      if (!isAudioDetails(f.audio))
+        report(
+          'recording.details',
+          'A recording says how it came in, when, how long it is (at most 4 hours), its sample rate and its settings.',
+          'files',
+          f.id,
+        );
+      else if (sessionId && f.audio.state === 'recording') {
+        if (recording.has(sessionId)) report('recording.inProgress', 'A session records one recording at a time.', 'files', f.id);
+        recording.add(sessionId);
+      }
     }
+    if (f.purpose !== 'audio' && f.audio !== undefined)
+      report('field.value', 'Only a recording has recording details.', 'files', f.id);
     if (!isNonEmptyText(f.name) || !isNonEmptyText(f.mediaType))
       report('field.value', 'A file needs a name and a media type.', 'files', f.id);
     if (!Number.isInteger(f.sizeBytes) || f.sizeBytes < 0) report('field.value', 'A file has an invalid size.', 'files', f.id);
     if (!isNonEmptyText(f.addedBy) || !isTimestamp(f.addedAt))
       report('field.value', 'A file says who added it and when.', 'files', f.id);
   }
+}
+
+const isWholeMs = (v: unknown) => Number.isInteger(v) && (v as number) >= 0;
+
+function isDeletedLine(line: unknown): boolean {
+  const l = line as Record<string, unknown> | null;
+  return (
+    !!l &&
+    typeof l === 'object' &&
+    isTimestamp(l.recordedAt) &&
+    isWholeMs(l.durationMs) &&
+    isTimestamp(l.deletedAt) &&
+    isNonEmptyText(l.deletedBy) &&
+    oneOf(DELETION_REASONS, l.reason)
+  );
+}
+
+function isAudioDetails(details: unknown): details is AudioDetails {
+  const a = details as Record<string, unknown> | null | undefined;
+  if (!a || typeof a !== 'object') return false;
+  const settings = a.settings as Record<string, unknown> | null;
+  const settingsOk =
+    a.source === 'added'
+      ? settings === null
+      : a.source === 'recorded' &&
+        !!settings &&
+        typeof settings === 'object' &&
+        ['echoCancellation', 'noiseSuppression', 'autoGainControl'].every((k) => typeof settings[k] === 'boolean');
+  return (
+    settingsOk &&
+    isTimestamp(a.recordedAt) &&
+    (a.state === 'recording' || a.state === 'finished') &&
+    isWholeMs(a.durationMs) &&
+    (a.durationMs as number) <= MAX_RECORDING_MS &&
+    Number.isInteger(a.sampleRate) &&
+    (a.sampleRate as number) > 0 &&
+    typeof a.recovered === 'boolean' &&
+    (a.transcribedAt === null || isTimestamp(a.transcribedAt))
+  );
+}
+
+function isEngine(e: unknown): boolean {
+  const engine = e as Record<string, unknown> | null;
+  return (
+    !!engine &&
+    typeof engine === 'object' &&
+    isNonEmptyText(engine.name) &&
+    isNonEmptyText(engine.version) &&
+    Array.isArray(engine.models) &&
+    engine.models.length > 0 &&
+    engine.models.every(isNonEmptyText)
+  );
+}
+
+/** A transcript made from recordings names them by start and length, and what made it. */
+function isRecordingSource(src: Record<string, unknown>): boolean {
+  return (
+    Array.isArray(src.recordings) &&
+    src.recordings.length > 0 &&
+    src.recordings.every(
+      (r: Record<string, unknown> | null) => !!r && typeof r === 'object' && isTimestamp(r.recordedAt) && isWholeMs(r.durationMs),
+    ) &&
+    isEngine(src.transcriber) &&
+    (src.speakers === null || isEngine(src.speakers))
+  );
 }
 
 function checkProvenance(p: Provenance | undefined, map: EntityMap, id: string, report: Report) {

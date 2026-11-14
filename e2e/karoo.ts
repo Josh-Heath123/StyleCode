@@ -39,6 +39,7 @@ export async function kickoff(page: Page, options: { confirmed?: boolean; note?:
       startsAt: '2026-11-05T08:00:00.000Z',
       timeZone: 'Africa/Johannesburg',
       audioFileIds: [],
+      deletedRecordings: [],
       createdAt: at,
       updatedAt: at,
     },
