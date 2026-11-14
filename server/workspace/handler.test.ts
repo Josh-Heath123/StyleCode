@@ -180,3 +180,30 @@ describe('download names', () => {
     expect(attachmentHeader('')).toBe(`attachment; filename="file"; filename*=UTF-8''file`);
   });
 });
+
+describe('recording routes (Phase 3)', () => {
+  it('need the workspace header, and refuse ids that could be paths', async () => {
+    const { workspace } = await newCompany('Karoo Recordings');
+    const id = workspace.company.id;
+    const bare = await fetch(`${base}/companies/${id}/recordings`, { method: 'POST' });
+    expect(bare.status).toBe(403);
+    expect((await call(`/companies/${id}/recordings/..%2Fx?session=se_1&offset=0`, { method: 'PUT', body: 'ab' })).status).toBe(
+      400,
+    );
+    expect((await call(`/companies/${id}/recordings/fi_1?session=..&offset=0`, { method: 'PUT', body: 'ab' })).status).toBe(400);
+    expect((await call(`/companies/${id}/recordings/fi_1/other`, { method: 'POST' })).status).toBe(404);
+  });
+
+  it('start a recording, refuse pieces for one the client doesn’t list, and refuse a WAV that isn’t one', async () => {
+    const { workspace } = await newCompany('Veldt Recordings');
+    const id = workspace.company.id;
+    const started = await call(`/companies/${id}/recordings`, { method: 'POST' });
+    expect(started.status).toBe(201);
+    const { id: fileId } = (await started.json()) as { id: string };
+    const piece = await call(`/companies/${id}/recordings/${fileId}?session=se_1&offset=0`, { method: 'PUT', body: 'ab' });
+    expect(piece.status).toBe(409);
+    const notWav = await call(`/companies/${id}/added-recordings`, { method: 'POST', body: 'This is not a WAV file at all.' });
+    expect(notWav.status).toBe(400);
+    expect(((await notWav.json()) as { error: string }).error).toMatch(/Convert the recording to WAV first/);
+  });
+});

@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { pipeline } from 'node:stream/promises';
-import { readJson, rejectReason, RequestError, sendJson, type RequestPolicy } from '../shared/requests.ts';
+import { MAX_ADDED_WAV_BYTES } from '../../src/workspace/model/recordings.ts';
+import { readBody, readJson, rejectReason, RequestError, sendJson, type RequestPolicy } from '../shared/requests.ts';
 import type { DataFolder } from './folder.ts';
+import { MAX_PIECE_BYTES, RecordingFiles } from './recordings.ts';
 import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
 
 /**
@@ -18,6 +20,10 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   POST   /api/workspace/companies/:id/files          store a file's bytes (the body), giving its new id
  *   GET    /api/workspace/companies/:id/files/:fileId  download a file the client lists
  *   DELETE /api/workspace/companies/:id/files/:fileId  remove a file's bytes once the client no longer lists it
+ *   POST   /api/workspace/companies/:id/recordings     start a recording's file, giving its id and the free space
+ *   PUT    /api/workspace/companies/:id/recordings/:fileId?session=…&offset=…   write a piece of sound (the body)
+ *   POST   /api/workspace/companies/:id/recordings/:fileId/finish[?recover=1]   write its header, giving size and length
+ *   POST   /api/workspace/companies/:id/added-recordings  convert and store a WAV made elsewhere (the body)
  *
  * They read and write clients' data, so every request passes the shared
  * checks (`server/shared/requests.ts`) and carries `x-stylecode-workspace`.
@@ -50,7 +56,13 @@ export function attachmentHeader(name: unknown): string {
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 }
 
-export function createWorkspaceHandler(folder: DataFolder, store = new WorkspaceStore(folder.path)) {
+export function createWorkspaceHandler(
+  folder: DataFolder,
+  store = new WorkspaceStore(folder.path),
+  recordings = new RecordingFiles(store),
+) {
+  // A recording left unfinished by a crash gets its header now; the app marks it recovered when the client opens.
+  void recordings.closeUnfinished().catch(() => undefined);
   return async function workspaceHandler(req: IncomingMessage, res: ServerResponse, next: Next): Promise<void> {
     const url = new URL(req.url ?? '/', 'http://localhost');
     const parts = url.pathname.split('/').filter(Boolean);
@@ -73,7 +85,8 @@ export function createWorkspaceHandler(folder: DataFolder, store = new Workspace
         if (method === 'PUT') return sendJson(res, 200, await store.saveSettings(await readJson(req, MAX_SMALL_BODY)));
         return notAllowed();
       }
-      if (section !== 'companies' || rest.length) return sendJson(res, 404, { error: 'Not found.' });
+      const finishing = sub === 'recordings' && rest.length === 1 && rest[0] === 'finish';
+      if (section !== 'companies' || (rest.length && !finishing)) return sendJson(res, 404, { error: 'Not found.' });
 
       if (companyId === undefined) {
         if (method === 'GET') return sendJson(res, 200, { companies: await store.list() });
@@ -100,6 +113,30 @@ export function createWorkspaceHandler(folder: DataFolder, store = new Workspace
           return sendJson(res, 200, { deleted: companyId });
         }
         return notAllowed();
+      }
+      if (sub === 'recordings') {
+        if (fileId === undefined) {
+          if (method !== 'POST') return notAllowed();
+          return sendJson(res, 201, await recordings.start(companyId));
+        }
+        if (finishing) {
+          if (method !== 'POST') return notAllowed();
+          return sendJson(res, 200, await recordings.finish(companyId, fileId, url.searchParams.get('recover') === '1'));
+        }
+        if (method !== 'PUT') return notAllowed();
+        const sessionId = url.searchParams.get('session');
+        if (!isSafeId(sessionId)) return sendJson(res, 400, { error: 'Invalid id.' });
+        const offset = Number(url.searchParams.get('offset'));
+        const piece = await readBody(req, MAX_PIECE_BYTES);
+        return sendJson(res, 200, await recordings.append(companyId, fileId, sessionId, offset, piece));
+      }
+      if (sub === 'added-recordings') {
+        if (fileId !== undefined) return sendJson(res, 404, { error: 'Not found.' });
+        if (method !== 'POST') return notAllowed();
+        const declared = Number(req.headers['content-length']);
+        if (Number.isFinite(declared) && declared > MAX_ADDED_WAV_BYTES)
+          throw new RequestError('The file is too large. The limit is 2 GB.', 413);
+        return sendJson(res, 201, await recordings.addWav(companyId, req));
       }
       if (sub !== 'files') return sendJson(res, 404, { error: 'Not found.' });
 

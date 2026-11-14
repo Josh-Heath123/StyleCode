@@ -115,6 +115,26 @@ export class WorkspaceStore {
     return (this.options.now?.() ?? new Date()).toISOString();
   }
 
+  /** A company's folder, for the recordings and transcription jobs kept in it. */
+  companyFolder(companyId: string): string {
+    return this.folderOf(companyId);
+  }
+
+  /** Runs a task in a company's queue, one change at a time with its saves. */
+  inQueue<T>(companyId: string, task: () => Promise<T>): Promise<T> {
+    this.folderOf(companyId);
+    return this.serial(companyId, task);
+  }
+
+  /** Marks a file the app is about to list (a recording just started), so no save removes it first. */
+  keepUpload(companyId: string, fileId: string): void {
+    this.uploaded.add(`${companyId}/${fileId}`);
+  }
+
+  forgetUpload(companyId: string, fileId: string): void {
+    this.uploaded.delete(`${companyId}/${fileId}`);
+  }
+
   /** Runs one change at a time for a key (a company, or company creation as a whole). */
   private serial<T>(key: string, task: () => Promise<T>): Promise<T> {
     const previous = this.queues.get(key) ?? Promise.resolve();
