@@ -4282,3 +4282,159 @@ a.ws-badge.is-knowledge {
   border: 1px solid var(--melon);
   border-radius: 8px;
 }
+
+/* ==========================================================================
+   Recording a meeting (Workspace Phase 3, WP6)
+   Red only for "recording now" and Stop, never for the AI's proposals.
+   Dark text on the red Stop button reads at 7:1 (WCAG AA).
+   ========================================================================== */
+
+.button.stop-button {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #1b0609;
+  font-weight: 600;
+}
+
+.button.stop-button:hover {
+  background: #ff8591;
+}
+
+.button.stop-button kbd {
+  color: #3a0f15;
+  font-weight: 500;
+}
+
+.button.is-small {
+  height: 24px;
+  padding: 0 8px;
+}
+
+.ws-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 4px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 107, 120, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 107, 120, 0.07);
+}
+
+.ws-live .ws-help {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.ws-live-dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: ws-live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ws-live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-live-dot {
+    animation: none;
+  }
+}
+
+.ws-live-state {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ws-live-clock,
+.app-nav-clock {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ws-live-clock {
+  font-size: 14px;
+  min-width: 56px;
+}
+
+.ws-level {
+  position: relative;
+  display: inline-block;
+  width: 140px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-4);
+  overflow: hidden;
+}
+
+.ws-level.is-compact {
+  width: 48px;
+  height: 6px;
+}
+
+.ws-level-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: #3ecf8e;
+  transition: width 90ms linear;
+}
+
+.ws-live .button {
+  margin-left: auto;
+}
+
+.ws-kbd {
+  margin-left: 4px;
+}
+
+.ws-microphone {
+  margin-bottom: 12px;
+}
+
+.ws-badge.is-live {
+  color: var(--danger);
+  border-color: rgba(255, 107, 120, 0.4);
+}
+
+.ws-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-3);
+}
+
+.ws-notice p {
+  margin: 0;
+  flex: 1;
+}
+
+.ws-notice.is-error {
+  border-color: rgba(255, 107, 120, 0.35);
+}
+
+.app-nav-recording {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-nav-recording .app-nav-link {
+  color: var(--text);
+}
+
+.app-nav-recording.is-ended .app-nav-link {
+  color: var(--text-2);
+}

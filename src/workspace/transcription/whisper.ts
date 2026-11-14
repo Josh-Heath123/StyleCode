@@ -18,7 +18,7 @@
  * with the pauses taken out. So `{ vad: true }` places each segment's tokens
  * across the segment's own times, keeping their spacing.
  */
-import type { EngineWord } from './combine';
+import type { EngineWord } from './combine.ts';
 
 interface WhisperToken {
   text: string;

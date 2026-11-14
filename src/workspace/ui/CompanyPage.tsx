@@ -12,6 +12,7 @@ import { FilesCard } from './FilesCard';
 import { KnowledgeCard } from './KnowledgeCard';
 import { StatusField } from './status';
 import { NOT_APPLIED, now, step } from './steps';
+import { stopRecording } from '../recording/recorder';
 import { closeCompany } from './useCompanySession';
 
 const PROFILE: { field: ProfileField; label: string; multiline?: boolean; step: string }[] = [
@@ -201,6 +202,8 @@ function DeleteClientDialog({ view, onClose }: { view: ClientView; onClose: () =
       onDelete={async () => {
         // The folder this page was opened from: for a copied folder, the id inside its file is the original's.
         const folderId = view.session.companyId;
+        // A recording of the client stops first (decision 13).
+        await stopRecording({ companyId: folderId });
         // The server checks the name in the file on disk: save a waiting rename first, and send the saved name.
         await view.session.saveNow();
         await deleteCompany(folderId, confirmOf(view.session.saved.company.name));

@@ -2,6 +2,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
+import { fakeMicrophoneWav } from './e2e/fakeMicrophone';
 import { E2E_WORKSPACE } from './e2e/workspacePath';
 
 /**
@@ -31,7 +32,19 @@ export default defineConfig({
     {
       name: 'chromium',
       dependencies: ['workspace folder'],
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+        // A fake microphone playing a generated tone (Phase 3): recording is tested without a real one, or real voices.
+        permissions: ['microphone'],
+        launchOptions: {
+          args: [
+            '--use-fake-device-for-media-stream',
+            '--use-fake-ui-for-media-stream',
+            `--use-file-for-fake-audio-capture=${fakeMicrophoneWav()}`,
+          ],
+        },
+      },
     },
   ],
   webServer: {
@@ -44,6 +57,9 @@ export default defineConfig({
     env: {
       STYLECODE_AI_CONFIG: join(tmpdir(), 'stylecode-e2e', 'ai.json'),
       STYLECODE_WORKSPACE: E2E_WORKSPACE,
+      // The fake transcription engine, replaying recorded output: no engine and no network in tests (Phase 3).
+      STYLECODE_TRANSCRIPTION_FAKE: '1',
+      STYLECODE_TRANSCRIPTION_SETTINGS: join(tmpdir(), 'stylecode-e2e', 'transcription.json'),
     },
   },
 });

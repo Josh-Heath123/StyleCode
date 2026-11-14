@@ -151,3 +151,54 @@ export async function downloadFile(companyId: string, fileId: string): Promise<B
   }
   return new Blob([await response.arrayBuffer()], { type: 'application/octet-stream' });
 }
+
+/** A request with a binary body (sound), answered with JSON. */
+async function binary<T>(path: string, method: string, body: Blob | Uint8Array | null): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      method,
+      headers: { 'content-type': 'application/octet-stream', 'x-stylecode-workspace': '1' },
+      body: body as BodyInit | null,
+    });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  const answer = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
+  if (!response.ok || !answer)
+    throw new WorkspaceApiError(
+      answer?.error ?? `StyleCode’s local server returned an error (${response.status}).`,
+      response.status,
+    );
+  return answer;
+}
+
+const company = (id: string) => `/companies/${encodeURIComponent(id)}`;
+
+/** Makes a new recording's file (Phase 3, decision 12), giving its id and the free space. */
+export const startRecordingFile = (companyId: string) =>
+  binary<{ id: string; freeBytes: number; lowSpace: boolean }>(`${company(companyId)}/recordings`, 'POST', null);
+
+/** Writes a piece of sound at its offset; a piece sent twice is written once. */
+export const sendRecordingPiece = (companyId: string, fileId: string, sessionId: string, offset: number, piece: Uint8Array) =>
+  binary<{ bytes: number; full: boolean }>(
+    `${company(companyId)}/recordings/${encodeURIComponent(fileId)}?session=${encodeURIComponent(sessionId)}&offset=${offset}`,
+    'PUT',
+    piece,
+  );
+
+/** Finishes a recording's file; `recover` for one a crash left unfinished. */
+export const finishRecordingFile = (companyId: string, fileId: string, recover = false) =>
+  binary<{ sizeBytes: number; durationMs: number }>(
+    `${company(companyId)}/recordings/${encodeURIComponent(fileId)}/finish${recover ? '?recover=1' : ''}`,
+    'POST',
+    null,
+  );
+
+/** Converts and stores a WAV made elsewhere (decision 15). */
+export const addWavFile = (companyId: string, file: Blob) =>
+  binary<{ id: string; sizeBytes: number; durationMs: number }>(`${company(companyId)}/added-recordings`, 'POST', file);
+
+/** Removes stored bytes the client never came to list (a recording whose start couldn't be saved). */
+export const discardStoredFile = (companyId: string, fileId: string) =>
+  request<{ deleted: string }>(`${company(companyId)}/files/${encodeURIComponent(fileId)}`, { method: 'DELETE' });

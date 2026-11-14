@@ -6,12 +6,21 @@ import { expect, type Page } from '@playwright/test';
  * side, Thandi and Pieter asked for consent, Lerato not. The consent record
  * allows transcription and local AI, and is confirmed unless `confirmed` is
  * false. With `note`, the session has that note, written at 10:10 there;
- * `title` names the session (default "Kick-off").
+ * `title` names the session (default "Kick-off"). With `recording`, the client
+ * agreed to audio recording too, kept as it says (Phase 3).
  * Opens the session page and returns the client's id.
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
-export async function kickoff(page: Page, options: { confirmed?: boolean; note?: string; title?: string } = {}) {
+export async function kickoff(
+  page: Page,
+  options: {
+    confirmed?: boolean;
+    note?: string;
+    title?: string;
+    recording?: { kind: 'days'; days: number } | { kind: 'until-engagement-ends' } | { kind: 'delete-after-transcription' };
+  } = {},
+) {
   const res = await page.request.post('/api/workspace/companies', {
     headers: HEADERS,
     data: { profile: { name: `Karoo Freight ${Math.random().toString(36).slice(2, 8)}` } },
@@ -68,17 +77,23 @@ export async function kickoff(page: Page, options: { confirmed?: boolean; note?:
       method: { kind: 'verbal-at-start' },
       wordingVersion: 'draft-1',
       told: {
-        recorded: false,
+        recorded: !!options.recording,
         transcribed: true,
         aiExtraction: true,
         processingLocal: true,
         processingExternal: false,
-        retention: false,
+        retention: !!options.recording,
         canStopOrDelete: true,
         externalProvider: null,
       },
-      given: { audioRecording: false, transcription: true, aiLocal: true, aiExternal: false, externalProvider: null },
-      retention: { kind: 'until-engagement-ends' },
+      given: {
+        audioRecording: !!options.recording,
+        transcription: true,
+        aiLocal: true,
+        aiExternal: false,
+        externalProvider: null,
+      },
+      retention: options.recording ?? { kind: 'until-engagement-ends' },
       outcome: { kind: 'given' },
       confirmed: options.confirmed === false ? null : { by: 'Sam Naidoo', at },
       attachmentFileId: null,

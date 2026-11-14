@@ -10,6 +10,7 @@ import { DialogField, FormDialog } from '../fields';
 import { finalStep, now } from '../steps';
 import { DeleteTranscriptDialog } from '../TranscriptCard';
 import { KeptDialog } from './KeptDialog';
+import { stopRecording } from '../../recording/recorder';
 import { useConsentContext } from './useConsentContext';
 
 export function retentionSummary(r: Retention): string {
@@ -169,6 +170,11 @@ function WithdrawDialog({
           if (!name.trim()) return setError('Give your name, as the person recording the withdrawal.');
           by = await context.saveConsultant(name);
         }
+        // A withdrawal stops a recording first (C8), so what was recorded before it is kept whole.
+        await stopRecording(
+          { companyId: view.session.companyId, sessionId: meeting.id },
+          'Consent was withdrawn, so the recording stopped.',
+        );
         const problem = await finalStep(view.session, 'Record the withdrawal of consent', (ws) =>
           withdrawConsent(ws, meeting.id, reason, by, now()),
         );

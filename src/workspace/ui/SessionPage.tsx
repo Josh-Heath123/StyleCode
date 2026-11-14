@@ -21,6 +21,8 @@ import { NotesCard } from './NotesCard';
 import { TranscriptCard, usePassage } from './TranscriptCard';
 import { ProposalsCard, quotedPassages } from './extraction/ProposalsCard';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
+import { RecordingsCard } from './RecordingsCard';
+import { stopRecording } from '../recording/recorder';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
 export function SessionPage({
@@ -244,6 +246,7 @@ function SessionView({
               quoted={quoted}
               onShowProposal={selectProposal}
             />
+            <RecordingsCard key={`r-${meeting.id}`} view={view} meeting={meeting} href={`${engagementHref}/s/${meeting.id}`} />
             <TranscriptCard key={`t-${meeting.id}`} view={view} meeting={meeting} passageId={passageId} quoted={quoted} />
           </div>
           <div className="ws-review-side">
@@ -261,6 +264,8 @@ function SessionView({
           onDelete={async () => {
             onDeleting(true);
             try {
+              // A recording of the session stops first, keeping what it recorded until the deletion (decision 13).
+              await stopRecording({ companyId: session.companyId, sessionId: meeting.id });
               await permanentStep(session, 'Delete the session', (ws) => {
                 const removal = removeSession(ws, meeting.id, now());
                 return removal.ok ? { ok: true, value: removal.value.workspace } : removal;

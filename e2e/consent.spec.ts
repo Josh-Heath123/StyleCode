@@ -156,6 +156,8 @@ test('the consent form from the keyboard alone: filled in, confirmed, edited, co
   await expect(dialog.getByLabel('Reason')).toBeFocused();
   await expect(dialog).toContainText('This can’t be undone, and the undo history is cleared.');
   await page.keyboard.type('Alex asked us to stop after the meeting.');
+  // It is enabled once the dialog has read who is recording the withdrawal from settings.
+  await expect(dialog.getByRole('button', { name: 'Record the withdrawal' })).toBeEnabled();
   await dialog.getByRole('button', { name: 'Record the withdrawal' }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: /^Consent: withdrawn on/ })).toBeVisible();
