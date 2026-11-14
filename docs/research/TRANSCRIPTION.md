@@ -221,7 +221,7 @@ No piece failed. Whisper's live word errors are a little high: in some 30-second
 
 - **Extraction alone held the GPU at 90 to 93 °C,** with its clock at 210 MHz, for 19 minutes (73 of 75 samples at 90 °C or more, 74 at 210 MHz).
 - **Heat costs time as well:** the same extraction took 786 s one night and 1,130 s (44% longer) the next morning, at 90 to 93 °C.
-- **The heaviest combined step cut the power.** Two GPU-hungry jobs at once, on a GPU already at 90 °C, is more than this laptop's cooling handles.
+- **The heaviest combined step cut the power.** A CPU-heavy transcription (Parakeet ran on the CPU) alongside a GPU extraction, with the GPU already at 90 °C, is more than this laptop's cooling handles.
 
 **Recommendation: StyleCode runs one heavy job at a time on this laptop,** whether it runs on the CPU or the GPU (decision 10). A transcription, a speakers run or an extraction run waits for the one before to finish, and says so.
 
@@ -289,7 +289,7 @@ Decision 8's rule: the fastest setup whose transcripts keep extraction's recall 
 - **Engine and model: whisper.cpp with large-v3-turbo (5-bit), on the GPU.** It's the fastest that passes: 2.6 minutes per hour, 2.4% word errors on clean audio, 94% of words to the right speaker, and extraction recall of 61% on its transcripts, between the two typed runs' 57% and 63%. Without an NVIDIA GPU, **Parakeet on the CPU** (11 minutes per hour, and no burst of invented words in noise) is the fallback, not Whisper on the CPU (49 minutes per hour).
 - **Speakers: sherpa-onnx with ERes2Net at threshold 0.7, without the count.** Giving the count merges people.
 - **The names hint: no.** It hurt clean audio.
-- **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Unloading Ollama before a transcription isn't needed for memory (they fit together), only if a model is still loaded when a transcription starts.
+- **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Ollama can stay loaded: the two fit in GPU memory together, and only one heavy job runs at a time.
 - **Confidence threshold: 0.7** on Whisper's word confidence. It marks about 7% of words and catches about half the wrong ones. (With `--max-context 0`, decided later, the same balance is at 0.8.)
 - **From the end of an hour-long meeting to the proposals: about 25 to 35 minutes,** most of it speakers, one step after another.
 

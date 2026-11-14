@@ -266,6 +266,17 @@ Then run an independent review subagent over the slice, fix what it finds, push,
 
 ## Slice B: Recording and transcription (`workspace-3b-capture`)
 
+*(Added 2026-11-14, from the reviewer's answers at the WP3 check-ins.)* Where "Decided at the check-in" in `docs/research/TRANSCRIPTION.md` differs from this brief, it wins:
+- one engine: whisper.cpp `large-v3-turbo-q5_0` on CUDA, with `--max-context 0`, no VAD and no names prompt; without an NVIDIA GPU, Transcribe isn't offered and the session says why;
+- speakers by sherpa-onnx with ERes2Net at threshold 0.7, without the count, with the default shortest speech;
+- "may be misheard" on words below 0.8, not on segments (this changes decision 19);
+- the speaker list sorted by talk time, short labels grouped under a summary, C11's summary of them, and matching in the preview;
+- one heavy job at a time, CPU or GPU, and no Ollama unload (this settles decision 10).
+
+Also:
+- **WP8 step 2** also scores the proposals against Bosveld Citrus's key, settling unclear pairs the same blind way as WP3. It is decision 8's downstream check for `--max-context 0`, which wasn't run.
+- **Anything on the laptop that runs longer than Claude Code's tool time limit,** including StyleCode's own server during WP8, starts from a committed launcher the user double-clicks, as `start-wp3.cmd` did, never from a background tool call. Measurement steps keep the cooling wait.
+
 ### WP4: Model changes (workspace version 4)
 
 The model changes and functions in "Clarifications", with unit tests.
