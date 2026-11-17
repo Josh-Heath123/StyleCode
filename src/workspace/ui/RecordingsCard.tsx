@@ -28,6 +28,8 @@ import { DeleteDialog, FormDialog, NameField, nameFor } from './fields';
 import { finalStep, now, permanentStep } from './steps';
 import { useConsultant } from './useConsultant';
 import { stopPlaying } from './transcription/player';
+import { cancelTranscribing, discardTranscribing, useTranscribing } from './transcription/jobs';
+import { isJobOver } from '../transcription/types';
 
 /** "12:04", or "1:02:03" past an hour: a recording's clock. */
 export function formatClock(ms: number): string {
@@ -100,6 +102,16 @@ export function LevelMeter({ level, compact }: { level: number; compact?: boolea
 export function RecordingsCard({ view, meeting, href }: { view: ClientView; meeting: Session; href: string }) {
   const { workspace, readOnly, session } = view;
   const recording = useRecording();
+  // A transcription of the session, going or ready to add: deleting a recording it uses cancels or discards it first.
+  const transcribing = useTranscribing(session.companyId, meeting.id);
+  const usedBy = (r: Recording) =>
+    transcribing && transcribing.job.recordingIds.includes(r.id) && transcribing.adding !== 'added'
+      ? isJobOver(transcribing.job.state)
+        ? transcribing.job.state === 'done'
+          ? 'ready'
+          : null
+        : 'going'
+      : null;
   const consultant = useConsultant();
   const recordings = recordingsOf(workspace, meeting.id);
   const allowed = canCapture(workspace, meeting.id, 'recording');
@@ -307,6 +319,12 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
             const by = await consultant.current();
             if (!by) throw new Error('Give your name in Settings first: deleting a recording records who did it.');
             stopPlaying([removing.id]);
+            // The transcription can't be added without it, so it stops first, keeping nothing.
+            const use = usedBy(removing);
+            if (use && transcribing) {
+              const problem = use === 'going' ? await cancelTranscribing(transcribing) : await discardTranscribing(transcribing);
+              if (problem) throw new Error(`The transcription couldn’t be stopped, so nothing was deleted: ${problem}`);
+            }
             await permanentStep(session, `Delete ${removing.name}`, (ws) =>
               removeRecordings(ws, [removing.id], 'consultant', by, now()),
             );
@@ -319,6 +337,18 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
                 {formatWhen(removing.audio.recordedAt)}). The session keeps a line saying when it was recorded, how long it was,
                 and when you deleted it, but no sound.
               </p>
+              {usedBy(removing) === 'going' && (
+                <p>
+                  <strong>It’s being transcribed.</strong> Deleting it cancels the transcription first, and nothing it made is
+                  kept.
+                </p>
+              )}
+              {usedBy(removing) === 'ready' && (
+                <p>
+                  <strong>A transcript made from it is waiting to be added.</strong> Deleting the recording discards that
+                  transcript, since it can’t be added without it.
+                </p>
+              )}
               <p>
                 <strong>This can’t be undone,</strong> and the undo history is cleared.
               </p>

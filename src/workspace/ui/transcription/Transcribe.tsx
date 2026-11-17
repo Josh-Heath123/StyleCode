@@ -448,12 +448,7 @@ function TranscribedPreview({
           <PlayerBar companyId={view.session.companyId} fileIds={ready.recordingIds} />
           <SpeakerList
             talk={talk}
-            wordsOf={(label) =>
-              ready.segments
-                .filter((s) => s.speakerLabel === label)
-                .map((s) => s.text)
-                .join(' ')
-            }
+            segments={ready.segments}
             people={people}
             matchOf={(label) => matches[label] ?? null}
             onMatch={(label, participantId) =>

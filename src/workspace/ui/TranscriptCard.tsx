@@ -8,7 +8,7 @@ import { recordingsOf, speakerWarning, talkTimes, transcribedBy } from '../model
 import { spanAt, spansOfSource } from '../transcription/play';
 import { isJobOver } from '../transcription/types';
 import { refreshTranscriptions, refreshTranscriptionStatus, useTranscribing, useTranscriptionStatus } from './transcription/jobs';
-import { playFrom } from './transcription/player';
+import { playFrom, usePlaying } from './transcription/player';
 import { PlayerBar, RecordedSpeakerWarning, SpeakerList } from './transcription/Speakers';
 import { TranscribeDialog, TranscribingPanel, transcribeUnavailable } from './transcription/Transcribe';
 import {
@@ -43,6 +43,19 @@ import { KeptDialog } from './consent/KeptDialog';
 import { now, permanentStep, step } from './steps';
 
 export { formatOffset };
+
+/** The segment playing at a moment: the last one to start by then, while it lasts (or until the next starts). */
+function segmentAt(segments: readonly TranscriptSegment[], ms: number): string | null {
+  let found: TranscriptSegment | null = null;
+  for (const s of segments) {
+    if (s.startMs === null || s.startMs > ms) continue;
+    if (!found || s.startMs >= (found.startMs ?? 0)) found = s;
+  }
+  if (!found) return null;
+  const next = segments.find((s) => s.startMs !== null && s.startMs > (found.startMs ?? 0));
+  const end = Math.max(found.endMs ?? 0, next?.startMs ?? 0);
+  return ms < end ? found.id : null;
+}
 
 const SIDE_TEXT = { client: 'Client', consultant: 'Your side' } as const;
 
@@ -248,6 +261,12 @@ function TranscriptView({
     return () => void playFrom(view.session.companyId, at.fileId, at.atMs, span.offsetMs, what);
   };
   const warning = recorded ? speakerWarning(ws, meeting.id) : null;
+  // The segment being heard, marked as it plays (decision 21).
+  const playing = usePlaying();
+  const hearing =
+    playing && playing.companyId === view.session.companyId && spans.some((s) => s.fileId === playing.fileId)
+      ? segmentAt(segments, playing.atMs)
+      : null;
   return (
     <>
       <p className="ws-help">
@@ -304,7 +323,8 @@ function TranscriptView({
                     key={s.id}
                     id={`passage-${s.id}`}
                     tabIndex={-1}
-                    className={`ws-segment${s.id === passageId ? ' is-cited' : ''}${quoted?.has(s.id) ? ' is-quoted' : ''}${playHere ? ' has-play' : ''}`}
+                    className={`ws-segment${s.id === passageId ? ' is-cited' : ''}${quoted?.has(s.id) ? ' is-quoted' : ''}${playHere ? ' has-play' : ''}${s.id === hearing ? ' is-playing' : ''}`}
+                    aria-current={s.id === hearing ? 'true' : undefined}
                   >
                     {playHere && (
                       <button
@@ -372,12 +392,7 @@ function RecordedSpeakers({
       )}
       <SpeakerList
         talk={talk}
-        wordsOf={(label) =>
-          segments
-            .filter((s) => s.speakerLabel === label)
-            .map((s) => s.text)
-            .join(' ')
-        }
+        segments={segments}
         people={people}
         matchOf={(label) => speakerOf(ws, meeting.id, label)?.id ?? null}
         onMatch={(label, participantId) =>

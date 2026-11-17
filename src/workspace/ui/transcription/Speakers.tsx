@@ -62,7 +62,7 @@ function MatchSelect({
  */
 export function SpeakerList({
   talk,
-  wordsOf,
+  segments,
   people,
   matchOf,
   onMatch,
@@ -71,8 +71,8 @@ export function SpeakerList({
   shortId,
 }: {
   talk: readonly SpeakerTalk[];
-  /** What a label said, in order. */
-  wordsOf: (label: string) => string;
+  /** The transcript's segments, for what each short label said, part by part. */
+  segments: readonly { speakerLabel: string | null; startMs: number | null; text: string }[];
   people: readonly Participant[];
   matchOf: (label: string) => string | null;
   onMatch: (label: string, participantId: string | null) => void;
@@ -159,7 +159,17 @@ export function SpeakerList({
                   />
                   {play(t)}
                 </div>
-                <p className="ws-short-words">“{wordsOf(t.label)}”</p>
+                {/* Each part on its own line with its time: one label's parts are often turns far apart. */}
+                <ul className="ws-short-words" aria-label={`What ${t.label} said`}>
+                  {segments
+                    .filter((s) => s.speakerLabel === t.label)
+                    .map((s, i) => (
+                      <li key={i}>
+                        {s.startMs !== null && <span className="ws-muted ws-short-time">{formatOffset(s.startMs)}</span>}“{s.text}
+                        ”
+                      </li>
+                    ))}
+                </ul>
               </li>
             ))}
           </ul>

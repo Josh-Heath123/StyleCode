@@ -171,6 +171,11 @@ test('the preview says the recordings will be deleted; adding keeps the speakers
   await expect(rows.nth(0)).toContainText('Speaker 1');
   await expect(rows.nth(0)).toContainText(/1 min 1\d s/);
   await expect(dialog.locator('.ws-short-labels summary')).toHaveText(/^5 short labels, \d+ s in all$/);
+  // A short label's parts, each on its own line with its time: they are often turns far apart.
+  await dialog.locator('.ws-short-labels summary').click();
+  const parts = dialog.getByRole('list', { name: 'What Speaker 4 said' }).getByRole('listitem');
+  expect(await parts.count()).toBeGreaterThan(1);
+  for (const part of await parts.all()) await expect(part).toHaveText(/^\d+:\d\d“.+”$/);
   await expect(dialog.getByRole('note')).toContainText(
     'Not matched to anyone asked for consent: Speaker 1, Speaker 2 and 5 short labels',
   );
@@ -259,6 +264,18 @@ test('play from here plays the recording from a segment, and Alt+P pauses it fro
   const player = card(page).getByRole('group', { name: 'Playing the recording' });
   await expect(player).toContainText(`Playing ${from}`);
   await expect(player.getByRole('button', { name: /Pause/ })).toBeVisible();
+  // The segment being heard is marked, for screen readers too: one at a time, following the sound.
+  const heard = card(page).locator('.ws-segment[aria-current="true"]');
+  await expect(heard).toHaveCount(1);
+  await expect(heard).toHaveClass(/is-playing/);
+  // With the page scrolled to the transcript's end, in a short window, the player stays in view under the top bar.
+  await page.setViewportSize({ width: 1440, height: 520 });
+  await page.locator('.ws-transcript').evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+    el.scrollIntoView({ block: 'end' });
+  });
+  await expect(player).toBeInViewport({ ratio: 1 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   const seconds = Number(from.split(':')[1]);
   await expect
     .poll(async () => Number((await player.locator('.ws-player-clock').innerText()).split(':')[1]))
@@ -271,6 +288,41 @@ test('play from here plays the recording from a segment, and Alt+P pauses it fro
   await expect(player.getByRole('button', { name: /Pause/ })).toBeVisible();
   await player.getByRole('button', { name: 'Stop playing' }).click();
   await expect(player).toHaveCount(0);
+});
+
+test('deleting a recording that is being transcribed cancels the transcription first, and the dialog says so', async ({
+  page,
+}) => {
+  const { id, fileId } = await withRecording(page, { kind: 'days', days: 30 });
+  // Something else holds the heavy slot, so the transcription is still going (waiting) when the recording is deleted.
+  const lease = (await (
+    await page.request.post('/api/workspace/heavy', { headers: HEADERS, data: { kind: 'extraction' } })
+  ).json()) as { id: string };
+  try {
+    await transcribe(page);
+    await expect(card(page).getByRole('group', { name: 'Transcription' })).toContainText('Waiting');
+    const listed = (await (
+      await page.request.get(`/api/workspace/companies/${id}/transcriptions`, { headers: HEADERS })
+    ).json()) as { jobs: { id: string }[] };
+    const jobId = listed.jobs[0].id;
+
+    const recordings = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Recordings', exact: true }) });
+    await recordings.getByRole('button', { name: 'Delete kickoff.wav' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Delete recording…' });
+    await expect(dialog).toContainText('It’s being transcribed. Deleting it cancels the transcription first');
+    await dialog.getByRole('button', { name: 'Delete recording' }).click();
+    await expect(dialog).toHaveCount(0);
+
+    await expect(card(page)).toContainText('The transcription was cancelled. Nothing it made was kept.');
+    const job = (await (
+      await page.request.get(`/api/workspace/companies/${id}/transcriptions/${jobId}`, { headers: HEADERS })
+    ).json()) as { state: string };
+    expect(job.state).toBe('cancelled');
+    await expect.poll(() => existsSync(soundFile(id, fileId))).toBe(false);
+    expect(onDisk(id).sessions.se_1.deletedRecordings).toMatchObject([{ reason: 'consultant' }]);
+  } finally {
+    await page.request.delete(`/api/workspace/heavy/${lease.id}`, { headers: HEADERS });
+  }
 });
 
 test('without transcription set up, Transcribe isn’t offered: the session says why, and Settings says what to run', async ({

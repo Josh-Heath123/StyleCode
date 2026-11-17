@@ -4698,9 +4698,24 @@ a.ws-badge.is-knowledge {
   font-weight: 600;
 }
 
-.ws-short-words {
+.ws-short-labels .ws-short-words {
   margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
   color: var(--text-2);
+}
+
+.ws-short-labels .ws-short-words li {
+  display: flex;
+  gap: 10px;
+  padding: 2px 0;
+  border: 0;
+}
+
+.ws-short-time {
+  flex: none;
+  min-width: 36px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Settings: what transcription installed, each with its pinned version and licence (long hashes and links wrap). */
@@ -4749,4 +4764,17 @@ a.ws-badge.is-knowledge {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+}
+
+/* While it plays, the player stays in view under the top bar, and the segment being heard is marked. */
+.ws-player {
+  position: sticky;
+  top: calc(var(--topbar-h) + 8px);
+  z-index: 5;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.ws-segment.is-playing {
+  background: var(--blue-faint);
+  border-left-color: var(--blue-hi);
 }
