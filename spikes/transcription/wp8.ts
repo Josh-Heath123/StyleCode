@@ -316,21 +316,52 @@ async function room(browser: Browser): Promise<void> {
 
   const context = await browser.newContext({ permissions: ['microphone'], viewport: { width: 1280, height: 860 } });
   const app = await sessionPage(context, id);
-  const microphone = await app.evaluate(async () => {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return (
-      devices.find((d) => d.kind === 'audioinput' && d.deviceId === 'default')?.label ||
-      devices.find((d) => d.kind === 'audioinput')?.label ||
-      'unknown'
+  // The microphone, chosen in StyleCode's own list as the consultant would (decision 12). Windows' default on this
+  // laptop is a virtual device (SteelSeries Sonar) that gave silence on the first try, so the built-in one is chosen.
+  // Names show once the microphone has been allowed, so it is opened once and the page reloaded first.
+  await app.evaluate(async () =>
+    (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop()),
+  );
+  await app.reload();
+  await app.getByRole('heading', { name: 'Transcript', exact: true }).waitFor({ timeout: 60_000 });
+  const wanted = process.env.WP8_MICROPHONE ?? 'Microphone Array';
+  const options = await app.getByLabel('Microphone', { exact: true }).locator('option').allInnerTexts();
+  const microphone = options.find((o) => o.includes(wanted));
+  if (!microphone)
+    throw new Error(
+      `No microphone named like “${wanted}”. Set WP8_MICROPHONE to part of one of these names: ${options.join('; ')}`,
     );
-  });
+  await app.getByLabel('Microphone', { exact: true }).selectOption({ label: microphone });
+  log(`wp8 room: microphone ${microphone}`);
   await app.getByRole('button', { name: 'Record', exact: true }).click();
   await app.getByRole('dialog', { name: 'Start recording' }).getByRole('button', { name: 'Start recording' }).click();
   await app.locator('.ws-live-state', { hasText: 'Recording' }).waitFor({ timeout: 60_000 });
-  await pause(2000);
+  // Before anything plays: the room's own sound must move the meter, or this microphone hears nothing.
+  let heard = 0;
+  for (let i = 0; i < 20; i++) {
+    heard = Math.max(heard, Number((await app.locator('.ws-live').getByRole('meter').getAttribute('aria-valuenow')) ?? 0));
+    await pause(200);
+  }
+  if (heard < 1) {
+    await app.locator('.ws-live').getByRole('button', { name: /Stop/ }).click();
+    throw new Error(
+      `The microphone chosen (${microphone}) gives no sound, so nothing was played. Check it isn’t muted, or set WP8_MICROPHONE to part of another one’s name.`,
+    );
+  }
+  log(`wp8 room: the microphone hears the room (meter up to ${heard}%)`);
 
   const player = await context.newPage();
-  await player.goto(`http://127.0.0.1:${port}/`);
+  await player.goto(`http://localhost:${port}/`);
+  // Out of the laptop's own speaker, named, rather than wherever Windows sends sound now.
+  const speaker = await player.evaluate(async (wantedSpeaker) => {
+    (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop());
+    const outputs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audiooutput');
+    const pick = outputs.find((d) => d.deviceId !== 'default' && d.label.includes(wantedSpeaker));
+    if (!pick) return `the default (${outputs.find((d) => d.deviceId === 'default')?.label ?? 'unknown'})`;
+    await (document.getElementById('a') as HTMLAudioElement & { setSinkId(id: string): Promise<void> }).setSinkId(pick.deviceId);
+    return pick.label;
+  }, process.env.WP8_SPEAKER ?? 'Speaker (Realtek');
+  log(`wp8 room: speaker ${speaker}`);
   const playedAt = await player.evaluate(
     () =>
       new Promise<number>((resolve, reject) => {
@@ -427,6 +458,7 @@ async function room(browser: Browser): Promise<void> {
         power: process.env.STYLECODE_POWER ?? 'not recorded',
         browser: browser.version(),
         microphone,
+        speaker,
         cleanMs,
         recordedMs,
         offsetMs,
