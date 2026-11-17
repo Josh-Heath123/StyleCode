@@ -38,4 +38,6 @@ From `docs/research/TRANSCRIPTION.md`, "Open questions".
 - **Later items in the roadmap:** transcription on the CPU (Parakeet), recording the computer's sound for online meetings (decision 14), and adding recordings in formats other than WAV (decision 15).
 - **The demo GIFs** in `docs/media` still show the editor before the workspace; re-recording them needs ffmpeg (`npm run demos`).
 - **The answer keys** of the evaluation set were drafted by Claude and checked by a subagent; the user may still correct them (`eval/README.md`).
-- **A browser test that timed out under load once:** `e2e/large-document.spec.ts` failed in one full local run during Slice C and passed on its own. Watch it, as the `images.spec.ts` flake was watched.
+- **Browser tests to watch,** as the `images.spec.ts` flake was watched:
+  - `e2e/large-document.spec.ts`, "a 5,000-layer document loads, lists, scrolls and drags": timed out under load in one full local run during Slice C, and passed on its own.
+  - `e2e/workspace.spec.ts`, "settings keep the consultant’s name and show the data folder": failed once in a local run with the browser in UTC, on the consultant's name, which other tests change in parallel (expected "Sam Consultant" with a suffix, got "Sam Consultant"); passed on its own.

@@ -205,7 +205,7 @@ Recordings can be played in StyleCode but not downloaded, so no copy outlives wh
 
 ## Transcribing
 
-On the session's page, **Transcribe…** transcribes the session's recordings on this computer. It needs consent to transcription (not to AI: nothing leaves the computer), and is never offered after a withdrawal. It says how long it should take, from this computer's past runs. An hour of meeting took about 15 minutes on the laptop StyleCode was measured on, most of it working out who spoke.
+On the session's page, **Transcribe…** transcribes the session's recordings on this computer. It needs consent to transcription (not to AI: nothing leaves the computer), and is never offered after a withdrawal. It says how long it should take, from this computer's past runs. An hour of meeting took about 16 minutes on the laptop StyleCode was measured on, most of it working out who spoke.
 
 Two choices before it starts:
 - **Add the transcript when it's ready.** Otherwise it waits for you to review it first: the speakers, the length, and what adding does.
