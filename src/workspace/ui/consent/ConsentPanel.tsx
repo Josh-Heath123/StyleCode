@@ -71,7 +71,7 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
     line = 'Consent: not confirmed';
     detail = 'The form is saved as a draft. Until you confirm it, it allows nothing.';
   } else if (withdrawal) {
-    line = `Consent: withdrawn on ${formatWhen(withdrawal.at)}`;
+    line = `Consent: withdrawn on ${formatWhen(withdrawal.at, meeting.timeZone)}`;
     detail = `Reason: ${withdrawal.reason} Nothing more is captured or processed for this session.`;
   } else if (state?.outcome.kind === 'declined') {
     line = 'Consent: declined';

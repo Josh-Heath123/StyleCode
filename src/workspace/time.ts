@@ -4,6 +4,8 @@
  * timestamps.
  */
 
+import { offsetMs } from './import/zone.ts';
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** A stored timestamp as a `datetime-local` field's value, in this computer's time zone. */
@@ -48,13 +50,57 @@ export function sinceStart(startsAt: string, writtenAt: string): string {
 
 const timeOfDay = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
 
-/** A time of day, such as "09:12": on this computer's clock, or in `timeZone` if given. */
+/** A zone's offset from UTC at a moment, written as the export writes it: "GMT+2", "GMT-3:30", "GMT". */
+export function gmtOffset(ms: number, timeZone: string): string {
+  const offset = Math.round(offsetMs(ms, timeZone) / 60_000);
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const minutes = Math.abs(offset) % 60;
+  return offset === 0 ? 'GMT' : `GMT${offset < 0 ? '-' : '+'}${hours}${minutes ? `:${pad(minutes)}` : ''}`;
+}
+
+/**
+ * The offset to add to a time shown in a session's zone (Phase 3 brief,
+ * decision 29): " (GMT+2)" when that zone's clock reads differently from this
+ * computer's at that moment, otherwise nothing. Null for a zone it can't
+ * read, so the time is shown on this computer's clock.
+ */
+function zoneSuffix(ms: number, timeZone: string): string | null {
+  try {
+    const there = offsetMs(ms, timeZone);
+    return there === -new Date(ms).getTimezoneOffset() * 60_000 ? '' : ` (${gmtOffset(ms, timeZone)})`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A time of day, such as "09:12": on this computer's clock, or in a session's
+ * `timeZone` if given, with its offset when that differs from this
+ * computer's: "10:00 (GMT+2)".
+ */
 export function formatTimeOfDay(iso: string, timeZone?: string): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return '';
-  return timeZone
-    ? new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', timeZone }).format(t)
-    : timeOfDay.format(t);
+  const suffix = timeZone ? zoneSuffix(t, timeZone) : null;
+  return suffix === null
+    ? timeOfDay.format(t)
+    : `${new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', timeZone }).format(t)}${suffix}`;
+}
+
+const dateAndTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+/**
+ * A date and time, such as "5 Nov 2026, 10:00": on this computer's clock, or
+ * in a session's `timeZone` if given, with its offset when that differs
+ * from this computer's: "5 Nov 2026, 10:00 (GMT+2)" (decision 29).
+ */
+export function formatDateTime(iso: string, timeZone?: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  const suffix = timeZone ? zoneSuffix(t, timeZone) : null;
+  return suffix === null
+    ? dateAndTime.format(t)
+    : `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(t)}${suffix}`;
 }
 
 /** "0:03", "12:40" or "1:02:03": time from the start of the meeting. */

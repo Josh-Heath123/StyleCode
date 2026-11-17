@@ -50,7 +50,7 @@ export function DeleteRecordingsDialog({
                 <span className="ws-row-main">
                   <span className="ws-row-title">{r.name}</span>
                   <span className="ws-row-sub">
-                    Recorded {formatWhen(r.audio.recordedAt)} · {formatLength(r.audio.durationMs)}
+                    Recorded {formatWhen(r.audio.recordedAt, meeting.timeZone)} · {formatLength(r.audio.durationMs)}
                   </span>
                 </span>
               </li>

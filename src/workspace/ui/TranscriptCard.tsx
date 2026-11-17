@@ -33,7 +33,7 @@ import {
   type TranscriptPlatform,
   type TranscriptSegment,
 } from '../model/types';
-import { currentTimeZone, get, type Result } from '../model/util';
+import { get, type Result } from '../model/util';
 import { formatOffset, formatTimeOfDay } from '../time';
 import { useConsultant } from './useConsultant';
 import type { ClientView } from './ClientFrame';
@@ -204,11 +204,12 @@ export function TranscriptCard({
 const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
 
 /** Where a transcript came from, in a line. */
-function sourceLine(t: Transcript): string {
-  if (t.source.kind === 'recording') return `${transcribedBy(t.source)}. Added by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;
+function sourceLine(t: Transcript, timeZone: string): string {
+  if (t.source.kind === 'recording')
+    return `${transcribedBy(t.source)}. Added by ${t.importedBy}, ${formatWhen(t.importedAt, timeZone)}.`;
   const from =
     t.source.kind === 'pasted' ? 'Pasted' : `Imported from ${t.source.fileName} (${PLATFORM_LABELS[t.source.platform]})`;
-  return `${from} by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;
+  return `${from} by ${t.importedBy}, ${formatWhen(t.importedAt, timeZone)}.`;
 }
 
 function SpeakerWarning({ transcript }: { transcript: Transcript }) {
@@ -270,7 +271,7 @@ function TranscriptView({
   return (
     <>
       <p className="ws-help">
-        {sourceLine(transcript)} {count(segments.length, 'segment')}.
+        {sourceLine(transcript, meeting.timeZone)} {count(segments.length, 'segment')}.
         {recorded && segments.some((s) => s.unsureWords.length) && (
           <>
             {' '}
@@ -725,7 +726,7 @@ function Preview({
   const labels = [...new Set(read.segments.map((s) => s.speakerLabel).filter((l): l is string => l !== null))];
   const timed = read.segments.filter((s) => s.startMs !== null);
   // In the session's own zone, the one the file's times of day are read in (decision 18), named if it isn't this computer's.
-  const startsAt = `${formatTimeOfDay(meeting.startsAt, meeting.timeZone)}${meeting.timeZone === currentTimeZone() ? '' : ` ${meeting.timeZone} time`}`;
+  const startsAt = formatTimeOfDay(meeting.startsAt, meeting.timeZone);
   return (
     <section className="ws-preview" aria-label="What will be imported">
       <h3>What will be imported</h3>

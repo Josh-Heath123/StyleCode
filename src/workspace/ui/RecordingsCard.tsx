@@ -293,6 +293,7 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
               recording={r}
               live={here?.fileId === r.id && recordingHere ? here : null}
               readOnly={readOnly}
+              timeZone={meeting.timeZone}
               retention={retentionText(retention(r), meeting.timeZone)}
               due={retention(r).due !== null}
               waiting={retention(r).waiting !== null}
@@ -344,8 +345,8 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
             <>
               <p>
                 This deletes <strong>{removing.name}</strong> ({formatLength(removing.audio.durationMs)}, recorded{' '}
-                {formatWhen(removing.audio.recordedAt)}). The session keeps a line saying when it was recorded, how long it was,
-                and when you deleted it, but no sound.
+                {formatWhen(removing.audio.recordedAt, meeting.timeZone)}). The session keeps a line saying when it was recorded,
+                how long it was, and when you deleted it, but no sound.
               </p>
               {usedBy(removing) === 'going' && (
                 <p>
@@ -430,10 +431,10 @@ function DeletedRecordings({ meeting }: { meeting: Session }) {
           <li key={i} className="ws-row is-static">
             <span className="ws-row-main">
               <span className="ws-row-title">
-                Recorded {formatWhen(d.recordedAt)}, {formatLength(d.durationMs)}
+                Recorded {formatWhen(d.recordedAt, meeting.timeZone)}, {formatLength(d.durationMs)}
               </span>
               <span className="ws-row-sub">
-                Deleted {formatWhen(d.deletedAt)} by {d.deletedBy}. Why: {DELETION_REASON_TEXT[d.reason]}.
+                Deleted {formatWhen(d.deletedAt, meeting.timeZone)} by {d.deletedBy}. Why: {DELETION_REASON_TEXT[d.reason]}.
               </span>
             </span>
           </li>
@@ -447,12 +448,15 @@ function RecordingRow({
   recording: r,
   live,
   readOnly,
+  timeZone,
   retention,
   due,
   waiting,
   onRemove,
 }: {
   recording: Recording;
+  /** The session's, which its times are shown in (decision 29). */
+  timeZone: string;
   live: ActiveRecording | null;
   readOnly: boolean;
   /** How long it is kept, or why its time is up. */
@@ -463,7 +467,7 @@ function RecordingRow({
 }) {
   const going = r.audio.state === 'recording';
   const facts = [
-    `${r.audio.source === 'added' ? 'Added' : 'Recorded'} ${formatWhen(r.audio.recordedAt)}`,
+    `${r.audio.source === 'added' ? 'Added' : 'Recorded'} ${formatWhen(r.audio.recordedAt, timeZone)}`,
     going ? (live ? `${formatLength(live.elapsedMs)} so far` : 'not finished') : formatLength(r.audio.durationMs),
     going ? null : formatSize(r.sizeBytes),
   ].filter(Boolean);

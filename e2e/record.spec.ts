@@ -158,7 +158,7 @@ test('findings added by hand, from the keyboard, land in their group with status
   await expect(peak.locator('.is-status')).toHaveText('Status: Confirmed');
   await expect(peak.locator('.is-provenance')).toHaveText('Provenance: Entered by the consultant');
   await expect(peak.getByRole('list', { name: 'Evidence' })).toContainText(
-    /Orders peak in December note at \d\d:\d\d( [AP]M)?, in Kick-off/,
+    /Orders peak in December note at \d\d:\d\d( [AP]M)?( \(GMT\+2\))?, in Kick-off/,
   );
   await expect(peak.getByRole('link', { name: 'Kick-off' })).toHaveAttribute('href', `#/c/${id}/e/en_1/s/se_1/p/no_1`);
 

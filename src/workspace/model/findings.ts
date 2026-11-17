@@ -474,6 +474,57 @@ export function addToKnowledge(
   return fact.ok ? ok({ ...ws, knowledge: { ...ws.knowledge, [factId]: fact.value } }) : fact;
 }
 
+/**
+ * A company fact the consultant enters directly, on the client's page (Phase
+ * 3 brief, decision 28): its provenance is "entered by the consultant", and
+ * it has no source.
+ */
+export function enterFact(
+  ws: CompanyWorkspace,
+  factId: string,
+  fact: { statement: string; kind: FindingKind; status: FindingStatus },
+  consultant: string,
+  at: Timestamp,
+): Result<CompanyWorkspace> {
+  if (get(ws.knowledge, factId)) return fail('A company fact with this id exists already.');
+  const statement = fact.statement.trim();
+  if (!statement) return fail('A company fact needs a statement.');
+  if (!FINDING_KINDS.includes(fact.kind)) return fail('Choose a kind.');
+  if (!FINDING_STATUSES.includes(fact.status)) return fail('Choose a status.');
+  if (!consultant.trim()) return fail('Adding company knowledge needs the consultant’s name.');
+  const entered: CompanyFact = {
+    id: factId,
+    statement,
+    kind: fact.kind,
+    status: fact.status,
+    provenance: { kind: 'consultant' },
+    source: null,
+    createdBy: consultant.trim(),
+    createdAt: at,
+  };
+  return ok({ ...ws, knowledge: { ...ws.knowledge, [factId]: entered } });
+}
+
+/**
+ * The company facts promoted from an engagement's findings (decision 27),
+ * oldest first: through the finding while it exists, and once it's deleted,
+ * through the sessions its statement came from. A fact whose finding and
+ * sessions are all gone can't be traced to an engagement, so it isn't
+ * listed: the export never takes in another engagement's knowledge.
+ */
+export function factsFromEngagement(ws: CompanyWorkspace, engagementId: string): CompanyFact[] {
+  return Object.values(ws.knowledge)
+    .filter((f) => {
+      if (!f.source) return false;
+      const finding = f.source.findingId ? get(ws.findings, f.source.findingId) : undefined;
+      if (finding) return finding.engagementId === engagementId;
+      return (Array.isArray(f.source.sessionIds) ? f.source.sessionIds : []).some(
+        (id) => get(ws.sessions, id)?.engagementId === engagementId,
+      );
+    })
+    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
 /** The company fact promoted from a finding, if there is one. */
 export function factFrom(ws: CompanyWorkspace, findingId: string): CompanyFact | undefined {
   return Object.values(ws.knowledge).find((f) => f.source?.findingId === findingId);

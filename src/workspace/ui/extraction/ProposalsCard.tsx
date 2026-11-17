@@ -246,7 +246,7 @@ function KeptStop({ view, meeting }: { view: ClientView; meeting: Session }) {
   return (
     <div className="ws-run-summary" role="group" aria-label="Why the AI stopped">
       <p className="ws-error">
-        The AI ({stop.model}) stopped on {formatWhen(stop.at)}
+        The AI ({stop.model}) stopped on {formatWhen(stop.at, meeting.timeZone)}
         {stop.partsDone > 0
           ? `, after ${partsText(stop.partsDone, stop.parts)}. What those parts proposed was added for review, after StyleCode’s checks.`
           : ', before it finished a part.'}{' '}
@@ -640,7 +640,7 @@ function ProposalItem({
 function quoteSource(ws: CompanyWorkspace, meeting: Session, e: Exclude<Finding['evidence'][number], { kind: 'deleted' }>) {
   if (e.kind === 'note') {
     const note = get(ws.notes, e.noteId);
-    return `your note${note ? ` at ${formatTimeOfDay(note.writtenAt)}` : ''}`;
+    return `your note${note ? ` at ${formatTimeOfDay(note.writtenAt, meeting.timeZone)}` : ''}`;
   }
   const label = get(ws.segments, e.segmentId)?.speakerLabel;
   if (!label) return 'said';

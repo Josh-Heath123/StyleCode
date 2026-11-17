@@ -69,7 +69,7 @@ function Consent({ view, engagement, meeting }: { view: ClientView; engagement: 
     { label: 'Consent' },
   ];
   const title = `Consent for “${meeting.title}”`;
-  const lede = formatWhen(meeting.startsAt);
+  const lede = formatWhen(meeting.startsAt, meeting.timeZone);
   if (view.readOnly && !record) {
     return (
       <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
@@ -423,6 +423,8 @@ const METHOD_TEXT = {
 
 /** A record that can't be edited here (locked by a withdrawal, or a read-only client): what it says, and its history. */
 function RecordView({ view, record }: { view: ClientView; record: ConsentRecord }) {
+  // Times in the session's own zone (decision 29).
+  const timeZone = get(view.workspace.sessions, record.sessionId)?.timeZone;
   const wording = wordingFor(record.wordingVersion);
   const provider = record.given.externalProvider ?? record.told.externalProvider;
   const asked = record.askedParticipantIds.map((id) => get(view.workspace.participants, id)?.name ?? id).join(', ');
@@ -462,7 +464,7 @@ function RecordView({ view, record }: { view: ClientView; record: ConsentRecord 
                 : `Given with limits: ${record.outcome.limits}`}
           </dd>
           <dt>Confirmed</dt>
-          <dd>{record.confirmed ? `By ${record.confirmed.by}, ${formatWhen(record.confirmed.at)}` : 'No'}</dd>
+          <dd>{record.confirmed ? `By ${record.confirmed.by}, ${formatWhen(record.confirmed.at, timeZone)}` : 'No'}</dd>
         </dl>
       </section>
       <section className="ws-card" aria-labelledby="told-title">
@@ -481,8 +483,8 @@ function RecordView({ view, record }: { view: ClientView; record: ConsentRecord 
               {record.amendments.map((a) => (
                 <li key={a.id}>
                   <p>
-                    <strong>{a.kind === 'withdrawal' ? 'Consent withdrawn' : 'Amended'}</strong> by {a.by}, {formatWhen(a.at)}.
-                    Reason: {a.reason}
+                    <strong>{a.kind === 'withdrawal' ? 'Consent withdrawn' : 'Amended'}</strong> by {a.by},{' '}
+                    {formatWhen(a.at, timeZone)}. Reason: {a.reason}
                   </p>
                   {a.kind === 'change' && <AmendmentDetail record={record} amendment={a} />}
                 </li>

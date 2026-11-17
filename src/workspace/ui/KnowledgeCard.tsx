@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { removeFact, updateFact } from '../model/findings';
+import { enterFact, removeFact, updateFact } from '../model/findings';
 import { KIND_LABEL, provenanceLabel, STATUS_LABEL } from '../model/labels';
 import { FINDING_KINDS, FINDING_STATUSES, type CompanyFact, type FindingKind, type FindingStatus } from '../model/types';
-import { get } from '../model/util';
+import { createId, get } from '../model/util';
+import { ID_PREFIX } from '../model/workspace';
 import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
-import { DialogField, FormDialog } from './fields';
+import { DialogField, FormDialog, NameField, nameFor } from './fields';
 import { speakerName } from './FindingForm';
 import { focusAfterRemoving } from './focus';
-import { step } from './steps';
+import { now, step } from './steps';
+import { useConsultant } from './useConsultant';
 
 /** The company's facts, oldest first, so each keeps its place as more are added. */
 export function factsOf(view: ClientView): CompanyFact[] {
@@ -21,11 +23,13 @@ export function factsOf(view: ClientView): CompanyFact[] {
  * What is known about the client (Phase 2 brief, WP8): each fact with its
  * kind, status, provenance and source, or "source deleted". On the client's
  * page, facts can be edited and removed. On an engagement's page, they are
- * shown to read, with a link to the client's page.
+ * shown to read, with a link to the client's page. On the client's page, a
+ * fact can also be entered directly (Phase 3 brief, decision 28).
  */
 export function KnowledgeCard({ view, manage }: { view: ClientView; manage: boolean }) {
   const facts = factsOf(view);
   const [editing, setEditing] = useState<CompanyFact | null>(null);
+  const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editable = manage && !view.readOnly;
   const companyHref = `#/c/${view.session.companyId}`;
@@ -33,6 +37,11 @@ export function KnowledgeCard({ view, manage }: { view: ClientView; manage: bool
     <section className="ws-card" aria-labelledby="knowledge-title">
       <div className="ws-card-head">
         <h2 id="knowledge-title">{manage ? 'Company knowledge' : `What is known about ${view.workspace.company.name}`}</h2>
+        {editable && (
+          <button type="button" className="button" onClick={() => setAdding(true)}>
+            Add a fact…
+          </button>
+        )}
         {!manage && facts.length > 0 && (
           <a className="button" href={companyHref}>
             {view.readOnly ? 'See on the client’s page' : 'Change on the client’s page'}
@@ -41,8 +50,8 @@ export function KnowledgeCard({ view, manage }: { view: ClientView; manage: bool
       </div>
       {facts.length === 0 ? (
         <p className="ws-help">
-          Nothing yet. In an engagement’s record, choose “Add to company knowledge” on a finding, and it shows here and in every
-          engagement with this client.
+          Nothing yet. In an engagement’s record, choose “Add to company knowledge” on a finding
+          {editable ? ', or add a fact here,' : ''} and it shows here and in every engagement with this client.
         </p>
       ) : (
         <>
@@ -80,6 +89,7 @@ export function KnowledgeCard({ view, manage }: { view: ClientView; manage: bool
         </>
       )}
       {editing && <FactDialog view={view} fact={editing} onClose={() => setEditing(null)} />}
+      {adding && <FactDialog view={view} fact={null} onClose={() => setAdding(false)} />}
     </section>
   );
 }
@@ -173,20 +183,38 @@ function FactItem({
   );
 }
 
-/** Changes a fact's statement, kind or status (decision 17). Its source stays as it was. */
-function FactDialog({ view, fact, onClose }: { view: ClientView; fact: CompanyFact; onClose: () => void }) {
-  const [statement, setStatement] = useState(fact.statement);
-  const [kind, setKind] = useState<FindingKind>(fact.kind);
-  const [status, setStatus] = useState<FindingStatus>(fact.status);
+/**
+ * Changes a fact's statement, kind or status (decision 17); its source stays
+ * as it was. With no fact, adds one entered by the consultant (decision 28),
+ * as an undoable step.
+ */
+function FactDialog({ view, fact, onClose }: { view: ClientView; fact: CompanyFact | null; onClose: () => void }) {
+  const consultant = useConsultant();
+  const [name, setName] = useState('');
+  const [statement, setStatement] = useState(fact?.statement ?? '');
+  const [kind, setKind] = useState<FindingKind>(fact?.kind ?? 'business-requirement');
+  const [status, setStatus] = useState<FindingStatus>(fact?.status ?? 'suggested');
   const [error, setError] = useState<string | null>(null);
   return (
     <FormDialog
-      title="Change the company fact"
-      submitLabel="Save changes"
+      title={fact ? 'Change the company fact' : 'Add a company fact'}
+      submitLabel={fact ? 'Save changes' : 'Add the fact'}
       error={error}
       onClose={onClose}
-      onSubmit={() => {
-        const problem = step(view.session, 'Change a company fact', (ws) => updateFact(ws, fact.id, { statement, kind, status }));
+      onSubmit={async () => {
+        if (fact) {
+          const problem = step(view.session, 'Change a company fact', (ws) =>
+            updateFact(ws, fact.id, { statement, kind, status }),
+          );
+          if (problem) return setError(problem);
+          return onClose();
+        }
+        if (!statement.trim()) return setError('Write the fact.');
+        const by = await nameFor(consultant, name);
+        if (!by) return setError('Give your name: company knowledge records who added it.');
+        const problem = step(view.session, 'Add a company fact', (ws) =>
+          enterFact(ws, createId(ID_PREFIX.knowledge), { statement, kind, status }, by, now()),
+        );
         if (problem) return setError(problem);
         onClose();
       }}
@@ -218,7 +246,13 @@ function FactDialog({ view, fact, onClose }: { view: ClientView; fact: CompanyFa
           </select>
         )}
       </DialogField>
-      {fact.source && <p className="ws-help">Its source stays as it was promoted, so you can still see where it came from.</p>}
+      {fact?.source && <p className="ws-help">Its source stays as it was promoted, so you can still see where it came from.</p>}
+      {!fact && (
+        <>
+          <p className="ws-help">It’s shown as entered by you, with no source, here and in every engagement with this client.</p>
+          <NameField consultant={consultant} value={name} onChange={setName} />
+        </>
+      )}
     </FormDialog>
   );
 }

@@ -57,6 +57,18 @@ Record of the engagement with Harbour Bakery, exported from StyleCode.
 
 - F1 (Orders peak in December, at about five times the usual volume.) **influences** F2 (Stock is tracked in a spreadsheet that two people edit.)
 
+## Company knowledge
+
+Facts about Harbour Bakery promoted from this engagement’s findings.
+
+#### K1. Orders peak in December, and again at Easter.
+
+- **Kind:** Scalability
+- **Status:** Suggested (not agreed yet)
+- **Provenance:** Said in a session
+- **Source:** F1 in this record, first recorded as “Orders peak in December, at about five times the usual volume.”
+- **Added by:** Sam Consultant
+
 ## Consent
 
 ### Kick-off
