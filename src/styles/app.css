@@ -4400,6 +4400,21 @@ a.ws-badge.is-knowledge {
   margin-bottom: 12px;
 }
 
+.ws-deleted-recordings {
+  margin-top: 14px;
+}
+
+.ws-deleted-recordings h3 {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ws-deleted-recordings .ws-help {
+  margin: 0 0 6px;
+}
+
 .ws-badge.is-live {
   color: var(--danger);
   border-color: rgba(255, 107, 120, 0.4);
@@ -4426,9 +4441,46 @@ a.ws-badge.is-knowledge {
 }
 
 .app-nav-recording {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+/* The sound isn't reaching the disk: said under the indicator, on every page, until a piece goes through. */
+.app-nav-unsaved,
+.ws-live-unsaved {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--caution);
+  border-radius: 8px;
+  /* Opaque, as it floats over the page: the caution tint over the raised surface. */
+  background: linear-gradient(var(--caution-soft), var(--caution-soft)), var(--surface-3);
+  color: var(--caution);
+  line-height: 1.45;
+}
+
+.app-nav-unsaved {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  width: 380px;
+  white-space: normal;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.ws-live-unsaved {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.app-nav-unsaved svg,
+.ws-live-unsaved svg {
+  flex: none;
+  margin-top: 2px;
 }
 
 .app-nav-recording .app-nav-link {

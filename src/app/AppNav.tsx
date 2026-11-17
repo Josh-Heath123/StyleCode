@@ -1,6 +1,6 @@
 import { Icon } from '../ui/Icon';
 import { useRuns, type Run } from '../workspace/ui/extraction/runs';
-import { dismissRecording, isRecordingNow, stopRecording, useRecording } from '../workspace/recording/recorder';
+import { dismissRecording, isRecordingNow, stopRecording, UNSAVED_MESSAGE, useRecording } from '../workspace/recording/recorder';
 import { formatClock, LevelMeter, STOP_KEY } from '../workspace/ui/RecordingsCard';
 
 /**
@@ -59,8 +59,8 @@ function RecordingNow() {
   return (
     <span className="app-nav-recording" role="group" aria-label="Recording">
       <a className="app-nav-link" href={recording.href}>
-        <span className="ws-live-dot" aria-hidden="true" /> Recording “{recording.sessionTitle}”{' '}
-        <span className="app-nav-clock">{formatClock(recording.elapsedMs)}</span>
+        <span className="ws-live-dot" aria-hidden="true" /> {recording.state === 'stopping' ? 'Stopping' : 'Recording'} “
+        {recording.sessionTitle}” <span className="app-nav-clock">{formatClock(recording.elapsedMs)}</span>
       </a>
       <LevelMeter level={recording.level} compact />
       <button
@@ -73,6 +73,11 @@ function RecordingNow() {
       >
         <Icon name="stop" size={12} /> Stop
       </button>
+      {recording.unsaved && (
+        <span className="app-nav-unsaved" role="alert">
+          <Icon name="warning" size={14} /> {UNSAVED_MESSAGE}
+        </span>
+      )}
     </span>
   );
 }

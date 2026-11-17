@@ -18,6 +18,9 @@ import type { WorkspaceSession } from '../session';
 import { finalStep, now } from '../ui/steps';
 import { holdCompany, onCompanyClosed } from '../ui/useCompanySession';
 import workletUrl from './capture-worklet.js?url';
+import { dueToSend, PIECE_BYTES, SEND_EVERY_MS, UNSAVED_AFTER_MS, UNSAVED_MESSAGE } from './sending';
+
+export { UNSAVED_MESSAGE };
 
 /**
  * Recording in the room (Phase 3 brief, decisions 12 and 13), kept outside
@@ -46,12 +49,15 @@ export interface ActiveRecording {
   level: number;
   /** Under 5 GB free when it started. */
   lowSpace: boolean;
+  /**
+   * The local server hasn't taken the sound for a while (closed, or the disk
+   * full): it waits in the page until it can be sent.
+   */
+  unsaved: boolean;
   /** Why it stopped by itself, or failed. */
   message: string | null;
 }
 
-/** How often a piece is sent: a crash loses at most about this much. */
-export const SEND_EVERY_MS = 2000;
 const MAX_BYTES = (MAX_RECORDING_MS / 1000) * RECORDING_BYTES_PER_SECOND;
 
 let current: ActiveRecording | null = null;
@@ -174,6 +180,7 @@ export async function startRecordingSession(
     elapsedMs: 0,
     level: 0,
     lowSpace,
+    unsaved: false,
     message: null,
   };
   listeners.forEach((l) => l());
@@ -193,7 +200,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
   let sent = 0;
   /** Bytes captured, sent or not. */
   let captured = 0;
-  let sending: Promise<void> | null = null;
+  let sending: Promise<'sent' | 'waiting' | 'refused'> | null = null;
   let stopping = false;
   let lastLevel = 0;
 
@@ -206,41 +213,74 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
     captured += bytes.length;
   };
 
-  /** Sends what's waiting, as one piece at its offset. A failed piece stays and goes with the next. */
-  const send = async (): Promise<void> => {
-    if (!pendingBytes) return;
-    const piece = new Uint8Array(pendingBytes);
-    let at = 0;
-    for (const p of pending) {
-      piece.set(p, at);
-      at += p.length;
-    }
-    const answer = await sendRecordingPiece(companyId, fileId, meeting.id, sent, piece);
-    // Only what the server now has is dropped from the queue.
-    let drop = answer.bytes - sent;
-    sent = answer.bytes;
-    while (drop > 0 && pending.length) {
-      const first = pending[0];
-      if (first.length <= drop) {
-        drop -= first.length;
-        pendingBytes -= first.length;
-        pending.shift();
-      } else {
-        pending[0] = first.subarray(drop);
-        pendingBytes -= drop;
-        drop = 0;
+  /** When the last try to send began, and when pieces began failing (null while they go through). */
+  let lastTry = 0;
+  let failingSince: number | null = null;
+  /** Why the server refused the recording's sound, once it has. */
+  let refusal: string | null = null;
+
+  /**
+   * Sends what's waiting, in pieces at their offsets, each under the server's
+   * limit. A failed piece stays and goes with the next try. A refusal (a 4xx:
+   * consent changed, the recording was deleted) is final; anything else (the
+   * server closed, the disk full) is tried again.
+   */
+  const send = async (): Promise<'sent' | 'waiting' | 'refused'> => {
+    lastTry = Date.now();
+    while (pendingBytes > 0) {
+      const size = Math.min(pendingBytes, PIECE_BYTES);
+      const piece = new Uint8Array(size);
+      let at = 0;
+      for (const p of pending) {
+        if (at === size) break;
+        const part = p.subarray(0, size - at);
+        piece.set(part, at);
+        at += part.length;
+      }
+      let answer: { bytes: number; full: boolean };
+      try {
+        answer = await sendRecordingPiece(companyId, fileId, meeting.id, sent, piece);
+      } catch (error) {
+        if (error instanceof WorkspaceApiError && error.status >= 400 && error.status < 500) {
+          refusal = error.message;
+          return 'refused';
+        }
+        failingSince ??= Date.now();
+        // Once stopped, the sound is only waiting, so it says so straight away.
+        if (stopping || Date.now() - failingSince >= UNSAVED_AFTER_MS) publish({ unsaved: true });
+        return 'waiting';
+      }
+      failingSince = null;
+      if (current?.unsaved) publish({ unsaved: false });
+      // Only what the server now has is dropped from the queue.
+      let drop = answer.bytes - sent;
+      sent = answer.bytes;
+      while (drop > 0 && pending.length) {
+        const first = pending[0];
+        if (first.length <= drop) {
+          drop -= first.length;
+          pendingBytes -= first.length;
+          pending.shift();
+        } else {
+          pending[0] = first.subarray(drop);
+          pendingBytes -= drop;
+          drop = 0;
+        }
+      }
+      if (answer.full) {
+        void stop('The recording reached its 4-hour limit and stopped.');
+        break;
       }
     }
-    if (answer.full) void stop('The recording reached its 4-hour limit and stopped.');
+    return 'sent';
   };
 
-  const sendNow = (): Promise<void> => {
+  const sendNow = (): Promise<'sent' | 'waiting' | 'refused'> => {
+    if (refusal) return Promise.resolve('refused');
     sending ??= send()
-      .catch((error: unknown) => {
-        // The server refused the recording (consent changed, the recording was stopped elsewhere): stop.
-        if (error instanceof WorkspaceApiError && error.status >= 400 && error.status < 500 && !stopping)
-          void stop(`${error.message} The recording stopped.`);
-        // Otherwise the server may be back soon: the sound waits for the next piece.
+      .then((result) => {
+        if (result === 'refused' && !stopping) void stop(`${refusal} The recording stopped.`);
+        return result;
       })
       .finally(() => {
         sending = null;
@@ -251,6 +291,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
   let node: AudioWorkletNode | null = null;
   let source: MediaStreamAudioSourceNode | null = null;
   let mute: GainNode | null = null;
+  // A backup: the sound's callback sends too (dueToSend), as hidden tabs' timers can slow to once a minute.
   const timer = setInterval(() => void sendNow(), SEND_EVERY_MS);
 
   const stop = async (message: string | null): Promise<void> => {
@@ -265,11 +306,13 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
     if (node) node.port.onmessage = null;
     if (resampler) take(resampler.flush());
     await context.close().catch(() => undefined);
-    // Send what's left, trying a few times while the server answers.
-    for (let tries = 0; pendingBytes > 0 && tries < 5; tries++) {
+    // Send what's left. While the server doesn't answer, the sound waits in
+    // the page and is tried again for as long as the page is open: the
+    // recording stays "stopping", so closing the tab still asks first.
+    for (let tries = 0; pendingBytes > 0; tries++) {
       if (sending) await sending;
-      await sendNow();
-      if (pendingBytes > 0) await new Promise((r) => setTimeout(r, 500 * (tries + 1)));
+      if ((await sendNow()) === 'refused') break;
+      if (pendingBytes > 0) await new Promise((r) => setTimeout(r, Math.min(5000, 500 * (tries + 1))));
     }
     try {
       const done = await finishRecordingFile(companyId, fileId);
@@ -284,12 +327,14 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
         state: problem ? 'failed' : 'stopped',
         elapsedMs: done.durationMs,
         level: 0,
+        unsaved: false,
         message: problem ? `The recording is on disk, but its entry couldn’t be saved: ${problem}` : message,
       });
     } catch {
       publish({
         state: 'failed',
         level: 0,
+        unsaved: false,
         message:
           'StyleCode’s local server couldn’t finish the recording. What reached it is kept, and is finished when the client is next opened.',
       });
@@ -332,6 +377,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
       lastLevel = Math.max(peakLevel(block), lastLevel * 0.85);
       publish({ state: 'recording', elapsedMs: Math.floor((captured / RECORDING_BYTES_PER_SECOND) * 1000), level: lastLevel });
       if (captured >= MAX_BYTES) void stop('The recording reached its 4-hour limit and stopped.');
+      else if (!sending && dueToSend(pendingBytes, Date.now() - lastTry)) void sendNow();
     };
     if (context.state === 'suspended') await context.resume();
   } catch {
@@ -361,7 +407,8 @@ if (typeof window !== 'undefined') {
   window.addEventListener(
     'keydown',
     (e) => {
-      if (!isStopKey(e) || !live || current?.state !== 'recording') return;
+      // As the Stop button does, it also stops a recording that is still starting.
+      if (!isStopKey(e) || !live || (current?.state !== 'recording' && current?.state !== 'starting')) return;
       e.preventDefault();
       e.stopPropagation();
       void stopRecording();

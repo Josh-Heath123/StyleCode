@@ -198,6 +198,14 @@ export function addRecordingFile(
   return ok({ workspace: withRecording(ws, session, file, at), file });
 }
 
+/** Why a recording was deleted, as its kept line says it (decision 24), on screen and in the export. */
+export const DELETION_REASON_TEXT: Record<DeletionReason, string> = {
+  transcribed: 'after transcription, as the client was told',
+  retention: 'its time was up',
+  withdrawal: 'the client withdrew consent',
+  consultant: 'the consultant deleted it',
+};
+
 /**
  * Deletes recordings, permanently, keeping a line for each (decision 24). A
  * recording still going is stopped first. The server deletes the sound when

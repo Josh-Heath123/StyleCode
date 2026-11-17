@@ -4,7 +4,14 @@ import { Icon } from '../../ui/Icon';
 import { addWavFile, discardStoredFile } from '../api';
 import { canCapture, consentFor } from '../model/consent';
 import { formatSize } from '../model/files';
-import { addRecordingFile, MAX_ADDED_WAV_BYTES, recordingsOf, removeRecordings, type Recording } from '../model/recordings';
+import {
+  addRecordingFile,
+  DELETION_REASON_TEXT,
+  MAX_ADDED_WAV_BYTES,
+  recordingsOf,
+  removeRecordings,
+  type Recording,
+} from '../model/recordings';
 import type { Session } from '../model/types';
 import {
   dismissRecording,
@@ -12,6 +19,7 @@ import {
   startRecordingSession,
   stopRecording,
   useRecording,
+  UNSAVED_MESSAGE,
   type ActiveRecording,
 } from '../recording/recorder';
 import type { ClientView } from './ClientFrame';
@@ -250,7 +258,13 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
       {recordings.length === 0 ? (
         !recordingHere && (
           <div className="ws-empty is-small">
-            <p>{!readOnly && !allowed.ok ? `Recording isn’t available: ${lowerFirst(allowed.error)}` : 'No recordings yet.'}</p>
+            <p>
+              {!readOnly && !allowed.ok
+                ? `Recording isn’t available: ${lowerFirst(allowed.error)}`
+                : meeting.deletedRecordings.length
+                  ? 'No recordings kept.'
+                  : 'No recordings yet.'}
+            </p>
           </div>
         )
       ) : (
@@ -266,6 +280,8 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
           ))}
         </ul>
       )}
+
+      {meeting.deletedRecordings.length > 0 && <DeletedRecordings meeting={meeting} />}
 
       {confirm && (
         <LockDialog
@@ -338,11 +354,44 @@ function LivePanel({
       >
         <Icon name="stop" size={14} /> Stop <kbd className="ws-kbd">{STOP_KEY}</kbd>
       </button>
+      {recording.unsaved && (
+        <p className="ws-live-unsaved" role="alert">
+          <Icon name="warning" size={14} /> {UNSAVED_MESSAGE}
+        </p>
+      )}
       {recording.lowSpace && (
         <p className="ws-help ws-caution">
           Under 5 GB is free on this computer’s drive. An hour of recording takes about 115 MB.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * What is kept of each deleted recording (decision 24): when it was recorded,
+ * how long it was, and when, by whom and why it was deleted. No sound, no
+ * words. The delete dialog promises this line.
+ */
+function DeletedRecordings({ meeting }: { meeting: Session }) {
+  return (
+    <div className="ws-deleted-recordings">
+      <h3 id={`deleted-recordings-${meeting.id}`}>Deleted recordings</h3>
+      <p className="ws-help">Only these lines are kept: no sound and no words.</p>
+      <ul className="ws-list is-compact" aria-labelledby={`deleted-recordings-${meeting.id}`}>
+        {meeting.deletedRecordings.map((d, i) => (
+          <li key={i} className="ws-row is-static">
+            <span className="ws-row-main">
+              <span className="ws-row-title">
+                Recorded {formatWhen(d.recordedAt)}, {formatLength(d.durationMs)}
+              </span>
+              <span className="ws-row-sub">
+                Deleted {formatWhen(d.deletedAt)} by {d.deletedBy}. Why: {DELETION_REASON_TEXT[d.reason]}.
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

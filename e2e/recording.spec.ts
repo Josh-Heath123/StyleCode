@@ -38,6 +38,8 @@ const soundFile = (id: string, fileId: string) => join(E2E_WORKSPACE, 'companies
 const card = (page: Page) =>
   page.locator('section').filter({ has: page.getByRole('heading', { name: 'Recordings', exact: true }) });
 const live = (page: Page) => card(page).getByRole('group', { name: 'Recording' });
+/** The recordings kept, not the deleted recordings' lines. */
+const kept = (page: Page) => card(page).getByRole('list', { name: 'Recordings', exact: true }).getByRole('listitem');
 const nav = (page: Page) => page.getByRole('navigation', { name: 'StyleCode' });
 
 /** Starts recording from the session page, confirming the lock the first time. */
@@ -52,17 +54,15 @@ async function record(page: Page, first = true) {
   await expect(live(page)).toContainText('Recording');
 }
 
+/** The recording's clock, in seconds. */
+async function clock(page: Page) {
+  const [m, s] = (await live(page).locator('.ws-live-clock').innerText()).split(':').map(Number);
+  return m * 60 + s;
+}
+
 /** Waits until the recording has at least `seconds` of sound. */
 async function recordFor(page: Page, seconds: number) {
-  await expect
-    .poll(
-      async () => {
-        const [m, s] = (await live(page).locator('.ws-live-clock').innerText()).split(':').map(Number);
-        return m * 60 + s;
-      },
-      { timeout: 20_000 },
-    )
-    .toBeGreaterThanOrEqual(seconds);
+  await expect.poll(() => clock(page), { timeout: 20_000 }).toBeGreaterThanOrEqual(seconds);
 }
 
 test('Record is unavailable without consent to recording, and says why', async ({ page }) => {
@@ -110,7 +110,7 @@ test('the first recording locks the consent record, records the microphone, show
   expect(Math.abs((bytes.length - 44) / 32 - stored.audio!.durationMs)).toBeLessThan(2);
 
   await page.goBack();
-  await expect(card(page).getByRole('listitem')).toContainText('Recording 1');
+  await expect(kept(page)).toContainText('Recording 1');
 });
 
 test(`Alt+S stops a recording from anywhere, even while typing a note`, async ({ page }) => {
@@ -128,6 +128,98 @@ test(`Alt+S stops a recording from anywhere, even while typing a note`, async ({
   await expect.poll(() => onDisk(id).files[fileId]?.audio?.state).toBe('finished');
 });
 
+test('Alt+S also stops a recording that is still starting, as Stop does', async ({ page }) => {
+  const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
+  // The sound's worklet is held back, so the recording stays "Starting…".
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route('**/capture-worklet.js*', async (route) => {
+    await held;
+    await route.continue().catch(() => undefined);
+  });
+  await card(page).getByRole('button', { name: 'Record', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Start recording' }).getByRole('button', { name: 'Start recording' }).click();
+  await expect(live(page)).toContainText('Starting…');
+  await page.keyboard.press('Alt+s');
+  await expect(live(page)).toHaveCount(0);
+  release();
+  const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
+  await expect.poll(() => onDisk(id).files[fileId]?.audio?.state).toBe('finished');
+});
+
+test('the sound is also sent from its own callback, so it reaches the disk when the page’s timers slow down', async ({
+  page,
+}) => {
+  // Chrome can slow a hidden tab's timers to once a minute. Here the 2-second timer never fires at all.
+  await page.addInitScript(() => {
+    const real = window.setInterval.bind(window);
+    window.setInterval = ((handler: TimerHandler, ms?: number, ...rest: unknown[]) =>
+      ms === 2000 ? 0 : real(handler, ms, ...rest)) as typeof window.setInterval;
+  });
+  const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
+  await record(page);
+  const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
+  await expect.poll(() => statSync(soundFile(id, fileId)).size, { timeout: 15_000 }).toBeGreaterThan(44 + 32_000 * 4);
+  await page.keyboard.press('Alt+s');
+  await expect.poll(() => onDisk(id).files[fileId]?.audio?.state).toBe('finished');
+});
+
+test('when the sound isn’t reaching the disk, it says so on every page, keeps the sound, and saves all of it once the server is back', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
+  await record(page);
+  const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
+  await recordFor(page, 2);
+  // The local server fails every piece, as it would with its disk full.
+  let refuse = true;
+  await page.route(
+    (url) => url.pathname.endsWith(`/recordings/${fileId}`),
+    (route) =>
+      refuse && route.request().method() === 'PUT'
+        ? route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'The disk is full.' }) })
+        : route.fallback(),
+  );
+  const message =
+    'Not being saved: StyleCode’s local server isn’t answering. Keep this page open; the sound waits here until it’s back.';
+  const indicator = nav(page).getByRole('group', { name: 'Recording' });
+  // After about 10 seconds of failed pieces, on the card and in the top bar. The clock keeps going.
+  await expect(live(page).getByRole('alert')).toHaveText(message, { timeout: 25_000 });
+  await expect(indicator.getByRole('alert')).toHaveText(message);
+  const sizeWhileFailing = statSync(soundFile(id, fileId)).size;
+  await recordFor(page, (await clock(page)) + 1);
+
+  // Back: the next piece goes through with everything that waited, and the message goes.
+  refuse = false;
+  await expect(live(page).getByRole('alert')).toHaveCount(0, { timeout: 10_000 });
+  await expect(indicator.getByRole('alert')).toHaveCount(0);
+  expect(statSync(soundFile(id, fileId)).size).toBeGreaterThan(sizeWhileFailing + 32_000 * 10);
+
+  // Failing again at Stop: the sound is kept, the message shows at once, and closing the tab still asks.
+  refuse = true;
+  const seconds = await clock(page);
+  await indicator.getByRole('button', { name: 'Stop' }).click();
+  await expect(indicator).toContainText('Stopping “Kick-off”');
+  await expect(indicator.getByRole('alert')).toHaveText(message);
+  const asked = page.waitForEvent('dialog');
+  await page.close({ runBeforeUnload: true });
+  const dialog = await asked;
+  expect(dialog.type()).toBe('beforeunload');
+  await dialog.dismiss();
+  await expect(indicator.getByRole('alert')).toHaveText(message);
+
+  refuse = false;
+  await expect.poll(() => onDisk(id).files[fileId]?.audio?.state, { timeout: 15_000 }).toBe('finished');
+  await expect(indicator).toHaveCount(0);
+  // The file is whole: as long as the clock showed, with no gap (the server refuses a piece after a gap).
+  const stored = onDisk(id).files[fileId];
+  expect(stored.audio!.durationMs).toBeGreaterThanOrEqual(seconds * 1000);
+  const bytes = readFileSync(soundFile(id, fileId));
+  expect(bytes.length).toBe(stored.sizeBytes);
+  expect(bytes.readUInt32LE(40)).toBe(bytes.length - 44);
+});
+
 test('a session can have several recordings; deleting one is permanent and leaves a line', async ({ page }) => {
   const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
   await record(page);
@@ -138,7 +230,7 @@ test('a session can have several recordings; deleting one is permanent and leave
   await record(page, false);
   await recordFor(page, 1);
   await live(page).getByRole('button', { name: /Stop/ }).click();
-  await expect(card(page).getByRole('listitem')).toHaveCount(2);
+  await expect(kept(page)).toHaveCount(2);
   const [first, second] = onDisk(id).sessions.se_1.audioFileIds;
 
   await card(page).getByRole('button', { name: 'Delete Recording 1' }).click();
@@ -146,11 +238,21 @@ test('a session can have several recordings; deleting one is permanent and leave
   await expect(dialog).toContainText('The session keeps a line saying when it was recorded');
   await dialog.getByRole('button', { name: 'Delete recording' }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(card(page).getByRole('listitem')).toHaveCount(1);
-  await expect(card(page).getByRole('listitem')).toContainText('Recording 2');
+  await expect(kept(page)).toHaveCount(1);
+  await expect(kept(page)).toContainText('Recording 2');
   await expect.poll(() => onDisk(id).sessions.se_1.audioFileIds).toEqual([second]);
   expect(onDisk(id).sessions.se_1.deletedRecordings).toMatchObject([{ reason: 'consultant', deletedBy: 'Sam Consultant' }]);
   await expect.poll(() => existsSync(soundFile(id, first))).toBe(false);
+
+  // The line the dialog promised: recorded when, how long, deleted when, by whom, and why. No sound.
+  const deleted = () => card(page).getByRole('list', { name: 'Deleted recordings' }).getByRole('listitem');
+  await expect(deleted()).toHaveCount(1);
+  await expect(deleted()).toContainText(/^Recorded .+, \d+ s/);
+  await expect(deleted()).toContainText(/Deleted .+ by Sam Consultant\. Why: the consultant deleted it\./);
+  await expect(card(page)).toContainText('Only these lines are kept: no sound and no words.');
+  // It stays after a reload, read from the saved session.
+  await page.reload();
+  await expect(deleted()).toContainText('by Sam Consultant');
 });
 
 test('a withdrawal of consent stops the recording first, keeping what it recorded', async ({ page }) => {
@@ -218,7 +320,7 @@ test('a recording a crash left unfinished is finished with what arrived, and say
   utimesSync(soundFile(id, started.id), old, old);
 
   await page.reload();
-  await expect(card(page).getByRole('listitem')).toContainText('Recovered: StyleCode stopped while recording');
+  await expect(kept(page)).toContainText('Recovered: StyleCode stopped while recording');
   await expect
     .poll(() => onDisk(id).files[started.id]?.audio)
     .toMatchObject({ state: 'finished', recovered: true, durationMs: 3000 });
@@ -258,8 +360,8 @@ test('a WAV made elsewhere is added as a recording, converted to 16 kHz mono; an
   await expect(dialog).toContainText('Adding the first recording locks this session’s consent record.');
   await dialog.getByRole('button', { name: 'Choose a WAV file…' }).click();
   await (await chooser).setFiles({ name: 'kickoff-phone.wav', mimeType: 'audio/wav', buffer: wavFile() });
-  await expect(card(page).getByRole('listitem')).toContainText('kickoff-phone.wav');
-  await expect(card(page).getByRole('listitem')).toContainText('WAV file');
+  await expect(kept(page)).toContainText('kickoff-phone.wav');
+  await expect(kept(page)).toContainText('WAV file');
   await expect.poll(() => onDisk(id).sessions.se_1.audioFileIds.length).toBe(1);
   const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
   expect(onDisk(id).files[fileId].audio).toMatchObject({ source: 'added', durationMs: 2000, settings: null });
