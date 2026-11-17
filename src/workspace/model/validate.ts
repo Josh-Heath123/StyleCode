@@ -187,6 +187,9 @@ function checkEngagements(ws: CompanyWorkspace, report: Report) {
     if (!isNonEmptyText(d.name)) report('design.name', 'A design needs a name.', 'designs', d.id);
     if (!isId(d.documentId)) report('id.invalid', 'A design has an invalid document id.', 'designs', d.id);
     if (!isTimestamp(d.createdAt)) report('field.time', 'A design has an invalid time.', 'designs', d.id);
+    // One file, one link: two links to one document would share its edits and its deletion.
+    if (Object.values(ws.designs).some((o) => o.id !== d.id && o.documentId === d.documentId))
+      report('design.document', 'Two designs link to the same document.', 'designs', d.id);
   }
 }
 

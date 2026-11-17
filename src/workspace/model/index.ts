@@ -14,3 +14,4 @@ export * from './files.ts';
 export * from './transcripts.ts';
 export * from './recordings.ts';
 export * from './aiStop.ts';
+export * from './designs.ts';
