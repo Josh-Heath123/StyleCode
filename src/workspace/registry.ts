@@ -109,6 +109,19 @@ export class SessionRegistry {
     if (before && before !== session) this.release(before);
   }
 
+  /**
+   * Opens a client held for a caller, without making it the current client:
+   * an AI run adding its finished parts to a client that was closed during
+   * the run. If the client is open already, that copy is held instead.
+   * Returns the copy and the way to let it go.
+   */
+  openHeld(session: WorkspaceSession): { session: WorkspaceSession; letGo: () => void } {
+    const open = this.live.get(session.companyId);
+    if (open) return { session: open, letGo: this.hold(open) };
+    this.live.set(session.companyId, session);
+    return { session, letGo: this.hold(session) };
+  }
+
   /** Closes a client straight away, dropping anything not saved: after it has been deleted, or to reload it. */
   close(companyId: string): void {
     const session = this.live.get(companyId);

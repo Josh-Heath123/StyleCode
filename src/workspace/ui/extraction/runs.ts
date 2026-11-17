@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react';
 import { canUseAi } from '../../model/consent';
 import { discardProposals } from '../../model/record';
 import type { Session } from '../../model/types';
-import { get, ok } from '../../model/util';
+import { fail, get, ok } from '../../model/util';
+import { clearAiStop, noteAiStop } from '../../model/aiStop';
 import {
   addProposals,
   checkProposals,
@@ -15,7 +16,7 @@ import {
 import { extract, passageTokens, type SendPart } from '../../extraction/run';
 import type { WorkspaceSession } from '../../session';
 import { now, step } from '../steps';
-import { holdCompany, onCompanyClosed } from '../useCompanySession';
+import { holdCompany, onCompanyClosed, reopenHeld } from '../useCompanySession';
 import { sendForSession, type AiSetup } from './aiSetup';
 import { takeTurn } from './heavySlot';
 import type { HeavyKind } from '../../transcription/types';
@@ -62,6 +63,8 @@ export interface Run {
   addedIds: string[];
   dropped: DropCounts | null;
   unreadable: number;
+  /** Stopped by a deletion or by consent: what the finished parts proposed was not added. */
+  discarded: boolean;
   /** Why it failed, or why its proposals couldn't be added. */
   error: string | null;
 }
@@ -175,6 +178,7 @@ export function startRun(session: WorkspaceSession, meeting: Session, setup: AiS
     addedIds: [],
     dropped: null,
     unreadable: 0,
+    discarded: false,
     error: null,
   });
   publish();
@@ -198,23 +202,25 @@ async function go(
   let ended: Pick<Run, 'state' | 'error'> = { state: 'failed', error: null };
   let addedIds: string[] = [];
   let dropped: DropCounts | null = null;
+  let discarded = false;
 
   // Stops at once, mid-part too, when the client closes (deleted, or reloaded after a conflict), when the
   // session is deleted, or when consent no longer allows this processing (rule C5).
-  let failure: string | null = null;
-  const stopWith = (reason: string) => {
+  // A stop by a deletion or by consent keeps nothing; any other keeps what the finished parts proposed.
+  let failure: { reason: string; kind: 'deletion' | 'consent' | 'closed' } | null = null;
+  const stopWith = (reason: string, kind: 'deletion' | 'consent' | 'closed') => {
     if (failure) return;
-    failure = reason;
+    failure = { reason, kind };
     controller.abort();
   };
   const stopOnClose = onCompanyClosed((closed) => {
-    if (closed === session) stopWith('The client was closed, so the AI stopped.');
+    if (closed === session) stopWith('The client was closed, so the AI stopped.', 'closed');
   });
   const watch = session.subscribe(() => {
     const ws = session.getState().workspace;
-    if (!get(ws.sessions, meeting.id)) return stopWith('The session was deleted, so the AI stopped.');
+    if (!get(ws.sessions, meeting.id)) return stopWith('The session was deleted, so the AI stopped.', 'deletion');
     const allowed = canUseAi(ws, meeting.id, setup.processing, now());
-    if (!allowed.ok) stopWith(`${allowed.error} The AI stopped.`);
+    if (!allowed.ok) stopWith(`${allowed.error} The AI stopped.`, 'consent');
   });
   const workspace = () => {
     if (session.closed) throw new Error('The client was closed, so the AI stopped.');
@@ -251,34 +257,72 @@ async function go(
       const done = runs.get(key);
       if (done) recordSpeed(setup, readingMs(done), passageTokens(passages));
     } catch (e) {
-      ended = failure
-        ? { state: 'failed', error: failure }
+      const stoppedBy = failure as { reason: string } | null;
+      ended = stoppedBy
+        ? { state: 'failed', error: stoppedBy.reason }
         : controller.signal.aborted
           ? { state: 'stopped', error: null }
           : { state: 'failed', error: (e as Error).message };
     }
 
     const at = now();
-    if (partsDone > 0 && !session.closed) {
-      const label =
-        ended.state === 'finished' ? 'Add the AI’s proposals' : `Add the AI’s proposals from ${partsText(partsDone, parts)}`;
-      const problem = step(session, label, (ws) => {
-        const checked = checkProposals(withCurrentPassages(raw, ws), engagementFindings(ws, meeting.id));
-        dropped = checked.dropped;
-        if (!checked.proposals.length) return ok(ws);
-        const stored = addProposals(ws, meeting.id, checked.proposals, {
-          provider: setup.provider,
-          model: setup.model,
-          processing: setup.processing,
-          at,
-        });
-        if (!stored.ok) return stored;
-        addedIds = stored.value.ids;
-        return ok(stored.value.workspace);
-      });
-      if (problem) {
-        addedIds = [];
-        ended = { ...ended, error: `${ended.error ? `${ended.error} ` : ''}The proposals couldn’t be added: ${problem}` };
+    const stop = failure as { kind: string } | null;
+    const byDeletionOrConsent = stop?.kind === 'deletion' || stop?.kind === 'consent';
+    // A run that failed for any other reason is kept with the session, so it still says so later.
+    const unexplained = ended.state === 'failed' && !byDeletionOrConsent;
+    discarded = byDeletionOrConsent && partsDone > 0;
+    if (!byDeletionOrConsent && (partsDone > 0 || unexplained)) {
+      const kept = await keepTo(session);
+      if (kept === 'deleted') {
+        ended = { state: 'failed', error: 'The client was deleted, so the AI stopped.' };
+      } else if (typeof kept === 'string') {
+        ended = { ...ended, error: `${ended.error ? `${ended.error} ` : ''}The proposals couldn’t be added: ${kept}` };
+      } else {
+        try {
+          const label =
+            partsDone === 0
+              ? 'Keep why the AI stopped'
+              : ended.state === 'finished'
+                ? 'Add the AI’s proposals'
+                : `Add the AI’s proposals from ${partsText(partsDone, parts)}`;
+          const problem = step(kept.session, label, (ws) => {
+            if (!get(ws.sessions, meeting.id)) return fail('The session was deleted.');
+            let next = ws;
+            if (partsDone > 0) {
+              const checked = checkProposals(withCurrentPassages(raw, ws), engagementFindings(ws, meeting.id));
+              dropped = checked.dropped;
+              if (checked.proposals.length) {
+                const stored = addProposals(ws, meeting.id, checked.proposals, {
+                  provider: setup.provider,
+                  model: setup.model,
+                  processing: setup.processing,
+                  at,
+                });
+                if (!stored.ok) return stored;
+                addedIds = stored.value.ids;
+                next = stored.value.workspace;
+              }
+            }
+            if (unexplained)
+              return noteAiStop(next, meeting.id, {
+                at,
+                reason: ended.error ?? 'The AI stopped for a reason StyleCode wasn’t told.',
+                partsDone,
+                parts,
+                model: setup.model,
+              });
+            return ended.state === 'finished' ? clearAiStop(next, meeting.id) : ok(next);
+          });
+          if (problem) {
+            addedIds = [];
+            ended = { ...ended, error: `${ended.error ? `${ended.error} ` : ''}The proposals couldn’t be added: ${problem}` };
+          } else if (kept.session !== session || unexplained) {
+            // Saved now: nobody may be at the keyboard, and the next thing to happen could be the laptop stopping.
+            await kept.session.saveNow().catch(() => undefined);
+          }
+        } finally {
+          kept.letGo();
+        }
       }
     }
     // What a run that didn't finish read is kept with its proposals; one that read it all makes that moot.
@@ -292,7 +336,7 @@ async function go(
     watch();
     stopOnClose();
     controllers.delete(key);
-    update(key, { ...ended, addedIds, dropped, unreadable, partsDone, parts });
+    update(key, { ...ended, addedIds, dropped, unreadable, partsDone, parts, discarded });
     letGo();
   }
 }
@@ -325,6 +369,21 @@ function coolFirst(key: string, setup: AiSetup, send: SendPart): SendPart {
 /** Starts a run's next part without waiting for the graphics card to cool, and doesn't wait for the rest of the run. */
 export function dontWaitToCool(companyId: string, sessionId: string): void {
   update(keyOf(companyId, sessionId), { noCooling: true });
+}
+
+/**
+ * Where a run's finished parts go: its client as it is open, or opened again
+ * from disk if it was closed during the run (reloaded after a conflict, say),
+ * held until `letGo`. 'deleted' when the client is gone, or why it couldn't
+ * be opened.
+ */
+async function keepTo(session: WorkspaceSession): Promise<{ session: WorkspaceSession; letGo: () => void } | 'deleted' | string> {
+  if (!session.closed) return { session, letGo: () => undefined };
+  try {
+    return (await reopenHeld(session.companyId)) ?? 'deleted';
+  } catch (e) {
+    return (e as Error).message;
+  }
 }
 
 /** Stops a session's run; what the parts that finished proposed is still added. */

@@ -281,8 +281,27 @@ export interface Session {
    * the session shows the promise to the client was kept. No sound and no words.
    */
   deletedRecordings: DeletedRecording[];
+  /**
+   * Why the AI's last run on this session stopped before it finished, when
+   * neither the consultant, a deletion nor consent stopped it (version 5): kept
+   * so it is still on screen later, until a run finishes or the consultant
+   * dismisses it. Null when there is nothing to say.
+   */
+  aiStop: AiStop | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+/** A run of the AI that stopped part-way, and why (version 5). Times, counts and the reason only: nothing the client said. */
+export interface AiStop {
+  at: Timestamp;
+  /** What went wrong, as the run said it. */
+  reason: string;
+  /** The parts read before it stopped, whose proposals were kept, of all the session's parts. */
+  partsDone: number;
+  parts: number;
+  /** The model the run used. */
+  model: string;
 }
 
 /** Why a recording was deleted (decision 24). */
@@ -554,7 +573,7 @@ export const WORKSPACE_FORMAT = 'stylecode-workspace';
  * 3: company facts have a status (Workspace Phase 2, decision 17).
  * 4: recordings, transcripts made from them, and the lines kept when a recording is deleted (Workspace Phase 3).
  */
-export const WORKSPACE_VERSION = 4;
+export const WORKSPACE_VERSION = 5;
 
 /** One company and everything that belongs to it. */
 export interface CompanyWorkspace {

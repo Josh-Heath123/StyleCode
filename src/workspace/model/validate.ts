@@ -218,6 +218,14 @@ function checkSessions(ws: CompanyWorkspace, report: Report) {
         'sessions',
         s.id,
       );
+    // Why the AI's last run stopped part-way (version 5).
+    if (s.aiStop !== null && !isAiStop(s.aiStop))
+      report(
+        'session.aiStop',
+        'A stopped AI run says when it stopped, why, how many of the parts it read, and which model it used.',
+        'sessions',
+        s.id,
+      );
     checkTimes(s, 'sessions', report);
   }
 
@@ -513,6 +521,21 @@ function checkFiles(ws: CompanyWorkspace, report: Report) {
 }
 
 const isWholeMs = (v: unknown) => Number.isInteger(v) && (v as number) >= 0;
+
+function isAiStop(stop: unknown): boolean {
+  const a = stop as Record<string, unknown> | null | undefined;
+  return (
+    !!a &&
+    typeof a === 'object' &&
+    isTimestamp(a.at) &&
+    isNonEmptyText(a.reason) &&
+    isNonEmptyText(a.model) &&
+    Number.isInteger(a.parts) &&
+    Number.isInteger(a.partsDone) &&
+    (a.partsDone as number) >= 0 &&
+    (a.partsDone as number) <= (a.parts as number)
+  );
+}
 
 function isDeletedLine(line: unknown): boolean {
   const l = line as Record<string, unknown> | null;

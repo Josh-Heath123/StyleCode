@@ -15,7 +15,8 @@ import { passageTokens } from '../../extraction/run';
 import { formatTimeOfDay } from '../../time';
 import { COOLING_UNTIL, coolingText } from '../../transcription/cooling';
 import type { ClientView } from '../ClientFrame';
-import { count } from '../chrome';
+import { count, formatWhen } from '../chrome';
+import { clearAiStop } from '../../model/aiStop';
 import { FindingFields, speakerName, type FindingDraft } from '../FindingForm';
 import { FormDialog, NameField, nameFor } from '../fields';
 import { now, step } from '../steps';
@@ -221,6 +222,7 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
       <div className="ws-run-status">
         {run && running && <Progress run={run} />}
         {summary && <Summary run={summary} why={why} askButton={askButton} />}
+        {!running && !summary && <KeptStop view={view} meeting={meeting} />}
         <CoverageNotices view={view} meeting={meeting} />
         {error && (
           <p className="ws-error" role="alert">
@@ -229,6 +231,42 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
         )}
       </div>
     </>
+  );
+}
+
+/**
+ * Why the AI's last run on the session stopped part-way, kept with the
+ * session (version 5), so it still says so after a reload or the next day,
+ * until a run finishes or the consultant dismisses it.
+ */
+function KeptStop({ view, meeting }: { view: ClientView; meeting: Session }) {
+  const stop = get(view.workspace.sessions, meeting.id)?.aiStop;
+  const [error, setError] = useState<string | null>(null);
+  if (!stop) return null;
+  return (
+    <div className="ws-run-summary" role="group" aria-label="Why the AI stopped">
+      <p className="ws-error">
+        The AI ({stop.model}) stopped on {formatWhen(stop.at)}
+        {stop.partsDone > 0
+          ? `, after ${partsText(stop.partsDone, stop.parts)}. What those parts proposed was added for review, after StyleCode’s checks.`
+          : ', before it finished a part.'}{' '}
+        It said: {stop.reason}
+      </p>
+      <div className="ws-actions">
+        <button
+          type="button"
+          className="button"
+          onClick={() => setError(step(view.session, 'Dismiss why the AI stopped', (ws) => clearAiStop(ws, meeting.id)))}
+        >
+          Dismiss
+        </button>
+      </div>
+      {error && (
+        <p className="ws-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -284,7 +322,8 @@ function Summary({ run, why, askButton }: { run: Run; why: string | null; askBut
         <p>{added ? `The AI proposed ${count(added, 'finding')} to review.` : 'The AI proposed nothing new.'}</p>
       )}
       {run.state !== 'finished' && run.partsDone === 0 && <p>Nothing was added: no part had finished.</p>}
-      {run.state !== 'finished' && run.partsDone > 0 && !added && (
+      {run.discarded && <p>Nothing from {partsText(run.partsDone, run.parts)} was added, because of why the AI stopped.</p>}
+      {run.state !== 'finished' && run.partsDone > 0 && !added && !run.discarded && (
         <p>Nothing new came from {partsText(run.partsDone, run.parts)}.</p>
       )}
       {run.unreadable > 0 && (

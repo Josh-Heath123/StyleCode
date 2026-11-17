@@ -97,6 +97,23 @@ export function holdCompany(session: WorkspaceSession): () => void {
   return registry.hold(session);
 }
 
+/**
+ * The client as it is open in this tab, or opened again from disk if it was
+ * closed (reloaded after a conflict, say), held until `letGo`. Null when the
+ * client no longer exists. Throws when the local server can't be reached.
+ */
+export async function reopenHeld(companyId: string): Promise<{ session: WorkspaceSession; letGo: () => void } | null> {
+  const open = registry.get(companyId);
+  if (open) return { session: open, letGo: holdCompany(open) };
+  try {
+    const opened = await openCompany(companyId);
+    return registry.openHeld(new WorkspaceSession(companyId, opened, { saveCompany }));
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return null;
+    throw error;
+  }
+}
+
 /** Calls back when a client is closed (deleted, reloaded after a conflict, or let go), so a run on it stops. */
 export function onCompanyClosed(listener: (session: WorkspaceSession) => void): () => void {
   return registry.onClose(listener);

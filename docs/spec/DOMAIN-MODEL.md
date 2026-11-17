@@ -42,7 +42,7 @@ CompanyWorkspace (format "stylecode-workspace", version 4)
 | CompanyFact | statement, kind, status, provenance, source (or none), who and when | Company knowledge (vision §3; built in Workspace Phase 2, WP8). Only a finding in the record can be promoted, and only once while its fact exists. Promoting copies the finding's status, which can be edited on the fact afterwards with its statement and kind (`updateFact`, decision 17); its provenance and source stay as promoted. The source keeps a copy of the finding's statement, its quotes (with session and speaker) and the engagement's name, so the fact outlives the finding: when the finding, its session or its engagement is deleted, the link becomes "source deleted" with the date (`promoteToKnowledge`, `removeFindings`). |
 | Engagement | company, name, goal, status (active, or ended on a date) | The end date is what "keep until the engagement ends" in the consent form refers to (MVP Q5). |
 | DesignLink | engagement, name, StyleCode document id | A design belongs to one company: `sharedIds` also reports a document linked from two companies' workspaces. WP4 stores each design inside its company's data. |
-| Session | engagement, title, start time, time zone, recordings, deleted recordings' lines | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. Its recordings are audio files, oldest first; a deleted one leaves a line: when it was recorded, how long it was, and when, by whom and why it was deleted (version 4). |
+| Session | engagement, title, start time, time zone, recordings, deleted recordings' lines | The time zone is the IANA zone the session was created in, from the computer (`timeZone`, version 2). Its times are shown and exported in that zone, and a transcript's times of day are read in it. Its recordings are audio files, oldest first; a deleted one leaves a line: when it was recorded, how long it was, and when, by whom and why it was deleted (version 4). It keeps why the AI's last run on it stopped part-way, if one did (`aiStop`, version 5): times, counts, the model and the run's reason, never the client's words. |
 | Participant | session, name, role, organisation, side (client or consultant), speaker labels | A speaker label belongs to at most one participant in a session. A person can have several labels ("Alex", "Alex (Guest)"). |
 | ConsentRecord | see "Consent" below | One per session, with amendments. |
 | Transcript | session, source (file: name, `vtt`, `docx` or `txt`, platform; pasted; or recordings: each by start and length, the transcription engine and the speaker engine, with versions and models), who added it and when | One per session (MVP Q10). The file itself isn't kept: the segments are the transcript. A transcript made from recordings names them by start and length, so its source stays readable once they are deleted (version 4). |
@@ -141,7 +141,7 @@ The validator reads entries of any shape without failing, which the tests check 
 
 ## Versioning
 
-The workspace carries `format: "stylecode-workspace"` and `version: 4`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
+The workspace carries `format: "stylecode-workspace"` and `version: 5`. A newer version is refused with a message to update StyleCode. When the model changes, the version goes up and `parseWorkspace` gains a migration from the previous one, as the editor's project files do. Migrations run before the checks, one version at a time; the file on disk changes only when the workspace is next saved.
 
 | Version | Since | Changes |
 | --- | --- | --- |
@@ -149,6 +149,7 @@ The workspace carries `format: "stylecode-workspace"` and `version: 4`. A newer 
 | 2 | Workspace Phase 2 | Sessions keep their time zone (`timeZone`); a version 1 session gets the computer's zone at migration. Transcripts can come from `.txt` files (the source format `txt`), which needs no migration. |
 | 3 | Workspace Phase 2 (WP8) | Company facts have a status (decision 17). A version 2 fact takes its source finding's status if the finding is still there, otherwise "suggested", which claims nothing was agreed. |
 | 4 | Workspace Phase 3 (WP4) | Recordings, transcripts made from them, unsure words and the deleted recordings' lines. A version 3 session gets an empty list of deleted recordings, and a segment an empty list of unsure words; version 3 had no way to add audio, so nothing else changes. |
+| 5 | Workspace Phase 3 (Slice C) | A session keeps why the AI's last run on it stopped part-way (`aiStop`: when, the reason the run gave, the parts read of all the parts, and the model), when neither the consultant, a deletion nor consent stopped it. It is cleared when a run finishes or the consultant dismisses it. A version 4 session gets none. |
 
 ## Decisions
 

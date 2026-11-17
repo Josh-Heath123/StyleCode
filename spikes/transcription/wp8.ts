@@ -195,6 +195,7 @@ async function seed(meeting: string, retention: Record<string, unknown>, notAske
       timeZone: c.timeZone,
       audioFileIds: [],
       deletedRecordings: [],
+      aiStop: null,
       createdAt: at,
       updatedAt: at,
     },
