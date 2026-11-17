@@ -29,8 +29,11 @@ const BROWSER = {
 
 /** Tests that start heavy jobs: AI runs on a local model, and transcriptions. */
 const HEAVY = /(extraction|transcription)\.spec\.ts$/;
-/** Tests whose actions cover every client in the test folder (the recordings past their time): they run after the rest. */
-const LAST = /retention\.spec\.ts$/;
+/**
+ * Tests that run after the rest, one at a time: those whose actions cover every client in the test folder (the
+ * recordings past their time), and those that read back the folder's one settings file, which most tests set.
+ */
+const LAST = /(retention|settings)\.spec\.ts$/;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -57,7 +60,8 @@ export default defineConfig({
     // AI runs and transcriptions take turns on this computer (Phase 3, decision 10), so the tests that start them
     // would wait for each other's; they run one at a time, alongside the rest.
     { name: 'heavy jobs', dependencies: ['workspace folder'], testMatch: HEAVY, workers: 1, use: BROWSER },
-    // Deleting every client's recordings past their time would reach into other tests' clients, so these come last.
+    // Deleting every client's recordings past their time would reach into other tests' clients, and the consultant's
+    // name is one setting most tests set, so these come last.
     { name: 'after the rest', dependencies: ['chromium', 'heavy jobs'], testMatch: LAST, workers: 1, use: BROWSER },
   ],
   webServer: {

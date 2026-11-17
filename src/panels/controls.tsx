@@ -57,10 +57,13 @@ export function evaluateNumber(input: string): number | null {
  * select() also focuses the field, so it must not run if the field has been
  * left meanwhile (Enter pressed before the next frame): that would take the
  * focus back, and the next Ctrl+Z would go to the field instead of undoing.
+ * Nor may it run once typing has begun: selecting what was typed so far
+ * would let the next key replace it ("9", then "00", gave 0).
  */
 function selectSoon(input: HTMLInputElement): void {
+  const before = input.value;
   requestAnimationFrame(() => {
-    if (document.activeElement === input) input.select();
+    if (document.activeElement === input && input.value === before) input.select();
   });
 }
 
