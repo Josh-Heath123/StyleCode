@@ -19,6 +19,7 @@ import {
   startRecordingSession,
   stopRecording,
   useRecording,
+  SILENT_MESSAGE,
   UNSAVED_MESSAGE,
   type ActiveRecording,
 } from '../recording/recorder';
@@ -389,6 +390,11 @@ function LivePanel({
       {recording.unsaved && (
         <p className="ws-live-unsaved" role="alert">
           <Icon name="warning" size={14} /> {UNSAVED_MESSAGE}
+        </p>
+      )}
+      {recording.silent && (
+        <p className="ws-live-unsaved" role="alert">
+          <Icon name="warning" size={14} /> {SILENT_MESSAGE}
         </p>
       )}
       {recording.lowSpace && (

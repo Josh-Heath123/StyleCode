@@ -1,6 +1,13 @@
 import { Icon } from '../ui/Icon';
 import { useRuns, type Run } from '../workspace/ui/extraction/runs';
-import { dismissRecording, isRecordingNow, stopRecording, UNSAVED_MESSAGE, useRecording } from '../workspace/recording/recorder';
+import {
+  dismissRecording,
+  isRecordingNow,
+  SILENT_MESSAGE,
+  stopRecording,
+  UNSAVED_MESSAGE,
+  useRecording,
+} from '../workspace/recording/recorder';
 import { formatClock, LevelMeter, STOP_KEY } from '../workspace/ui/RecordingsCard';
 
 /**
@@ -73,9 +80,9 @@ function RecordingNow() {
       >
         <Icon name="stop" size={12} /> Stop
       </button>
-      {recording.unsaved && (
+      {(recording.unsaved || recording.silent) && (
         <span className="app-nav-unsaved" role="alert">
-          <Icon name="warning" size={14} /> {UNSAVED_MESSAGE}
+          <Icon name="warning" size={14} /> {recording.unsaved ? UNSAVED_MESSAGE : SILENT_MESSAGE}
         </span>
       )}
     </span>

@@ -4473,6 +4473,8 @@ a.ws-badge.is-knowledge {
   width: 380px;
   white-space: normal;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  /* It only tells: what it hangs over can still be clicked. */
+  pointer-events: none;
 }
 
 .ws-live-unsaved {

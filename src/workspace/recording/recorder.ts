@@ -18,9 +18,17 @@ import type { WorkspaceSession } from '../session';
 import { finalStep, now } from '../ui/steps';
 import { holdCompany, onCompanyClosed } from '../ui/useCompanySession';
 import workletUrl from './capture-worklet.js?url';
-import { dueToSend, PIECE_BYTES, SEND_EVERY_MS, UNSAVED_AFTER_MS, UNSAVED_MESSAGE } from './sending';
+import {
+  dueToSend,
+  followSilence,
+  PIECE_BYTES,
+  SEND_EVERY_MS,
+  SILENT_MESSAGE,
+  UNSAVED_AFTER_MS,
+  UNSAVED_MESSAGE,
+} from './sending';
 
-export { UNSAVED_MESSAGE };
+export { SILENT_MESSAGE, UNSAVED_MESSAGE };
 
 /**
  * Recording in the room (Phase 3 brief, decisions 12 and 13), kept outside
@@ -54,6 +62,8 @@ export interface ActiveRecording {
    * full): it waits in the page until it can be sent.
    */
   unsaved: boolean;
+  /** The microphone has given silence for a while: muted, or a device that passes nothing. */
+  silent: boolean;
   /** Why it stopped by itself, or failed. */
   message: string | null;
 }
@@ -181,6 +191,7 @@ export async function startRecordingSession(
     level: 0,
     lowSpace,
     unsaved: false,
+    silent: false,
     message: null,
   };
   listeners.forEach((l) => l());
@@ -203,6 +214,8 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
   let sending: Promise<'sent' | 'waiting' | 'refused'> | null = null;
   let stopping = false;
   let lastLevel = 0;
+  /** How much sound had been captured when the silence began, or null while there is sound. */
+  let silentFromMs: number | null = null;
 
   const take = (samples: Float32Array) => {
     if (!samples.length || captured >= MAX_BYTES) return;
@@ -297,7 +310,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
   const stop = async (message: string | null): Promise<void> => {
     if (stopping) return;
     stopping = true;
-    publish({ state: 'stopping', message });
+    publish({ state: 'stopping', message, silent: false });
     clearInterval(timer);
     stream.getTracks().forEach((t) => t.stop());
     source?.disconnect();
@@ -328,6 +341,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
         elapsedMs: done.durationMs,
         level: 0,
         unsaved: false,
+        silent: false,
         message: problem ? `The recording is on disk, but its entry couldn’t be saved: ${problem}` : message,
       });
     } catch {
@@ -335,6 +349,7 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
         state: 'failed',
         level: 0,
         unsaved: false,
+        silent: false,
         message:
           'StyleCode’s local server couldn’t finish the recording. What reached it is kept, and is finished when the client is next opened.',
       });
@@ -374,8 +389,13 @@ async function capture(session: WorkspaceSession, meeting: Session, stream: Medi
       if (stopping || !resampler) return;
       const block = event.data;
       take(resampler.push(block));
-      lastLevel = Math.max(peakLevel(block), lastLevel * 0.85);
-      publish({ state: 'recording', elapsedMs: Math.floor((captured / RECORDING_BYTES_PER_SECOND) * 1000), level: lastLevel });
+      const peak = peakLevel(block);
+      lastLevel = Math.max(peak, lastLevel * 0.85);
+      const elapsedMs = Math.floor((captured / RECORDING_BYTES_PER_SECOND) * 1000);
+      // A microphone giving nothing at all for a few seconds is muted, or isn't a real one: say so, until sound comes.
+      const silence = followSilence(silentFromMs, peak, elapsedMs);
+      silentFromMs = silence.silentFromMs;
+      publish({ state: 'recording', elapsedMs, level: lastLevel, silent: silence.silent });
       if (captured >= MAX_BYTES) void stop('The recording reached its 4-hour limit and stopped.');
       else if (!sending && dueToSend(pendingBytes, Date.now() - lastTry)) void sendNow();
     };
