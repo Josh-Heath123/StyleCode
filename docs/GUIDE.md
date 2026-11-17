@@ -108,7 +108,7 @@ Inside it, `companies` holds one folder per client, named by the client's id:
 
 - `workspace.json`: everything about the client (engagements, meetings, consent records, notes and findings);
 - `workspace.previous.json`: the copy from before the last save;
-- `files`: documents attached to the client, stored by id (their names are kept in `workspace.json`).
+- `files`: documents and recordings, stored by id (their names are kept in `workspace.json`). A recording is a WAV file, about 115 MB an hour.
 
 `settings.json`, next to `companies`, holds your own settings, such as your name.
 
@@ -145,31 +145,102 @@ StyleCode opens on your clients. This is one consultation from start to end, wit
 
 **During the meeting**
 
-5. **Take notes.** Press <kbd>N</kbd> anywhere on the session's page and type; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds the note and starts the next one, so you never need the mouse. Each note keeps when you started typing it, shown as a time of day and as how far into the meeting it was ("before the start" for one written beforehand). A note you haven't added yet waits for you if you leave the session's page, and StyleCode asks before you close the page with one. Notes can be changed (they keep their time and say when they changed) and deleted, and both can be undone. A note that a finding quotes asks first, listing the findings, and one undo puts both back.
+5. **Record the meeting,** if the client agreed to recording (see [Recording a meeting](#recording-a-meeting)).
+6. **Take notes.** Press <kbd>N</kbd> anywhere on the session's page and type; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds the note and starts the next one, so you never need the mouse. Each note keeps when you started typing it, shown as a time of day and as how far into the meeting it was ("before the start" for one written beforehand). A note you haven't added yet waits for you if you leave the session's page, and StyleCode asks before you close the page with one. Notes can be changed (they keep their time and say when they changed) and deleted, and both can be undone. A note that a finding quotes asks first, listing the findings, and one undo puts both back.
 
 **After the meeting**
 
-6. **Write up the record.** On the engagement's page, **Open the record**, then **Add finding**: what was established, its kind (requirement, constraint, risk, decision, open question, future consideration…), and its status:
+7. **Write up the record.** On the engagement's page, **Open the record**, then **Add finding**: what was established, its kind (requirement, constraint, risk, decision, open question, future consideration…), and its status:
    - **Confirmed**: agreed with the client;
    - **Assumption**: taken as true for now, to be checked;
    - **Unresolved**: still open (every open question is in the Open group whatever its status);
    - **Suggested (not agreed yet)**: an idea, yours or the client's.
 
    You can quote your notes as evidence: tick a note, and keep the whole note or cut the quote down to at least three of its words, as written. Each finding shows its status and where it came from as two separate labels, and **Change** records each change with who made it and when (open **changes** on a finding to see them). Filter the record by kind or by session.
-7. **Link findings** that affect each other (**Link…**): one influences, depends on, conflicts with or refines another. Each finding lists its links from its own side; choose one to go to the other finding.
-8. **Attach documents** to the client or to the engagement with **Add file…**: a brief, a contract, a menu. Adding or removing a file saves straight away and can't be undone. **Download** saves a copy; StyleCode never opens a file itself.
-9. **Export the record** with **Export as Markdown**: the client and engagement, the sessions and who took part, the findings by group with their evidence, the links, and every consent record with the exact words the client was told. The same record always gives the same file.
+8. **Link findings** that affect each other (**Link…**): one influences, depends on, conflicts with or refines another. Each finding lists its links from its own side; choose one to go to the other finding.
+9. **Attach documents** to the client or to the engagement with **Add file…**: a brief, a contract, a menu. Adding or removing a file saves straight away and can't be undone. **Download** saves a copy; StyleCode never opens a file itself.
+10. **Export the record** with **Export as Markdown**: the client and engagement, the sessions and who took part, the findings by group with their evidence, the links, the company knowledge that came from this engagement's findings, and every consent record with the exact words the client was told and the lines of any recordings deleted. The same record always gives the same file.
 
 **Finishing with a client**
 
 - **Delete** a session or an engagement from its page: the confirmation says what goes with it, and it can't be undone. To delete a client, type its name.
 - A client whose file has a problem (damaged, or a folder copied under another name) opens **read-only**: you can see and download everything, but nothing changes. The page says what's wrong and what to do about it.
 
-Not yet: recording in StyleCode comes in Workspace Phase 3 ([roadmap](ROADMAP.md)). Until then, record and transcribe in the meeting app, and import its transcript (below).
+## Setting up transcription
+
+StyleCode can transcribe recordings on your computer, with who spoke when. Nothing is sent anywhere. It needs Windows and an NVIDIA graphics card that whisper.cpp's CUDA build can use: a driver that supports CUDA 12.4 or later (`nvidia-smi` shows the highest CUDA version it supports). Without one, **Transcribe…** isn't offered and the session says why; you can still record, and import a transcript made elsewhere.
+
+To set it up, open a terminal in the StyleCode folder and run `npm run transcription:setup`. It downloads about 1.3 GB (about 2 GB once unpacked) into `.stylecode\transcription` in your home folder, outside the data folder, checks every file against its pinned fingerprint, and stops if the disk would be left with under 5 GB free. StyleCode itself never downloads anything. **Settings**, under **Transcription**, then shows what is installed, with each version and licence, and your graphics card.
+
+What it installs, and the licences (each kept beside its files):
+
+| What | Does | Licence |
+| --- | --- | --- |
+| whisper.cpp v1.9.5 (`b5454`), Windows x64 with CUDA 12.4 | Writes down the words | MIT. The CUDA libraries in its zip are under NVIDIA's CUDA licence. |
+| Whisper large-v3-turbo, 5-bit | The model it uses | MIT |
+| sherpa-onnx v2.0.1, Windows x64 | Works out who spoke when | Apache-2.0 |
+| pyannote segmentation-3.0 | Finds where voices change | MIT |
+| 3D-Speaker ERes2Net | Tells voices apart | Apache-2.0 |
+
+The measurements behind this choice are in [TRANSCRIPTION.md](research/TRANSCRIPTION.md).
+
+## Recording a meeting
+
+**Record meetings in the room, not online ones.** With headphones on, your microphone hears only you, and recording the computer's own sound needs you to share your whole screen each time, in Chrome or Edge only. So StyleCode doesn't record online meetings: for those, import the meeting app's transcript ([Transcripts](#transcripts)).
+
+Recording needs a confirmed consent record in which the client agreed to audio recording. Until then, the session's **Recordings** card says why it isn't available.
+
+1. On the session's page, under **Recordings**, choose the microphone if you have more than one. A level meter shows it hears you.
+2. **Start recording.** The first recording locks the consent record, and the first time a confirmation says so. After that it can only be amended or withdrawn.
+3. The recording carries on while you take notes and move around StyleCode. Every page shows it, with its time, its level and **Stop recording**. <kbd>Alt</kbd>+<kbd>S</kbd> stops it from anywhere, even while you type a note: the client can ask you to stop at any time.
+4. Stop and start again as often as you like; each recording is kept separately, up to 4 hours each. StyleCode asks before you close the page while recording.
+
+If the microphone hears nothing for about 5 seconds, the recording says so: Windows' default microphone may be a virtual device that passes only silence. If Windows blocks the microphone, the message says where to allow it (**Settings**, **Privacy and security**, **Microphone**). Chrome and Edge are tested.
+
+The sound reaches the disk every few seconds, so a crash or a closed tab loses at most those seconds. If StyleCode stopped while recording, it keeps what arrived, and the recording says it was recovered.
+
+**A recording made elsewhere** can be added with **Add a WAV file…**: WAV only (any sample rate, mono or stereo, up to 4 hours and 2 GB), with the same consent as recording. Convert M4A, MP3 or MP4 to WAV first.
+
+Recordings can be played in StyleCode but not downloaded, so no copy outlives what the client was told. Deleting a recording is permanent, and the session keeps a line ([How long recordings are kept](#how-long-recordings-are-kept)).
+
+## Transcribing
+
+On the session's page, **Transcribe…** transcribes the session's recordings on this computer. It needs consent to transcription (not to AI: nothing leaves the computer), and is never offered after a withdrawal. It says how long it should take, from this computer's past runs. An hour of meeting took about 15 minutes on the laptop StyleCode was measured on, most of it working out who spoke.
+
+Two choices before it starts:
+- **Add the transcript when it's ready.** Otherwise it waits for you to review it first: the speakers, the length, and what adding does.
+- **Then ask the AI for findings,** where consent allows the AI. With both, nobody needs to be at the keyboard between the end of the meeting and the AI's proposals, as long as StyleCode stays open.
+
+The transcription runs in StyleCode's server, so it carries on if you close the page. **Cancel** stops it and keeps nothing. One heavy job runs at a time: a transcription waits for an AI run on a local model to finish, and the other way round, and each says so. Before a transcription, and before each part of an AI run on a local model, a graphics card at 87 °C or more is left to cool under 75 °C ("Letting the graphics card cool: 92 °C"). **Don't wait** starts it anyway. On a laptop, Windows can stop the computer if the card overheats, so it's worth the wait.
+
+Adding the transcript is permanent. If the client was told recordings are deleted after transcription, they are deleted in the same step, and the session keeps a line saying when. A session still has one transcript: transcribing again replaces it, under the same rules as **Replace…**.
+
+**Speakers.** A machine names nobody: speakers are "Speaker 1", "Speaker 2" and so on, in the order they first speak. Open **Speakers** to match each to a participant. They are sorted by how long each spoke, and one person is often split into several labels. Labels under 30 seconds are grouped under a line such as "26 short labels, 2 min 28 s in all"; each shows its words, so you can match it by reading, or from any of its segments in the transcript. You can match speakers in the preview before adding the transcript too, and play a label's longest segment. Until every label is matched to someone who was asked, or to someone on your side, the transcript warns that unmatched speakers may not have agreed.
+
+**May be misheard.** Words the engine was unsure of have a dotted underline and say "may be misheard" (on hover, on focus, and to screen readers). The transcript can't be edited: put a mishearing right in your finding's statement, and check it against the recording. While the recordings exist, **Play from here** on a segment plays it from its start.
+
+**What it can't do yet.** The measurements come from synthetic voices, which are cleaner and more distinct than people, so real meetings will have more errors ([TRANSCRIPTION.md](research/TRANSCRIPTION.md)):
+- real accents, including South African English and code-switching, weren't measured;
+- people talking over each other lose words and get the wrong speaker;
+- names and unusual terms can be misspelt;
+- a long silence can still collect a few invented words;
+- the speakers are a best guess, with more labels than people on long meetings.
+
+## How long recordings are kept
+
+Each recording says how long it is kept, as the client was told on the consent form: "Kept until 5 Dec 2026", "Kept until the engagement ends", or, for "deleted after transcription", that it goes when its transcript is added. One past its time says so, and why: the date passed, the engagement ended, the client withdrew consent, or recording is no longer agreed.
+
+**StyleCode never deletes a recording on its own.** Each time it opens, the clients list shows **Recordings to deal with**: every client's recordings past their time, with one action that deletes them all, and, apart, those under "deleted after transcription" that are a day old or more and still waiting for a transcript, with a link to each session. The list shows until they're gone.
+
+After a withdrawal, StyleCode offers to delete the session's recordings first, then the transcript. An amendment that turns recording off, or shortens how long recordings are kept, offers to delete those now past their time.
+
+Every deleted recording leaves a line in the session and in the export, beside the consent record: when it was recorded, how long it was, and when, by whom and why it was deleted. No sound and no words are kept.
+
+**Before using StyleCode with real clients:** the consent wording is still `draft-1`, waiting for its POPIA review ([CONSENT.md](spec/CONSENT.md)). Transcription is local, so it sends nothing outside South Africa, but the wording still needs the review.
 
 ## Transcripts
 
-A session's transcript comes from the meeting app. Importing one needs a confirmed consent record that allows transcription; until then, **Import transcript…** says why it isn't available.
+A session's transcript can come from the meeting app, or be made on this computer from its recordings ([Transcribing](#transcribing)). Importing one needs a confirmed consent record that allows transcription; until then, **Import transcript…** says why it isn't available.
 
 **Downloading the transcript**
 
@@ -202,7 +273,7 @@ On the session's page, **Ask the AI for findings** shows where the AI runs and, 
 
 Before you see anything, StyleCode checks every proposal. A quote must appear word for word in the passage it cites, and be at least three words long, or the whole passage. Proposals that fail are never shown, and the summary says how many failed and why. Repeats of a finding already in this engagement, or of one you rejected, are left out, and the summary says how many.
 
-If you stop a run, or it fails partway, the proposals from the parts it finished stay, and the session says which parts ("parts 1 to 4 of 7"). You can **Discard** them, and undo brings them back.
+If you stop a run, or it fails partway, the proposals from the parts it finished stay, and the session says which parts ("parts 1 to 4 of 7"). You can **Discard** them, and undo brings them back. If a run stops for a reason StyleCode can't see (the computer went to sleep, say), the finished parts' proposals are still added, after the same checks, and the session says why the AI stopped until you dismiss it. A run stopped by a withdrawal of consent or a deletion adds nothing, and says so.
 
 The AI finds about two thirds of what a careful consultant would record, so read the transcript too.
 
@@ -230,6 +301,10 @@ What you learn about a client can carry into its next engagement. In an engageme
 
 The client's page lists its company knowledge: each fact with its kind, status, where it came from, and its quotes. Every engagement with that client shows the same facts, and no other client's. **Change** edits a fact's statement, kind or status, and **Remove** removes it. Both can be undone.
 
+**Add a fact…** on the client's page adds something you know without a finding behind it, with its statement, kind and status. It shows as entered by you, with no source, and can be undone.
+
+An engagement's export lists the facts promoted from that engagement's findings, with their status and source, in a section of their own. Facts you entered directly, and facts from other engagements, aren't in it.
+
 A fact outlives its source. If the finding or its engagement is deleted, or a deleted session was all the finding rested on, the fact stays and says "source deleted". If a session's transcript is deleted, the fact loses its quotes from that session.
 
 **Delete** removes a finding from the record. Its links go with it, and you can undo it.
@@ -239,15 +314,17 @@ A fact outlives its source. If the finding or its engagement is deleted, or a de
 Importing locks the consent record. It can't be edited, but it can be changed in two ways, both kept in the record and in the export:
 
 - **Amend…** records what changed, what you newly told the client (in the words shown on the form), and why. It is checked like the form: a new yes needs its statement told. For example, a longer audio retention needs the retention statement told in its new words.
-- **Withdraw consent…** records the withdrawal and the reason, and nothing more is captured or processed for the session. StyleCode then offers to delete the transcript, saying what goes with it. Afterwards, **Review what keeps a statement…** lists the findings and company facts that still say something from the session, each with a way to remove it, or to edit it in the record or on the client's page, if the client asks.
+- **Withdraw consent…** records the withdrawal and the reason, and nothing more is captured or processed for the session. A recording stops, and a transcription is cancelled. StyleCode then offers to delete the recordings, then the transcript, saying what goes with it. Afterwards, **Review what keeps a statement…** lists the findings and company facts that still say something from the session, each with a way to remove it, or to edit it in the record or on the client's page, if the client asks.
 
 A signed form or an email can be attached to the consent record (**Attach a file…**). Attaching, replacing or removing it doesn't change the record, and works on a locked record too.
 
 **Before using external AI with real clients:** sending a transcript to an external provider sends personal information outside South Africa. The consent wording is still a draft until its POPIA review ([CONSENT.md](spec/CONSENT.md), question 3).
 
-## The export's times
+## Times
 
-**Export as Markdown** writes each session's times in the time zone it was created in, with the offset, for example `2026-11-05 10:00 (GMT+2)`. The file is the same on any computer. Transcript quotes name the speaker (the matched participant, or the transcript's label) and the session.
+A session's times are shown in the time zone it was created in. When that differs from your computer's, the offset is added, as the export writes it: "10:00 (GMT+2)".
+
+**Export as Markdown** writes each session's times in that zone, always with the offset, for example `2026-11-05 10:00 (GMT+2)`. The file is the same on any computer. Transcript quotes name the speaker (the matched participant, or the transcript's label) and the session.
 
 ## Large documents
 

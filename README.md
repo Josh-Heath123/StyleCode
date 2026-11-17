@@ -33,13 +33,15 @@ StyleCode is also becoming a workspace for software consultants ([the vision](do
 - **Clients, engagements and sessions:** one folder per client on your computer, each engagement with its meetings and who took part.
 - **Consent first:** a consent form for each session, with the wording shown to the client, a check that every "yes" was explained, confirmation, and withdrawal. Nothing is recorded or imported without it.
 - **Notes during the meeting:** press <kbd>N</kbd>, type, <kbd>Ctrl</kbd>+<kbd>Enter</kbd>; each note keeps its time and how far into the meeting it was written.
+- **Recording in the room:** record a meeting in the browser, with Stop one key away on every page, or add a WAV made elsewhere. Recordings stay on your computer, are kept only as long as the client agreed, and every deletion leaves a line in the record.
+- **Transcription on your computer:** with an NVIDIA graphics card, StyleCode transcribes the recordings itself, with who spoke when and the words it may have misheard marked. Nothing is sent anywhere.
 - **Transcripts:** import the transcript Teams, Zoom or Google Meet made (`.vtt`, `.docx` or `.txt`), or paste one, and match each speaker to a participant. Anyone who spoke but wasn't asked for consent is flagged.
 - **AI proposals, reviewed by you:** a local model (or the provider the client agreed to) reads one session and proposes findings. Every quote is checked against the transcript before you see it, and you accept, edit or reject each one from the keyboard, beside the highlighted passage.
 - **The record:** findings with a kind, a status and where they came from (two separate labels), evidence quoted from the transcript and your notes, links between findings, and every change undoable, with who and when.
-- **Company knowledge:** promote a finding, and it shows in every engagement with that client, with its source.
+- **Company knowledge:** promote a finding, or add a fact yourself, and it shows in every engagement with that client, with its source.
 - **Files and export:** documents on a client or an engagement, and the record exported as a Markdown specification in each meeting's local time, the same file every time.
 
-Everything works with AI off, and with a local model nothing leaves your computer. Recording comes next ([roadmap](docs/ROADMAP.md)). See [Running a consultation](docs/GUIDE.md#running-a-consultation) in the guide.
+Everything works with AI off, and with a local model nothing leaves your computer. The canvas in context comes next ([roadmap](docs/ROADMAP.md)). See [Running a consultation](docs/GUIDE.md#running-a-consultation) in the guide.
 
 ![A role-played session in StyleCode: consent given for transcription and AI on this computer, three notes with their times and minutes into the meeting, a fourth being typed, and the participants on the client's side and the consultant's](docs/workspace.png)
 
@@ -168,7 +170,7 @@ Layouts in auto layout export as flexbox or CSS grid and adapt to smaller screen
 
 ## Your data
 
-Client data (clients, engagements, sessions, consent records, notes, findings and files) is kept in the `StyleCode Data` folder in your home folder, one folder per client, and nowhere else. StyleCode refuses to start if that folder is inside a git repository, and warns if a cloud service syncs it. See [Where client data lives](docs/GUIDE.md#where-client-data-lives) and [Protecting client data](docs/GUIDE.md#protecting-client-data).
+Client data (clients, engagements, sessions, consent records, notes, findings, files and recordings) is kept in the `StyleCode Data` folder in your home folder, one folder per client, and nowhere else. StyleCode refuses to start if that folder is inside a git repository, and warns if a cloud service syncs it. See [Where client data lives](docs/GUIDE.md#where-client-data-lives) and [Protecting client data](docs/GUIDE.md#protecting-client-data).
 
 Designs are stored in your browser's IndexedDB on this device and autosave as you work. Images you add are stored there too, once each however many times you use them; nothing is uploaded anywhere. Use **Designs → Save to file…** to keep a portable copy or move a design between browsers (the images used in the design are embedded in the file), and **Open design file…** to bring one back. Clearing your browser's site data for `localhost` deletes locally stored designs, so save important work to a file. Code export and the preview also run entirely on your machine.
 
@@ -214,6 +216,7 @@ docs/           guide, architecture, roadmap, demo media
 | `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174, with AI settings and workspace data in temporary places) |
 | `npm run test:all` | Unit tests, then browser tests |
 | `npm run typecheck` | Type-check the app and the browser tests |
+| `npm run transcription:setup` | Download and check what transcription on this computer needs (Windows with an NVIDIA graphics card; about 1.3 GB) |
 | `npm run demos` | Re-record the demo GIFs and the screenshot (needs ffmpeg) |
 | `npm run site` | Build the documentation site into `site/` (`npm run build:pages` also builds the app into it) |
 
