@@ -27,17 +27,12 @@
     "transcriber": {
       "name": "whisper.cpp",
       "version": "1.9.5",
-      "models": [
-        "large-v3-turbo-q5_0"
-      ]
+      "models": ["large-v3-turbo-q5_0"]
     },
     "speakers": {
       "name": "sherpa-onnx",
       "version": "2.0.1",
-      "models": [
-        "pyannote segmentation-3.0",
-        "3D-Speaker ERes2Net (English)"
-      ]
+      "models": ["pyannote segmentation-3.0", "3D-Speaker ERes2Net (English)"]
     }
   },
   "segments": 525,

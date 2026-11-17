@@ -243,4 +243,51 @@ describe('a transcription job, with the fake engine', () => {
     await jobs.clearLeftovers();
     expect(existsSync(left)).toBe(false);
   });
+
+  it('cancels a job, and discards a result, once it can no longer be added: after a withdrawal, or with its session gone (decisions 16 and 25)', async () => {
+    const c = await client();
+    // A result waiting to be added, then consent withdrawn.
+    const first = await jobs.start(c.id, 'se_1', [c.fileId]);
+    await until(() => jobs.get(c.id, first.id), over);
+    const withdrawn = structuredClone(c.ws);
+    const amended = amendConsent(withdrawn.consents.cr_1, {
+      id: 'am_1',
+      kind: 'withdrawal',
+      by: 'Sam',
+      at: '2026-11-05T09:00:00.000Z',
+      reason: 'Asked to stop.',
+    });
+    if (!amended.ok) throw new Error(amended.error);
+    withdrawn.consents.cr_1 = amended.value;
+    const saved = await store.save(c.id, withdrawn, c.revision, true);
+    expect(await jobs.list(c.id)).toEqual([]);
+    expect(existsSync(join(root, 'companies', c.id, 'transcriptions', `${first.id}.json`))).toBe(false);
+
+    // A job still going when its session is deleted: cancelled, keeping nothing.
+    const again = await store.save(c.id, c.ws, saved.revision, true);
+    process.env.FAKE_ENGINE_STEP_MS = '300';
+    const second = await jobs.start(c.id, 'se_1', [c.fileId]);
+    const gone = structuredClone(c.ws);
+    delete (gone.sessions as Record<string, unknown>).se_1;
+    gone.files = {};
+    gone.participants = {};
+    gone.consents = {};
+    await store.save(c.id, gone, again.revision, true);
+    await jobs.list(c.id);
+    expect(await until(() => jobs.get(c.id, second.id), over)).toMatchObject({ state: 'cancelled' });
+    expect(readdirSync(join(root, 'companies', c.id, 'transcriptions'))).toEqual([]);
+  });
+
+  it('stops a client’s jobs, and waits for their working files to go, before the client is deleted', async () => {
+    const c = await client();
+    process.env.FAKE_ENGINE_STEP_MS = '300';
+    const started = await jobs.start(c.id, 'se_1', [c.fileId]);
+    await until(
+      () => jobs.get(c.id, started.id),
+      (j) => j.state === 'transcribing',
+    );
+    await jobs.stopCompany(c.id);
+    expect(jobs.get(c.id, started.id).state).toBe('cancelled');
+    expect(readdirSync(join(root, 'companies', c.id, 'transcriptions'))).toEqual([]);
+  });
 });

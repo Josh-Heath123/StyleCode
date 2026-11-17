@@ -556,6 +556,8 @@ async function hour(browser: Browser): Promise<string> {
   );
   const resources = gpu.stop();
   log(`wp8 hour: the AI ${ended.how} after ${((ended.at - startedAt) / 60_000).toFixed(1)} min in all`);
+  // The proposals are saved a moment after the run ends: wait before reading the client's file.
+  await pause(3000);
   // The run's own words on the session page: why it stopped, and what was added (counts, not proposals).
   const aiSaid = (
     await app

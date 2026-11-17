@@ -155,7 +155,7 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
     if (!by) return setError('Give your name first: a recording records who added it.');
     setAdding(true);
     try {
-      const stored = await addWavFile(session.companyId, file);
+      const stored = await addWavFile(session.companyId, meeting.id, file);
       const problem = await finalStep(session, 'Add a recording', (ws) => {
         const added = addRecordingFile(
           ws,

@@ -202,9 +202,11 @@ describe('recording routes (Phase 3)', () => {
     const { id: fileId } = (await started.json()) as { id: string };
     const piece = await call(`/companies/${id}/recordings/${fileId}?session=se_1&offset=0`, { method: 'PUT', body: 'ab' });
     expect(piece.status).toBe(409);
-    const notWav = await call(`/companies/${id}/added-recordings`, { method: 'POST', body: 'This is not a WAV file at all.' });
-    expect(notWav.status).toBe(400);
-    expect(((await notWav.json()) as { error: string }).error).toMatch(/Convert the recording to WAV first/);
+    // A WAV needs its session named, and consent to recording it, before anything is stored.
+    const noSession = await call(`/companies/${id}/added-recordings`, { method: 'POST', body: 'RIFF' });
+    expect(noSession.status).toBe(400);
+    const noConsent = await call(`/companies/${id}/added-recordings?session=se_1`, { method: 'POST', body: 'RIFF' });
+    expect(noConsent.status).toBe(409);
   });
 });
 

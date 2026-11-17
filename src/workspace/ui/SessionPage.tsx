@@ -23,6 +23,7 @@ import { ProposalsCard, quotedPassages } from './extraction/ProposalsCard';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
 import { RecordingsCard } from './RecordingsCard';
 import { stopRecording } from '../recording/recorder';
+import { refreshTranscriptions } from './transcription/jobs';
 
 /** A session (one meeting): who took part, and when it was (MVP 2.2, 2.3). */
 export function SessionPage({
@@ -270,6 +271,8 @@ function SessionView({
                 const removal = removeSession(ws, meeting.id, now());
                 return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
               });
+              // A transcription that can no longer be added is cancelled and its result discarded by the server (decisions 16 and 25).
+              void refreshTranscriptions(session.companyId);
               location.hash = engagementHref;
             } finally {
               onDeleting(false);

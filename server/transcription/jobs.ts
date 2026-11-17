@@ -104,6 +104,9 @@ export function progressIn(line: string): number | null {
 
 export class TranscriptionJobs {
   private readonly jobs = new Map<string, Job>();
+  /** Called when a job has ended, its working files gone. */
+  private readonly ended = new Map<string, () => void>();
+  private readonly endings = new Map<string, Promise<void>>();
 
   constructor(
     private readonly store: WorkspaceStore,
@@ -176,12 +179,14 @@ export class TranscriptionJobs {
       transcribeShare: guess.totalMs ? guess.transcribeMs / guess.totalMs : 0.5,
     };
     this.jobs.set(job.id, job);
+    this.endings.set(job.id, new Promise<void>((resolve) => this.ended.set(job.id, resolve)));
     void this.run(job);
     return this.view(job);
   }
 
   private async run(job: Job): Promise<void> {
     const work = join(this.folder(job.companyId), `work-${job.id}`);
+    let ended: { state: 'done' | 'failed' | 'cancelled'; error: string | null } = { state: 'failed', error: null };
     try {
       await this.heavy.run(
         'transcription',
@@ -262,19 +267,32 @@ export class TranscriptionJobs {
           },
         },
       );
-      job.state = 'done';
-      job.progress = 1;
+      ended = { state: 'done', error: null };
     } catch (error) {
-      if (job.abort.signal.aborted) job.state = 'cancelled';
-      else {
-        job.state = 'failed';
-        job.error = error instanceof RequestError ? error.message : 'The transcription stopped with an error. Try again.';
-      }
-    } finally {
-      job.finishedAt = new Date().toISOString();
-      job.waitingFor = null;
-      await rm(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }).catch(() => undefined);
+      ended = job.abort.signal.aborted
+        ? { state: 'cancelled', error: null }
+        : {
+            state: 'failed',
+            error: error instanceof RequestError ? error.message : 'The transcription stopped with an error. Try again.',
+          };
     }
+    // The working copy of the sound goes before the job says it has ended: the page adds the transcript on "done",
+    // and with "deleted after transcription" no copy of the recording may outlive that save (decision 22).
+    if (!(await removeWorkingFolder(work))) {
+      ended = {
+        state: 'failed',
+        error:
+          'The transcription’s working copy of the sound couldn’t be deleted, so its result isn’t offered. StyleCode deletes it when it next starts.',
+      };
+      await rm(this.resultPath(job.companyId, job.id), { force: true }).catch(() => undefined);
+    }
+    job.waitingFor = null;
+    job.finishedAt = new Date().toISOString();
+    if (ended.state === 'done') job.progress = 1;
+    job.error = ended.error;
+    job.state = ended.state;
+    this.ended.get(job.id)?.();
+    this.ended.delete(job.id);
   }
 
   /** Joins the recordings' sound into one WAV in the working folder, in order. */
@@ -347,14 +365,37 @@ export class TranscriptionJobs {
   }
 
   /** A company's jobs: those running or ended since the server started, and every result kept on disk. */
+  /**
+   * A company's jobs: those running or ended since the server started, and every
+   * result kept on disk. A job that could no longer be added (its session
+   * deleted, consent withdrawn or not covering transcription, a recording it
+   * uses deleted) is cancelled, and its result discarded, so the client's
+   * words aren't kept for nothing (decisions 16 and 25).
+   */
   async list(companyId: string): Promise<JobView[]> {
+    const ws = await this.store
+      .read(companyId)
+      .then((o) => o.workspace)
+      .catch(() => null);
+    const unwanted = (sessionId: string, recordingIds: readonly string[]) =>
+      !!ws && jobProblem(ws, sessionId, recordingIds) !== null;
+    for (const job of [...this.jobs.values()]) {
+      if (job.companyId !== companyId || !unwanted(job.sessionId, job.recordingIds)) continue;
+      // One being added just now is fine: adding deletes the recordings, then the page discards the result.
+      if (job.state === 'done') await this.discard(companyId, job.id);
+      else if (!isOver(job.state)) job.abort.abort(new Error('Cancelled.'));
+    }
     const running = [...this.jobs.values()].filter((j) => j.companyId === companyId).map((j) => this.view(j));
     const kept: JobView[] = [];
     for (const name of await readdir(this.folder(companyId)).catch(() => [] as string[])) {
-      const id = name.replace(/\.json$/, '');
+      const id = name.replace(/.json$/, '');
       if (!JOB_ID.test(id) || name !== `${id}.json` || running.some((j) => j.id === id)) continue;
       const result = await this.result(companyId, id).catch(() => null);
       if (!result) continue;
+      if (unwanted(result.sessionId, result.recordingIds)) {
+        await this.discard(companyId, id);
+        continue;
+      }
       kept.push({
         id,
         sessionId: result.sessionId,
@@ -371,6 +412,13 @@ export class TranscriptionJobs {
       });
     }
     return [...running, ...kept];
+  }
+
+  /** Before a client is deleted: stops its jobs and waits until their programs and working files are gone. */
+  async stopCompany(companyId: string): Promise<void> {
+    const mine = [...this.jobs.values()].filter((j) => j.companyId === companyId);
+    for (const job of mine) if (!isOver(job.state)) job.abort.abort(new Error('Cancelled.'));
+    await Promise.all(mine.map((j) => this.endings.get(j.id)));
   }
 
   get(companyId: string, jobId: string): JobView {
@@ -431,4 +479,17 @@ export function jobProblem(ws: CompanyWorkspace, sessionId: string, recordingIds
     if (file.audio.state !== 'finished') return 'Stop the recording before transcribing it.';
   }
   return null;
+}
+
+/**
+ * Deletes a job's working folder, trying for a while: on Windows a program just
+ * stopped can hold its files for a moment. Says whether it's gone.
+ */
+async function removeWorkingFolder(work: string): Promise<boolean> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await rm(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }).catch(() => undefined);
+    if (!existsSync(work)) return true;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
 }

@@ -230,9 +230,22 @@ async function* inPieces(bytes: Buffer, size: number) {
 }
 
 describe('adding a WAV made elsewhere (decision 15)', () => {
+  it('is refused before any sound is stored, unless consent allows recording the session now', async () => {
+    const c = await client();
+    await expect(files.addWav(c.id, 'se_9', inPieces(floatWav(1), 4096))).rejects.toMatchObject({ status: 409 });
+    const off = structuredClone(c.ws);
+    off.consents.cr_2.given.audioRecording = false;
+    await store.save(c.id, off, c.revision, false);
+    await expect(files.addWav(c.id, 'se_2', inPieces(floatWav(1), 4096))).rejects.toMatchObject({
+      status: 409,
+      message: 'The client did not agree to audio recording.',
+    });
+    expect(readdirSync(join(root, 'companies', c.id, 'files'))).toEqual([]);
+  });
+
   it('converts it to 16 kHz mono 16-bit as it streams in', async () => {
     const c = await client();
-    const added = await files.addWav(c.id, inPieces(floatWav(2), 7777));
+    const added = await files.addWav(c.id, 'se_2', inPieces(floatWav(2), 7777));
     expect(added.durationMs).toBe(2000);
     const stored = readFileSync(join(root, 'companies', c.id, 'files', added.id));
     expect(stored.length).toBe(added.sizeBytes);
@@ -247,20 +260,24 @@ describe('adding a WAV made elsewhere (decision 15)', () => {
 
   it('refuses another format, saying to convert to WAV, and leaves nothing behind', async () => {
     const c = await client();
-    await expect(files.addWav(c.id, inPieces(Buffer.from('ID3\u0004 an MP3 file, not a WAV at all'), 8))).rejects.toMatchObject({
+    await expect(
+      files.addWav(c.id, 'se_2', inPieces(Buffer.from('ID3\u0004 an MP3 file, not a WAV at all'), 8)),
+    ).rejects.toMatchObject({
       status: 400,
       message: expect.stringMatching(/Convert the recording to WAV first/),
     });
-    await expect(files.addWav(c.id, inPieces(Buffer.from(wavHeader(0, 16_000)), 8))).rejects.toMatchObject({ status: 400 });
+    await expect(files.addWav(c.id, 'se_2', inPieces(Buffer.from(wavHeader(0, 16_000)), 8))).rejects.toMatchObject({
+      status: 400,
+    });
     expect(readdirSync(join(root, 'companies', c.id, 'files'))).toEqual([]);
   });
 
   it('refuses one over the size limit, or longer than 4 hours by its header', async () => {
     const c = await client();
-    await expect(files.addWav(c.id, inPieces(floatWav(1), 4096), 1000)).rejects.toMatchObject({ status: 413 });
+    await expect(files.addWav(c.id, 'se_2', inPieces(floatWav(1), 4096), 1000)).rejects.toMatchObject({ status: 413 });
     const long = Buffer.from(wavHeader(0, 16_000));
     long.writeUInt32LE(4 * 3600 * 32_000 + 2, 40);
-    await expect(files.addWav(c.id, inPieces(long, 44))).rejects.toMatchObject({
+    await expect(files.addWav(c.id, 'se_2', inPieces(long, 44))).rejects.toMatchObject({
       status: 413,
       message: 'A recording is at most 4 hours long.',
     });

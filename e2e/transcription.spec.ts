@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -27,8 +27,15 @@ interface Stored {
   files: Record<string, { audio?: { transcribedAt: string | null } }>;
   transcripts: Record<string, { source: { kind: string } }>;
   participants: Record<string, { speakerLabels: string[] }>;
+  findings: Record<string, { origin: { kind: string } }>;
+  consents: Record<string, { given: { transcription: boolean } }>;
 }
 const onDisk = (id: string) => JSON.parse(readFileSync(join(E2E_WORKSPACE, 'companies', id, 'workspace.json'), 'utf8')) as Stored;
+/** The results kept in a client's transcriptions folder (none if a job never got that far). */
+const results = (id: string) => {
+  const dir = join(E2E_WORKSPACE, 'companies', id, 'transcriptions');
+  return existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith('.json')) : [];
+};
 const soundFile = (id: string, fileId: string) => join(E2E_WORKSPACE, 'companies', id, 'files', fileId);
 
 const card = (page: Page) =>
@@ -63,9 +70,10 @@ async function withRecording(
   page: Page,
   retention: { kind: 'days'; days: number } | { kind: 'delete-after-transcription' } = { kind: 'days', days: 30 },
   offered = true,
+  note?: string,
 ) {
-  const id = await kickoff(page, { recording: retention });
-  const added = await page.request.post(`/api/workspace/companies/${id}/added-recordings`, {
+  const id = await kickoff(page, { recording: retention, note });
+  const added = await page.request.post(`/api/workspace/companies/${id}/added-recordings?session=se_1`, {
     headers: { ...HEADERS, 'content-type': 'application/octet-stream' },
     data: tone(210),
   });
@@ -325,6 +333,66 @@ test('deleting a recording that is being transcribed cancels the transcription f
   }
 });
 
+test('without consent to transcription, Transcribe isn’t offered, and the session says why', async ({ page }) => {
+  const { id } = await withRecording(page, { kind: 'days', days: 30 }, false);
+  const opened = (await (await page.request.get(`/api/workspace/companies/${id}`, { headers: HEADERS })).json()) as {
+    workspace: Stored;
+    revision: string;
+  };
+  opened.workspace.consents.cr_1.given.transcription = false;
+  const saved = await page.request.put(`/api/workspace/companies/${id}`, {
+    headers: HEADERS,
+    data: { workspace: opened.workspace, baseRevision: opened.revision, permanent: false },
+  });
+  expect(saved.status()).toBe(200);
+  await page.reload();
+  await expect(card(page).getByTestId('transcribe-unavailable')).toHaveText(
+    'Transcribing isn’t available: the client did not agree to transcription.',
+  );
+  await expect(card(page).getByRole('button', { name: /Transcribe/ })).toHaveCount(0);
+});
+
+test('deleting the session while it is being transcribed cancels the transcription, keeping nothing', async ({ page }) => {
+  const { id } = await withRecording(page, { kind: 'days', days: 30 });
+  const lease = (await (
+    await page.request.post('/api/workspace/heavy', { headers: HEADERS, data: { kind: 'extraction' } })
+  ).json()) as { id: string };
+  try {
+    await transcribe(page);
+    await expect(card(page).getByRole('group', { name: 'Transcription' })).toContainText('Waiting');
+    const listed = (await (
+      await page.request.get(`/api/workspace/companies/${id}/transcriptions`, { headers: HEADERS })
+    ).json()) as { jobs: { id: string }[] };
+    const jobId = listed.jobs[0].id;
+    await page.getByRole('button', { name: 'Delete session…' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Delete session…' });
+    await dialog.getByRole('button', { name: 'Delete session' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Dispatch app' })).toBeVisible();
+    await expect
+      .poll(async () => {
+        const r = await page.request.get(`/api/workspace/companies/${id}/transcriptions/${jobId}`, { headers: HEADERS });
+        return ((await r.json()) as { state: string }).state;
+      })
+      .toBe('cancelled');
+    expect(results(id)).toEqual([]);
+  } finally {
+    await page.request.delete(`/api/workspace/heavy/${lease.id}`, { headers: HEADERS });
+  }
+});
+
+test('a withdrawal discards a transcript waiting to be added (decisions 16 and 25)', async ({ page }) => {
+  const { id } = await withRecording(page, { kind: 'days', days: 30 });
+  await transcribe(page);
+  await expect(card(page)).toContainText('The transcript is ready', { timeout: 20_000 });
+  await page.getByRole('button', { name: 'Withdraw consent…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Withdraw consent' });
+  await dialog.getByLabel('Reason').fill('Asked us not to keep anything from the meeting.');
+  await dialog.getByRole('button', { name: 'Record the withdrawal' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(card(page).getByRole('button', { name: 'Review and add…' })).toHaveCount(0);
+  await expect.poll(() => results(id)).toEqual([]);
+});
+
 test('without transcription set up, Transcribe isn’t offered: the session says why, and Settings says what to run', async ({
   page,
 }) => {
@@ -417,7 +485,13 @@ test.describe('with the AI on this computer', () => {
     page,
   }) => {
     await aiOnFake(page, fake.url);
-    const { id, fileId } = await withRecording(page, { kind: 'delete-after-transcription' });
+    // A note gives the fake model something to propose from: it proposes from what a client said, and nobody has matched the speakers.
+    const { id, fileId } = await withRecording(
+      page,
+      { kind: 'delete-after-transcription' },
+      true,
+      'Thandi wants the pilot running in Bloemfontein before the end of March.',
+    );
     const before = fake.requests.length;
     await card(page).getByRole('button', { name: 'Transcribe…' }).click();
     const dialog = page.getByRole('dialog', { name: 'Transcribe the recordings' });
@@ -437,6 +511,9 @@ test.describe('with the AI on this computer', () => {
     expect(Object.values(onDisk(id).transcripts)[0].source.kind).toBe('recording');
     expect(onDisk(id).sessions.se_1.deletedRecordings).toMatchObject([{ reason: 'transcribed' }]);
     expect(existsSync(soundFile(id, fileId))).toBe(false);
+    // What the AI proposed reached the client's file, waiting for review.
+    // (Saved a moment after the run ends.)
+    await expect.poll(() => Object.values(onDisk(id).findings).filter((f) => f.origin.kind === 'ai').length).toBeGreaterThan(0);
   });
 
   test('an AI run on this computer waits its turn behind another heavy job, says so, then reads', async ({ page }) => {

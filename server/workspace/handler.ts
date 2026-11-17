@@ -26,7 +26,7 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   POST   /api/workspace/companies/:id/recordings     start a recording's file, giving its id and the free space
  *   PUT    /api/workspace/companies/:id/recordings/:fileId?session=…&offset=…   write a piece of sound (the body)
  *   POST   /api/workspace/companies/:id/recordings/:fileId/finish[?recover=1]   write its header, giving size and length
- *   POST   /api/workspace/companies/:id/added-recordings  convert and store a WAV made elsewhere (the body)
+ *   POST   /api/workspace/companies/:id/added-recordings?session=…  convert and store a WAV made elsewhere (the body), if consent allows
  *   GET    /api/workspace/transcription                what's installed, the versions, the GPU, and any job going
  *   POST   /api/workspace/heavy                        take the heavy slot for an AI run { kind: 'extraction' } (decision 10)
  *   GET    /api/workspace/heavy/:leaseId               whether it runs or waits, and for what; keeps the lease
@@ -151,6 +151,8 @@ export function createWorkspaceHandler(
         }
         if (method === 'DELETE') {
           const body = await readJson(req, MAX_SMALL_BODY);
+          // A transcription of the client stops first: its programs hold files in the client's folder.
+          await transcriptions.stopCompany(companyId);
           await store.remove(companyId, body.confirmName);
           return sendJson(res, 200, { deleted: companyId });
         }
@@ -200,7 +202,9 @@ export function createWorkspaceHandler(
         const declared = Number(req.headers['content-length']);
         if (Number.isFinite(declared) && declared > MAX_ADDED_WAV_BYTES)
           throw new RequestError('The file is too large. The limit is 2 GB.', 413);
-        return sendJson(res, 201, await recordings.addWav(companyId, req));
+        const forSession = url.searchParams.get('session');
+        if (!isSafeId(forSession)) return sendJson(res, 400, { error: 'Invalid id.' });
+        return sendJson(res, 201, await recordings.addWav(companyId, forSession, req));
       }
       if (sub !== 'files') return sendJson(res, 404, { error: 'Not found.' });
 

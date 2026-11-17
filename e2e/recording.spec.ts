@@ -255,6 +255,21 @@ test('a session can have several recordings; deleting one is permanent and leave
   await expect(deleted()).toContainText('by Sam Consultant');
 });
 
+test('deleting the session stops its recording first, and the recording goes with it', async ({ page }) => {
+  const id = await kickoff(page, { recording: { kind: 'days', days: 7 } });
+  await record(page);
+  await recordFor(page, 2);
+  const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
+  await page.getByRole('button', { name: 'Delete session…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete session…' });
+  await dialog.getByRole('button', { name: 'Delete session' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Dispatch app' })).toBeVisible();
+  // Nothing is still recording, on any page.
+  await expect(nav(page).getByRole('group', { name: 'Recording' })).toHaveCount(0);
+  await expect.poll(() => onDisk(id).sessions.se_1).toBeUndefined();
+  await expect.poll(() => existsSync(soundFile(id, fileId))).toBe(false);
+});
+
 test('a withdrawal of consent stops the recording first, keeping what it recorded', async ({ page }) => {
   const id = await kickoff(page, { recording: { kind: 'days', days: 7 } });
   await record(page);

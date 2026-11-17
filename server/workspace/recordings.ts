@@ -1,7 +1,7 @@
 import { open, readdir, readFile, rm, stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readWavHeader, WavConverter, WavError, wavHeader, WAV_HEADER_BYTES } from '../../src/workspace/audio/wav.ts';
-import { consentFor, consentState } from '../../src/workspace/model/consent.ts';
+import { canCapture, consentFor, consentState } from '../../src/workspace/model/consent.ts';
 import type { CompanyWorkspace } from '../../src/workspace/model/index.ts';
 import {
   durationOfBytes,
@@ -248,6 +248,7 @@ export class RecordingFiles {
    */
   async addWav(
     companyId: string,
+    sessionId: string,
     source: AsyncIterable<Buffer>,
     maxBytes = MAX_ADDED_WAV_BYTES,
   ): Promise<{ id: string; sizeBytes: number; durationMs: number }> {
@@ -259,6 +260,10 @@ export class RecordingFiles {
       const opened = await this.store.read(companyId);
       if (opened.access !== 'editable')
         throw new RequestError("This client's file has problems, so nothing can be added to it.", 409);
+      // Consent is checked before any sound is stored, as for a recording's pieces (decision 15): a tab left open
+      // after a withdrawal in another window can't store the client's audio.
+      const allowed = canCapture(opened.workspace, sessionId, 'recording');
+      if (!allowed.ok) throw new RequestError(allowed.error, 409);
       this.store.keepUpload(companyId, id);
       return open(temp, 'wx', 0o600);
     });

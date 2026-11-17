@@ -14,6 +14,7 @@ import { KnowledgeCard } from './KnowledgeCard';
 import { StatusField } from './status';
 import { getRecording, stopRecording } from '../recording/recorder';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
+import { refreshTranscriptions } from './transcription/jobs';
 
 /** An engagement: its sessions, and its name, goal and status (MVP 2.1 to 2.3). */
 export function EngagementPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
@@ -280,6 +281,8 @@ function DeleteEngagementDialog({
             const removal = removeEngagement(ws, engagement.id, now());
             return removal.ok ? { ok: true, value: removal.value.workspace } : removal;
           });
+          // A transcription that can no longer be added is cancelled and its result discarded by the server (decisions 16 and 25).
+          void refreshTranscriptions(view.session.companyId);
           location.hash = companyHref;
         } finally {
           onDeleting(false);

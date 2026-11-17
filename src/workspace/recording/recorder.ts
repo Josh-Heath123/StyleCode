@@ -443,6 +443,8 @@ if (typeof window !== 'undefined') {
 }
 
 const tried = new Set<string>();
+/** A recording written to in the last 15 seconds is taken as still going (server/workspace/recordings.ts); asked again after. */
+const RECOVER_AGAIN_MS = 20_000;
 
 /**
  * Finishes the recordings a crash or a closed tab left unfinished, when
@@ -463,8 +465,13 @@ export async function recoverRecordings(session: WorkspaceSession): Promise<void
         await finalStep(session, 'Recover a recording', (w) =>
           finishRecording(w, r.id, { durationMs: done.durationMs, sizeBytes: done.sizeBytes, recovered: true }),
         );
-      } catch {
-        // Still being recorded in another window, or the server can't say: tried again when the page reloads.
+      } catch (error) {
+        // Written to in the last few seconds (another window, or a tab reopened just after a crash): asked again
+        // once that window has passed. Otherwise the server can't say, and it's tried when the page reloads.
+        if (error instanceof WorkspaceApiError && error.status === 409) {
+          tried.delete(key);
+          setTimeout(() => void recoverRecordings(session).catch(() => undefined), RECOVER_AGAIN_MS);
+        }
       }
     }
   }

@@ -8,6 +8,7 @@ import type { ClientView } from '../ClientFrame';
 import { formatWhen } from '../chrome';
 import { DialogField, FormDialog } from '../fields';
 import { finalStep, now } from '../steps';
+import { refreshTranscriptions } from '../transcription/jobs';
 import { DeleteTranscriptDialog } from '../TranscriptCard';
 import { KeptDialog } from './KeptDialog';
 import { stopRecording } from '../../recording/recorder';
@@ -179,6 +180,8 @@ function WithdrawDialog({
           withdrawConsent(ws, meeting.id, reason, by, now()),
         );
         if (problem) return setError(problem);
+        // A transcription of the session is cancelled, and a result waiting is discarded (decisions 16 and 25).
+        void refreshTranscriptions(view.session.companyId);
         onWithdrawn();
       }}
     >

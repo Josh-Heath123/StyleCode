@@ -197,8 +197,12 @@ export const finishRecordingFile = (companyId: string, fileId: string, recover =
   );
 
 /** Converts and stores a WAV made elsewhere (decision 15). */
-export const addWavFile = (companyId: string, file: Blob) =>
-  binary<{ id: string; sizeBytes: number; durationMs: number }>(`${company(companyId)}/added-recordings`, 'POST', file);
+export const addWavFile = (companyId: string, sessionId: string, file: Blob) =>
+  binary<{ id: string; sizeBytes: number; durationMs: number }>(
+    `${company(companyId)}/added-recordings?session=${encodeURIComponent(sessionId)}`,
+    'POST',
+    file,
+  );
 
 /** Removes stored bytes the client never came to list (a recording whose start couldn't be saved). */
 export const discardStoredFile = (companyId: string, fileId: string) =>

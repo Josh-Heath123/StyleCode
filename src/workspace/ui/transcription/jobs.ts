@@ -138,9 +138,14 @@ async function ask(): Promise<void> {
     } catch (error) {
       // Not reachable just now: asked again in a second.
       if (!(error instanceof WorkspaceApiError) || error.status !== 404) continue;
-      // The server restarted, which ends its jobs: what it kept shows on the next list.
+      // Gone: discarded elsewhere, or the server restarted (which ends its jobs); what it kept shows on the next list.
       set(t.job.id, {
-        job: { ...t.job, state: 'failed', error: 'StyleCode’s local server stopped, so the transcription stopped. Try again.' },
+        job: {
+          ...t.job,
+          state: 'failed',
+          error:
+            'The transcription is no longer there: it was discarded in another window, or StyleCode’s local server restarted. Transcribe again if you need it.',
+        },
       });
       letGo(t.job.id);
     }
@@ -163,6 +168,15 @@ export async function refreshTranscriptions(companyId: string): Promise<void> {
   for (const job of jobs) {
     const known = tracked.get(job.id);
     tracked.set(job.id, known ? { ...known, job } : { companyId, job, auto: null, adding: 'no', message: null });
+  }
+  // A result the server no longer keeps (discarded, or its session deleted or consent withdrawn) isn't offered.
+  for (const t of [...tracked.values()]) {
+    if (t.companyId !== companyId || jobs.some((j) => j.id === t.job.id) || !isJobOver(t.job.state) || t.adding === 'adding')
+      continue;
+    if (t.job.state === 'done' && t.adding !== 'added') {
+      letGo(t.job.id);
+      tracked.delete(t.job.id);
+    }
   }
   publish();
   follow();
