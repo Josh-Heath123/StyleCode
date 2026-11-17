@@ -20,7 +20,8 @@ function timeline(meeting: string, version: string): TimelineTurnRef[] {
   const key = `${meeting}.${version}`;
   if (!timelineCache.has(key)) {
     const t = JSON.parse(readFileSync(join(TIMELINES, `${meeting}.timeline.json`), 'utf8'));
-    timelineCache.set(key, t[version].turns);
+    // WP8's room recording is the clean audio played aloud, lined up with it: the clean timeline is its reference.
+    timelineCache.set(key, t[version === 'room' ? 'clean' : version].turns);
   }
   return timelineCache.get(key)!;
 }

@@ -8,7 +8,8 @@ export interface RunRecord {
   kind: 'words' | 'speakers';
   run: string;
   meeting: string;
-  version: 'clean' | 'hard';
+  /** `room`: WP8's re-recording of the clean audio through the speakers and microphone, on the clean timeline. */
+  version: 'clean' | 'hard' | 'room';
   audioMs: number;
   wallMs: number;
   minutesPerHour: number;
