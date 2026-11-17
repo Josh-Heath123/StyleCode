@@ -13,6 +13,7 @@ import { DROP_LABELS, DROP_REASONS, sessionPassages, type DropCounts, type DropR
 import { reviewReport } from '../../extraction/report';
 import { passageTokens } from '../../extraction/run';
 import { formatTimeOfDay } from '../../time';
+import { COOLING_UNTIL, coolingText } from '../../transcription/cooling';
 import type { ClientView } from '../ClientFrame';
 import { count } from '../chrome';
 import { FindingFields, speakerName, type FindingDraft } from '../FindingForm';
@@ -30,6 +31,7 @@ import {
   remainingMs,
   startRun,
   stopRun,
+  dontWaitToCool,
   useRun,
   type Run,
 } from './runs';
@@ -238,7 +240,8 @@ function Progress({ run }: { run: Run }) {
         {run.waiting
           ? `The AI is waiting: ${run.waiting === 'transcription' ? 'a transcription' : 'another AI run'} is going on this computer, and one heavy job runs at a time. It starts reading when that finishes. `
           : null}
-        {run.waiting
+        {run.coolingC !== null ? `${coolingText(run.coolingC)}. ${COOLING_UNTIL} ` : null}
+        {run.waiting || run.coolingC !== null
           ? null
           : run.parts > 1
             ? `The AI is reading part ${run.part} of ${run.parts}.`
@@ -246,6 +249,16 @@ function Progress({ run }: { run: Run }) {
         {!run.waiting && left !== null ? `${capital(formatDuration(left))} left.` : ''} You can leave this page: it keeps going
         while StyleCode is open.
       </p>
+      {run.coolingC !== null && (
+        <button
+          type="button"
+          className="button"
+          onClick={() => dontWaitToCool(run.companyId, run.sessionId)}
+          aria-label="Don’t wait for the graphics card to cool"
+        >
+          Don’t wait
+        </button>
+      )}
       <button type="button" className="button" onClick={() => stopRun(run.companyId, run.sessionId)}>
         Stop
       </button>

@@ -232,6 +232,10 @@ export const getTranscription = (companyId: string, jobId: string) =>
 export const cancelTranscription = (companyId: string, jobId: string) =>
   request<JobView>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
 
+/** Starts a transcription waiting for the graphics card to cool, without waiting any longer (decision 10). */
+export const startTranscriptionNow = (companyId: string, jobId: string) =>
+  request<JobView>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}/start-now`, { method: 'POST' });
+
 /** A finished transcription's segments, speakers and what made them. */
 export const transcriptionResult = (companyId: string, jobId: string) =>
   request<JobResult>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}/result`);

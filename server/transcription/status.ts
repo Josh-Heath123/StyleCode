@@ -4,7 +4,7 @@ import type { TranscriptionStatus } from '../../src/workspace/transcription/type
 import { PINNED, SETUP_COMMAND, SPEAKER_ENGINE, TRANSCRIBER, transcriptionHome } from './install.ts';
 import { FAKE, programs, type JobView } from './jobs.ts';
 import { heavyJobs } from '../shared/heavy.ts';
-import { nvidiaGpu, readSettings } from './settings.ts';
+import { gpuTemperature, nvidiaGpu, readSettings } from './settings.ts';
 
 export type { TranscriptionStatus } from '../../src/workspace/transcription/types.ts';
 
@@ -32,6 +32,7 @@ export async function transcriptionStatus(busy: JobView | null): Promise<Transcr
     busy,
     heavyNow: heavyJobs.current(),
     speeds: (await readSettings()).speeds,
+    temperatureC: await gpuTemperature(),
   };
   if (FAKE) return { ...base, ready: true, reason: null, gpu: { name: 'Fake GPU for tests', memoryMb: 6144, driver: 'test' } };
   if (process.platform !== 'win32')

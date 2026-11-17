@@ -1,10 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { FAKE_MODEL, startFakeOllama, type FakeOllama } from './fakeOllama';
 import { kickoff } from './karoo';
 import { E2E_WORKSPACE } from './workspaceFolder';
+import { E2E_GPU_TEMPERATURE } from './workspacePath';
 
 /**
  * Transcribing on this computer (Phase 3 brief, WP7; decisions 10 and 16 to
@@ -37,6 +38,10 @@ const results = (id: string) => {
   return existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith('.json')) : [];
 };
 const soundFile = (id: string, fileId: string) => join(E2E_WORKSPACE, 'companies', id, 'files', fileId);
+
+/** Sets the fake GPU's temperature, or takes its reading away (decision 10's cooling pause). */
+const gpuAt = (celsius: number | null) =>
+  celsius === null ? rmSync(E2E_GPU_TEMPERATURE, { force: true }) : writeFileSync(E2E_GPU_TEMPERATURE, String(celsius));
 
 const card = (page: Page) =>
   page.locator('section').filter({ has: page.getByRole('heading', { name: 'Transcript', exact: true }) });
@@ -160,6 +165,40 @@ test('Transcribe gives an estimate, shows progress, waits its turn behind the AI
   await expect(panel.getByRole('progressbar')).toBeVisible();
   await expect(panel).toContainText('Transcribing on this computer');
   await expect(card(page)).toContainText('The transcript is ready', { timeout: 20_000 });
+});
+
+test('a hot graphics card cools before a transcription starts: the panel says so with the temperature, the time left waits, and Don’t wait starts it (decision 10)', async ({
+  page,
+}) => {
+  await withRecording(page);
+  try {
+    gpuAt(92);
+    await transcribe(page);
+    const panel = card(page).getByRole('group', { name: 'Transcription' });
+    await expect(panel).toContainText('Letting the graphics card cool: 92 °C. It starts again when the card is under 75 °C.');
+    await expect(panel).toContainText(/left, for 3 min 30 s of sound/);
+    await expect(panel.getByRole('progressbar')).toHaveCount(0);
+    gpuAt(88);
+    await expect(panel).toContainText('Letting the graphics card cool: 88 °C.');
+    // Under 75 °C, it starts by itself.
+    gpuAt(74);
+    await expect(card(page)).toContainText('The transcript is ready', { timeout: 20_000 });
+    await card(page).getByRole('button', { name: 'Discard…' }).click();
+    await page
+      .getByRole('dialog', { name: 'Discard the transcription…' })
+      .getByRole('button', { name: /^(Delete|Discard)/ })
+      .click();
+    await expect(card(page).getByRole('button', { name: 'Transcribe…' })).toBeVisible();
+
+    // The consultant can start without waiting.
+    gpuAt(95);
+    await transcribe(page);
+    await expect(panel).toContainText('Letting the graphics card cool: 95 °C.');
+    await panel.getByRole('button', { name: 'Don’t wait for the graphics card to cool' }).click();
+    await expect(card(page)).toContainText('The transcript is ready', { timeout: 20_000 });
+  } finally {
+    gpuAt(null);
+  }
 });
 
 test('the preview says the recordings will be deleted; adding keeps the speakers matched there, deletes the recordings in the same step, and leaves the line', async ({
@@ -514,6 +553,33 @@ test.describe('with the AI on this computer', () => {
     // What the AI proposed reached the client's file, waiting for review.
     // (Saved a moment after the run ends.)
     await expect.poll(() => Object.values(onDisk(id).findings).filter((f) => f.origin.kind === 'ai').length).toBeGreaterThan(0);
+  });
+
+  test('an AI run on this computer lets a hot graphics card cool before a part, says so, and Don’t wait goes on (decision 10)', async ({
+    page,
+  }) => {
+    await aiOnFake(page, fake.url);
+    await kickoff(page, { note: 'Thandi wants the pilot in Bloemfontein before the end of March.' });
+    const before = fake.requests.length;
+    try {
+      gpuAt(90);
+      await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+      await expect(
+        page.getByText('Letting the graphics card cool: 90 °C. It starts again when the card is under 75 °C.'),
+      ).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'StyleCode' })).toContainText(
+        'The AI is letting the graphics card cool before reading “Kick-off”',
+      );
+      // Nothing is sent to the model while it cools.
+      expect(fake.requests.length).toBe(before);
+      await page.getByRole('button', { name: 'Don’t wait for the graphics card to cool' }).click();
+      await expect(page.getByRole('navigation', { name: 'StyleCode' })).toContainText('The AI has finished “Kick-off”', {
+        timeout: 20_000,
+      });
+      expect(fake.requests.length).toBeGreaterThan(before);
+    } finally {
+      gpuAt(null);
+    }
   });
 
   test('an AI run on this computer waits its turn behind another heavy job, says so, then reads', async ({ page }) => {

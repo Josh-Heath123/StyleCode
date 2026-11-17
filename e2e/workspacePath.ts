@@ -9,3 +9,10 @@ import { join } from 'node:path';
  * the dev server starts.
  */
 export const E2E_WORKSPACE = join(tmpdir(), 'stylecode-e2e', 'workspace');
+
+/**
+ * The fake GPU's temperature, for the cooling pause (decision 10): with the
+ * fake transcription engine, the dev server reads the number in this file,
+ * and has no reading while it's missing. Tests that write it remove it after.
+ */
+export const E2E_GPU_TEMPERATURE = join(tmpdir(), 'stylecode-e2e', 'gpu-temperature.txt');

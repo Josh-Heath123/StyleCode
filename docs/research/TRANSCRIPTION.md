@@ -227,6 +227,8 @@ No piece failed. Whisper's live word errors are a little high: in some 30-second
 
 **Recommendation: StyleCode runs one heavy job at a time on this laptop,** whether it runs on the CPU or the GPU (decision 10). A transcription, a speakers run or an extraction run waits for the one before to finish, and says so.
 
+**From Slice C, StyleCode itself lets the GPU cool before a heavy step** (decision 10, extended after WP8). Before a transcription starts, and before each part of an AI run on a local model: if the GPU is at 87 °C or more, it waits until the GPU is under 75 °C, holding the heavy slot meanwhile. The run says so ("Letting the graphics card cool: 92 °C"), its time left doesn't run down while it waits, and "Don't wait" overrules it. With no reading (no NVIDIA card, or `nvidia-smi` not answering), nothing waits. 87 °C is this GPU's own target temperature. This doesn't stop heat building during one long part, as on 17 November, but it does stop the next part from starting hot.
+
 From 13 November, every heavy step of the measurements first waits for the GPU to be under 70 °C (`coolGpu` in `spikes/transcription/steps.ts`), and logs the wait. This gives the laptop room to breathe and starts every timing from the same temperature. It was added after the cut-out, so every result in this document was measured without it.
 
 ### Results measured at 90 °C or more (‡)

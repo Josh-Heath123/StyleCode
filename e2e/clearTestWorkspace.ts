@@ -1,7 +1,7 @@
 import { rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { E2E_WORKSPACE } from './workspacePath.ts';
+import { E2E_GPU_TEMPERATURE, E2E_WORKSPACE } from './workspacePath.ts';
 
 /**
  * Empties the browser tests' data folder, lock included, before Playwright
@@ -16,3 +16,5 @@ if (inTemp !== join('stylecode-e2e', 'workspace')) {
   process.exit(1);
 }
 rmSync(E2E_WORKSPACE, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+// A fake GPU temperature a stopped run left behind would make every heavy job wait.
+rmSync(E2E_GPU_TEMPERATURE, { force: true });

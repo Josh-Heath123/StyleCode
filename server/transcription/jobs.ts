@@ -24,7 +24,8 @@ export type { JobResult, JobState, JobView, RecordingSpan } from '../../src/work
 import { RequestError } from '../shared/requests.ts';
 import { isSafeId, type WorkspaceStore } from '../workspace/store.ts';
 import { installedPaths, SPEAKER_ENGINE, SPEAKER_THRESHOLD, TRANSCRIBER } from './install.ts';
-import { estimate, readSettings, recordSpeed } from './settings.ts';
+import { estimate, gpuTemperature, readSettings, recordSpeed } from './settings.ts';
+import { coolDown } from '../../src/workspace/transcription/cooling.ts';
 
 /**
  * Transcription jobs (Phase 3 brief, decision 17): a job runs in the local
@@ -112,6 +113,8 @@ export class TranscriptionJobs {
     private readonly store: WorkspaceStore,
     private readonly heavy: HeavyJobs = heavyJobs,
     private readonly engines: () => Programs = programs,
+    /** The GPU's temperature, for the cooling pause before a transcription starts (decision 10). */
+    private readonly cooling: { read: () => Promise<number | null>; everyMs?: number } = { read: gpuTemperature },
   ) {}
 
   private folder(companyId: string): string {
@@ -168,6 +171,8 @@ export class TranscriptionJobs {
       recordingIds: [...(recordingIds as string[])],
       state: 'waiting',
       waitingFor: null,
+      coolingC: null,
+      noCooling: false,
       progress: 0,
       audioMs,
       estimateMs: guess.totalMs,
@@ -192,6 +197,14 @@ export class TranscriptionJobs {
         'transcription',
         async () => {
           job.waitingFor = null;
+          // A hot GPU cools first, holding the slot so nothing else heats it meanwhile. The time left counts from the start.
+          await coolDown({
+            read: this.cooling.read,
+            everyMs: this.cooling.everyMs,
+            signal: job.abort.signal,
+            skip: () => job.noCooling,
+            onCooling: (c) => (job.coolingC = c),
+          });
           job.startedAt = new Date().toISOString();
           job.state = 'preparing';
           await mkdir(work, { recursive: true });
@@ -287,6 +300,7 @@ export class TranscriptionJobs {
       await rm(this.resultPath(job.companyId, job.id), { force: true }).catch(() => undefined);
     }
     job.waitingFor = null;
+    job.coolingC = null;
     job.finishedAt = new Date().toISOString();
     if (ended.state === 'done') job.progress = 1;
     job.error = ended.error;
@@ -402,6 +416,8 @@ export class TranscriptionJobs {
         recordingIds: result.recordingIds,
         state: 'done',
         waitingFor: null,
+        coolingC: null,
+        noCooling: false,
         progress: 1,
         audioMs: result.audioMs,
         estimateMs: 0,
@@ -432,6 +448,14 @@ export class TranscriptionJobs {
     const job = this.jobs.get(jobId);
     if (!job || job.companyId !== companyId) throw new RequestError('There is no such transcription.', 404);
     if (!isOver(job.state)) job.abort.abort(new Error('Cancelled.'));
+    return this.view(job);
+  }
+
+  /** Starts a job waiting for the graphics card to cool without waiting any longer: the consultant's choice (decision 10). */
+  startNow(companyId: string, jobId: string): JobView {
+    const job = this.jobs.get(jobId);
+    if (!job || job.companyId !== companyId) throw new RequestError('There is no such transcription.', 404);
+    if (!isOver(job.state)) job.noCooling = true;
     return this.view(job);
   }
 

@@ -12,13 +12,15 @@ import {
   type DropCounts,
   type RawProposal,
 } from '../../extraction/proposals';
-import { extract, passageTokens } from '../../extraction/run';
+import { extract, passageTokens, type SendPart } from '../../extraction/run';
 import type { WorkspaceSession } from '../../session';
 import { now, step } from '../steps';
 import { holdCompany, onCompanyClosed } from '../useCompanySession';
 import { sendForSession, type AiSetup } from './aiSetup';
 import { takeTurn } from './heavySlot';
 import type { HeavyKind } from '../../transcription/types';
+import { coolDown } from '../../transcription/cooling';
+import { getTranscriptionStatus } from '../../api';
 import { addCoverage, clearCoverage } from './coverage';
 import { recordSpeed, speedOf } from './speed';
 
@@ -40,6 +42,13 @@ export interface Run {
   state: 'running' | 'finished' | 'stopped' | 'failed';
   /** Waiting for a heavy job on this computer to finish first (decision 10): a transcription, or another AI run. */
   waiting: HeavyKind | null;
+  /** Letting the graphics card cool before the next part (decision 10): its temperature. */
+  coolingC: number | null;
+  /** When the current wait to cool began, and how long the earlier ones took: not reading, so not counted as such. */
+  coolingSince: number | null;
+  coolingMs: number;
+  /** The consultant chose not to wait for the card to cool, for the rest of this run. */
+  noCooling: boolean;
   /** The part being read, from 1 (0 before the first starts). */
   part: number;
   parts: number;
@@ -111,9 +120,14 @@ export function partsText(done: number, parts: number): string {
 
 /** How long is likely left, in milliseconds, or null without an estimate. */
 export function remainingMs(run: Run, at = Date.now()): number | null {
-  const elapsed = at - run.startedAt;
+  const elapsed = readingMs(run, at);
   if (run.tokensDone > 0) return Math.max(0, (elapsed / run.tokensDone) * (run.tokensTotal - run.tokensDone));
   return run.estimateMs === null ? null : Math.max(0, run.estimateMs - elapsed);
+}
+
+/** How long the run has spent reading: since it started, less its waits for the graphics card to cool. */
+export function readingMs(run: Run, at = Date.now()): number {
+  return Math.max(0, at - run.startedAt - run.coolingMs - (run.coolingSince === null ? 0 : at - run.coolingSince));
 }
 
 /** How long a run of the session is likely to take with this model, or null before its first full run here. */
@@ -147,6 +161,10 @@ export function startRun(session: WorkspaceSession, meeting: Session, setup: AiS
     setup,
     state: 'running',
     waiting: null,
+    coolingC: null,
+    coolingSince: null,
+    coolingMs: 0,
+    noCooling: false,
     part: 0,
     parts: 0,
     partsDone: 0,
@@ -215,7 +233,7 @@ async function go(
         title: meeting.title,
         passages,
         contextSize: setup.contextSize,
-        send: sendForSession(setup, workspace, meeting.id),
+        send: coolFirst(key, setup, sendForSession(setup, workspace, meeting.id)),
         signal: controller.signal,
         onProgress: (p) => {
           parts = p.parts;
@@ -230,7 +248,8 @@ async function go(
       });
       parts = result.parts;
       ended = { state: 'finished', error: null };
-      recordSpeed(setup, Date.now() - (runs.get(key)?.startedAt ?? Date.now()), passageTokens(passages));
+      const done = runs.get(key);
+      if (done) recordSpeed(setup, readingMs(done), passageTokens(passages));
     } catch (e) {
       ended = failure
         ? { state: 'failed', error: failure }
@@ -276,6 +295,36 @@ async function go(
     update(key, { ...ended, addedIds, dropped, unreadable, partsDone, parts });
     letGo();
   }
+}
+
+/**
+ * Before each part on a model on this computer, lets a hot graphics card cool
+ * (decision 10, extended after WP8: one long run took the laptop's GPU to
+ * 95 °C, and Windows hibernated it). The run says so, and its time left
+ * doesn't run down meanwhile. The consultant can choose not to wait.
+ */
+function coolFirst(key: string, setup: AiSetup, send: SendPart): SendPart {
+  if (setup.processing.kind !== 'local') return send;
+  return async (request, signal) => {
+    await coolDown({
+      read: async () => (await getTranscriptionStatus()).temperatureC,
+      skip: () => runs.get(key)?.noCooling ?? true,
+      signal,
+      onCooling: (coolingC) => {
+        const run = runs.get(key);
+        if (!run) return;
+        if (coolingC !== null) return update(key, { coolingC, coolingSince: run.coolingSince ?? Date.now() });
+        const waited = run.coolingSince === null ? 0 : Date.now() - run.coolingSince;
+        update(key, { coolingC: null, coolingSince: null, coolingMs: run.coolingMs + waited });
+      },
+    });
+    return send(request, signal);
+  };
+}
+
+/** Starts a run's next part without waiting for the graphics card to cool, and doesn't wait for the rest of the run. */
+export function dontWaitToCool(companyId: string, sessionId: string): void {
+  update(keyOf(companyId, sessionId), { noCooling: true });
 }
 
 /** Stops a session's run; what the parts that finished proposed is still added. */

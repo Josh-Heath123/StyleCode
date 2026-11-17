@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 import { fakeMicrophoneWav } from './e2e/fakeMicrophone';
-import { E2E_WORKSPACE } from './e2e/workspacePath';
+import { E2E_GPU_TEMPERATURE, E2E_WORKSPACE } from './e2e/workspacePath';
 
 /**
  * End-to-end tests drive the real editor in Chromium. They start their own dev
@@ -71,6 +71,8 @@ export default defineConfig({
       // Each of the fake engine's progress steps takes a moment, so a transcription is seen going.
       FAKE_ENGINE_STEP_MS: '200',
       STYLECODE_TRANSCRIPTION_SETTINGS: join(tmpdir(), 'stylecode-e2e', 'transcription.json'),
+      // A fake GPU's temperature for the cooling pause: none unless a test writes one.
+      STYLECODE_FAKE_GPU_TEMPERATURE: E2E_GPU_TEMPERATURE,
     },
   },
 });
