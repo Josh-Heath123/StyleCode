@@ -318,14 +318,18 @@ async function room(browser: Browser): Promise<void> {
   const app = await sessionPage(context, id);
   // The microphone, chosen in StyleCode's own list as the consultant would (decision 12). Windows' default on this
   // laptop is a virtual device (SteelSeries Sonar) that gave silence on the first try, so the built-in one is chosen.
-  // Names show once the microphone has been allowed, so it is opened once and the page reloaded first.
-  await app.evaluate(async () =>
-    (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop()),
-  );
-  await app.reload();
-  await app.getByRole('heading', { name: 'Transcript', exact: true }).waitFor({ timeout: 60_000 });
+  // The browser lists microphones once one has been opened in the page, so one is opened, and StyleCode's list
+  // (which reads them again on "devicechange") is told to look again.
+  await app.evaluate(async () => {
+    (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop());
+    navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+  });
   const wanted = process.env.WP8_MICROPHONE ?? 'Microphone Array';
-  const options = await app.getByLabel('Microphone', { exact: true }).locator('option').allInnerTexts();
+  const list = app.getByLabel('Microphone', { exact: true });
+  await until('the microphones to be listed', async () => (await list.locator('option').count()) > 1, 15_000, 500).catch(
+    () => undefined,
+  );
+  const options = await list.locator('option').allInnerTexts();
   const microphone = options.find((o) => o.includes(wanted));
   if (!microphone)
     throw new Error(
@@ -505,6 +509,12 @@ async function hour(browser: Browser): Promise<string> {
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   const app = await sessionPage(context, id);
+  // What goes wrong in the page is kept, as messages only (the first try's AI stopped part-way without a word in the logs).
+  const pageErrors: string[] = [];
+  app.on('pageerror', (e) => pageErrors.push(`${new Date().toISOString()} ${e.message.slice(0, 300)}`));
+  app.on('console', (m) => {
+    if (m.type() === 'error') pageErrors.push(`${new Date().toISOString()} ${m.text().slice(0, 300)}`);
+  });
   const wav = join(AUDIO, `${BOSVELD}.clean.wav`);
   const chooser = app.waitForEvent('filechooser');
   await app.getByRole('button', { name: 'Add a WAV file…' }).click();
@@ -546,6 +556,25 @@ async function hour(browser: Browser): Promise<string> {
   );
   const resources = gpu.stop();
   log(`wp8 hour: the AI ${ended.how} after ${((ended.at - startedAt) / 60_000).toFixed(1)} min in all`);
+  // The run's own words on the session page: why it stopped, and what was added (counts, not proposals).
+  const aiSaid = (
+    await app
+      .locator('.ws-run-status')
+      .innerText()
+      .catch(() => '')
+  )
+    .replace(/\s+/g, ' ')
+    .slice(0, 500);
+  if (ended.how !== 'has finished') {
+    const record = join(OUT, `hour.failed-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+    writeFileSync(
+      record,
+      `${JSON.stringify({ at: new Date().toISOString(), companyId: id, aiEnded: ended.how, aiSaid, pageErrors, minutes: { transcribeToAdded: Number(((addedAt - startedAt) / 60_000).toFixed(2)), transcribeToEnd: Number(((ended.at - startedAt) / 60_000).toFixed(2)) }, gpu: resources }, null, 2)}\n`,
+    );
+    await context.close();
+    // Not marked done, so starting WP8 again tries the hour again.
+    throw new Error(`The AI ${ended.how} the hour. It said: “${aiSaid}”. Page errors: ${pageErrors.length}. See ${record}.`);
+  }
 
   const ws = await workspace(id);
   const transcript = Object.values(ws.transcripts)[0];
@@ -577,6 +606,8 @@ async function hour(browser: Browser): Promise<string> {
           transcribeToProposals: Number(((ended.at - startedAt) / 60_000).toFixed(2)),
         },
         aiEnded: ended.how,
+        aiSaid,
+        pageErrors,
         transcriptSource: transcript.source,
         segments: Object.values(ws.segments).filter((s) => s.transcriptId === transcript.id).length,
         proposals: proposals.length,

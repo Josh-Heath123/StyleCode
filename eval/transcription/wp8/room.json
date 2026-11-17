@@ -1,0 +1,26 @@
+{
+  "at": "2026-11-17T11:54:16.313Z",
+  "meeting": "karoo-freight-kickoff",
+  "hardware": "Intel Core i7-12700H, 16 GB RAM, Windows 11; NVIDIA GeForce RTX 3060 Laptop GPU, 610.91, 6144 MiB; plugged in, OMEN performance mode, Windows best performance, lid open",
+  "power": "plugged in, OMEN performance mode, Windows best performance, lid open",
+  "browser": "157.0.4341.60",
+  "microphone": "Microphone Array (Intel® Smart Sound Technology for Digital Microphones)",
+  "speaker": "Speaker (Realtek(R) Audio)",
+  "cleanMs": 206965,
+  "recordedMs": 214421,
+  "offsetMs": 5349,
+  "rms": {
+    "room": 0.05609,
+    "clean": 0.09549
+  },
+  "appTranscribeMs": 60248,
+  "harness": {
+    "words": "wp8-room-whisper-turbo-gpu-mc0",
+    "speakers": "wp8-room-speakers-eres2net-t0.7"
+  },
+  "compareWith": {
+    "words": "whisper-turbo-gpu-mc0",
+    "speakers": "speakers-eres2net-t0.7",
+    "version": "clean"
+  }
+}
