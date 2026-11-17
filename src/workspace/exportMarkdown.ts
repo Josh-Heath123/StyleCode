@@ -188,7 +188,7 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
   if (!facts.length) push('Nothing from this engagement was added to company knowledge.', '');
   else {
     push(`Facts about ${md(company.name)} promoted from this engagement’s findings.`, '');
-    facts.forEach((f, i) => push(...factLines(f, i + 1, numbered), ''));
+    facts.forEach((f, i) => push(...factLines(ws, f, i + 1, numbered), ''));
   }
 
   // Every session's consent record, with its amendments and the wording shown (C9).
@@ -230,11 +230,11 @@ function findingLines(ws: CompanyWorkspace, f: Finding, n: number): string[] {
   return out;
 }
 
-function factLines(f: CompanyFact, n: number, numbered: ReadonlyMap<string, number>): string[] {
+function factLines(ws: CompanyWorkspace, f: CompanyFact, n: number, numbered: ReadonlyMap<string, number>): string[] {
   const source = f.source!;
   const finding = source.findingId ? numbered.get(source.findingId) : undefined;
   const from =
-    source.findingId === null
+    source.findingId === null || !get(ws.findings, source.findingId)
       ? 'a finding since deleted'
       : finding
         ? `F${finding} in this record`

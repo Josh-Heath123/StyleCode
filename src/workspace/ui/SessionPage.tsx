@@ -213,7 +213,7 @@ function SessionView({
             <TextField
               label="Starts"
               type="datetime-local"
-              value={toLocalInput(meeting.startsAt)}
+              value={toLocalInput(meeting.startsAt, meeting.timeZone)}
               display={formatWhen(meeting.startsAt, meeting.timeZone)}
               readOnly={readOnly}
               help={
@@ -222,7 +222,7 @@ function SessionView({
                   : undefined
               }
               onCommit={(value) => {
-                const startsAt = fromLocalInput(value);
+                const startsAt = fromLocalInput(value, meeting.timeZone);
                 return startsAt
                   ? edit('Change when the session starts', { startsAt })
                   : 'Give the date and time the session starts.';

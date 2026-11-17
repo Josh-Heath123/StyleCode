@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -219,4 +219,42 @@ test('an amendment that turns recording off offers to delete the recordings now 
   await offer.getByRole('button', { name: /^Delete/ }).click();
   await expect(offer).toHaveCount(0);
   await expect.poll(() => onDisk(id).sessions.se_1.deletedRecordings).toMatchObject([{ reason: 'retention' }]);
+});
+
+test('a read-only client’s recording past its time is listed, but left alone by the delete action', async ({ page }) => {
+  const other = await kickoff(page, { recording: { kind: 'days', days: 7 } });
+  await withRecordings(page, other, [{ name: 'Other.wav', daysAgo: 10 }]);
+  const damaged = await kickoff(page, { recording: { kind: 'days', days: 7 } });
+  const [kept] = await withRecordings(page, damaged, [{ name: 'Damaged.wav', daysAgo: 10 }]);
+  // A problem in the file (a company fact that doesn't say who added it) opens the client read-only.
+  const file = join(E2E_WORKSPACE, 'companies', damaged, 'workspace.json');
+  const ws = JSON.parse(readFileSync(file, 'utf8')) as { knowledge: Record<string, unknown> };
+  ws.knowledge.kf_bad = {
+    id: 'kf_bad',
+    statement: 'A fact.',
+    kind: 'constraint',
+    status: 'confirmed',
+    provenance: { kind: 'consultant' },
+    source: null,
+    createdBy: '',
+    createdAt: new Date().toISOString(),
+  };
+  writeFileSync(file, JSON.stringify(ws));
+
+  await page.goto('/#/');
+  await page.reload();
+  const card = page.getByRole('region', { name: 'Recordings to deal with' });
+  const dueList = card.getByRole('list', { name: /past the time the client agreed/ });
+  await expect(dueList.getByRole('listitem').filter({ hasText: 'Damaged.wav' })).toContainText(
+    'This client opens read-only: put its file right before deleting.',
+  );
+  await card.getByRole('button', { name: /^Delete (this recording|these \d+ recordings)…$/ }).click();
+  await page
+    .getByRole('dialog', { name: /^Delete the recordings? past (its|their) time…$/ })
+    .getByRole('button', { name: /^Delete/ })
+    .click();
+  await expect(card.getByRole('status')).toContainText(/deleted\. Each session keeps its line\.$/);
+  await expect.poll(() => onDisk(other).sessions.se_1.audioFileIds).toEqual([]);
+  expect(existsSync(soundFile(damaged, kept))).toBe(true);
+  await expect(dueList.getByRole('listitem').filter({ hasText: 'Damaged.wav' })).toBeVisible();
 });

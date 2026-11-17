@@ -230,7 +230,7 @@ Adding the transcript is permanent. If the client was told recordings are delete
 
 Each recording says how long it is kept, as the client was told on the consent form: "Kept until 5 Dec 2026", "Kept until the engagement ends", or, for "deleted after transcription", that it goes when its transcript is added. One past its time says so, and why: the date passed, the engagement ended, the client withdrew consent, or recording is no longer agreed.
 
-**StyleCode never deletes a recording on its own.** Each time it opens, the clients list shows **Recordings to deal with**: every client's recordings past their time, with one action that deletes them all, and, apart, those under "deleted after transcription" that are a day old or more and still waiting for a transcript, with a link to each session. The list shows until they're gone.
+**StyleCode never deletes a recording on its own.** Each time it opens, the clients list shows **Recordings to deal with**: every client's recordings past their time, with one action that deletes them all, and, apart, those under "deleted after transcription" that are a day old or more and still waiting for a transcript, with a link to each session. The list shows until they're gone. A client that opens read-only (its file has a problem) is listed too, but nothing of it is deleted until its file is put right.
 
 After a withdrawal, StyleCode offers to delete the session's recordings first, then the transcript. An amendment that turns recording off, or shortens how long recordings are kept, offers to delete those now past their time.
 

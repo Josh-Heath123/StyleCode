@@ -4,20 +4,46 @@
  * timestamps.
  */
 
-import { offsetMs } from './import/zone.ts';
+import { fromWallClock, offsetMs, wallClock } from './import/zone.ts';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** A stored timestamp as a `datetime-local` field's value, in this computer's time zone. */
-export function toLocalInput(iso: string): string {
+/**
+ * A stored timestamp as a `datetime-local` field's value: in this computer's
+ * time zone, or on the clock of `timeZone` if given (a session's, decision
+ * 29), falling back to this computer's for a zone it can't read.
+ */
+export function toLocalInput(iso: string, timeZone?: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
+  if (timeZone) {
+    try {
+      const c = wallClock(d.getTime(), timeZone);
+      return `${c.year}-${pad(c.month)}-${pad(c.day)}T${pad(c.hour)}:${pad(c.minute)}`;
+    } catch {
+      // This computer's clock, below.
+    }
+  }
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** A `datetime-local` field's value as a stored timestamp, or null if it isn't a complete date and time. */
-export function fromLocalInput(value: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+/**
+ * A `datetime-local` field's value as a stored timestamp, read on this
+ * computer's clock or `timeZone`'s, as `toLocalInput` wrote it; null if it
+ * isn't a complete date and time.
+ */
+export function fromLocalInput(value: string, timeZone?: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!m) return null;
+  if (timeZone) {
+    try {
+      const [year, month, day, hour, minute] = m.slice(1).map(Number);
+      const t = fromWallClock({ year, month, day, hour, minute, second: 0 }, timeZone);
+      return Number.isNaN(t) ? null : new Date(t).toISOString();
+    } catch {
+      // This computer's clock, below.
+    }
+  }
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }

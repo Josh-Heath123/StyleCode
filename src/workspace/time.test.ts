@@ -67,3 +67,18 @@ describe('times in the session’s zone (Phase 3 brief, decision 29)', () => {
     expect(formatTimeOfDay(at, 'Not/AZone')).toBe(formatTimeOfDay(at));
   });
 });
+
+describe('a date and time field on a session’s clock (decision 29)', () => {
+  it('shows and reads the time in the session’s zone, whatever this computer’s', () => {
+    expect(toLocalInput('2026-11-05T08:00:00.000Z', 'Africa/Johannesburg')).toBe('2026-11-05T10:00');
+    expect(fromLocalInput('2026-11-05T10:30', 'Africa/Johannesburg')).toBe('2026-11-05T08:30:00.000Z');
+    expect(toLocalInput('2026-07-01T12:00:00.000Z', 'Europe/London')).toBe('2026-07-01T13:00');
+    expect(fromLocalInput('2026-07-01T13:00', 'Europe/London')).toBe('2026-07-01T12:00:00.000Z');
+  });
+
+  it('falls back to this computer’s clock for a zone it can’t read, and refuses an incomplete value', () => {
+    expect(toLocalInput('2026-11-05T08:00:00.000Z', 'Not/AZone')).toBe(toLocalInput('2026-11-05T08:00:00.000Z'));
+    expect(fromLocalInput('2026-11-05T10:30', 'Not/AZone')).toBe(fromLocalInput('2026-11-05T10:30'));
+    expect(fromLocalInput('2026-11-05', 'Africa/Johannesburg')).toBeNull();
+  });
+});

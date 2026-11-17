@@ -52,7 +52,6 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
   const [after, setAfter] = useState<{ step: 'recordings' } | { step: 'delete' } | { step: 'review'; factIds: string[] } | null>(
     null,
   );
-  const hasRecordings = recordingsOf(view.workspace, meeting.id).some((r) => r.audio.state === 'finished');
   const afterRecordings = () =>
     hasTranscript
       ? setAfter({ step: 'delete' })
@@ -123,7 +122,9 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
           onClose={() => setWithdrawing(false)}
           onWithdrawn={() => {
             setWithdrawing(false);
-            if (hasRecordings) setAfter({ step: 'recordings' });
+            // From the workspace as the withdrawal left it: a recording going when it was recorded has just been finished.
+            const now = view.session.getState().workspace;
+            if (recordingsOf(now, meeting.id).some((r) => r.audio.state === 'finished')) setAfter({ step: 'recordings' });
             else afterRecordings();
           }}
         />
