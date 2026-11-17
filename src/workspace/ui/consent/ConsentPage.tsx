@@ -17,6 +17,7 @@ import { formatWhen, Page } from '../chrome';
 import { now, step } from '../steps';
 import { retentionSummary } from './ConsentPanel';
 import { AmendForm } from './AmendForm';
+import { DeleteRecordingsDialog, dueRecordings } from './DeleteRecordingsDialog';
 import { ConsentAttachment } from './ConsentAttachment';
 import { Choice, Section, STATEMENTS, YesNo } from './formParts';
 import { useConsentContext, type ConsentContext } from './useConsentContext';
@@ -54,6 +55,8 @@ export function ConsentPage({
 function Consent({ view, engagement, meeting }: { view: ClientView; engagement: Engagement; meeting: Session }) {
   const context = useConsentContext();
   const [amending, setAmending] = useState(false);
+  /** After an amendment that turned recording off or shortened how long it is kept: the offer to delete what is now past its time. */
+  const [offerDelete, setOfferDelete] = useState(false);
   const company = view.workspace.company;
   const folder = view.session.companyId;
   const sessionHref = `#/c/${folder}/e/${engagement.id}/s/${meeting.id}`;
@@ -86,13 +89,36 @@ function Consent({ view, engagement, meeting }: { view: ClientView; engagement: 
     if (amending && canAmend && context)
       return (
         <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
-          <AmendForm view={view} meeting={meeting} record={record} context={context} onDone={() => setAmending(false)} />
+          <AmendForm
+            view={view}
+            meeting={meeting}
+            record={record}
+            context={context}
+            onDone={(amended) => {
+              setAmending(false);
+              if (amended) setOfferDelete(true);
+            }}
+          />
         </Page>
       );
     return (
       <Page title={title} crumbs={crumbs} lede={lede} notices={view.notices}>
         <RecordView view={view} record={record} />
         {attachment}
+        {offerDelete && dueRecordings(view, meeting).length > 0 && (
+          <DeleteRecordingsDialog
+            view={view}
+            meeting={meeting}
+            intro={
+              <p>
+                After this amendment, {dueRecordings(view, meeting).length === 1 ? 'a recording is' : 'some recordings are'} past
+                the time the client agreed. Delete {dueRecordings(view, meeting).length === 1 ? 'it' : 'them'} now?
+              </p>
+            }
+            onDone={() => setOfferDelete(false)}
+            onClose={() => setOfferDelete(false)}
+          />
+        )}
         <p className="ws-actions">
           {canAmend && (
             <button type="button" className="button primary" onClick={() => setAmending(true)}>

@@ -86,3 +86,7 @@ Changes: AI by an external provider yes; external provider Anthropic (api.anthro
 Newly told (wording draft-1):
 
 - [x] “The transcript and my notes may be sent to Anthropic (api.anthropic.com), which processes them under its own terms, possibly outside South Africa.”
+
+#### Deleted recordings
+
+- Recorded 2026-11-04 10:00 (GMT+2), 1 h 2 min. Deleted 2026-11-04 12:30 (GMT+2) by Sam Consultant. Why: after transcription, as the client was told.

@@ -4,6 +4,7 @@ import { useDialogFocus } from '../../ui/useDialogFocus';
 import { createCompany, listCompanies, type CompanySummary } from '../api';
 import { isCompanyNameFree } from '../model/workspace';
 import { count, formatWhen, Id, Page, WorkspaceHeader } from './chrome';
+import { PastTimeCard } from './PastTimeCard';
 import { saveOpenClients } from './useCompanySession';
 
 /** The front door: every client, by name, and a way to add one (MVP story 1.1). */
@@ -50,6 +51,7 @@ export function ClientsPage() {
           </div>
         )}
         {companies === null && !error && <p className="ws-muted">Loading clients…</p>}
+        {companies && companies.length > 0 && <PastTimeCard companies={companies} />}
         {companies?.length === 0 && (
           <div className="ws-empty">
             <h2>No clients yet</h2>

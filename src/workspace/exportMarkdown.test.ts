@@ -42,6 +42,16 @@ function record(): CompanyWorkspace {
       given: { aiExternal: true, externalProvider: 'Anthropic (api.anthropic.com)' },
     },
   ];
+  // A recording deleted after transcription leaves its line, printed beside the consent record (decision 24).
+  ws.sessions.se_1.deletedRecordings = [
+    {
+      recordedAt: '2026-11-04T08:00:00.000Z',
+      durationMs: 3_725_000,
+      deletedAt: '2026-11-04T10:30:00.000Z',
+      deletedBy: 'Sam Consultant',
+      reason: 'transcribed',
+    },
+  ];
   ws.engagements.en_other = { ...ws.engagements.en_1, id: 'en_other', name: 'Secret other engagement' };
   ws.sessions.se_other = { ...ws.sessions.se_1, id: 'se_other', engagementId: 'en_other', title: 'Secret meeting' };
   return ws;

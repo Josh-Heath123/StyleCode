@@ -12,6 +12,8 @@ import { recordGroups } from './model/findings.ts';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from './model/labels.ts';
 import { evidenceSession } from './model/record.ts';
 import { speakerOf } from './model/transcripts.ts';
+import { DELETION_REASON_TEXT } from './model/recordings.ts';
+import { formatLength } from './time.ts';
 import { offsetMs, wallClock, type WallClock } from './import/zone.ts';
 import {
   CONSENT_STATEMENTS,
@@ -190,6 +192,15 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
     const record = consentFor(ws, s.id);
     if (!record) push('No consent record.', '');
     else push(...consentLines(ws, record), '');
+    // What is kept of each recording deleted since (decision 24): no sound and no words.
+    if (s.deletedRecordings.length) {
+      push('#### Deleted recordings', '');
+      for (const d of s.deletedRecordings)
+        push(
+          `- Recorded ${localTime(d.recordedAt, s.timeZone)}, ${formatLength(d.durationMs)}. Deleted ${localTime(d.deletedAt, s.timeZone)} by ${md(d.deletedBy)}. Why: ${DELETION_REASON_TEXT[d.reason]}.`,
+        );
+      push('');
+    }
   }
 
   return `${lines

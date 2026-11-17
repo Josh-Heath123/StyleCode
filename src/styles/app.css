@@ -4423,6 +4423,12 @@ a.ws-badge.is-knowledge {
   border-color: rgba(255, 107, 120, 0.4);
 }
 
+/* A recording past its time (decision 23). */
+.ws-badge.is-due {
+  color: var(--caution);
+  background: var(--caution-soft);
+}
+
 .ws-notice {
   display: flex;
   align-items: center;

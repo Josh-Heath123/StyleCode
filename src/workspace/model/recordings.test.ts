@@ -14,6 +14,7 @@ import {
   recordingInProgress,
   recordingsOf,
   recordingsPastTime,
+  retentionOf,
   removeRecordings,
   SHORT_LABEL_MS,
   speakerWarning,
@@ -470,6 +471,17 @@ describe('retention: recordings past their time (decision 23) and waiting for a 
     expect(recordingsPastTime(ws, later(T5, DAY), new Set(['fi_r1'])).waiting).toEqual([
       { sessionId: 'se_2', fileId: 'fi_r1', waiting: 'adding' },
     ]);
+  });
+
+  it('says where one recording stands, as the list does', () => {
+    const ws = recorded(intake({ kind: 'days', days: 30 }));
+    const file = recordingsOf(ws, 'se_2')[0];
+    expect(retentionOf(ws, file, later(T5, DAY))).toEqual({
+      kept: { kind: 'date', at: later(T5, 30 * DAY) },
+      due: null,
+      waiting: null,
+    });
+    expect(retentionOf(ws, file, later(T5, 30 * DAY)).due).toBe('days');
   });
 
   it('leaves a recording still going alone', () => {
