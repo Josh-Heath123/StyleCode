@@ -44,9 +44,16 @@ export function CrashScreen({
     ].join('\n'),
   })}`;
 
+  // An engagement's design is downloaded as a file only: opening it would put a client's design in this browser.
+  const company = session.companyDesign() !== null;
   const saveCopy = async () => {
     try {
-      if (await session.exportToFile()) setMessage('Saved. You can open the file from Designs → Open design file.');
+      if (await session.exportToFile())
+        setMessage(
+          company
+            ? 'Downloaded. The last good save is still in the client’s folder.'
+            : 'Saved. You can open the file from Designs → Open design file.',
+        );
     } catch (e) {
       setMessage(`Couldn’t save a copy: ${(e as Error).message}`);
     }
@@ -66,7 +73,7 @@ export function CrashScreen({
         {message && <p className="crash-message">{message}</p>}
         <div className="crash-actions">
           <button type="button" className="button primary" onClick={() => void saveCopy()}>
-            Save a copy to a file
+            {company ? 'Download as file' : 'Save a copy to a file'}
           </button>
           {canUndo && (
             <button

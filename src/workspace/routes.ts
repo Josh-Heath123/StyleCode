@@ -11,6 +11,8 @@ import { isValidId } from '../model/ids.ts';
  *   #/c/<company>/e/<engagement>/s/<session>   a session
  *   #/c/<company>/e/<engagement>/s/<session>/p/<passage>   a session, at a quoted segment or note
  *   #/c/<company>/e/<engagement>/s/<session>/consent   its consent form
+ *   #/c/<company>/e/<engagement>/d/<design>   the editor on one of its designs (Phase 4, decision 8)
+ *   #/c/<company>/e/<engagement>/d/<design>/l/<layer>   the same, with that layer selected and in view
  *   #/settings                          the consultant's settings
  *   #/editor                            the design editor
  */
@@ -21,6 +23,7 @@ export type Route =
   | { page: 'record'; companyId: string; engagementId: string }
   | { page: 'session'; companyId: string; engagementId: string; sessionId: string; passageId?: string }
   | { page: 'consent'; companyId: string; engagementId: string; sessionId: string }
+  | { page: 'design'; companyId: string; engagementId: string; designId: string; layerId?: string }
   | { page: 'settings' }
   | { page: 'editor' };
 
@@ -35,6 +38,12 @@ export function parseRoute(hash: string): Route {
   if (e !== 'e' || !isValidId(engagementId)) return { page: 'clients' };
   if (s === undefined) return { page: 'engagement', companyId, engagementId };
   if (s === 'record' && sessionId === undefined) return { page: 'record', companyId, engagementId };
+  if (s === 'd' && isValidId(sessionId)) {
+    if (sub === undefined) return { page: 'design', companyId, engagementId, designId: sessionId };
+    if (sub === 'l' && isValidId(passageId))
+      return { page: 'design', companyId, engagementId, designId: sessionId, layerId: passageId };
+    return { page: 'clients' };
+  }
   if (s !== 's' || !isValidId(sessionId)) return { page: 'clients' };
   if (sub === undefined) return { page: 'session', companyId, engagementId, sessionId };
   if (sub === 'consent' && passageId === undefined) return { page: 'consent', companyId, engagementId, sessionId };
@@ -57,6 +66,8 @@ export function routeHref(route: Route): string {
       return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}${route.passageId ? `/p/${route.passageId}` : ''}`;
     case 'consent':
       return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}/consent`;
+    case 'design':
+      return `#/c/${route.companyId}/e/${route.engagementId}/d/${route.designId}${route.layerId ? `/l/${route.layerId}` : ''}`;
     case 'settings':
       return '#/settings';
     case 'editor':

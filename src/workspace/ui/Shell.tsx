@@ -18,6 +18,10 @@ import { SessionPage } from './SessionPage';
 import { RecordPage } from './RecordPage';
 import { ConsentPage } from './consent/ConsentPage';
 import { SettingsPage } from './SettingsPage';
+import { DesignHost } from './designs/DesignHost';
+import { DesignEditorContext } from './designs/editorContext';
+import { leaveCompanyDesign, openDesign } from './designs/companyDesign';
+import { fitAllCamera } from '../../app/actions';
 
 interface ShellProps {
   editor: Editor;
@@ -46,9 +50,33 @@ function useRoute(): Route {
 export function Shell({ editor, assistant, session, initialCamera, info }: ShellProps) {
   const route = useRoute();
   const showEditor = route.page === 'editor' || info === null;
+  // The editor's own designs, after an engagement's: the engagement's design is closed first (Phase 4, decision 4).
+  const [leaving, setLeaving] = useState(false);
+  const lastDesign = useRef<string | null>(null);
+  if (route.page === 'design') lastDesign.current = routeHref(route);
+  useEffect(() => {
+    if (!showEditor || !openDesign()) return;
+    let alive = true;
+    setLeaving(true);
+    leaveCompanyDesign(session)
+      .then((camera) => {
+        if (!alive) return;
+        editor.setCamera(camera ?? fitAllCamera(editor));
+        setLeaving(false);
+      })
+      .catch((error: Error) => {
+        if (!alive) return;
+        setLeaving(false);
+        editor.notify(error.message, 'error');
+        if (lastDesign.current) location.hash = lastDesign.current;
+      });
+    return () => {
+      alive = false;
+    };
+  }, [showEditor, session, editor]);
   // "Clients" in the editor goes back to the workspace page last open.
   const lastWorkspace = useRef('#/');
-  if (!showEditor) lastWorkspace.current = routeHref(route);
+  if (!showEditor && route.page !== 'design') lastWorkspace.current = routeHref(route);
   // The editor is mounted only while it shows, so its shortcuts don't act on workspace pages.
   // When it comes back, it keeps the view it had.
   const editorShown = useRef(false);
@@ -73,6 +101,12 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
     return () => window.removeEventListener('keydown', onKey);
   }, [showEditor]);
 
+  if (showEditor && (leaving || openDesign()))
+    return (
+      <div className="app-loading" role="status">
+        Closing the design…
+      </div>
+    );
   if (showEditor || info === null) {
     return (
       <App
@@ -84,28 +118,47 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
       />
     );
   }
+  if (route.page === 'design')
+    return (
+      <WorkspaceInfoContext.Provider value={info}>
+        <DesignEditorContext.Provider value={{ editor, session }}>
+          <DesignHost
+            key={`${route.companyId}/${route.designId}`}
+            companyId={route.companyId}
+            engagementId={route.engagementId}
+            designId={route.designId}
+            layerId={route.layerId ?? null}
+            editor={editor}
+            assistant={assistant}
+            session={session}
+          />
+        </DesignEditorContext.Provider>
+      </WorkspaceInfoContext.Provider>
+    );
   return (
     <WorkspaceInfoContext.Provider value={info}>
-      <div className="ws">
-        <ErrorBoundary
-          key={routeHref(route)}
-          fallback={(error, reset) => (
-            <div className="ws-crash" role="alert">
-              <h1>This page hit a problem</h1>
-              <p>What was saved is not affected. {error.message}</p>
-              <button type="button" className="button" onClick={reset}>
-                Try again
-              </button>
-            </div>
-          )}
-        >
-          {renderPage(route)}
-        </ErrorBoundary>
-        {shortcuts && <ShortcutsDialog groups={WORKSPACE_GROUPS} onClose={() => setShortcuts(false)} />}
-        <footer className="ws-folder">
-          Client data folder: <span className="ws-folder-path">{info.folder}</span>
-        </footer>
-      </div>
+      <DesignEditorContext.Provider value={{ editor, session }}>
+        <div className="ws">
+          <ErrorBoundary
+            key={routeHref(route)}
+            fallback={(error, reset) => (
+              <div className="ws-crash" role="alert">
+                <h1>This page hit a problem</h1>
+                <p>What was saved is not affected. {error.message}</p>
+                <button type="button" className="button" onClick={reset}>
+                  Try again
+                </button>
+              </div>
+            )}
+          >
+            {renderPage(route)}
+          </ErrorBoundary>
+          {shortcuts && <ShortcutsDialog groups={WORKSPACE_GROUPS} onClose={() => setShortcuts(false)} />}
+          <footer className="ws-folder">
+            Client data folder: <span className="ws-folder-path">{info.folder}</span>
+          </footer>
+        </div>
+      </DesignEditorContext.Provider>
     </WorkspaceInfoContext.Provider>
   );
 }

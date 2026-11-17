@@ -11,6 +11,7 @@ import { count, formatWhen, Page } from './chrome';
 import { DeleteDialog, DialogField, FormDialog, TextField } from './fields';
 import { FilesCard } from './FilesCard';
 import { KnowledgeCard } from './KnowledgeCard';
+import { DesignsCard } from './designs/DesignsCard';
 import { StatusField } from './status';
 import { getRecording, stopRecording } from '../recording/recorder';
 import { NOT_APPLIED, now, permanentStep, step } from './steps';
@@ -135,6 +136,7 @@ function EngagementView({
                 </ul>
               )}
             </section>
+            <DesignsCard view={view} engagement={engagement} />
             <KnowledgeCard view={view} manage={false} />
             <FilesCard view={view} owner={{ kind: 'engagement', engagementId: engagement.id }} />
           </div>
@@ -244,6 +246,7 @@ function engagementContents(ws: CompanyWorkspace, engagementId: string) {
     consents: inSessions(ws.consents),
     notes: inSessions(ws.notes),
     findings: Object.values(ws.findings).filter((f) => f.engagementId === engagementId).length,
+    designs: Object.values(ws.designs).filter((d) => d.engagementId === engagementId).length,
     files: Object.values(ws.files).filter(
       (f) =>
         (f.owner.kind === 'engagement' && f.owner.engagementId === engagementId) ||
@@ -292,8 +295,8 @@ function DeleteEngagementDialog({
         <>
           <p>
             This deletes <strong>{engagement.name}</strong> and everything in it: {count(c.sessions, 'session')}, with their{' '}
-            {count(c.consents, 'consent record')} and {count(c.notes, 'note')}, {count(c.findings, 'finding')} and{' '}
-            {count(c.files, 'file')}.
+            {count(c.consents, 'consent record')} and {count(c.notes, 'note')}, {count(c.findings, 'finding')},{' '}
+            {count(c.files, 'file')} and {count(c.designs, 'design')} with their images.
           </p>
           <p>
             <strong>This can’t be undone,</strong> and the undo history is cleared.

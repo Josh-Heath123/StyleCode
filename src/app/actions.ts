@@ -22,6 +22,7 @@ import { removeAutoLayoutOps, tidyFrameOps, wrapInAutoLayoutOps } from '../model
 import { OpBuilder, type Op } from '../model/ops';
 import { sizingProps } from '../model/sizing';
 import { isSelectable } from '../model/hit';
+import { assetSource, bringImages } from '../persistence/assets';
 
 /**
  * Editing actions shared by keyboard shortcuts, menus and the context menu,
@@ -324,6 +325,18 @@ function pasteTarget(editor: Editor, data: ClipboardData): string | null {
 export function pasteData(editor: Editor, data: ClipboardData): void {
   const { ops, newIds } = pasteOps(editor.getState().doc, data, pasteTarget(editor, data));
   editor.apply(ops, { label: 'Paste', selection: newIds });
+  // Images come with the layers only where the design's store allows (Phase 4, decision 2).
+  const images = data.items.flatMap((item) => item.nodes.flatMap((n) => (n.type === 'image' && n.src ? [n.src] : [])));
+  if (images.length)
+    void bringImages(images).then((missing) => {
+      if (!missing.length) return;
+      editor.notify(
+        assetSource().kind === 'company'
+          ? `${missing.length === 1 ? 'An image' : `${missing.length} images`} couldn’t come with the pasted layers: only images from the editor’s own designs, or this client’s, can be used here.`
+          : `${missing.length === 1 ? 'An image' : `${missing.length} images`} from a client’s design stay with that client, so the pasted layers show a placeholder.`,
+        'error',
+      );
+    });
 }
 
 export function parseClipboardText(text: string): ClipboardData | null {

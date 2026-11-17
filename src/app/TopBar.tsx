@@ -9,6 +9,7 @@ import { useAssistantState } from '../ai/react';
 import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
 import type { Onboarding } from './onboardingState';
+import type { CompanyEditing } from './App';
 
 interface TopBarProps {
   nav?: ReactNode;
@@ -19,6 +20,8 @@ interface TopBarProps {
   onOpenAiSettings: () => void;
   onboarding: Onboarding;
   onOpenShortcuts: () => void;
+  /** An engagement's design is open (Phase 4). */
+  company?: CompanyEditing;
 }
 
 const REPO = 'https://github.com/Josh-Heath123/StyleCode';
@@ -40,6 +43,7 @@ export function TopBar({
   onOpenAiSettings,
   onboarding,
   onOpenShortcuts,
+  company,
 }: TopBarProps) {
   const editor = useEditor();
   const ai = useAssistantState();
@@ -62,6 +66,13 @@ export function TopBar({
       editor.notify((error as Error).message, 'error');
     }
   };
+
+  // An engagement's design: only the way back and a file of it; the editor's own designs live in this browser.
+  const companyEntries = (backHref: string): MenuEntry[] => [
+    { label: 'Back to the engagement', onSelect: () => void (location.hash = backHref) },
+    { kind: 'separator' },
+    { label: 'Download as file…', onSelect: saveToFile },
+  ];
 
   const projectEntries = (): MenuEntry[] => [
     { label: 'New design', onSelect: () => run(async () => onCameraRestore(await session.newProject())) },
@@ -89,12 +100,22 @@ export function TopBar({
       if (await session.exportToFile()) editor.notify('Design saved to file.');
     });
 
-  const saveProblemEntries = (canRetry: boolean): MenuEntry[] => [
-    { kind: 'header', label: canRetry ? 'Your latest changes aren’t saved yet' : 'This browser isn’t letting StyleCode save' },
-    ...(canRetry ? [{ label: 'Try saving again', onSelect: () => void session.retry() }] : []),
-    { label: 'Save to file…', onSelect: saveToFile },
-    ...(canRetry ? [{ label: 'Free up space in Designs…', onSelect: onOpenProjects }] : []),
-  ];
+  const saveProblemEntries = (canRetry: boolean): MenuEntry[] =>
+    company
+      ? [
+          { kind: 'header', label: 'Your latest changes aren’t saved yet' },
+          { label: 'Try saving again', onSelect: () => void session.retry() },
+          { label: 'Download as file…', onSelect: saveToFile },
+        ]
+      : [
+          {
+            kind: 'header',
+            label: canRetry ? 'Your latest changes aren’t saved yet' : 'This browser isn’t letting StyleCode save',
+          },
+          ...(canRetry ? [{ label: 'Try saving again', onSelect: () => void session.retry() }] : []),
+          { label: 'Save to file…', onSelect: saveToFile },
+          ...(canRetry ? [{ label: 'Free up space in Designs…', onSelect: onOpenProjects }] : []),
+        ];
 
   const exportEntries = (): MenuEntry[] => [
     {
@@ -173,9 +194,15 @@ export function TopBar({
       </div>
       {nav}
       {nav && <span className="topbar-divider" />}
-      <MenuButton label="Designs" entries={projectEntries} className="text-button" minWidth={220}>
-        <Icon name="folder" size={14} /> Designs
-      </MenuButton>
+      {company ? (
+        <MenuButton label="Design" entries={() => companyEntries(company.backHref)} className="text-button" minWidth={220}>
+          <Icon name="folder" size={14} /> Design
+        </MenuButton>
+      ) : (
+        <MenuButton label="Designs" entries={projectEntries} className="text-button" minWidth={220}>
+          <Icon name="folder" size={14} /> Designs
+        </MenuButton>
+      )}
       <span className="topbar-divider" />
       <input
         className="project-name"
@@ -209,7 +236,7 @@ export function TopBar({
       ) : (
         <span className="save-status">
           <span data-status={sessionState.status} className="save-status-text">
-            {STATUS_TEXT[sessionState.status]}
+            {company && sessionState.status === 'saved' ? 'Saved in the client’s folder' : STATUS_TEXT[sessionState.status]}
           </span>
         </span>
       )}

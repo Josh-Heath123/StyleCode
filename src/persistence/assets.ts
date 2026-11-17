@@ -7,9 +7,15 @@ import { ASSETS, idbGet, idbPut } from './idb';
  * of their content, so the same picture added twice is stored once and image
  * layers can be copied between projects. Project files embed the images they
  * use, so a saved file is self-contained.
+ *
+ * Where images live is one switch (`setAssetSource`): this browser's own
+ * store for the editor's designs, or, while an engagement's design is open,
+ * the client's folder (Phase 4, decision 2), so a client's images never pass
+ * through the browser's storage. Everything here reads and writes through it:
+ * the canvas, adding an image, the code panel, code export and project files.
  */
 
-interface AssetRecord {
+export interface AssetRecord {
   id: string;
   type: string;
   blob: Blob;
@@ -21,6 +27,44 @@ export interface StoredAsset {
   id: string;
   width: number;
   height: number;
+}
+
+/** Where images are read and written. */
+export interface AssetSource {
+  /** This browser's own store, or a client's folder. */
+  readonly kind: 'browser' | 'company';
+  load(id: string): Promise<AssetRecord | null>;
+  store(record: AssetRecord): Promise<void>;
+}
+
+/** The editor's own store, IndexedDB, as before. */
+export const BROWSER_ASSETS: AssetSource = {
+  kind: 'browser',
+  load: (id) => idbGet<AssetRecord>(ASSETS, id).then((r) => r ?? null),
+  store: (record) => idbPut<AssetRecord>(ASSETS, record),
+};
+
+let source: AssetSource = BROWSER_ASSETS;
+
+/** Which store images come from now. */
+export function assetSource(): AssetSource {
+  return source;
+}
+
+/**
+ * Switches where images come from, when a design from another store opens.
+ * Loaded images are let go, so nothing of one store shows in the other.
+ */
+export function setAssetSource(next: AssetSource): void {
+  if (next === source) return;
+  source = next;
+  for (const url of urls.values()) URL.revokeObjectURL(url);
+  urls.clear();
+  pending.clear();
+  typeCache.clear();
+  for (const timer of releases.values()) clearTimeout(timer);
+  releases.clear();
+  for (const listener of arrivals) for (const id of users.keys()) listener(id);
 }
 
 /** Largest image accepted, so a project stays quick to save and load. */
@@ -96,7 +140,7 @@ export async function storeImage(file: Blob): Promise<StoredAsset> {
   if (file.size > MAX_IMAGE_BYTES) throw new Error('That image is larger than 15 MB. Use a smaller or compressed version.');
   const buffer = await file.arrayBuffer();
   const id = await hashId(buffer);
-  const existing = await idbGet<AssetRecord>(ASSETS, id);
+  const existing = await source.load(id);
   if (existing) return { id, width: existing.width, height: existing.height };
   const blob = new Blob([buffer], { type: file.type });
   let size: { width: number; height: number };
@@ -105,7 +149,7 @@ export async function storeImage(file: Blob): Promise<StoredAsset> {
   } catch {
     throw new Error('That image could not be read. It may be damaged or in an unsupported format.');
   }
-  await idbPut<AssetRecord>(ASSETS, { id, type: file.type, blob, ...size });
+  await source.store({ id, type: file.type, blob, ...size });
   pending.delete(id); // a lookup that started before the image arrived would report it missing
   for (const listener of arrivals) listener(id);
   return { id, ...size };
@@ -117,8 +161,12 @@ export function loadAssetUrl(id: string): Promise<string | null> {
   if (cached) return Promise.resolve(cached);
   let request = pending.get(id);
   if (!request) {
-    request = idbGet<AssetRecord>(ASSETS, id)
+    const from = source;
+    request = from
+      .load(id)
       .then((record) => {
+        // The store changed while this image loaded: it belongs to the other one.
+        if (from !== source) return null;
         if (!record) return null;
         const url = urls.get(id) ?? URL.createObjectURL(record.blob);
         urls.set(id, url);
@@ -184,7 +232,7 @@ export async function loadAssetFiles(ids: Iterable<string>): Promise<Map<string,
   const out = new Map<string, { type: string; data: Uint8Array }>();
   for (const id of new Set(ids)) {
     if (!ASSET_ID.test(id)) continue;
-    const record = await idbGet<AssetRecord>(ASSETS, id);
+    const record = await source.load(id);
     if (record) out.set(id, { type: record.type, data: new Uint8Array(await record.blob.arrayBuffer()) });
   }
   return out;
@@ -197,7 +245,7 @@ export async function loadAssetTypes(ids: Iterable<string>): Promise<Map<string,
   const out = new Map<string, string | null>();
   for (const id of new Set(ids)) {
     if (!typeCache.has(id)) {
-      const record = ASSET_ID.test(id) ? await idbGet<AssetRecord>(ASSETS, id).catch(() => undefined) : undefined;
+      const record = ASSET_ID.test(id) ? await source.load(id).catch(() => null) : null;
       // Only remember images that exist: a missing one may be added later.
       if (record) typeCache.set(id, record.type);
       out.set(id, record?.type ?? null);
@@ -212,7 +260,7 @@ export async function loadAssetTypes(ids: Iterable<string>): Promise<Map<string,
 export async function exportAssets(ids: Iterable<string>): Promise<Record<string, EmbeddedAsset>> {
   const out: Record<string, EmbeddedAsset> = {};
   for (const id of new Set(ids)) {
-    const record = await idbGet<AssetRecord>(ASSETS, id);
+    const record = ASSET_ID.test(id) ? await source.load(id) : null;
     if (record) out[id] = { type: record.type, data: toBase64(await record.blob.arrayBuffer()) };
   }
   return out;
@@ -245,3 +293,35 @@ export async function importAssets(assets: unknown): Promise<number> {
   }
   return stored;
 }
+
+/**
+ * Makes the images of pasted layers available where they now are (Phase 4,
+ * decision 2 and the WP0 check-in). Into a client's design, an image missing
+ * from the client is copied in only from this browser's own store (the
+ * editor's designs), never from another client. Into one of the editor's own
+ * designs, nothing is copied: a client's images never go into the browser's
+ * storage. Returns the ids that still can't be shown, for a notice.
+ */
+export async function bringImages(ids: Iterable<string>): Promise<string[]> {
+  const missing: string[] = [];
+  for (const id of new Set(ids)) {
+    if (!ASSET_ID.test(id)) {
+      missing.push(id);
+      continue;
+    }
+    const here = source;
+    if (await here.load(id).catch(() => null)) continue;
+    const local = here.kind === 'company' ? await BROWSER_ASSETS.load(id).catch(() => null) : null;
+    if (local && here === source) {
+      await here.store(local);
+      pending.delete(id);
+      for (const listener of arrivals) listener(id);
+      continue;
+    }
+    missing.push(id);
+  }
+  return missing;
+}
+
+/** An image's pixel size, read in the page. */
+export const imageSize = naturalSize;
