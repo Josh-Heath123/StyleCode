@@ -189,6 +189,10 @@ function migrate(raw: Record<string, unknown>, timeZone: string): Record<string,
       segments: mapRecord(ws.segments, (s) => ('unsureWords' in s ? s : { ...s, unsureWords: [] })),
     };
   }
+  if (ws.version === 4) {
+    // Version 5 keeps why an AI run stopped part-way; nothing had stopped that way before.
+    ws = { ...ws, version: 5, sessions: mapRecord(ws.sessions, (s) => ('aiStop' in s ? s : { ...s, aiStop: null })) };
+  }
   return ws;
 }
 

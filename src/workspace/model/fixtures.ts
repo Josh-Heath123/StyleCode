@@ -118,7 +118,7 @@ const pendingAiFinding: Finding = {
 export function sampleWorkspace(): CompanyWorkspace {
   return structuredClone({
     format: 'stylecode-workspace',
-    version: 4,
+    version: 5,
     company: {
       id: 'co_bakery',
       name: 'Harbour Bakery',
@@ -153,6 +153,7 @@ export function sampleWorkspace(): CompanyWorkspace {
         timeZone: 'Africa/Johannesburg',
         audioFileIds: [],
         deletedRecordings: [],
+        aiStop: null,
         createdAt: T0,
         updatedAt: T0,
       },

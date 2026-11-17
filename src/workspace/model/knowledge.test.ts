@@ -121,7 +121,7 @@ describe('workspace version 3', () => {
     const parsed = parseWorkspace(asVersion2(ws));
     expect(parsed.ok && parsed.access).toBe('editable');
     if (!parsed.ok) return;
-    expect(parsed.workspace.version).toBe(4);
+    expect(parsed.workspace.version).toBe(5);
     expect(parsed.workspace.knowledge.kf_1.status).toBe('unresolved');
     expect(parsed.workspace).toEqual({ ...ws, knowledge: { kf_1: { ...ws.knowledge.kf_1, status: 'unresolved' } } });
   });

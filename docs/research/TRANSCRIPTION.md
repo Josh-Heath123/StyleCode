@@ -12,9 +12,9 @@ Workspace Phase 3, WP3 (`docs/phase-3/PHASE-3-BRIEF.md`, decisions 5 to 11). Mea
 | RAM | 16 GB |
 | GPU | NVIDIA GeForce RTX 3060 Laptop, 6 GB, driver 610.91 |
 | Ollama | 0.40.16, `qwen3:4b` for extraction (the app's settings: think off, parts of 6144 tokens) |
-| Power | Plugged in, HP OMEN performance mode, Windows best performance; from 13 November also lid open |
+| Power | Plugged in, HP OMEN performance mode, Windows best performance; from 13 November also lid open; WP8's second try at the hour in OMEN's Balanced mode |
 
-**The GPU overheats under long jobs.** See [Heat](#heat) below: it held 90 to 94 °C at a 210 MHz clock through the longest runs, and on 13 November the laptop cut out during the heaviest one.
+**The GPU overheats under long jobs.** See [Heat](#heat) below: it held 90 to 94 °C at a 210 MHz clock through the longest runs. On 13 November the laptop cut out during the heaviest one, and on 17 November Windows hibernated it for heat during one AI run on its own.
 
 ## The candidates
 
@@ -223,7 +223,11 @@ No piece failed. Whisper's live word errors are a little high: in some 30-second
 - **Heat costs time as well:** the same extraction took 786 s one night and 1,130 s (44% longer) the next morning, at 90 to 93 °C.
 - **The heaviest combined step cut the power.** A CPU-heavy transcription (Parakeet ran on the CPU) alongside a GPU extraction, with the GPU already at 90 °C, is more than this laptop's cooling handles.
 
+**On 17 November one AI run on its own was enough.** In WP8's first try at the hour (below), StyleCode's AI run on the transcript was the only heavy job: the transcription had finished, and the GPU started it at 67 °C. Within 2 minutes the GPU's clock was held at 210 MHz at 89 °C, and it climbed to 94 to 95 °C by the seventh minute. At 7.5 minutes Windows hibernated the laptop "due to a critical thermal event" (Kernel-Power event 88, ACPI thermal zone `TZ01`, whose limit is 100 °C), then logged it entering sleep for the reason "Thermal Zone" (event 42) and resuming from hibernation a minute later. There was no event 41 or 6008 this time: Windows chose to stop, rather than the power being cut. The AI run stopped at the same second, with nothing saved. That is very likely the cause of the stop WP8 reported as unexplained. So one heavy job at a time isn't enough on its own on this laptop: a single long AI run, in OMEN's performance mode, heats it until Windows stops it.
+
 **Recommendation: StyleCode runs one heavy job at a time on this laptop,** whether it runs on the CPU or the GPU (decision 10). A transcription, a speakers run or an extraction run waits for the one before to finish, and says so.
+
+**From Slice C, StyleCode itself lets the GPU cool before a heavy step** (decision 10, extended after WP8). Before a transcription starts, and before each part of an AI run on a local model: if the GPU is at 87 °C or more, it waits until the GPU is under 75 °C, holding the heavy slot meanwhile. The run says so ("Letting the graphics card cool: 92 °C"), its time left doesn't run down while it waits, and "Don't wait" overrules it. With no reading (no NVIDIA card, or `nvidia-smi` not answering), nothing waits. 87 °C is this GPU's own target temperature. This doesn't stop heat building during one long part, as on 17 November, but it does stop the next part from starting hot.
 
 From 13 November, every heavy step of the measurements first waits for the GPU to be under 70 °C (`coolGpu` in `spikes/transcription/steps.ts`), and logs the wait. This gives the laptop room to breathe and starts every timing from the same temperature. It was added after the cut-out, so every result in this document was measured without it.
 
@@ -337,7 +341,7 @@ This is shown at WP7's screens check-in.
 
 ## End to end on the laptop (WP8)
 
-Measured on 17 November 2026 through StyleCode itself (`spikes/transcription/wp8.ts`, started from `start-wp8.cmd`), on the same laptop (Intel Core i7-12700H, 16 GB; RTX 3060 Laptop, 6 GB, driver 610.91; plugged in, OMEN performance mode, lid open), in Microsoft Edge 157. The speech is still WP1's synthetic voices, so these numbers are a lower bound on errors too. Records: `eval/transcription/wp8/`, `eval/transcription/runs/wp8-room-*`, `eval/runs/p3-wp8-hour/`.
+Measured on 17 November 2026 through StyleCode itself (`spikes/transcription/wp8.ts`, started from `start-wp8.cmd`), on the same laptop (Intel Core i7-12700H, 16 GB; RTX 3060 Laptop, 6 GB, driver 610.91; plugged in, lid open), in Microsoft Edge 157. The room recording and the hour's first try ran in OMEN's performance mode; the hour's second try ran in OMEN's Balanced mode (see below). The records' `power` field is what the launcher was told, not a measurement, so it says "performance mode" for the second try too, wrongly. The speech is still WP1's synthetic voices, so these numbers are a lower bound on errors too. Records: `eval/transcription/wp8/`, `eval/transcription/runs/wp8-room-*`, `eval/runs/p3-wp8-hour/`.
 
 ### The recorded role-play meeting
 
@@ -369,23 +373,29 @@ Bosveld Citrus's clean WAV (59 min 53 s) was added to a session whose consent sa
 
 WP3 expected about 32 minutes. Transcribe's estimate said "about 16 minutes", from the first try's speeds. The GPU peaked at 3.7 GB and 84 °C. The recording was gone and the session's line said when, in the same save that added the transcript.
 
-**The proposals,** scored against Bosveld Citrus's key with the key's turns translated to the app's 525 segments by time: 88 shown for review (18 more failed the quote check, 21 repeated others), **precision 78%, recall 56%**. WP3's hour at 6144 found 65% to 70%, but scored the raw proposals with each speaker matched to a person first. Here the AI read "Speaker 1", "Speaker 2"…, unmatched (nobody is at the keyboard with both options), and the app's checks had already removed 39 proposals.
+**Why 37 minutes and not 32: the second try ran in OMEN's Balanced mode.** After the first try ended in a thermal hibernation (see [Heat](#heat)), the laptop was switched from OMEN's performance mode to Balanced (confirmed by the user, and still set on the day). Balanced held the GPU's power at about 30 W through the AI part (79 of 82 samples under 40 W), at 210 to 990 MHz (mostly 225 to 580 MHz) with the GPU at 99% use. The first try's AI part started at about 93 W and 1,430 MHz. The second try stayed cool (74 to 84 °C), but its AI part took 20.9 minutes, against 861 s (14.4 minutes) for the same model and part size in WP3, in performance mode. The transcription took about the same time in both tries (16.2 and 15.1 minutes), most of it the speakers step on the CPU. Asked afterwards, with the laptop still in Balanced and idle, `nvidia-smi -q -d PERFORMANCE,POWER` reports an enforced power limit of 75 W (default 80 W, so the 30 W hold comes from OMEN's mode under load, not this setting). Its counters since the laptop resumed show software power capping for 2,426 s and software thermal slowdown for 2,373 s. So on this laptop, the choice is about 37 minutes in Balanced, kept cool, or about 32 in performance mode, at the risk of a thermal hibernation partway through an hour's AI run.
+
+**The proposals,** scored against Bosveld Citrus's key with the key's turns translated to the app's 525 segments by time: 88 shown for review (18 more failed the quote check, 21 repeated others), **precision 78%, recall 56%**.
+
+**56% isn't comparable with WP3's 65% to 70%, and doesn't test decision 8.** WP3 scored the raw proposals, with each speaker matched to a person first. This scores what the app showed after its checks, with the speakers unmatched: the AI read "Speaker 1", "Speaker 2"… (nobody is at the keyboard with both options), and the app's checks had already removed 39 proposals. The two numbers measure different things. So decision 8's downstream check for `--max-context 0` (extraction's recall on its transcripts, within 10 points of the typed transcripts') is still open. It moves to [Open questions](#open-questions) for WP11.
 
 **How the 42 unclear pairs were settled:** blind, as before. Three subagents saw only the two statements and kinds, shuffled, with WP3's rule. Ten of Phase 2's settled pairs were hidden in each of the two main packets: they agreed on 16 of 20 (κ 0.58; two stricter, two more lenient), weaker than WP3's 28 of 30. A third subagent re-settled 7 of the 42 and agreed on 6. With 22 of 42 settled yes, a few answers either way move recall by about 2 points.
 
-**The first try's AI stopped part-way.** On the first try the transcript was added and the recording deleted as above, but the AI run stopped after 7.5 minutes, nine parts in, with nothing added; Ollama's log shows StyleCode cancelling the tenth request mid-answer. Nothing recorded why. The second try, unchanged apart from recording the run's message, finished. The cause isn't found: a run stopped this way loses every part it read, which matters most when nobody is watching.
+**The first try's AI stopped part-way, because Windows hibernated the laptop for heat.** On the first try the transcript was added and the recording deleted as above, but the AI run stopped after 7.5 minutes, nine parts in, with nothing added; Ollama's log shows StyleCode cancelling the tenth request mid-answer. The page recorded no reason, but Windows' event log does: at the same second it hibernated the laptop for a critical thermal event, with the GPU at 95 °C (see [Heat](#heat)). The second try, in OMEN's Balanced mode, finished. Two things follow, both for Slice C: StyleCode waits for the GPU to cool before each heavy step, and a run that stops for a reason other than a deletion or consent keeps the parts it had finished.
 
 ## Open questions
 
 For WP11 to carry into the Phase 4 notes:
 - **Transcript per part.** Recall on the hour-long meeting may depend on how much transcript a part holds rather than on the context size: 500 tokens at 4096 found 82% to 83%, 2,036 at 6144 found 65% to 70%. A tuning question, for example 6144 with about 1,000 tokens of transcript per part, measured for recall, precision, proposals per hour and time.
 - **The part cap.** `PART_CONTEXT` caps parts at 6144, so a larger context setting doesn't make larger parts. Any test of bigger parts has to raise the cap.
+- **Decision 8's downstream check for `--max-context 0`.** Extraction hasn't been scored on `--max-context 0`'s transcripts the way WP3 scored the others (raw proposals, speakers matched, against the typed transcripts'). WP8's 56% doesn't answer it (see [An hour, through the app](#an-hour-through-the-app)). It is expected to pass, given fewer word errors, but that isn't measured.
+- **The quote check on transcripts.** In WP8's hour, 18 of the AI's 127 raw proposals failed the quote check (their quoted words aren't in the passage). Is that more than on typed notes and transcripts, and why: words the AI tidied from a transcript's spoken form, the "may be misheard" words, or segment boundaries cutting a quote?
 
 ## Risks
 
 - **Real speech is harder** (decision 1). Accents, names, crosstalk and a laptop microphone will raise every error rate here. WP8's re-recorded meeting is the first real-room check.
 - **Whisper repeats itself into long pauses** (410 words in the hard hour's two-minute pause), and the repetition passes the evidence check. `--max-context 0` brings it down to 8 words at no cost to accuracy ([Follow-up measurements](#follow-up-measurements)). It's still worth the "may be misheard" marking and the consultant checking a finding against the audio (decision 21).
 - **Many speaker labels on long meetings:** 34 for 5 people in the clean hour, 53 in the hard one, most of them holding under 30 s. Matching them is real work for the consultant. Dropping speech under 2 s brings it to 21 and 34, but leaves more speech with no speaker. Hiding short labels isn't safe: an unasked guest may speak for only seconds. Slice B groups them instead (decided above).
-- **Heat:** sustained jobs hold the GPU at 90 °C or more and slow it by up to 44%. Two at once cut the power. Better cooling (a raised back, clean vents, a cooling pad) would help every time here.
+- **Heat:** sustained jobs hold the GPU at 90 °C or more and slow it by up to 44%. Two at once cut the power, and in WP8 one AI run alone, in OMEN's performance mode, made Windows hibernate the laptop. OMEN's Balanced mode kept it cool but made the AI part about 45% slower. Better cooling (a raised back, clean vents, a cooling pad) would help every time here.
 - **The extraction scores rest on subagents' judgement** of 1,231 unclear pairs, and they split on a few kinds of pair (see "How the scores were settled"). Their agreement with Phase 2's answers and with each other (90% to 93%) puts that uncertainty at a few points of recall, smaller than one run's spread.
 - **Speakers' CPU time varied two-fold** for the same work, for a reason not found.

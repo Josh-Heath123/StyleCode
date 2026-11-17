@@ -237,3 +237,70 @@ test('a client with a damaged company fact opens read-only, showing its facts wi
   await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
   await expect(page.getByRole('heading', { name: 'This client opens read-only' })).toBeVisible();
 });
+
+test('a fact entered on the client’s page is the consultant’s, with no source, shows in every engagement, and undoes (Phase 3, decision 28)', async ({
+  page,
+}) => {
+  const id = await kickoff(page);
+  await page.goto(`/#/c/${id}`);
+  // From the keyboard.
+  const add = page.getByRole('button', { name: 'Add a fact…' });
+  await add.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: 'Add a company fact' });
+  await expect(dialog.getByLabel('Statement')).toBeFocused();
+  await dialog.getByRole('button', { name: 'Add the fact' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Write the fact.');
+  await dialog.getByLabel('Statement').fill('The depot closes from 15 December to 5 January.');
+  await dialog.getByLabel('Kind').selectOption({ label: 'Constraint' });
+  await dialog.getByLabel('Status').selectOption({ label: 'Confirmed' });
+  const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(scan.violations.map((v) => v.id)).toEqual([]);
+  await dialog.getByRole('button', { name: 'Add the fact' }).click();
+  await expect(dialog).toHaveCount(0);
+
+  const fact = knowledge(page).getByRole('listitem').filter({ hasText: 'The depot closes' });
+  await expect(fact.locator('.is-provenance')).toHaveText('Provenance: Entered by the consultant');
+  await expect(fact.locator('.is-status')).toHaveText(/Status: Confirmed/);
+  await expect(fact).toContainText('Entered by Sam');
+  await expect
+    .poll(() => Object.values(onDisk(id).knowledge).map((f) => [f.statement, f.status, f.source]))
+    .toEqual([['The depot closes from 15 December to 5 January.', 'confirmed', null]]);
+
+  // It shows in the engagement too, and isn't in its export, which lists only facts promoted from its findings.
+  await page.goto(`/#/c/${id}/e/en_1`);
+  await expect(knowledge(page)).toContainText('The depot closes');
+  await page.goto(`/#/c/${id}/e/en_1/record`);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export as Markdown' }).click();
+  const text = readFileSync(await (await download).path(), 'utf8');
+  expect(text).toContain('## Company knowledge\n\nNothing from this engagement was added to company knowledge.\n');
+  expect(text).not.toContain('The depot closes');
+
+  // An ordinary undoable step.
+  await page.goto(`/#/c/${id}`);
+  await page.getByRole('button', { name: 'Undo Add a company fact' }).click();
+  await expect(knowledge(page)).toHaveCount(0);
+  await expect.poll(() => Object.keys(onDisk(id).knowledge)).toEqual([]);
+});
+
+test('the export lists the company facts promoted from the engagement’s findings, with status and source (Phase 3, decision 27)', async ({
+  page,
+}) => {
+  const id = await withFinding(page);
+  await promote(page);
+  await page.goto(`/#/c/${id}`);
+  await page.getByRole('button', { name: `Change the company fact “${OFFLINE}”` }).click();
+  const change = page.getByRole('dialog', { name: 'Change the company fact' });
+  await change.getByLabel('Status').selectOption({ label: 'Suggested (not agreed yet)' });
+  await change.getByRole('button', { name: 'Save changes' }).click();
+  await expect(change).toHaveCount(0);
+  await page.goto(`/#/c/${id}/e/en_1/record`);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export as Markdown' }).click();
+  const text = readFileSync(await (await download).path(), 'utf8');
+  expect(text).toContain(`## Company knowledge\n\nFacts about Karoo Freight`);
+  expect(text).toContain(`#### K1. ${OFFLINE}`);
+  expect(text).toContain('- **Status:** Suggested');
+  expect(text).toContain('- **Source:** F1 in this record\n');
+});

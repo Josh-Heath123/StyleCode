@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, type ReactNode } from 're
 import { AppNav } from '../../app/AppNav';
 import { Icon } from '../../ui/Icon';
 import type { WorkspaceInfo } from '../api';
+import { formatDateTime } from '../time';
 
 /** The workspace server's data folder, for every workspace page. */
 export const WorkspaceInfoContext = createContext<WorkspaceInfo | null>(null);
@@ -132,7 +133,6 @@ export function Page({
   );
 }
 
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 const dayFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' });
 
 /** A calendar date such as "2026-11-04", as the consultant reads dates. */
@@ -141,9 +141,13 @@ export function formatDay(date: string): string {
   return Number.isNaN(time) ? date : dayFormat.format(time);
 }
 
-export function formatWhen(iso: string): string {
-  const time = Date.parse(iso);
-  return Number.isNaN(time) ? '' : dateFormat.format(time);
+/**
+ * A moment as the consultant reads dates and times. Pass a session's time
+ * zone for a time that belongs to it: it is shown on that zone's clock, with
+ * the offset when that differs from this computer's (Phase 3 brief, decision 29).
+ */
+export function formatWhen(iso: string, timeZone?: string): string {
+  return formatDateTime(iso, timeZone);
 }
 
 /** "1 session", "2 sessions". */

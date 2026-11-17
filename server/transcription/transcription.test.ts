@@ -22,6 +22,9 @@ let store: WorkspaceStore;
 let heavy: HeavyJobs;
 let jobs: TranscriptionJobs;
 const AT = '2026-11-05T08:00:00.000Z';
+/** The fake GPU's temperature: none unless a test sets one. */
+let temperature: number | null = null;
+const cooling = { read: async () => temperature, everyMs: 20 };
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'stylecode-transcription-'));
@@ -31,7 +34,7 @@ beforeEach(() => {
   delete process.env.FAKE_ENGINE_FAIL;
   store = new WorkspaceStore(root, { retry: { attempts: 2, delayMs: 1 } });
   heavy = new HeavyJobs();
-  jobs = new TranscriptionJobs(store, heavy, fakePrograms);
+  jobs = new TranscriptionJobs(store, heavy, fakePrograms, cooling);
 });
 afterEach(() => {
   delete process.env.STYLECODE_TRANSCRIPTION_SETTINGS;
@@ -159,7 +162,7 @@ describe('a transcription job, with the fake engine', () => {
     const c = await client();
     const started = await jobs.start(c.id, 'se_1', [c.fileId]);
     await until(() => jobs.get(c.id, started.id), over);
-    const restarted = new TranscriptionJobs(store, heavy, fakePrograms);
+    const restarted = new TranscriptionJobs(store, heavy, fakePrograms, cooling);
     expect(await restarted.list(c.id)).toMatchObject([
       { id: started.id, sessionId: 'se_1', state: 'done', recordingIds: [c.fileId] },
     ]);
@@ -174,6 +177,40 @@ describe('a transcription job, with the fake engine', () => {
     release();
     await extraction;
     expect((await until(() => jobs.get(c.id, started.id), over)).state).toBe('done');
+  });
+
+  it('lets a hot GPU cool before starting, holding the slot and saying the temperature; or starts at once when told (decision 10)', async () => {
+    const c = await client();
+    temperature = 92;
+    try {
+      const started = await jobs.start(c.id, 'se_1', [c.fileId]);
+      let job = await until(
+        () => jobs.get(c.id, started.id),
+        (j) => j.coolingC === 92,
+      );
+      expect(job).toMatchObject({ state: 'waiting', startedAt: null });
+      expect(heavy.current()).toBe('transcription');
+      temperature = 80;
+      job = await until(
+        () => jobs.get(c.id, started.id),
+        (j) => j.coolingC === 80,
+      );
+      expect(job.state).toBe('waiting');
+      temperature = 74;
+      job = await until(() => jobs.get(c.id, started.id), over);
+      expect(job).toMatchObject({ state: 'done', coolingC: null });
+
+      temperature = 95;
+      const again = await jobs.start(c.id, 'se_1', [c.fileId]);
+      await until(
+        () => jobs.get(c.id, again.id),
+        (j) => j.coolingC === 95,
+      );
+      expect(jobs.startNow(c.id, again.id).noCooling).toBe(true);
+      expect((await until(() => jobs.get(c.id, again.id), over)).state).toBe('done');
+    } finally {
+      temperature = null;
+    }
   });
 
   it('cancels: stops the programs and keeps nothing', async () => {

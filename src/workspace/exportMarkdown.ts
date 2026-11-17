@@ -8,13 +8,16 @@
  * or other companies is included.
  */
 import { consentFor, consentState } from './model/consent.ts';
-import { recordGroups } from './model/findings.ts';
+import { factsFromEngagement, recordGroups } from './model/findings.ts';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from './model/labels.ts';
 import { evidenceSession } from './model/record.ts';
 import { speakerOf } from './model/transcripts.ts';
-import { offsetMs, wallClock, type WallClock } from './import/zone.ts';
+import { DELETION_REASON_TEXT } from './model/recordings.ts';
+import { formatLength, gmtOffset } from './time.ts';
+import { wallClock, type WallClock } from './import/zone.ts';
 import {
   CONSENT_STATEMENTS,
+  type CompanyFact,
   type CompanyWorkspace,
   type ConsentAmendment,
   type ConsentRecord,
@@ -68,17 +71,14 @@ export function localTime(iso: string, timeZone: unknown): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t) || typeof timeZone !== 'string') return utc(iso);
   let clock: WallClock;
-  let offset: number;
+  let gmt: string;
   try {
     clock = wallClock(t, timeZone);
-    offset = Math.round(offsetMs(t, timeZone) / 60_000);
+    gmt = gmtOffset(t, timeZone);
   } catch {
     return utc(iso);
   }
   const two = (n: number) => String(n).padStart(2, '0');
-  const hours = Math.floor(Math.abs(offset) / 60);
-  const minutes = Math.abs(offset) % 60;
-  const gmt = offset === 0 ? 'GMT' : `GMT${offset < 0 ? '-' : '+'}${hours}${minutes ? `:${two(minutes)}` : ''}`;
   return `${clock.year}-${two(clock.month)}-${two(clock.day)} ${two(clock.hour)}:${two(clock.minute)} (${gmt})`;
 }
 
@@ -182,6 +182,15 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
     push('');
   }
 
+  // Company knowledge promoted from this engagement's findings (Phase 3 brief, decision 27): nothing from other engagements.
+  const facts = factsFromEngagement(ws, engagementId);
+  push('## Company knowledge', '');
+  if (!facts.length) push('Nothing from this engagement was added to company knowledge.', '');
+  else {
+    push(`Facts about ${md(company.name)} promoted from this engagement’s findings.`, '');
+    facts.forEach((f, i) => push(...factLines(ws, f, i + 1, numbered), ''));
+  }
+
   // Every session's consent record, with its amendments and the wording shown (C9).
   push('## Consent', '');
   if (!sessions.length) push('No sessions.', '');
@@ -190,6 +199,15 @@ export function exportEngagementMarkdown(ws: CompanyWorkspace, engagementId: str
     const record = consentFor(ws, s.id);
     if (!record) push('No consent record.', '');
     else push(...consentLines(ws, record), '');
+    // What is kept of each recording deleted since (decision 24): no sound and no words.
+    if (s.deletedRecordings.length) {
+      push('#### Deleted recordings', '');
+      for (const d of s.deletedRecordings)
+        push(
+          `- Recorded ${localTime(d.recordedAt, s.timeZone)}, ${formatLength(d.durationMs)}. Deleted ${localTime(d.deletedAt, s.timeZone)} by ${md(d.deletedBy)}. Why: ${DELETION_REASON_TEXT[d.reason]}.`,
+        );
+      push('');
+    }
   }
 
   return `${lines
@@ -210,6 +228,26 @@ function findingLines(ws: CompanyWorkspace, f: Finding, n: number): string[] {
     out.push(`- **Proposed by:** AI (${md(f.origin.provider)}, ${md(f.origin.model)}), accepted by the consultant`);
   for (const e of f.evidence) out.push(`- **Evidence:** ${evidenceText(ws, e)}`);
   return out;
+}
+
+function factLines(ws: CompanyWorkspace, f: CompanyFact, n: number, numbered: ReadonlyMap<string, number>): string[] {
+  const source = f.source!;
+  const finding = source.findingId ? numbered.get(source.findingId) : undefined;
+  const from =
+    source.findingId === null || !get(ws.findings, source.findingId)
+      ? 'a finding since deleted'
+      : finding
+        ? `F${finding} in this record`
+        : 'a finding of this engagement';
+  return [
+    `#### K${n}. ${heading(f.statement)}`,
+    '',
+    `- **Kind:** ${KIND_LABEL[f.kind]}`,
+    `- **Status:** ${STATUS_LABEL[f.status]}`,
+    `- **Provenance:** ${md(provenanceLabel(f.provenance))}`,
+    `- **Source:** ${from}${source.statement !== f.statement ? `, first recorded as “${md(source.statement)}”` : ''}`,
+    `- **Added by:** ${md(f.createdBy)}`,
+  ];
 }
 
 function evidenceText(ws: CompanyWorkspace, e: Evidence): string {

@@ -283,6 +283,10 @@ test('a withdrawal of consent stops the recording first, keeping what it recorde
   const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
   expect(onDisk(id).files[fileId].audio).toMatchObject({ state: 'finished' });
   expect(onDisk(id).files[fileId].audio!.durationMs).toBeGreaterThanOrEqual(2000);
+  // Then the flow offers to delete it (decision 25), though it was still recording when the withdrawal was recorded.
+  const offer = page.getByRole('dialog', { name: 'Delete the recording…' });
+  await expect(offer).toContainText('Consent is withdrawn');
+  await offer.getByRole('button', { name: 'Cancel' }).click();
   await expect(card(page)).toContainText('Recording isn’t available: the client withdrew consent for this session.');
 });
 

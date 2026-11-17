@@ -55,6 +55,7 @@ function withKickoff(changes: Partial<ReturnType<typeof consentRecord>> = {}): C
     timeZone: 'Africa/Johannesburg',
     audioFileIds: [],
     deletedRecordings: [],
+    aiStop: null,
     createdAt: T0,
     updatedAt: T0,
   };
@@ -113,7 +114,7 @@ describe('workspace version 2', () => {
     const parsed = parseWorkspace(v1, { timeZone: 'Europe/London' });
     expect(parsed.ok && parsed.access).toBe('editable');
     if (!parsed.ok) return;
-    expect(parsed.workspace.version).toBe(4);
+    expect(parsed.workspace.version).toBe(5);
     expect(parsed.workspace.sessions.se_1.timeZone).toBe('Europe/London');
     expect({ ...parsed.workspace, version: 1, sessions: before.sessions }).toEqual(before);
     expect(v1).toEqual(before); // The input isn't changed.

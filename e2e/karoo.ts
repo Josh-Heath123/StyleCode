@@ -49,6 +49,7 @@ export async function kickoff(
       timeZone: 'Africa/Johannesburg',
       audioFileIds: [],
       deletedRecordings: [],
+      aiStop: null,
       createdAt: at,
       updatedAt: at,
     },

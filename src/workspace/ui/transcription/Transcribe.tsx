@@ -12,6 +12,7 @@ import {
 } from '../../model/recordings';
 import { findingsQuotingTranscript, transcriptOf } from '../../model/transcripts';
 import type { Participant, Session } from '../../model/types';
+import { COOLING_UNTIL, coolingText } from '../../transcription/cooling';
 import { estimate } from '../../transcription/estimate';
 import { spanAt } from '../../transcription/play';
 import type { JobResult, JobState, TranscriptionStatus } from '../../transcription/types';
@@ -26,6 +27,7 @@ import { useConsultant } from '../useConsultant';
 import {
   addTranscription,
   cancelTranscribing,
+  startTranscribingNow,
   discardTranscribing,
   dismissTranscribing,
   fetchResult,
@@ -222,15 +224,29 @@ export function TranscribingPanel({ view, meeting, t }: { view: ClientView; meet
   if (going) {
     const percent = Math.round(job.progress * 100);
     const started = job.startedAt ? Date.now() - Date.parse(job.startedAt) : 0;
-    const left = job.state === 'waiting' ? null : Math.max(0, job.estimateMs - started);
+    const cooling = job.state === 'waiting' && job.coolingC !== null;
+    // While the card cools, nothing has started: the time left is the whole estimate, so it counts the wait.
+    const left = cooling ? job.estimateMs : job.state === 'waiting' ? null : Math.max(0, job.estimateMs - started);
     return (
       <div className="ws-transcribing" role="group" aria-label="Transcription">
         <div className="ws-transcribing-head">
           <p className="ws-transcribing-state" role="status">
-            {job.state === 'waiting'
-              ? `Waiting: ${BUSY_NOW[job.waitingFor ?? 'transcription']} on this computer, and one heavy job runs at a time. Transcribing starts when it finishes.`
-              : `Transcribing on this computer: ${STEP_TEXT[job.state].toLowerCase()}.`}
+            {cooling
+              ? `${coolingText(job.coolingC!)}. ${COOLING_UNTIL}`
+              : job.state === 'waiting'
+                ? `Waiting: ${BUSY_NOW[job.waitingFor ?? 'transcription']} on this computer, and one heavy job runs at a time. Transcribing starts when it finishes.`
+                : `Transcribing on this computer: ${STEP_TEXT[job.state].toLowerCase()}.`}
           </p>
+          {cooling && (
+            <button
+              type="button"
+              className="button"
+              onClick={async () => setError(await startTranscribingNow(t))}
+              aria-label="Don’t wait for the graphics card to cool"
+            >
+              Don’t wait
+            </button>
+          )}
           <button
             type="button"
             className="button"

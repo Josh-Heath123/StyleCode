@@ -13,8 +13,10 @@ import { DROP_LABELS, DROP_REASONS, sessionPassages, type DropCounts, type DropR
 import { reviewReport } from '../../extraction/report';
 import { passageTokens } from '../../extraction/run';
 import { formatTimeOfDay } from '../../time';
+import { COOLING_UNTIL, coolingText } from '../../transcription/cooling';
 import type { ClientView } from '../ClientFrame';
-import { count } from '../chrome';
+import { count, formatWhen } from '../chrome';
+import { clearAiStop } from '../../model/aiStop';
 import { FindingFields, speakerName, type FindingDraft } from '../FindingForm';
 import { FormDialog, NameField, nameFor } from '../fields';
 import { now, step } from '../steps';
@@ -30,6 +32,7 @@ import {
   remainingMs,
   startRun,
   stopRun,
+  dontWaitToCool,
   useRun,
   type Run,
 } from './runs';
@@ -219,6 +222,7 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
       <div className="ws-run-status">
         {run && running && <Progress run={run} />}
         {summary && <Summary run={summary} why={why} askButton={askButton} />}
+        {!running && !summary && <KeptStop view={view} meeting={meeting} />}
         <CoverageNotices view={view} meeting={meeting} />
         {error && (
           <p className="ws-error" role="alert">
@@ -230,6 +234,42 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
   );
 }
 
+/**
+ * Why the AI's last run on the session stopped part-way, kept with the
+ * session (version 5), so it still says so after a reload or the next day,
+ * until a run finishes or the consultant dismisses it.
+ */
+function KeptStop({ view, meeting }: { view: ClientView; meeting: Session }) {
+  const stop = get(view.workspace.sessions, meeting.id)?.aiStop;
+  const [error, setError] = useState<string | null>(null);
+  if (!stop) return null;
+  return (
+    <div className="ws-run-summary" role="group" aria-label="Why the AI stopped">
+      <p className="ws-error">
+        The AI ({stop.model}) stopped on {formatWhen(stop.at, meeting.timeZone)}
+        {stop.partsDone > 0
+          ? `, after ${partsText(stop.partsDone, stop.parts)}. What those parts proposed was added for review, after StyleCode’s checks.`
+          : ', before it finished a part.'}{' '}
+        It said: {stop.reason}
+      </p>
+      <div className="ws-actions">
+        <button
+          type="button"
+          className="button"
+          onClick={() => setError(step(view.session, 'Dismiss why the AI stopped', (ws) => clearAiStop(ws, meeting.id)))}
+        >
+          Dismiss
+        </button>
+      </div>
+      {error && (
+        <p className="ws-error" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function Progress({ run }: { run: Run }) {
   const left = remainingMs(run);
   return (
@@ -238,7 +278,8 @@ function Progress({ run }: { run: Run }) {
         {run.waiting
           ? `The AI is waiting: ${run.waiting === 'transcription' ? 'a transcription' : 'another AI run'} is going on this computer, and one heavy job runs at a time. It starts reading when that finishes. `
           : null}
-        {run.waiting
+        {run.coolingC !== null ? `${coolingText(run.coolingC)}. ${COOLING_UNTIL} ` : null}
+        {run.waiting || run.coolingC !== null
           ? null
           : run.parts > 1
             ? `The AI is reading part ${run.part} of ${run.parts}.`
@@ -246,6 +287,16 @@ function Progress({ run }: { run: Run }) {
         {!run.waiting && left !== null ? `${capital(formatDuration(left))} left.` : ''} You can leave this page: it keeps going
         while StyleCode is open.
       </p>
+      {run.coolingC !== null && (
+        <button
+          type="button"
+          className="button"
+          onClick={() => dontWaitToCool(run.companyId, run.sessionId)}
+          aria-label="Don’t wait for the graphics card to cool"
+        >
+          Don’t wait
+        </button>
+      )}
       <button type="button" className="button" onClick={() => stopRun(run.companyId, run.sessionId)}>
         Stop
       </button>
@@ -271,7 +322,8 @@ function Summary({ run, why, askButton }: { run: Run; why: string | null; askBut
         <p>{added ? `The AI proposed ${count(added, 'finding')} to review.` : 'The AI proposed nothing new.'}</p>
       )}
       {run.state !== 'finished' && run.partsDone === 0 && <p>Nothing was added: no part had finished.</p>}
-      {run.state !== 'finished' && run.partsDone > 0 && !added && (
+      {run.discarded && <p>Nothing from {partsText(run.partsDone, run.parts)} was added, because of why the AI stopped.</p>}
+      {run.state !== 'finished' && run.partsDone > 0 && !added && !run.discarded && (
         <p>Nothing new came from {partsText(run.partsDone, run.parts)}.</p>
       )}
       {run.unreadable > 0 && (
@@ -588,7 +640,7 @@ function ProposalItem({
 function quoteSource(ws: CompanyWorkspace, meeting: Session, e: Exclude<Finding['evidence'][number], { kind: 'deleted' }>) {
   if (e.kind === 'note') {
     const note = get(ws.notes, e.noteId);
-    return `your note${note ? ` at ${formatTimeOfDay(note.writtenAt)}` : ''}`;
+    return `your note${note ? ` at ${formatTimeOfDay(note.writtenAt, meeting.timeZone)}` : ''}`;
   }
   const label = get(ws.segments, e.segmentId)?.speakerLabel;
   if (!label) return 'said';

@@ -48,6 +48,42 @@ export async function recordSpeed(speed: Speed): Promise<void> {
   await rename(temp, file);
 }
 
+let temperatureCache: { at: number; reading: Promise<number | null> } | null = null;
+/** A reading this recent is reused, so several waits checking at once ask `nvidia-smi` once. */
+const TEMPERATURE_FRESH_MS = 2000;
+
+/**
+ * The GPU's temperature now, in °C, or null without a reading (no NVIDIA
+ * card or driver). For the cooling pause before a heavy step (decision 10).
+ * Tests use a fake GPU: with the fake engine, the reading is the number in
+ * the file STYLECODE_FAKE_GPU_TEMPERATURE names, or none without that file.
+ */
+export function gpuTemperature(): Promise<number | null> {
+  if (process.env.STYLECODE_TRANSCRIPTION_FAKE === '1') {
+    const file = process.env.STYLECODE_FAKE_GPU_TEMPERATURE;
+    if (!file) return Promise.resolve(null);
+    return readFile(file, 'utf8').then(
+      (text) => (Number.isFinite(Number.parseFloat(text)) ? Math.round(Number.parseFloat(text)) : null),
+      () => null,
+    );
+  }
+  const at = Date.now();
+  if (temperatureCache && at - temperatureCache.at < TEMPERATURE_FRESH_MS) return temperatureCache.reading;
+  const reading = new Promise<number | null>((resolve) => {
+    execFile(
+      'nvidia-smi',
+      ['--query-gpu=temperature.gpu', '--format=csv,noheader,nounits'],
+      { timeout: 5000, windowsHide: true },
+      (error, stdout) => {
+        const value = Number.parseFloat(String(stdout).split(/\r?\n/)[0]);
+        resolve(error || !Number.isFinite(value) ? null : Math.round(value));
+      },
+    );
+  });
+  temperatureCache = { at, reading };
+  return reading;
+}
+
 let gpuCache: Promise<Gpu | null> | null = null;
 
 /** The NVIDIA GPU `nvidia-smi` reports, or null if there's none (or no driver). Asked once. */

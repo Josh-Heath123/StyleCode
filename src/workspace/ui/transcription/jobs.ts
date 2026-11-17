@@ -6,6 +6,7 @@ import {
   getTranscriptionStatus,
   listTranscriptions,
   startTranscription,
+  startTranscriptionNow,
   transcriptionResult,
   WorkspaceApiError,
 } from '../../api';
@@ -208,6 +209,16 @@ export async function startTranscribing(
 }
 
 /** Stops a transcription; nothing it made is kept. */
+/** Starts a transcription that is waiting for the graphics card to cool, without waiting (decision 10). */
+export async function startTranscribingNow(t: Transcribing): Promise<string | null> {
+  try {
+    set(t.job.id, { job: await startTranscriptionNow(t.companyId, t.job.id) });
+    return null;
+  } catch (e) {
+    return (e as Error).message;
+  }
+}
+
 export async function cancelTranscribing(t: Transcribing): Promise<string | null> {
   try {
     set(t.job.id, { job: await cancelTranscription(t.companyId, t.job.id) });

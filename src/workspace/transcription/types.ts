@@ -20,6 +20,10 @@ export interface JobView {
   state: JobState;
   /** While waiting: what for. */
   waitingFor: HeavyKind | null;
+  /** While waiting for the graphics card to cool before starting: its temperature (decision 10). */
+  coolingC: number | null;
+  /** The consultant chose to start without waiting for the card to cool. */
+  noCooling: boolean;
   /** From 0 to 1, across both programs. */
   progress: number;
   audioMs: number;
@@ -71,6 +75,8 @@ export interface TranscriptionStatus {
   transcriber: EngineUsed;
   speakers: EngineUsed;
   gpu: Gpu | null;
+  /** The graphics card's temperature now, in °C, or null without a reading: for the cooling pause (decision 10). */
+  temperatureC: number | null;
   installed: { id: string; name: string; version: string; licence: string; present: boolean }[];
   /** The transcription going now, if any. */
   busy: JobView | null;

@@ -136,7 +136,7 @@ export function NotesCard({
               className={`ws-note${note.id === passageId ? ' is-cited' : ''}${quoted?.has(note.id) ? ' is-quoted' : ''}`}
             >
               <div className="ws-note-time">
-                <span>{formatTimeOfDay(note.writtenAt)}</span>
+                <span>{formatTimeOfDay(note.writtenAt, meeting.timeZone)}</span>
                 <span className="ws-muted">{sinceStart(meeting.startsAt, note.writtenAt)}</span>
               </div>
               {editing === note.id ? (
@@ -155,7 +155,9 @@ export function NotesCard({
                   <p className="ws-note-text">
                     <Quoted text={note.text} quotes={quoted?.get(note.id)} />
                   </p>
-                  {note.updatedAt !== note.writtenAt && <p className="ws-help">Changed {formatTimeOfDay(note.updatedAt)}</p>}
+                  {note.updatedAt !== note.writtenAt && (
+                    <p className="ws-help">Changed {formatTimeOfDay(note.updatedAt, meeting.timeZone)}</p>
+                  )}
                 </div>
               )}
               {!readOnly && editing !== note.id && (
@@ -163,7 +165,7 @@ export function NotesCard({
                   <button
                     type="button"
                     className="icon-button"
-                    aria-label={`Change the note written at ${formatTimeOfDay(note.writtenAt)}`}
+                    aria-label={`Change the note written at ${formatTimeOfDay(note.writtenAt, meeting.timeZone)}`}
                     data-tip="Change"
                     onClick={() => setEditing(note.id)}
                   >
@@ -172,7 +174,7 @@ export function NotesCard({
                   <button
                     type="button"
                     className="icon-button"
-                    aria-label={`Delete the note written at ${formatTimeOfDay(note.writtenAt)}`}
+                    aria-label={`Delete the note written at ${formatTimeOfDay(note.writtenAt, meeting.timeZone)}`}
                     data-tip="Delete"
                     data-tip-side="left"
                     onClick={() => change(note, null)}

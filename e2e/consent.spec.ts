@@ -68,6 +68,7 @@ async function sessionWithPeople(page: Page): Promise<{ id: string; href: string
       timeZone: 'Africa/Johannesburg',
       audioFileIds: [],
       deletedRecordings: [],
+      aiStop: null,
       createdAt: at,
       updatedAt: at,
     },

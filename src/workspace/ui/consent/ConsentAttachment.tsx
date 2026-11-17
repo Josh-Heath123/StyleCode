@@ -100,7 +100,8 @@ export function ConsentAttachment({
           <span className="ws-row-main">
             <span className="ws-row-title">{file.name}</span>
             <span className="ws-row-sub">
-              {formatSize(file.sizeBytes)} · added by {file.addedBy}, {formatWhen(file.addedAt)}
+              {formatSize(file.sizeBytes)} · added by {file.addedBy},{' '}
+              {formatWhen(file.addedAt, get(view.workspace.sessions, record.sessionId)?.timeZone)}
             </span>
           </span>
           <button type="button" className="button" aria-label={`Download ${file.name}`} onClick={() => void download()}>

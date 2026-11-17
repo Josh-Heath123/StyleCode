@@ -307,6 +307,53 @@ test('when the model fails partway, the session says so and keeps what came befo
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
 });
 
+test('a client closed mid-run keeps what the finished parts proposed, added to it as it is on disk, and the session keeps why the run stopped', async ({
+  page,
+}) => {
+  await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL, contextSize: 2048 });
+  const id = await kickoff(page, { title: 'Slow from part two' });
+  await importTranscript(page);
+  await page.getByRole('button', { name: 'Ask the AI for findings' }).click();
+  await expect(card(page).getByRole('status')).toContainText(/The AI is reading part 2 of \d+\./);
+
+  // A save is refused, as when the client was changed in another window, and the consultant reloads it from disk:
+  // the client closes under the run.
+  const client = `**/api/workspace/companies/${id}`;
+  await page.route(client, (route) =>
+    route.request().method() === 'PUT'
+      ? route.fulfill({
+          status: 409,
+          json: { error: 'This client was changed in another window. Reload it to see the latest version.' },
+        })
+      : route.fallback(),
+  );
+  await page.getByRole('heading', { level: 1 }).focus();
+  await page.keyboard.press('n');
+  await page.keyboard.type('A note that won’t be saved.');
+  await page.keyboard.press('Control+Enter');
+  await expect(page.getByRole('alert').filter({ hasText: 'Your latest changes aren’t saved.' })).toBeVisible();
+  await page.unroute(client);
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'Reload from disk' }).click();
+
+  // Part 1's proposals reach the client on disk, with why the run stopped, in one step.
+  await expect.poll(() => findings(id).length, { timeout: 15_000 }).toBeGreaterThan(0);
+  const stopOnDisk = () =>
+    (onDisk(id) as unknown as { sessions: Record<string, { aiStop: { reason: string } | null }> }).sessions;
+  await expect.poll(() => Object.values(stopOnDisk())[0].aiStop?.reason).toBe('The client was closed, so the AI stopped.');
+
+  // Still said after a reload, until dismissed.
+  await page.reload();
+  const stop = card(page).getByRole('group', { name: 'Why the AI stopped' });
+  await expect(stop).toContainText(`The AI (${FAKE_MODEL}) stopped on `);
+  await expect(stop).toContainText(/, after part 1 of \d+\. What those parts proposed was added for review/);
+  await expect(stop).toContainText('It said: The client was closed, so the AI stopped.');
+  await expect(card(page)).toContainText(/proposals from part 1 of \d+ are waiting for review/);
+  await stop.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(stop).toHaveCount(0);
+  await expect.poll(() => Object.values(stopOnDisk())[0].aiStop).toBeNull();
+});
+
 test('when the model fails on the only part, nothing is added', async ({ page }) => {
   await aiSettings(page, { provider: 'ollama', model: FAKE_MODEL });
   const id = await kickoff(page, { title: 'A kick-off that will fail' });
@@ -456,7 +503,7 @@ test('withdrawing consent during a run stops it at once, and nothing is added (C
   await dialog.getByLabel('Reason').fill('Thandi asked us to stop.');
   await dialog.getByRole('button', { name: 'Record the withdrawal' }).click();
   await expect(card(page)).toContainText('The client withdrew consent for this session. The AI stopped.');
-  await expect(card(page)).toContainText('The proposals couldn’t be added: The client withdrew consent for this session.');
+  await expect(card(page)).toContainText(/Nothing from part 1 of \d+ was added, because of why the AI stopped\./);
   expect(requestsFor(FAKE_MODEL)).toBe(sent);
   expect(findings(id)).toHaveLength(0);
 });

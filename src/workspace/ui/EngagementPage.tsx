@@ -123,7 +123,7 @@ function EngagementView({
                           <span className="ws-row-main">
                             <span className="ws-row-title">{s.title}</span>
                             <span className="ws-row-sub">
-                              {formatWhen(s.startsAt)} · {count(people, 'participant')}
+                              {formatWhen(s.startsAt, s.timeZone)} · {count(people, 'participant')}
                             </span>
                           </span>
                           <span className={`ws-badge${consent === 'given' ? ' is-active' : ''}`}>{CONSENT_TEXT[consent]}</span>

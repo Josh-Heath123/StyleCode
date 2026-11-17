@@ -7,6 +7,8 @@ import { formatSize } from '../model/files';
 import {
   addRecordingFile,
   DELETION_REASON_TEXT,
+  deletionReasonFor,
+  retentionOf,
   MAX_ADDED_WAV_BYTES,
   recordingsOf,
   removeRecordings,
@@ -28,6 +30,7 @@ import { formatWhen } from './chrome';
 import { DeleteDialog, FormDialog, NameField, nameFor } from './fields';
 import { finalStep, now, permanentStep } from './steps';
 import { useConsultant } from './useConsultant';
+import { retentionText } from './retention';
 import { stopPlaying } from './transcription/player';
 import { cancelTranscribing, discardTranscribing, useTranscribing } from './transcription/jobs';
 import { isJobOver } from '../transcription/types';
@@ -40,14 +43,8 @@ export function formatClock(ms: number): string {
   return h ? `${h}:${two(Math.floor(s / 60) % 60)}:${two(s % 60)}` : `${Math.floor(s / 60)}:${two(s % 60)}`;
 }
 
-/** "1 h 4 min", "12 min 4 s", "45 s": a recording's length. */
-export function formatLength(ms: number): string {
-  const s = Math.round(ms / 1000);
-  if (s < 60) return `${s} s`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return s % 60 ? `${m} min ${s % 60} s` : `${m} min`;
-  return m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 60)} h`;
-}
+import { formatLength } from '../time';
+export { formatLength };
 
 /** The key that stops a recording, as shown. */
 export const STOP_KEY = `${ALT_KEY}+S`;
@@ -113,6 +110,13 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
           : null
         : 'going'
       : null;
+  /** Where each recording stands now: kept until when, past its time, or waiting for its transcript (decisions 22 and 23). */
+  const ready = new Set(
+    recordingsOf(workspace, meeting.id)
+      .filter((r) => usedBy(r) === 'ready')
+      .map((r) => r.id),
+  );
+  const retention = (r: Recording) => retentionOf(workspace, r, now(), ready);
   const consultant = useConsultant();
   const recordings = recordingsOf(workspace, meeting.id);
   const allowed = canCapture(workspace, meeting.id, 'recording');
@@ -289,6 +293,10 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
               recording={r}
               live={here?.fileId === r.id && recordingHere ? here : null}
               readOnly={readOnly}
+              timeZone={meeting.timeZone}
+              retention={retentionText(retention(r), meeting.timeZone)}
+              due={retention(r).due !== null}
+              waiting={retention(r).waiting !== null}
               onRemove={() => setRemoving(r)}
             />
           ))}
@@ -326,8 +334,10 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
               const problem = use === 'going' ? await cancelTranscribing(transcribing) : await discardTranscribing(transcribing);
               if (problem) throw new Error(`The transcription couldn’t be stopped, so nothing was deleted: ${problem}`);
             }
+            // Past its time, it's deleted for that reason; otherwise because the consultant chose to.
+            const due = retention(removing).due;
             await permanentStep(session, `Delete ${removing.name}`, (ws) =>
-              removeRecordings(ws, [removing.id], 'consultant', by, now()),
+              removeRecordings(ws, [removing.id], due ? deletionReasonFor(due) : 'consultant', by, now()),
             );
             setRemoving(null);
           }}
@@ -335,8 +345,8 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
             <>
               <p>
                 This deletes <strong>{removing.name}</strong> ({formatLength(removing.audio.durationMs)}, recorded{' '}
-                {formatWhen(removing.audio.recordedAt)}). The session keeps a line saying when it was recorded, how long it was,
-                and when you deleted it, but no sound.
+                {formatWhen(removing.audio.recordedAt, meeting.timeZone)}). The session keeps a line saying when it was recorded,
+                how long it was, and when you deleted it, but no sound.
               </p>
               {usedBy(removing) === 'going' && (
                 <p>
@@ -421,10 +431,10 @@ function DeletedRecordings({ meeting }: { meeting: Session }) {
           <li key={i} className="ws-row is-static">
             <span className="ws-row-main">
               <span className="ws-row-title">
-                Recorded {formatWhen(d.recordedAt)}, {formatLength(d.durationMs)}
+                Recorded {formatWhen(d.recordedAt, meeting.timeZone)}, {formatLength(d.durationMs)}
               </span>
               <span className="ws-row-sub">
-                Deleted {formatWhen(d.deletedAt)} by {d.deletedBy}. Why: {DELETION_REASON_TEXT[d.reason]}.
+                Deleted {formatWhen(d.deletedAt, meeting.timeZone)} by {d.deletedBy}. Why: {DELETION_REASON_TEXT[d.reason]}.
               </span>
             </span>
           </li>
@@ -438,16 +448,26 @@ function RecordingRow({
   recording: r,
   live,
   readOnly,
+  timeZone,
+  retention,
+  due,
+  waiting,
   onRemove,
 }: {
   recording: Recording;
+  /** The session's, which its times are shown in (decision 29). */
+  timeZone: string;
   live: ActiveRecording | null;
   readOnly: boolean;
+  /** How long it is kept, or why its time is up. */
+  retention: string;
+  due: boolean;
+  waiting: boolean;
   onRemove: () => void;
 }) {
   const going = r.audio.state === 'recording';
   const facts = [
-    `${r.audio.source === 'added' ? 'Added' : 'Recorded'} ${formatWhen(r.audio.recordedAt)}`,
+    `${r.audio.source === 'added' ? 'Added' : 'Recorded'} ${formatWhen(r.audio.recordedAt, timeZone)}`,
     going ? (live ? `${formatLength(live.elapsedMs)} so far` : 'not finished') : formatLength(r.audio.durationMs),
     going ? null : formatSize(r.sizeBytes),
   ].filter(Boolean);
@@ -456,6 +476,7 @@ function RecordingRow({
       <span className="ws-row-main">
         <span className="ws-row-title">{r.name}</span>
         <span className="ws-row-sub">{facts.join(' · ')}</span>
+        {!going && <span className={`ws-row-sub${due || waiting ? ' ws-caution' : ''}`}>{retention}.</span>}
         {r.audio.recovered && (
           <span className="ws-row-sub">Recovered: StyleCode stopped while recording, so it keeps what reached the disk.</span>
         )}
@@ -466,6 +487,7 @@ function RecordingRow({
         )}
       </span>
       {r.audio.source === 'added' && <span className="ws-badge">WAV file</span>}
+      {due && <span className="ws-badge is-due">Past its time</span>}
       {going && live && <span className="ws-badge is-live">Recording</span>}
       {!readOnly && !going && (
         <button

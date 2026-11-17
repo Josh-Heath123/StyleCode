@@ -35,6 +35,7 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   POST   /api/workspace/companies/:id/transcriptions  transcribe { sessionId, recordingIds }
  *   GET    /api/workspace/companies/:id/transcriptions/:jobId          a job's state and progress
  *   POST   /api/workspace/companies/:id/transcriptions/:jobId/cancel   stop it, keeping nothing
+ *   POST   /api/workspace/companies/:id/transcriptions/:jobId/start-now  start without waiting for the GPU to cool
  *   GET    /api/workspace/companies/:id/transcriptions/:jobId/result   its segments
  *   DELETE /api/workspace/companies/:id/transcriptions/:jobId          discard its result
  *
@@ -126,7 +127,8 @@ export function createWorkspaceHandler(
         return notAllowed();
       }
       const finishing = sub === 'recordings' && rest.length === 1 && rest[0] === 'finish';
-      const jobAction = sub === 'transcriptions' && rest.length === 1 && ['result', 'cancel'].includes(rest[0]) ? rest[0] : null;
+      const jobAction =
+        sub === 'transcriptions' && rest.length === 1 && ['result', 'cancel', 'start-now'].includes(rest[0]) ? rest[0] : null;
       if (section !== 'companies' || (rest.length && !finishing && !jobAction))
         return sendJson(res, 404, { error: 'Not found.' });
 
@@ -188,6 +190,10 @@ export function createWorkspaceHandler(
         if (jobAction === 'cancel') {
           if (method !== 'POST') return notAllowed();
           return sendJson(res, 200, transcriptions.cancel(companyId, fileId));
+        }
+        if (jobAction === 'start-now') {
+          if (method !== 'POST') return notAllowed();
+          return sendJson(res, 200, transcriptions.startNow(companyId, fileId));
         }
         if (method === 'GET') return sendJson(res, 200, transcriptions.get(companyId, fileId));
         if (method === 'DELETE') {

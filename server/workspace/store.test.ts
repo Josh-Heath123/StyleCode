@@ -166,11 +166,11 @@ describe('saving', () => {
     writeFileSync(companyFile(id), JSON.stringify(v1));
     const reopened = await store.read(id);
     expect(reopened.access).toBe('editable');
-    expect(reopened.workspace.version).toBe(4);
+    expect(reopened.workspace.version).toBe(5);
     expect(reopened.workspace.sessions.se_1.timeZone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     expect(readJson(companyFile(id)).version).toBe(1); // Reading changes nothing on disk.
     await store.save(id, reopened.workspace, reopened.revision, false);
-    expect(readJson(companyFile(id))).toMatchObject({ version: 4, sessions: { se_1: { timeZone: expect.any(String) } } });
+    expect(readJson(companyFile(id))).toMatchObject({ version: 5, sessions: { se_1: { timeZone: expect.any(String) } } });
   });
 
   it('survives an interrupted write: the last good file is untouched and no temporary file is left', async () => {

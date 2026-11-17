@@ -124,7 +124,7 @@ export function FindingFields({
                     <span>
                       {note.text}{' '}
                       <span className="ws-muted">
-                        ({session.title}, {formatTimeOfDay(note.writtenAt)})
+                        ({session.title}, {formatTimeOfDay(note.writtenAt, session.timeZone)})
                       </span>
                     </span>
                   </label>
@@ -179,7 +179,7 @@ export function EvidenceLine({
       <q>{e.quote}</q>{' '}
       <span className="ws-muted">
         {e.kind === 'note'
-          ? `note at ${note ? formatTimeOfDay(note.writtenAt) : '?'}`
+          ? `note at ${note ? formatTimeOfDay(note.writtenAt, s?.timeZone) : '?'}`
           : `said${segment?.speakerLabel ? ` by ${speakerName(workspace, sessionId, segment.speakerLabel)}` : ''}`}
         , in{' '}
       </span>

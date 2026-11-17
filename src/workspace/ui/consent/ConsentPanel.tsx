@@ -11,6 +11,8 @@ import { finalStep, now } from '../steps';
 import { refreshTranscriptions } from '../transcription/jobs';
 import { DeleteTranscriptDialog } from '../TranscriptCard';
 import { KeptDialog } from './KeptDialog';
+import { DeleteRecordingsDialog } from './DeleteRecordingsDialog';
+import { recordingsOf } from '../../model/recordings';
 import { stopRecording } from '../../recording/recorder';
 import { useConsentContext } from './useConsentContext';
 
@@ -42,8 +44,18 @@ function agreedSummary(record: ConsentRecord): string {
 export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; meeting: Session; formHref: string }) {
   const record = consentFor(view.workspace, meeting.id);
   const [withdrawing, setWithdrawing] = useState(false);
-  /** After a withdrawal (decision 11): first the offer to delete the transcript, then the review. */
-  const [after, setAfter] = useState<{ step: 'delete' } | { step: 'review'; factIds: string[] } | null>(null);
+  /**
+   * After a withdrawal (decision 25, and Phase 2's decision 11): first the
+   * offer to delete the recordings, then the transcript, then the review of
+   * what keeps a statement.
+   */
+  const [after, setAfter] = useState<{ step: 'recordings' } | { step: 'delete' } | { step: 'review'; factIds: string[] } | null>(
+    null,
+  );
+  const afterRecordings = () =>
+    hasTranscript
+      ? setAfter({ step: 'delete' })
+      : setAfter(kept.findings.length + kept.facts.length > 0 ? { step: 'review', factIds: [] } : null);
   const kept = keptFromSession(view.workspace, meeting.id);
   const hasTranscript = transcriptOf(view.workspace, meeting.id) !== null;
   const state = record?.confirmed ? consentState(record) : null;
@@ -58,7 +70,7 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
     line = 'Consent: not confirmed';
     detail = 'The form is saved as a draft. Until you confirm it, it allows nothing.';
   } else if (withdrawal) {
-    line = `Consent: withdrawn on ${formatWhen(withdrawal.at)}`;
+    line = `Consent: withdrawn on ${formatWhen(withdrawal.at, meeting.timeZone)}`;
     detail = `Reason: ${withdrawal.reason} Nothing more is captured or processed for this session.`;
   } else if (state?.outcome.kind === 'declined') {
     line = 'Consent: declined';
@@ -110,9 +122,25 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
           onClose={() => setWithdrawing(false)}
           onWithdrawn={() => {
             setWithdrawing(false);
-            if (hasTranscript) setAfter({ step: 'delete' });
-            else if (kept.findings.length + kept.facts.length > 0) setAfter({ step: 'review', factIds: [] });
+            // From the workspace as the withdrawal left it: a recording going when it was recorded has just been finished.
+            const now = view.session.getState().workspace;
+            if (recordingsOf(now, meeting.id).some((r) => r.audio.state === 'finished')) setAfter({ step: 'recordings' });
+            else afterRecordings();
           }}
+        />
+      )}
+      {after?.step === 'recordings' && (
+        <DeleteRecordingsDialog
+          view={view}
+          meeting={meeting}
+          intro={
+            <p>
+              Consent is withdrawn, so recording is no longer agreed for this session. Delete its recordings now, as the client
+              would expect.
+            </p>
+          }
+          onDone={afterRecordings}
+          onClose={afterRecordings}
         />
       )}
       {after?.step === 'delete' && (
@@ -121,8 +149,8 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
           meeting={meeting}
           intro={
             <p>
-              Consent is withdrawn. If the client asks, delete the transcript too. Otherwise it stays, and what was imported
-              before the withdrawal can still be used.
+              Consent is withdrawn. If the client asks, delete the transcript too. Otherwise it stays, and what was there before
+              the withdrawal can still be used.
             </p>
           }
           onDeleted={(factIds) => setAfter({ step: 'review', factIds })}

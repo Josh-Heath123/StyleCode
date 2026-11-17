@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { exportEngagementMarkdown, exportFileName, localTime, md } from './exportMarkdown';
+import { addToKnowledge, enterFact } from './model/findings';
 import { sampleWorkspace, T3 } from './model/fixtures';
 import type { CompanyWorkspace } from './model/types';
 
@@ -8,7 +9,9 @@ import type { CompanyWorkspace } from './model/types';
  * consultant added from a note, a withdrawn session's consent, an
  * amendment that told the client about external AI, a second engagement
  * whose content must not appear, and transcript labels that aren't the
- * speaker's name: one matched to a participant, one not.
+ * speaker's name: one matched to a participant, one not. Company knowledge:
+ * a fact promoted from this engagement and changed since, one entered
+ * directly, and one from the other engagement (decision 27).
  */
 function record(): CompanyWorkspace {
   const ws = sampleWorkspace();
@@ -42,8 +45,43 @@ function record(): CompanyWorkspace {
       given: { aiExternal: true, externalProvider: 'Anthropic (api.anthropic.com)' },
     },
   ];
+  // A recording deleted after transcription leaves its line, printed beside the consent record (decision 24).
+  ws.sessions.se_1.deletedRecordings = [
+    {
+      recordedAt: '2026-11-04T08:00:00.000Z',
+      durationMs: 3_725_000,
+      deletedAt: '2026-11-04T10:30:00.000Z',
+      deletedBy: 'Sam Consultant',
+      reason: 'transcribed',
+    },
+  ];
   ws.engagements.en_other = { ...ws.engagements.en_1, id: 'en_other', name: 'Secret other engagement' };
   ws.sessions.se_other = { ...ws.sessions.se_1, id: 'se_other', engagementId: 'en_other', title: 'Secret meeting' };
+  const promoted = addToKnowledge(ws, 'fd_peak', 'kf_1', 'Sam Consultant', T3);
+  if (!promoted.ok) throw new Error(promoted.error);
+  const entered = enterFact(
+    promoted.value,
+    'kf_2',
+    { statement: 'Secret fact entered directly.', kind: 'constraint', status: 'confirmed' },
+    'Sam Consultant',
+    T3,
+  );
+  if (!entered.ok) throw new Error(entered.error);
+  const knowledge = entered.value.knowledge;
+  knowledge.kf_1 = { ...knowledge.kf_1, statement: 'Orders peak in December, and again at Easter.', status: 'suggested' };
+  knowledge.kf_3 = {
+    ...knowledge.kf_1,
+    id: 'kf_3',
+    statement: 'Secret fact from the other engagement.',
+    source: {
+      ...knowledge.kf_1.source!,
+      findingId: null,
+      deletedAt: T3,
+      engagementName: 'Secret other engagement',
+      sessionIds: ['se_other'],
+    },
+  };
+  ws.knowledge = knowledge;
   return ws;
 }
 
@@ -76,6 +114,17 @@ describe('the Markdown export (MVP 8)', () => {
     expect(out).toContain('Newly told (wording draft-1):');
     expect(out).toContain('may be sent to Anthropic (api.anthropic.com)');
     expect(out).not.toContain('Secret');
+  });
+
+  it('lists the company facts promoted from this engagement, with status and source (decision 27)', () => {
+    const out = exportEngagementMarkdown(record(), 'en_1');
+    expect(out).toContain('## Company knowledge');
+    expect(out).toContain('#### K1. Orders peak in December, and again at Easter.');
+    expect(out).toContain('- **Status:** Suggested');
+    expect(out).toContain('- **Source:** F1 in this record, first recorded as “Orders peak in December');
+    const ws = record();
+    ws.knowledge = {};
+    expect(exportEngagementMarkdown(ws, 'en_1')).toContain('Nothing from this engagement was added to company knowledge.');
   });
 
   it('keeps text from the record from turning into Markdown', () => {

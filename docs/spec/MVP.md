@@ -196,13 +196,13 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 
 ## Out of scope for the first version
 
-- Recording, audio import and local transcription with speakers (Phase 3).
+- Recording, audio import and local transcription with speakers. Out of the first version, and built since in Workspace Phase 3, "Capture": recording meetings in the room, adding a WAV, transcription on the computer with speakers (on an NVIDIA GPU), and audio retention (`docs/phase-3/HANDOVER.md`). Online meetings still come in through their platform's transcript.
 - Live follow-up questions during a session.
 - The technology catalogue and rules engine.
 - The cost engine.
 - A canvas informed by the record.
 - Sync between devices, sharing, and more than one consultant.
-- Accumulated company knowledge beyond the profile. Promoting an accepted finding to company knowledge comes in the roadmap phase straight after extraction (Q3).
+- Accumulated company knowledge beyond the profile. Promoting an accepted finding to company knowledge came in the phase straight after extraction (Workspace Phase 2, Q3), and facts entered directly in Workspace Phase 3.
 - Export formats other than Markdown.
 
 ## Decisions on the open questions

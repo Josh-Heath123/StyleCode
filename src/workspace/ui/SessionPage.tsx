@@ -122,7 +122,7 @@ function SessionView({
           { label: engagement.name, href: engagementHref },
           { label: meeting.title },
         ]}
-        lede={formatWhen(meeting.startsAt)}
+        lede={formatWhen(meeting.startsAt, meeting.timeZone)}
         notices={notices}
       >
         <ConsentPanel view={view} meeting={meeting} formHref={`${engagementHref}/s/${meeting.id}/consent`} />
@@ -213,8 +213,8 @@ function SessionView({
             <TextField
               label="Starts"
               type="datetime-local"
-              value={toLocalInput(meeting.startsAt)}
-              display={formatWhen(meeting.startsAt)}
+              value={toLocalInput(meeting.startsAt, meeting.timeZone)}
+              display={formatWhen(meeting.startsAt, meeting.timeZone)}
               readOnly={readOnly}
               help={
                 sessionTimeClearsConfirmation(workspace, meeting.id)
@@ -222,7 +222,7 @@ function SessionView({
                   : undefined
               }
               onCommit={(value) => {
-                const startsAt = fromLocalInput(value);
+                const startsAt = fromLocalInput(value, meeting.timeZone);
                 return startsAt
                   ? edit('Change when the session starts', { startsAt })
                   : 'Give the date and time the session starts.';
@@ -296,7 +296,7 @@ function SessionContents({ view, meeting }: { view: ClientView; meeting: Session
   return (
     <>
       <p>
-        This deletes the session <strong>{meeting.title}</strong> ({formatWhen(meeting.startsAt)}) with its{' '}
+        This deletes the session <strong>{meeting.title}</strong> ({formatWhen(meeting.startsAt, meeting.timeZone)}) with its{' '}
         {count(mine(ws.participants).length, 'participant')}, {consent ? 'consent record' : 'consent record (none yet)'},{' '}
         {transcript ? 'transcript, ' : ''}
         {count(notes, 'note')}, and the findings whose only evidence is in it.

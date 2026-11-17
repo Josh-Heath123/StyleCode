@@ -516,19 +516,41 @@ export function recordingsPastTime(
   const waiting: RecordingWaiting[] = [];
   for (const session of Object.values(ws.sessions)) {
     for (const file of recordingsOf(ws, session.id)) {
-      if (file.audio.state !== 'finished') continue;
       const entry = { sessionId: session.id, fileId: file.id };
-      const kept = keptUntil(ws, file);
-      if (kept.kind === 'not-agreed') due.push({ ...entry, why: kept.withdrawn ? 'withdrawn' : 'not-agreed' });
-      else if (kept.kind === 'date' && time(now) >= time(kept.at)) due.push({ ...entry, why: 'days' });
-      else if (kept.kind === 'engagement-ended' && dateIn(now, session.timeZone) >= kept.endedOn)
-        due.push({ ...entry, why: 'engagement-ended' });
-      else if (kept.kind === 'transcription') {
-        if (file.audio.transcribedAt !== null) due.push({ ...entry, why: 'transcribed' });
-        else if (time(now) - time(file.audio.recordedAt) >= TRANSCRIBE_WITHIN_MS)
-          waiting.push({ ...entry, waiting: ready.has(file.id) ? 'adding' : 'transcription' });
-      }
+      const r = retentionOf(ws, file, now, ready);
+      if (r.due) due.push({ ...entry, why: r.due });
+      else if (r.waiting) waiting.push({ ...entry, waiting: r.waiting });
     }
   }
   return { due, waiting };
+}
+
+/** Where one recording stands (decisions 22 and 23): how long it is kept, and whether its time is up, or it waits for a transcript. */
+export interface RecordingRetention {
+  kept: KeptUntil;
+  due: RecordingDue['why'] | null;
+  waiting: RecordingWaiting['waiting'] | null;
+}
+
+/** How long a recording is kept, and whether its time is up at `now`. A recording still going is never due. */
+export function retentionOf(
+  ws: CompanyWorkspace,
+  file: Recording,
+  now: Timestamp,
+  ready: ReadonlySet<string> = new Set(),
+): RecordingRetention {
+  const kept = keptUntil(ws, file);
+  const none: RecordingRetention = { kept, due: null, waiting: null };
+  if (file.audio.state !== 'finished') return none;
+  const session = get(ws.sessions, file.owner.kind === 'session' ? file.owner.sessionId : '');
+  if (kept.kind === 'not-agreed') return { ...none, due: kept.withdrawn ? 'withdrawn' : 'not-agreed' };
+  if (kept.kind === 'date' && time(now) >= time(kept.at)) return { ...none, due: 'days' };
+  if (kept.kind === 'engagement-ended' && session && dateIn(now, session.timeZone) >= kept.endedOn)
+    return { ...none, due: 'engagement-ended' };
+  if (kept.kind === 'transcription') {
+    if (file.audio.transcribedAt !== null) return { ...none, due: 'transcribed' };
+    if (time(now) - time(file.audio.recordedAt) >= TRANSCRIBE_WITHIN_MS)
+      return { ...none, waiting: ready.has(file.id) ? 'adding' : 'transcription' };
+  }
+  return none;
 }

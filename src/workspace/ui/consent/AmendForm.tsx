@@ -32,7 +32,8 @@ export function AmendForm({
   meeting: Session;
   record: ConsentRecord;
   context: ConsentContext;
-  onDone: () => void;
+  /** Back to the record: `amended` when the amendment was saved. */
+  onDone: (amended?: boolean) => void;
 }) {
   const [values, setValues] = useState<AmendValues>(() => amendFormFor(record));
   const [name, setName] = useState('');
@@ -70,7 +71,7 @@ export function AmendForm({
       amendConsentForm(ws, meeting.id, values, by, now()),
     );
     if (problem) return setError(problem);
-    onDone();
+    onDone(true);
   };
 
   return (
@@ -212,7 +213,7 @@ export function AmendForm({
           <button type="submit" className="button primary">
             Record the change
           </button>
-          <button type="button" className="button" onClick={onDone}>
+          <button type="button" className="button" onClick={() => onDone()}>
             Cancel
           </button>
         </div>

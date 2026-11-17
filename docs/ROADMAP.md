@@ -168,7 +168,9 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 
 **Depends on:** Workspace Phase 1.
 
-### Workspace Phase 3: Capture
+### Workspace Phase 3: Capture ✅
+
+*Done: `docs/phase-3/HANDOVER.md`. Recording in the room, adding a WAV, transcription on this computer with speakers, retention of audio, and what Phase 2 left (company knowledge in the export, facts entered directly, times in the session's zone).*
 
 **Scope:** recording and local transcription with speakers. Opens with the transcription test (old WP6, in the appendix of the Phase 0 brief), measured on the user's computer.
 
@@ -187,7 +189,13 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 
 **Decided at the transcription test (13 November 2026, `docs/research/TRANSCRIPTION.md`):** Phase 3 supports one engine, whisper.cpp large-v3-turbo on an NVIDIA GPU that its CUDA build can use. On a computer without one, Transcribe isn't offered and the session says why.
 
-**Later:** transcription on the CPU for computers without such a GPU, with NVIDIA Parakeet TDT 0.6B v2 run by sherpa-onnx (CC-BY-4.0, English only). Measured on the user's laptop at about 11 minutes per hour of meeting, with errors close to Whisper's, against 49 minutes for Whisper on the CPU.
+**Decided in the brief (decision 1): the measurements use synthetic speech.** The user won't record role-plays, so the four test meetings were made on the computer, one synthetic voice per speaker, with the script and speaker turns known exactly. Every result is a lower bound on errors: no real accents or code-switching, little talking over each other, no real hesitations, and a real room only in WP8. The first real meetings are the real test.
+
+**Later:**
+- **Transcription on the CPU** for computers without such a GPU, with NVIDIA Parakeet TDT 0.6B v2 run by sherpa-onnx (CC-BY-4.0, English only). Measured on the user's laptop at about 11 minutes per hour of meeting, with errors close to Whisper's, against 49 minutes for Whisper on the CPU.
+- **Recording the computer's sound for online meetings** (decision 14). Phase 3 records in the room only: with headphones the microphone hears only the consultant, and capturing the computer's sound works only in Chromium browsers, when sharing the whole screen, with an opt-in each time. Until then, online meetings come in through the platform's transcript.
+- **Adding recordings in other formats** (decision 15): M4A, MP3 and MP4 need a decoder, so Phase 3 adds WAV only and asks for the rest to be converted.
+- **A short real role-play** (two people, five minutes), measured as the synthetic meetings were, when the user can spare it.
 
 ### Workspace Phase 4: Canvas in context
 
