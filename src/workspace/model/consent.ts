@@ -238,7 +238,8 @@ export function consentFor(ws: CompanyWorkspace, sessionId: string): ConsentReco
   return Object.values(ws.consents).find((c) => c.sessionId === sessionId) ?? null;
 }
 
-export type Capture = 'recording' | 'transcript-import';
+/** 'transcription' is transcribing a session's recordings on this computer (Phase 3, decision 16); unlike an import, it may replace a transcript. */
+export type Capture = 'recording' | 'transcript-import' | 'transcription';
 
 /**
  * Whether a session may be recorded, or have a transcript imported or pasted,
@@ -253,7 +254,8 @@ export function canCapture(ws: CompanyWorkspace, sessionId: string, capture: Cap
   if (state.withdrawn) return fail('The client withdrew consent for this session.');
   if (state.outcome.kind === 'declined') return fail('The client declined consent, so this session can only have notes.');
   if (capture === 'recording' && !state.given.audioRecording) return fail('The client did not agree to audio recording.');
-  if (capture === 'transcript-import' && !state.given.transcription) return fail('The client did not agree to transcription.');
+  if ((capture === 'transcript-import' || capture === 'transcription') && !state.given.transcription)
+    return fail('The client did not agree to transcription.');
   if (capture === 'transcript-import' && get(ws.transcripts, transcriptIdFor(ws, sessionId))) {
     return fail('This session already has a transcript.');
   }

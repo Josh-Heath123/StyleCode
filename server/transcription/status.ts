@@ -1,9 +1,12 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { EngineUsed } from '../../src/workspace/model/types.ts';
+import type { TranscriptionStatus } from '../../src/workspace/transcription/types.ts';
 import { PINNED, SETUP_COMMAND, SPEAKER_ENGINE, TRANSCRIBER, transcriptionHome } from './install.ts';
 import { FAKE, programs, type JobView } from './jobs.ts';
-import { nvidiaGpu, type Gpu } from './settings.ts';
+import { heavyJobs } from '../shared/heavy.ts';
+import { nvidiaGpu, readSettings } from './settings.ts';
+
+export type { TranscriptionStatus } from '../../src/workspace/transcription/types.ts';
 
 /**
  * What the app shows in Settings and uses to offer Transcribe (Phase 3 brief,
@@ -12,19 +15,6 @@ import { nvidiaGpu, type Gpu } from './settings.ts';
  * Transcribe isn't offered, and the session says why (TRANSCRIPTION.md,
  * "Decided at the check-in").
  */
-export interface TranscriptionStatus {
-  ready: boolean;
-  /** Why not, in words for the consultant; null when ready. */
-  reason: string | null;
-  setupCommand: string;
-  transcriber: EngineUsed;
-  speakers: EngineUsed;
-  gpu: Gpu | null;
-  installed: { id: string; name: string; version: string; licence: string; present: boolean }[];
-  /** The transcription going now, if any. */
-  busy: JobView | null;
-}
-
 export async function transcriptionStatus(busy: JobView | null): Promise<TranscriptionStatus> {
   const home = transcriptionHome();
   const installed = PINNED.map((f) => ({
@@ -34,7 +24,15 @@ export async function transcriptionStatus(busy: JobView | null): Promise<Transcr
     licence: f.licence,
     present: FAKE || existsSync(join(home, f.installed)),
   }));
-  const base = { setupCommand: SETUP_COMMAND, transcriber: TRANSCRIBER, speakers: SPEAKER_ENGINE, installed, busy };
+  const base = {
+    setupCommand: SETUP_COMMAND,
+    transcriber: TRANSCRIBER,
+    speakers: SPEAKER_ENGINE,
+    installed,
+    busy,
+    heavyNow: heavyJobs.current(),
+    speeds: (await readSettings()).speeds,
+  };
   if (FAKE) return { ...base, ready: true, reason: null, gpu: { name: 'Fake GPU for tests', memoryMb: 6144, driver: 'test' } };
   if (process.platform !== 'win32')
     return {

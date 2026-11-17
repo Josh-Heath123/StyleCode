@@ -13,6 +13,23 @@ import { E2E_WORKSPACE } from './e2e/workspacePath';
  *
  * First run: `npx playwright install chromium` downloads the browser once.
  */
+/** The browser every test uses: Chromium, with a fake microphone playing a generated tone (Phase 3), so recording is tested without a real one, or real voices. */
+const BROWSER = {
+  ...devices['Desktop Chrome'],
+  viewport: { width: 1440, height: 900 },
+  permissions: ['microphone'],
+  launchOptions: {
+    args: [
+      '--use-fake-device-for-media-stream',
+      '--use-fake-ui-for-media-stream',
+      `--use-file-for-fake-audio-capture=${fakeMicrophoneWav()}`,
+    ],
+  },
+};
+
+/** Tests that start heavy jobs: AI runs on a local model, and transcriptions. */
+const HEAVY = /(extraction|transcription)\.spec\.ts$/;
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
@@ -32,20 +49,12 @@ export default defineConfig({
     {
       name: 'chromium',
       dependencies: ['workspace folder'],
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1440, height: 900 },
-        // A fake microphone playing a generated tone (Phase 3): recording is tested without a real one, or real voices.
-        permissions: ['microphone'],
-        launchOptions: {
-          args: [
-            '--use-fake-device-for-media-stream',
-            '--use-fake-ui-for-media-stream',
-            `--use-file-for-fake-audio-capture=${fakeMicrophoneWav()}`,
-          ],
-        },
-      },
+      testIgnore: HEAVY,
+      use: BROWSER,
     },
+    // AI runs and transcriptions take turns on this computer (Phase 3, decision 10), so the tests that start them
+    // would wait for each other's; they run one at a time, alongside the rest.
+    { name: 'heavy jobs', dependencies: ['workspace folder'], testMatch: HEAVY, workers: 1, use: BROWSER },
   ],
   webServer: {
     // The test data folder is emptied first, lock included (e2e/clearTestWorkspace.ts).
@@ -59,6 +68,8 @@ export default defineConfig({
       STYLECODE_WORKSPACE: E2E_WORKSPACE,
       // The fake transcription engine, replaying recorded output: no engine and no network in tests (Phase 3).
       STYLECODE_TRANSCRIPTION_FAKE: '1',
+      // Each of the fake engine's progress steps takes a moment, so a transcription is seen going.
+      FAKE_ENGINE_STEP_MS: '200',
       STYLECODE_TRANSCRIPTION_SETTINGS: join(tmpdir(), 'stylecode-e2e', 'transcription.json'),
     },
   },

@@ -3391,11 +3391,14 @@ a.ws-row:focus-visible {
 }
 
 .ws-dialog {
-  max-height: none;
+  max-height: calc(100vh - 32px);
   font-size: 13px;
 }
 
+/* A long dialog (a transcript's preview) scrolls inside, so its buttons stay in reach. */
 .ws-dialog-body {
+  min-height: 0;
+  overflow-y: auto;
   padding: 16px 18px 4px;
 }
 
@@ -4489,4 +4492,261 @@ a.ws-badge.is-knowledge {
 
 .app-nav-recording.is-ended .app-nav-link {
   color: var(--text-2);
+}
+
+/* ==========================================================================
+   Transcribing on this computer (Workspace Phase 3, WP7)
+   Not the AI's colour: a transcript made here isn't a proposal. Blue for
+   progress, as for any job; caution only for C11.
+   ========================================================================== */
+
+.ws-transcribing {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-3);
+}
+
+.ws-transcribing p {
+  margin: 0;
+}
+
+.ws-transcribing.is-ready {
+  border-color: var(--blue);
+  background: var(--blue-faint);
+}
+
+.ws-transcribing-head,
+.ws-transcribing.is-ready {
+  gap: 12px;
+}
+
+.ws-transcribing-head {
+  display: flex;
+  align-items: center;
+}
+
+.ws-transcribing-state {
+  flex: 1;
+  color: var(--text);
+}
+
+.ws-transcribing .ws-actions {
+  justify-content: flex-end;
+}
+
+.ws-progress {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-4);
+  overflow: hidden;
+}
+
+.ws-progress-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 300ms ease-out;
+}
+
+.ws-transcribe-list {
+  margin: 0 0 14px;
+  padding-left: 18px;
+}
+
+.ws-choice-help {
+  margin: -2px 0 6px 24px;
+}
+
+/* Words the engine was unsure of: "may be misheard", in words on hover and focus, not only by the line. */
+.ws-unsure,
+.ws-unsure-sample {
+  text-decoration: underline dotted var(--text-2);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+.ws-unsure {
+  position: relative;
+  border-radius: 2px;
+}
+
+.ws-unsure:focus-visible {
+  outline: 2px solid var(--blue-hi);
+  outline-offset: 1px;
+}
+
+/* Below the word: above it, the transcript's scrolling area would clip it on the first line. */
+.ws-unsure:hover::after,
+.ws-unsure:focus::after {
+  content: attr(data-unsure);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface-4);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Play from here: the button sits in the margin of its segment. */
+.ws-segment.has-play {
+  position: relative;
+  padding-left: 30px;
+}
+
+.ws-play-here {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--text-3);
+}
+
+.ws-play-here:hover,
+.ws-play-here:focus-visible {
+  color: var(--text);
+}
+
+.ws-turn-match {
+  margin-left: 4px;
+}
+
+.ws-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface-3);
+}
+
+.ws-player-what {
+  flex: 1;
+  color: var(--text-2);
+}
+
+.ws-player-clock {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ws-player .ws-error {
+  flex-basis: 100%;
+}
+
+.ws-speaker-list .ws-speaker-table td:last-child {
+  width: 32px;
+}
+
+.ws-short-labels {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.ws-short-labels summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+.ws-short-labels .ws-help {
+  margin: 6px 0;
+}
+
+.ws-short-labels ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ws-short-labels li {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ws-short-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ws-short-head .ws-input {
+  max-width: 260px;
+  margin-left: auto;
+}
+
+.ws-short-label {
+  font-weight: 600;
+}
+
+.ws-short-words {
+  margin: 4px 0 0;
+  color: var(--text-2);
+}
+
+/* Settings: what transcription installed, each with its pinned version and licence (long hashes and links wrap). */
+.ws-card > .ws-help[role='status'] + .ws-dl,
+.ws-card > .ws-error[role='status'] + .ws-help {
+  margin-top: 10px;
+}
+
+.ws-installed-title {
+  margin: 16px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ws-installed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ws-installed li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.ws-installed-name {
+  font-weight: 500;
+}
+
+/* A card head with several actions (the transcript's): labels stay on one line, and the actions wrap as a row. */
+.ws-card-head .ws-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ws-card-head .ws-actions .button {
+  white-space: nowrap;
+}
+
+.ws-installed .ws-row-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }

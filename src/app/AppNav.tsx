@@ -98,6 +98,7 @@ function AiRuns() {
 
 function runText(run: Run): string {
   const title = `“${run.sessionTitle}”`;
+  if (run.state === 'running' && run.waiting) return `The AI is waiting to read ${title}`;
   if (run.state === 'running')
     return run.parts > 1 ? `The AI is reading ${title}: part ${run.part} of ${run.parts}` : `The AI is reading ${title}`;
   if (run.state === 'finished' && !run.error) return `The AI has finished ${title}`;

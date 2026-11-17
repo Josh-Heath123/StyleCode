@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { getSettings, saveSettings } from '../api';
 import { Page, useWorkspaceInfo, WorkspaceHeader } from './chrome';
+import { refreshTranscriptionStatus, useTranscriptionStatus } from './transcription/jobs';
 
 /** The consultant's name, and the data folder in use (Phase 1 brief, WP5). */
 export function SettingsPage() {
@@ -74,6 +75,8 @@ export function SettingsPage() {
             </div>
           </form>
 
+          <TranscriptionCard />
+
           <section className="ws-card" aria-labelledby="folder-title">
             <h2 id="folder-title">Where client data is kept</h2>
             <p className="ws-path">{info.folder}</p>
@@ -98,5 +101,74 @@ export function SettingsPage() {
         </div>
       </Page>
     </>
+  );
+}
+
+/**
+ * Transcription on this computer (Phase 3 brief, WP7): whether it's set up,
+ * what's installed with its version and licence, and the GPU. When it isn't
+ * set up, what to run. StyleCode itself never downloads anything.
+ */
+function TranscriptionCard() {
+  const status = useTranscriptionStatus();
+  useEffect(() => {
+    void refreshTranscriptionStatus();
+  }, []);
+  return (
+    <section className="ws-card" aria-labelledby="transcription-title">
+      <h2 id="transcription-title">Transcription</h2>
+      {status === null ? (
+        <p className="ws-muted">Checking…</p>
+      ) : typeof status === 'string' ? (
+        <p className="ws-error">{status}</p>
+      ) : (
+        <>
+          <p className={status.ready ? 'ws-help' : 'ws-error'} role="status">
+            {status.ready ? 'Set up. Recordings are transcribed on this computer, and nothing is sent anywhere.' : status.reason}
+          </p>
+          {!status.ready && (
+            <p className="ws-help">
+              Setting up downloads about 1.3 GB (about 2 GB once unpacked), checks each file against its pinned fingerprint, and
+              keeps each licence beside it. In StyleCode’s folder, run <code>{status.setupCommand}</code>, then reload this page.
+            </p>
+          )}
+          <dl className="ws-dl">
+            <dt>Graphics card</dt>
+            <dd>
+              {status.gpu
+                ? `${status.gpu.name}, ${(status.gpu.memoryMb / 1024).toFixed(0)} GB, driver ${status.gpu.driver}`
+                : 'No NVIDIA graphics card found'}
+            </dd>
+            <dt>Words</dt>
+            <dd>
+              {status.transcriber.name} {status.transcriber.version} ({status.transcriber.models.join(', ')})
+            </dd>
+            <dt>Speakers</dt>
+            <dd>
+              {status.speakers.name} {status.speakers.version} ({status.speakers.models.join(', ')})
+            </dd>
+            {status.busy && (
+              <>
+                <dt>Now</dt>
+                <dd>A transcription is running.</dd>
+              </>
+            )}
+          </dl>
+          <h3 className="ws-installed-title">What it uses</h3>
+          <ul className="ws-installed" aria-label="What transcription uses">
+            {status.installed.map((i) => (
+              <li key={i.id}>
+                <span className="ws-installed-name">
+                  {i.name}{' '}
+                  <span className={i.present ? 'ws-muted' : 'ws-error'}>{i.present ? 'installed' : 'not installed'}</span>
+                </span>
+                <span className="ws-row-sub">Version: {i.version}</span>
+                <span className="ws-row-sub">Licence: {i.licence}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   );
 }

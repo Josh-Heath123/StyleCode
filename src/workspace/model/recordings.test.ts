@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { amendConsent } from './consent.ts';
+import { amendConsent, canCapture } from './consent.ts';
 import { sampleWorkspace, consentRecord } from './fixtures.ts';
 import {
   addRecordedTranscript,
@@ -172,6 +172,29 @@ describe('starting and finishing a recording (decisions 12 and 13)', () => {
     expect(durationOfBytes(32_000)).toBe(1000);
     expect(durationOfBytes(48_000)).toBe(1500);
     expect(durationOfBytes(-5)).toBe(0);
+  });
+});
+
+describe('transcribing on this computer (decision 16)', () => {
+  it('needs consent to transcription, never after a withdrawal, and, unlike an import, may replace a transcript', () => {
+    const ws = recorded(intake());
+    expect(canCapture(ws, 'se_2', 'transcription')).toEqual({ ok: true, value: true });
+    const withTranscript = value(addRecordedTranscript(ws, 'se_2', input(), 'Sam Naidoo', T6)).workspace;
+    expect(canCapture(withTranscript, 'se_2', 'transcription').ok).toBe(true);
+    expect(canCapture(withTranscript, 'se_2', 'transcript-import')).toEqual({
+      ok: false,
+      error: 'This session already has a transcript.',
+    });
+    ws.consents.cr_2.given.transcription = false;
+    expect(canCapture(ws, 'se_2', 'transcription')).toEqual({ ok: false, error: 'The client did not agree to transcription.' });
+    ws.consents.cr_2.given.transcription = true;
+    ws.consents.cr_2 = value(
+      amendConsent(ws.consents.cr_2, { id: 'am_1', kind: 'withdrawal', by: 'Sam Naidoo', at: T6, reason: 'Asked to stop.' }),
+    );
+    expect(canCapture(ws, 'se_2', 'transcription', later(T6, 1))).toEqual({
+      ok: false,
+      error: 'The client withdrew consent for this session.',
+    });
   });
 });
 

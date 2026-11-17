@@ -1,5 +1,6 @@
 import type { CompanyWorkspace } from './model/types.ts';
 import type { Problem } from './model/validate.ts';
+import type { JobResult, JobView, LeaseView, TranscriptionStatus } from './transcription/types.ts';
 
 /**
  * The browser's side of the local workspace server (`server/workspace`). Every
@@ -202,3 +203,44 @@ export const addWavFile = (companyId: string, file: Blob) =>
 /** Removes stored bytes the client never came to list (a recording whose start couldn't be saved). */
 export const discardStoredFile = (companyId: string, fileId: string) =>
   request<{ deleted: string }>(`${company(companyId)}/files/${encodeURIComponent(fileId)}`, { method: 'DELETE' });
+
+// ---------------------------------------------------------------------------
+// Transcription on this computer (Phase 3 brief, WP7; decisions 10 and 17)
+// ---------------------------------------------------------------------------
+
+const json = (body: unknown): RequestInit => ({ method: 'POST', body: JSON.stringify(body) });
+
+/** What's installed, the versions, the GPU, past speeds, and any job going. */
+export const getTranscriptionStatus = () => request<TranscriptionStatus>('/transcription');
+
+/** A client's transcriptions: those going or ended since the server started, and results kept until added or discarded. */
+export const listTranscriptions = (companyId: string) =>
+  request<{ jobs: JobView[] }>(`${company(companyId)}/transcriptions`).then((r) => r.jobs);
+
+/** Starts transcribing a session's recordings, in order. */
+export const startTranscription = (companyId: string, sessionId: string, recordingIds: readonly string[]) =>
+  request<JobView>(`${company(companyId)}/transcriptions`, json({ sessionId, recordingIds }));
+
+export const getTranscription = (companyId: string, jobId: string) =>
+  request<JobView>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}`);
+
+/** Stops a transcription; nothing it made is kept. */
+export const cancelTranscription = (companyId: string, jobId: string) =>
+  request<JobView>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
+
+/** A finished transcription's segments, speakers and what made them. */
+export const transcriptionResult = (companyId: string, jobId: string) =>
+  request<JobResult>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}/result`);
+
+/** Discards a transcription's result: once it is added, or when the consultant doesn't want it. */
+export const discardTranscription = (companyId: string, jobId: string) =>
+  request<{ deleted: string }>(`${company(companyId)}/transcriptions/${encodeURIComponent(jobId)}`, { method: 'DELETE' });
+
+/** Takes the heavy slot for an AI run on this computer (decision 10): it runs, or waits for a transcription. */
+export const takeHeavySlot = () => request<LeaseView>('/heavy', json({ kind: 'extraction' }));
+
+/** Whether the AI run's slot runs or still waits; asking keeps it. */
+export const checkHeavySlot = (leaseId: string) => request<LeaseView>(`/heavy/${encodeURIComponent(leaseId)}`);
+
+export const releaseHeavySlot = (leaseId: string) =>
+  request<{ released: string }>(`/heavy/${encodeURIComponent(leaseId)}`, { method: 'DELETE' });

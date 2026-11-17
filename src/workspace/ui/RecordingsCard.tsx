@@ -27,6 +27,7 @@ import { formatWhen } from './chrome';
 import { DeleteDialog, FormDialog, NameField, nameFor } from './fields';
 import { finalStep, now, permanentStep } from './steps';
 import { useConsultant } from './useConsultant';
+import { stopPlaying } from './transcription/player';
 
 /** "12:04", or "1:02:03" past an hour: a recording's clock. */
 export function formatClock(ms: number): string {
@@ -305,6 +306,7 @@ export function RecordingsCard({ view, meeting, href }: { view: ClientView; meet
           onDelete={async () => {
             const by = await consultant.current();
             if (!by) throw new Error('Give your name in Settings first: deleting a recording records who did it.');
+            stopPlaying([removing.id]);
             await permanentStep(session, `Delete ${removing.name}`, (ws) =>
               removeRecordings(ws, [removing.id], 'consultant', by, now()),
             );

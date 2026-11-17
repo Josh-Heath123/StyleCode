@@ -4,6 +4,7 @@ import { MAX_ADDED_WAV_BYTES } from '../../src/workspace/model/recordings.ts';
 import { readBody, readJson, rejectReason, RequestError, sendJson, type RequestPolicy } from '../shared/requests.ts';
 import type { DataFolder } from './folder.ts';
 import { MAX_PIECE_BYTES, RecordingFiles } from './recordings.ts';
+import { heavyLeases as sharedLeases, type HeavyLeases } from '../shared/heavy.ts';
 import { TranscriptionJobs } from '../transcription/jobs.ts';
 import { transcriptionStatus } from '../transcription/status.ts';
 import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
@@ -27,6 +28,9 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   POST   /api/workspace/companies/:id/recordings/:fileId/finish[?recover=1]   write its header, giving size and length
  *   POST   /api/workspace/companies/:id/added-recordings  convert and store a WAV made elsewhere (the body)
  *   GET    /api/workspace/transcription                what's installed, the versions, the GPU, and any job going
+ *   POST   /api/workspace/heavy                        take the heavy slot for an AI run { kind: 'extraction' } (decision 10)
+ *   GET    /api/workspace/heavy/:leaseId               whether it runs or waits, and for what; keeps the lease
+ *   DELETE /api/workspace/heavy/:leaseId               let the slot go
  *   GET    /api/workspace/companies/:id/transcriptions  the client's jobs, and results kept until added or discarded
  *   POST   /api/workspace/companies/:id/transcriptions  transcribe { sessionId, recordingIds }
  *   GET    /api/workspace/companies/:id/transcriptions/:jobId          a job's state and progress
@@ -70,6 +74,7 @@ export function createWorkspaceHandler(
   store = new WorkspaceStore(folder.path),
   recordings = new RecordingFiles(store),
   transcriptions = new TranscriptionJobs(store),
+  leases: HeavyLeases = sharedLeases,
 ) {
   // A recording left unfinished by a crash gets its header now; the app marks it recovered when the client opens.
   void recordings.closeUnfinished().catch(() => undefined);
@@ -79,7 +84,7 @@ export function createWorkspaceHandler(
     const url = new URL(req.url ?? '/', 'http://localhost');
     const parts = url.pathname.split('/').filter(Boolean);
     const [section, companyId, sub, fileId, ...rest] = parts;
-    if (!['info', 'settings', 'companies', 'transcription'].includes(section)) return next();
+    if (!['info', 'settings', 'companies', 'transcription', 'heavy'].includes(section)) return next();
 
     const reason = rejectReason(req, POLICY);
     if (reason) return sendJson(res, 403, { error: reason });
@@ -100,6 +105,25 @@ export function createWorkspaceHandler(
       if (section === 'transcription' && parts.length === 1) {
         if (method !== 'GET') return notAllowed();
         return sendJson(res, 200, await transcriptionStatus(transcriptions.busy()));
+      }
+      if (section === 'heavy' && parts.length <= 2) {
+        const leaseId = parts[1];
+        if (leaseId === undefined) {
+          if (method !== 'POST') return notAllowed();
+          const body = await readJson(req, MAX_SMALL_BODY);
+          if (body.kind !== 'extraction') return sendJson(res, 400, { error: 'Only an AI run takes the slot from the page.' });
+          return sendJson(res, 201, leases.take('extraction'));
+        }
+        if (!/^hl_[0-9a-f]{16}$/.test(leaseId)) return sendJson(res, 400, { error: 'Invalid id.' });
+        if (method === 'GET') {
+          const lease = leases.check(leaseId);
+          return lease ? sendJson(res, 200, lease) : sendJson(res, 404, { error: 'The slot was let go.' });
+        }
+        if (method === 'DELETE') {
+          leases.release(leaseId);
+          return sendJson(res, 200, { released: leaseId });
+        }
+        return notAllowed();
       }
       const finishing = sub === 'recordings' && rest.length === 1 && rest[0] === 'finish';
       const jobAction = sub === 'transcriptions' && rest.length === 1 && ['result', 'cancel'].includes(rest[0]) ? rest[0] : null;

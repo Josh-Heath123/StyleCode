@@ -6,12 +6,21 @@ import { availableParallelism } from 'node:os';
 import { join } from 'node:path';
 import { wavHeader, WAV_HEADER_BYTES } from '../../src/workspace/audio/wav.ts';
 import { consentFor, consentState } from '../../src/workspace/model/consent.ts';
-import type { CompanyWorkspace, EngineUsed } from '../../src/workspace/model/index.ts';
+import type { CompanyWorkspace } from '../../src/workspace/model/index.ts';
 import { isRecording, RECORDING_SAMPLE_RATE } from '../../src/workspace/model/recordings.ts';
-import { segmentsFrom, type TranscribedSegment } from '../../src/workspace/transcription/combine.ts';
+import { segmentsFrom } from '../../src/workspace/transcription/combine.ts';
 import { readDiarization } from '../../src/workspace/transcription/sherpa.ts';
 import { readWhisperJson } from '../../src/workspace/transcription/whisper.ts';
-import { heavyJobs, type HeavyJobs, type HeavyKind } from '../shared/heavy.ts';
+import {
+  isJobOver as isOver,
+  RESULT_FORMAT,
+  type JobResult,
+  type JobView,
+  type RecordingSpan,
+} from '../../src/workspace/transcription/types.ts';
+import { heavyJobs, type HeavyJobs } from '../shared/heavy.ts';
+
+export type { JobResult, JobState, JobView, RecordingSpan } from '../../src/workspace/transcription/types.ts';
 import { RequestError } from '../shared/requests.ts';
 import { isSafeId, type WorkspaceStore } from '../workspace/store.ts';
 import { installedPaths, SPEAKER_ENGINE, SPEAKER_THRESHOLD, TRANSCRIBER } from './install.ts';
@@ -37,48 +46,6 @@ import { estimate, readSettings, recordSpeed } from './settings.ts';
  *   the programs and keeps nothing.
  */
 
-export type JobState = 'waiting' | 'preparing' | 'transcribing' | 'speakers' | 'finishing' | 'done' | 'failed' | 'cancelled';
-
-export interface JobView {
-  id: string;
-  sessionId: string;
-  recordingIds: string[];
-  state: JobState;
-  /** While waiting: what for. */
-  waitingFor: HeavyKind | null;
-  /** From 0 to 1, across both programs. */
-  progress: number;
-  audioMs: number;
-  estimateMs: number;
-  createdAt: string;
-  /** When it stopped waiting and started work. */
-  startedAt: string | null;
-  finishedAt: string | null;
-  error: string | null;
-}
-
-/** Where each recording sits in the joined audio, so a segment's time finds its recording (decision 21). */
-export interface RecordingSpan {
-  fileId: string;
-  offsetMs: number;
-  durationMs: number;
-}
-
-export interface JobResult {
-  format: typeof RESULT_FORMAT;
-  version: 1;
-  jobId: string;
-  sessionId: string;
-  recordingIds: string[];
-  spans: RecordingSpan[];
-  segments: TranscribedSegment[];
-  transcriber: EngineUsed;
-  speakers: EngineUsed;
-  audioMs: number;
-  finishedAt: string;
-}
-
-const RESULT_FORMAT = 'stylecode-transcription-result';
 const JOB_ID = /^tj_[0-9a-f]{16}$/;
 
 interface Job extends JobView {
@@ -448,8 +415,6 @@ export class TranscriptionJobs {
     return job ? this.view(job) : null;
   }
 }
-
-const isOver = (state: JobState) => state === 'done' || state === 'failed' || state === 'cancelled';
 
 /** Why a session's recordings can't be transcribed now, or null if they can (decisions 16 and 17). */
 export function jobProblem(ws: CompanyWorkspace, sessionId: string, recordingIds: readonly string[]): string | null {

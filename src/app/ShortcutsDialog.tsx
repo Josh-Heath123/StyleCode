@@ -29,6 +29,10 @@ export const WORKSPACE_GROUPS: ShortcutGroup[] = [
     items: [['Stop recording, from anywhere in StyleCode', `${ALT_KEY}+S`]],
   },
   {
+    title: 'A transcript made on this computer',
+    items: [['Pause or resume playing the recording, from anywhere in StyleCode', `${ALT_KEY}+P`]],
+  },
+  {
     title: 'Any client page',
     items: [
       ['Undo', `${MOD_KEY}+Z`],

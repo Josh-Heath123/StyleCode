@@ -17,6 +17,8 @@ import type { WorkspaceSession } from '../../session';
 import { now, step } from '../steps';
 import { holdCompany, onCompanyClosed } from '../useCompanySession';
 import { sendForSession, type AiSetup } from './aiSetup';
+import { takeTurn } from './heavySlot';
+import type { HeavyKind } from '../../transcription/types';
 import { addCoverage, clearCoverage } from './coverage';
 import { recordSpeed, speedOf } from './speed';
 
@@ -36,6 +38,8 @@ export interface Run {
   href: string;
   setup: AiSetup;
   state: 'running' | 'finished' | 'stopped' | 'failed';
+  /** Waiting for a heavy job on this computer to finish first (decision 10): a transcription, or another AI run. */
+  waiting: HeavyKind | null;
   /** The part being read, from 1 (0 before the first starts). */
   part: number;
   parts: number;
@@ -142,6 +146,7 @@ export function startRun(session: WorkspaceSession, meeting: Session, setup: AiS
     href,
     setup,
     state: 'running',
+    waiting: null,
     part: 0,
     parts: 0,
     partsDone: 0,
@@ -198,8 +203,14 @@ async function go(
     return session.getState().workspace;
   };
 
+  let releaseTurn: () => void = () => undefined;
   try {
     try {
+      // A model on this computer takes its turn: a transcription and an AI run never share it (decision 10).
+      if (setup.processing.kind === 'local')
+        releaseTurn = await takeTurn(controller.signal, (waiting) => update(key, { waiting }));
+      // Time spent waiting isn't reading: the time left and this model's speed count from here.
+      update(key, { startedAt: Date.now() });
       const result = await extract({
         title: meeting.title,
         passages,
@@ -258,6 +269,7 @@ async function go(
     // Never leave a run "running": whatever went wrong is said.
     ended = { state: 'failed', error: `Something went wrong while adding the proposals: ${(e as Error).message}` };
   } finally {
+    releaseTurn();
     watch();
     stopOnClose();
     controllers.delete(key);
