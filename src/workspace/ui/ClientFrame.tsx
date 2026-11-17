@@ -6,6 +6,7 @@ import type { Problem } from '../model/validate';
 import type { WorkspaceSession, WorkspaceSessionState } from '../session';
 import { clientFolder, Id, Page, useWorkspaceInfo, WorkspaceHeader } from './chrome';
 import { useCompanySession } from './useCompanySession';
+import { recoverRecordings } from '../recording/recorder';
 
 export interface ClientView {
   session: WorkspaceSession;
@@ -60,6 +61,9 @@ function OpenClient({
 }) {
   const state = useSyncExternalStore(session.subscribe, session.getState);
   const readOnly = state.access !== 'editable';
+
+  // Recordings a crash or a closed tab left unfinished are finished, and marked recovered (Phase 3, WP5).
+  useEffect(() => void recoverRecordings(session), [session]);
 
   // Undo and redo the client's changes, except while typing, where they belong to the text field.
   useEffect(() => {

@@ -9,7 +9,7 @@
  * - `sherpa-onnx-offline-speaker-diarization`: one line per speaker turn,
  *   "1.027 -- 2.039 speaker_00".
  */
-import type { EngineWord, SpeakerTurn } from './combine';
+import type { EngineWord, SpeakerTurn } from './combine.ts';
 
 const ms = (seconds: string) => Math.round(Number(seconds) * 1000);
 

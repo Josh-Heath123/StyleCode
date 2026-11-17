@@ -101,12 +101,25 @@ describe('files say what they are for', () => {
     expect(codes(ws)).toEqual(['ref.missing']);
   });
 
-  it('needs consent to recording for audio (rule C1)', () => {
+  it('needs consent to recording for audio (rule C1), and a locked record (C4, Phase 3)', () => {
     const ws = sampleWorkspace();
-    ws.files.fi_a = file('fi_a', { purpose: 'audio', mediaType: 'audio/webm' });
+    const audio = {
+      source: 'added',
+      recordedAt: T1,
+      state: 'finished',
+      durationMs: 1000,
+      sampleRate: 16000,
+      settings: null,
+      recovered: false,
+      transcribedAt: null,
+    } as const;
+    ws.files.fi_a = file('fi_a', { purpose: 'audio', mediaType: 'audio/wav', audio });
     ws.sessions.se_1.audioFileIds = ['fi_a'];
     expect(codes(ws)).toEqual(['consent.required']);
     ws.consents.cr_1.given.audioRecording = true;
+    // The record was locked at T2, after the audio was added at T1.
+    expect(codes(ws)).toEqual(['consent.lock']);
+    ws.consents.cr_1.lockedAt = T1;
     expect(codes(ws)).toEqual([]);
   });
 

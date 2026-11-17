@@ -352,6 +352,19 @@ const PATHS = {
     </>
   ),
   stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
+  pause: (
+    <>
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </>
+  ),
+  mic: (
+    <>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3" />
+    </>
+  ),
   note: (
     <>
       <path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z" />

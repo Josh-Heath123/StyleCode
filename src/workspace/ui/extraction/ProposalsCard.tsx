@@ -235,9 +235,16 @@ function Progress({ run }: { run: Run }) {
   return (
     <div className="ws-row is-static ws-run-progress">
       <p className="ws-row-main" role="status">
-        {run.parts > 1 ? `The AI is reading part ${run.part} of ${run.parts}.` : 'The AI is reading the session.'}{' '}
-        {left !== null ? `${capital(formatDuration(left))} left.` : ''} You can leave this page: it keeps going while StyleCode is
-        open.
+        {run.waiting
+          ? `The AI is waiting: ${run.waiting === 'transcription' ? 'a transcription' : 'another AI run'} is going on this computer, and one heavy job runs at a time. It starts reading when that finishes. `
+          : null}
+        {run.waiting
+          ? null
+          : run.parts > 1
+            ? `The AI is reading part ${run.part} of ${run.parts}.`
+            : 'The AI is reading the session.'}{' '}
+        {!run.waiting && left !== null ? `${capital(formatDuration(left))} left.` : ''} You can leave this page: it keeps going
+        while StyleCode is open.
       </p>
       <button type="button" className="button" onClick={() => stopRun(run.companyId, run.sessionId)}>
         Stop

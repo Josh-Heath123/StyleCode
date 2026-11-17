@@ -4,6 +4,13 @@ import { Icon } from '../../ui/Icon';
 import { LAYOUT_LABELS, PLATFORM_LABELS, readPastedTranscript, readTranscriptFile, type TranscriptRead } from '../import/read';
 import { canCapture } from '../model/consent';
 import { isInRecord, keptFromSession } from '../model/findings';
+import { recordingsOf, speakerWarning, talkTimes, transcribedBy } from '../model/recordings';
+import { spanAt, spansOfSource } from '../transcription/play';
+import { isJobOver } from '../transcription/types';
+import { refreshTranscriptions, refreshTranscriptionStatus, useTranscribing, useTranscriptionStatus } from './transcription/jobs';
+import { playFrom, usePlaying } from './transcription/player';
+import { PlayerBar, RecordedSpeakerWarning, SpeakerList } from './transcription/Speakers';
+import { TranscribeDialog, TranscribingPanel, transcribeUnavailable } from './transcription/Transcribe';
 import {
   canReplaceTranscript,
   deleteTranscript,
@@ -27,7 +34,7 @@ import {
   type TranscriptSegment,
 } from '../model/types';
 import { currentTimeZone, get, type Result } from '../model/util';
-import { formatTimeOfDay } from '../time';
+import { formatOffset, formatTimeOfDay } from '../time';
 import { useConsultant } from './useConsultant';
 import type { ClientView } from './ClientFrame';
 import { count, formatWhen } from './chrome';
@@ -35,13 +42,19 @@ import { DeleteDialog, DialogField, FormDialog, NameField, nameFor } from './fie
 import { KeptDialog } from './consent/KeptDialog';
 import { now, permanentStep, step } from './steps';
 
-/** "0:03", "12:40" or "1:02:03": time from the start of the meeting. */
-export function formatOffset(ms: number): string {
-  const total = Math.floor(ms / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = String(total % 60).padStart(2, '0');
-  return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
+export { formatOffset };
+
+/** The segment playing at a moment: the last one to start by then, while it lasts (or until the next starts). */
+function segmentAt(segments: readonly TranscriptSegment[], ms: number): string | null {
+  let found: TranscriptSegment | null = null;
+  for (const s of segments) {
+    if (s.startMs === null || s.startMs > ms) continue;
+    if (!found || s.startMs >= (found.startMs ?? 0)) found = s;
+  }
+  if (!found) return null;
+  const next = segments.find((s) => s.startMs !== null && s.startMs > (found.startMs ?? 0));
+  const end = Math.max(found.endMs ?? 0, next?.startMs ?? 0);
+  return ms < end ? found.id : null;
 }
 
 const SIDE_TEXT = { client: 'Client', consultant: 'Your side' } as const;
@@ -74,25 +87,56 @@ export function TranscriptCard({
   /** The passages the selected proposal quotes, with the words quoted from each. */
   quoted?: ReadonlyMap<string, readonly string[]>;
 }) {
-  const { workspace, readOnly } = view;
+  const { workspace, readOnly, session } = view;
   const transcript = transcriptOf(workspace, meeting.id);
-  const [dialog, setDialog] = useState<'import' | 'replace' | 'delete' | null>(null);
+  const [dialog, setDialog] = useState<'import' | 'replace' | 'delete' | 'transcribe' | null>(null);
   /** After deleting: what keeps a statement from the session (decision 11), with the facts that lost their quotes. */
   const [review, setReview] = useState<string[] | null>(null);
   const allowed = canCapture(workspace, meeting.id, 'transcript-import');
   const replaceable = canReplaceTranscript(workspace, meeting.id);
 
+  // Transcribing on this computer (Phase 3 brief, WP7): offered for a session with stopped recordings, when it's set up.
+  const status = useTranscriptionStatus();
+  const transcribing = useTranscribing(session.companyId, meeting.id);
+  useEffect(() => {
+    void refreshTranscriptionStatus();
+    void refreshTranscriptions(session.companyId);
+  }, [session.companyId]);
+  const recordings = recordingsOf(workspace, meeting.id).filter((r) => r.audio.state === 'finished');
+  const consented = canCapture(workspace, meeting.id, 'transcription');
+  const blocked = !consented.ok ? consented.error : transcript && !replaceable.ok ? replaceable.error : null;
+  const unavailable = recordings.length && !readOnly ? transcribeUnavailable(status, blocked) : null;
+  const busy =
+    !!transcribing &&
+    (!isJobOver(transcribing.job.state) || (transcribing.job.state === 'done' && transcribing.adding !== 'added'));
+  const canTranscribe =
+    !readOnly && recordings.length > 0 && typeof status === 'object' && status?.ready === true && !blocked && !busy;
+
   return (
     <section className="ws-card" aria-labelledby="transcript-title">
       <div className="ws-card-head">
         <h2 id="transcript-title">Transcript</h2>
-        {!readOnly && !transcript && allowed.ok && (
-          <button type="button" className="button primary" onClick={() => setDialog('import')}>
-            <Icon name="plus" size={14} /> Import transcript…
-          </button>
+        {!readOnly && !transcript && (allowed.ok || canTranscribe) && (
+          <div className="ws-actions">
+            {canTranscribe && (
+              <button type="button" className="button primary" onClick={() => setDialog('transcribe')}>
+                <Icon name="mic" size={14} /> Transcribe…
+              </button>
+            )}
+            {allowed.ok && (
+              <button type="button" className={`button${canTranscribe ? '' : ' primary'}`} onClick={() => setDialog('import')}>
+                <Icon name="plus" size={14} /> Import transcript…
+              </button>
+            )}
+          </div>
         )}
         {!readOnly && transcript && (
           <div className="ws-actions">
+            {canTranscribe && (
+              <button type="button" className="button" onClick={() => setDialog('transcribe')}>
+                Transcribe again…
+              </button>
+            )}
             {replaceable.ok && (
               <button type="button" className="button" onClick={() => setDialog('replace')}>
                 Replace…
@@ -107,16 +151,35 @@ export function TranscriptCard({
       {!readOnly && transcript && !replaceable.ok && (
         <p className="ws-help">Replacing it isn’t available: {lowerFirst(replaceable.error)}</p>
       )}
+      {unavailable && !busy && (
+        <p className="ws-help" data-testid="transcribe-unavailable">
+          {unavailable.text}
+          {unavailable.settings && (
+            <>
+              {' '}
+              <a href="#/settings">Transcription in Settings</a>
+            </>
+          )}
+        </p>
+      )}
+      {transcribing && <TranscribingPanel view={view} meeting={meeting} t={transcribing} />}
       {!transcript ? (
-        <div className="ws-empty is-small">
-          <p>
-            {allowed.ok
-              ? 'No transcript yet. Import the one Teams, Zoom or Google Meet made, or paste it.'
-              : `Importing a transcript isn’t available: ${lowerFirst(allowed.error)}`}
-          </p>
-        </div>
+        !busy && (
+          <div className="ws-empty is-small">
+            <p>
+              {canTranscribe
+                ? 'No transcript yet. Transcribe the recordings on this computer, or import the one Teams, Zoom or Google Meet made.'
+                : allowed.ok
+                  ? 'No transcript yet. Import the one Teams, Zoom or Google Meet made, or paste it.'
+                  : `Importing a transcript isn’t available: ${lowerFirst(allowed.error)}`}
+            </p>
+          </div>
+        )
       ) : (
         <TranscriptView view={view} meeting={meeting} transcript={transcript} passageId={passageId} quoted={quoted} />
+      )}
+      {dialog === 'transcribe' && typeof status === 'object' && status && (
+        <TranscribeDialog view={view} meeting={meeting} status={status} href={location.hash} onClose={() => setDialog(null)} />
       )}
       {(dialog === 'import' || dialog === 'replace') && (
         <ImportDialog view={view} meeting={meeting} replacing={dialog === 'replace'} onClose={() => setDialog(null)} />
@@ -142,6 +205,7 @@ const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1
 
 /** Where a transcript came from, in a line. */
 function sourceLine(t: Transcript): string {
+  if (t.source.kind === 'recording') return `${transcribedBy(t.source)}. Added by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;
   const from =
     t.source.kind === 'pasted' ? 'Pasted' : `Imported from ${t.source.fileName} (${PLATFORM_LABELS[t.source.platform]})`;
   return `${from} by ${t.importedBy}, ${formatWhen(t.importedAt)}.`;
@@ -181,47 +245,221 @@ function TranscriptView({
 }) {
   const ws = view.workspace;
   const segments = segmentsOf(ws, transcript.id);
+  const recorded = transcript.source.kind === 'recording' ? transcript.source : null;
+  const [matching, setMatching] = useState<string | null>(null);
   const name = (label: string | null) => {
     if (label === null) return { name: 'No speaker given', side: null };
     const p = speakerOf(ws, meeting.id, label);
     return p ? { name: p.name, side: SIDE_TEXT[p.side], label: p.name === label ? null : label } : { name: label, side: null };
   };
+  // Play from here (decision 21): while the recordings it was made from are kept.
+  const spans = recorded ? spansOfSource(recorded.recordings, recordingsOf(ws, meeting.id)) : [];
+  const play = (startMs: number | null, what: string) => {
+    const at = startMs === null ? null : spanAt(spans, startMs);
+    if (!at) return null;
+    const span = spans.find((s) => s.fileId === at.fileId)!;
+    return () => void playFrom(view.session.companyId, at.fileId, at.atMs, span.offsetMs, what);
+  };
+  const warning = recorded ? speakerWarning(ws, meeting.id) : null;
+  // The segment being heard, marked as it plays (decision 21).
+  const playing = usePlaying();
+  const hearing =
+    playing && playing.companyId === view.session.companyId && spans.some((s) => s.fileId === playing.fileId)
+      ? segmentAt(segments, playing.atMs)
+      : null;
   return (
     <>
       <p className="ws-help">
         {sourceLine(transcript)} {count(segments.length, 'segment')}.
+        {recorded && segments.some((s) => s.unsureWords.length) && (
+          <>
+            {' '}
+            Words the engine was unsure of are <span className="ws-unsure-sample">underlined with dots</span>: they may be
+            misheard.
+          </>
+        )}
       </p>
-      <SpeakerWarning transcript={transcript} />
-      <SpeakerMatching view={view} meeting={meeting} />
+      {recorded && warning ? (
+        <RecordedSpeakerWarning warning={warning} shortId={`short-labels-${meeting.id}`} />
+      ) : (
+        <SpeakerWarning transcript={transcript} />
+      )}
+      {recorded ? (
+        <RecordedSpeakers view={view} meeting={meeting} play={play} shortId={`short-labels-${meeting.id}`} />
+      ) : (
+        <SpeakerMatching view={view} meeting={meeting} />
+      )}
+      <PlayerBar companyId={view.session.companyId} fileIds={spans.map((s) => s.fileId)} />
       <div className="ws-transcript" aria-label="What was said" role="region">
         {groupsOf(segments).map((group) => {
-          const who = name(group[0].speakerLabel);
+          const label = group[0].speakerLabel;
+          const who = name(label);
           return (
             <div key={group[0].id} className="ws-turn">
               <div className="ws-turn-head">
                 <span className="ws-turn-speaker">{who.name}</span>
+                {recorded && who.side && who.label && <span className="ws-muted">{who.label}</span>}
                 {who.side ? (
                   <span className="ws-badge">{who.side}</span>
                 ) : (
-                  group[0].speakerLabel !== null && <span className="ws-muted">not matched</span>
+                  label !== null && <span className="ws-muted">not matched</span>
                 )}
                 {group[0].startMs !== null && <span className="ws-muted ws-turn-time">{formatOffset(group[0].startMs)}</span>}
+                {recorded && label !== null && !view.readOnly && (
+                  <button
+                    type="button"
+                    className="button is-small ws-turn-match"
+                    aria-label={`Match “${label}” at ${formatOffset(group[0].startMs ?? 0)}…`}
+                    onClick={() => setMatching(label)}
+                  >
+                    {who.side ? 'Change…' : 'Match…'}
+                  </button>
+                )}
               </div>
-              {group.map((s) => (
-                <p
-                  key={s.id}
-                  id={`passage-${s.id}`}
-                  tabIndex={-1}
-                  className={`ws-segment${s.id === passageId ? ' is-cited' : ''}${quoted?.has(s.id) ? ' is-quoted' : ''}`}
-                >
-                  <Quoted text={s.text} quotes={quoted?.get(s.id)} />
-                </p>
-              ))}
+              {group.map((s) => {
+                const playHere = recorded ? play(s.startMs, `from ${formatOffset(s.startMs ?? 0)}`) : null;
+                return (
+                  <p
+                    key={s.id}
+                    id={`passage-${s.id}`}
+                    tabIndex={-1}
+                    className={`ws-segment${s.id === passageId ? ' is-cited' : ''}${quoted?.has(s.id) ? ' is-quoted' : ''}${playHere ? ' has-play' : ''}${s.id === hearing ? ' is-playing' : ''}`}
+                    aria-current={s.id === hearing ? 'true' : undefined}
+                  >
+                    {playHere && (
+                      <button
+                        type="button"
+                        className="icon-button ws-play-here"
+                        aria-label={`Play from ${formatOffset(s.startMs ?? 0)}`}
+                        data-tip="Play from here"
+                        onClick={playHere}
+                      >
+                        <Icon name="play" size={12} />
+                      </button>
+                    )}
+                    <Quoted text={s.text} quotes={quoted?.get(s.id)} unsure={recorded ? s.unsureWords : undefined} />
+                  </p>
+                );
+              })}
             </div>
           );
         })}
       </div>
+      {matching !== null && <MatchDialog view={view} meeting={meeting} label={matching} onClose={() => setMatching(null)} />}
     </>
+  );
+}
+
+/**
+ * A transcript made on this computer's speakers (decision 20, as changed at
+ * the WP3 check-ins): by talk time, short labels grouped, each matched as an
+ * ordinary undoable step, and a label's longest part played while the
+ * recordings are kept.
+ */
+function RecordedSpeakers({
+  view,
+  meeting,
+  play,
+  shortId,
+}: {
+  view: ClientView;
+  meeting: Session;
+  play: (startMs: number | null, what: string) => (() => void) | null;
+  shortId: string;
+}) {
+  const ws = view.workspace;
+  const transcript = transcriptOf(ws, meeting.id)!;
+  const segments = segmentsOf(ws, transcript.id);
+  const talk = talkTimes(segments);
+  const people = Object.values(ws.participants)
+    .filter((p) => p.sessionId === meeting.id)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const [error, setError] = useState<string | null>(null);
+  const matched = talk.filter((t) => speakerOf(ws, meeting.id, t.label)).length;
+  // Open while a speaker isn't matched when the page opens; after that, only the consultant opens or closes it.
+  const [open, setOpen] = useState(() => matched < talk.length);
+  if (!talk.length) return null;
+  const canPlay = talk.some((t) => play(segments[t.longest].startMs, '') !== null);
+  return (
+    <details className="ws-speakers" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>
+        Speakers: {matched} of {talk.length} matched to participants
+      </summary>
+      {error && (
+        <p className="ws-error" role="alert">
+          {error}
+        </p>
+      )}
+      <SpeakerList
+        talk={talk}
+        segments={segments}
+        people={people}
+        matchOf={(label) => speakerOf(ws, meeting.id, label)?.id ?? null}
+        onMatch={(label, participantId) =>
+          setError(step(view.session, `Match ${label}`, (w) => matchSpeaker(w, meeting.id, label, participantId)))
+        }
+        onPlay={
+          canPlay
+            ? (t) => {
+                const go = play(segments[t.longest].startMs, `${t.label}’s longest part`);
+                go?.();
+              }
+            : null
+        }
+        readOnly={view.readOnly}
+        shortId={shortId}
+      />
+      <p className="ws-help">Matching says who said what. It doesn’t change who was asked for consent.</p>
+    </details>
+  );
+}
+
+/** Matching a label from one of its turns in the transcript (decision 20, as changed at WP3). */
+function MatchDialog({
+  view,
+  meeting,
+  label,
+  onClose,
+}: {
+  view: ClientView;
+  meeting: Session;
+  label: string;
+  onClose: () => void;
+}) {
+  const ws = view.workspace;
+  const people = Object.values(ws.participants)
+    .filter((p) => p.sessionId === meeting.id)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const [choice, setChoice] = useState(speakerOf(ws, meeting.id, label)?.id ?? '');
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <FormDialog
+      title={`Who is “${label}”?`}
+      submitLabel="Match"
+      error={error}
+      onClose={onClose}
+      onSubmit={() => {
+        const problem = step(view.session, `Match ${label}`, (w) => matchSpeaker(w, meeting.id, label, choice || null));
+        if (problem) return setError(problem);
+        onClose();
+      }}
+    >
+      <p className="ws-dialog-text">
+        Every part of the transcript labelled “{label}” is matched. You can undo it, or change it in the speaker list.
+      </p>
+      <DialogField label="Participant">
+        {(id) => (
+          <select id={id} className="ws-input" value={choice} onChange={(e) => setChoice(e.target.value)}>
+            <option value="">Not matched</option>
+            {people.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({SIDE_TEXT[p.side].toLowerCase()})
+              </option>
+            ))}
+          </select>
+        )}
+      </DialogField>
+    </FormDialog>
   );
 }
 

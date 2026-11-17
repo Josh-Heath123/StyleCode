@@ -54,6 +54,7 @@ async function session(page: Page, options: { minutesAgo: number; quoted?: boole
       startsAt,
       timeZone: 'Africa/Johannesburg',
       audioFileIds: [],
+      deletedRecordings: [],
       createdAt: at,
       updatedAt: at,
     },

@@ -2,8 +2,8 @@
  * Runs one candidate on one test meeting and records what it heard, how long
  * it took and what it used (Phase 3 brief, WP2 and decision 8).
  *
- *   node --experimental-strip-types spikes/transcription/run.ts words <candidate> <meeting> <clean|hard> [--names] [--vad] [--no-context]
- *   node --experimental-strip-types spikes/transcription/run.ts speakers <campplus|eres2net> <meeting> <clean|hard> [--count | --threshold <x>] [--min-on <s>]
+ *   node --experimental-strip-types spikes/transcription/run.ts words <candidate> <meeting> <clean|hard|room> [--names] [--vad] [--no-context]
+ *   node --experimental-strip-types spikes/transcription/run.ts speakers <campplus|eres2net> <meeting> <clean|hard|room> [--count | --threshold <x>] [--min-on <s>]
  *
  * Words: whisper-turbo-gpu, whisper-small-gpu, whisper-turbo-cpu, parakeet-cpu.
  * `--names` gives Whisper the session's names as a prompt (decision 9).
@@ -18,7 +18,9 @@
  * `--threshold <x>` sets its clustering threshold (sherpa-onnx default 0.5;
  * larger gives fewer speakers).
  *
- * The audio is `eval/audio/out/<meeting>.<version>.wav` (`npm run eval:audio`).
+ * The audio is `eval/audio/out/<meeting>.<version>.wav` (`npm run eval:audio`). `room` is WP8's:
+ * the clean audio played through the laptop's speakers and recorded by StyleCode
+ * with its microphone (`wp8.ts`), lined up with the clean timeline.
  * The result goes to `eval/transcription/runs/<run>/<meeting>.<version>.json`.
  * `--label <name>` records the run under that name instead (WP3's end-to-end and
  * concurrency runs, so they don't replace the batch's records).
@@ -82,9 +84,9 @@ const thresholdAt = process.argv.indexOf('--threshold');
 const threshold = thresholdAt > 0 ? Number(process.argv[thresholdAt + 1]) : null;
 if (threshold !== null && (count || !(threshold > 0 && threshold < 2)))
   throw new Error('--threshold takes a number, without --count.');
-if (!['words', 'speakers'].includes(kind) || !candidate || !meeting || !['clean', 'hard'].includes(version)) {
+if (!['words', 'speakers'].includes(kind) || !candidate || !meeting || !['clean', 'hard', 'room'].includes(version)) {
   console.error(
-    'Usage: run.ts words|speakers <candidate> <meeting> <clean|hard> [--names] [--vad] [--no-context] [--count | --threshold <x>] [--min-on <s>]',
+    'Usage: run.ts words|speakers <candidate> <meeting> <clean|hard|room> [--names] [--vad] [--no-context] [--count | --threshold <x>] [--min-on <s>]',
   );
   process.exit(1);
 }

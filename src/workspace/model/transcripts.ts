@@ -86,7 +86,7 @@ const nameKey = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLower
 const isNameOf = (name: string, label: string) =>
   nameKey(name) === nameKey(label) || nameKey(name) === nameKey(label).replace(/\s*\((guest|external)\)$/, '');
 
-function segmentIssue(s: ParsedSegment): string | null {
+export function segmentIssue(s: ParsedSegment): string | null {
   const time = (v: number | null) => v === null || (Number.isFinite(v) && v >= 0);
   if (!time(s.startMs) || !time(s.endMs)) return 'A segment has a time that isn’t a time from the start of the meeting.';
   if (s.endMs !== null && (s.startMs === null || s.endMs < s.startMs)) return 'A segment ends before it starts.';
@@ -109,33 +109,81 @@ export function importTranscript(
   importedBy: string,
   at: Timestamp,
 ): Result<Imported> {
+  const segments = input.segments.map((s) => ({ ...s, confidence: null, unsureWords: [] }));
+  return insertTranscript(ws, sessionId, input.source, segments, importedBy, at, (participants) => {
+    // Labels that are a participant's name are matched, unless someone already has the label.
+    const inSession = () => Object.values(participants).filter((p) => p.sessionId === sessionId);
+    const matched: string[] = [];
+    const labels = segments.filter((s) => isNonEmptyText(s.text)).map((s) => s.speakerLabel?.trim() || null);
+    for (const label of new Set(labels.filter((l): l is string => l !== null))) {
+      if (inSession().some((p) => p.speakerLabels.includes(label))) continue;
+      const named = inSession().filter((p) => isNameOf(p.name, label));
+      if (named.length !== 1) continue;
+      participants[named[0].id] = { ...named[0], speakerLabels: [...named[0].speakerLabels, label] };
+      matched.push(label);
+    }
+    return ok(matched);
+  });
+}
+
+/** A segment with the engine's confidence: the mean of its words', and the character ranges of the words it was unsure of. */
+export interface ScoredSegment extends ParsedSegment {
+  confidence: number | null;
+  unsureWords: [number, number][];
+}
+
+/** Whether unsure-word ranges are whole, in order, don't overlap and lie inside the text. */
+export function unsureWordsFit(text: string, ranges: unknown): boolean {
+  if (!Array.isArray(ranges)) return false;
+  let previous = 0;
+  for (const r of ranges as unknown[]) {
+    if (!Array.isArray(r) || r.length !== 2 || !Number.isInteger(r[0]) || !Number.isInteger(r[1])) return false;
+    const [start, end] = r as [number, number];
+    if (start < previous || end <= start || end > text.length) return false;
+    previous = end;
+  }
+  return true;
+}
+
+/**
+ * Adds a transcript to a session: `importTranscript` for an imported one,
+ * `addRecordedTranscript` (`recordings.ts`) for one made from recordings.
+ * Checks consent to transcription (C1), the person and the segments, locks
+ * the consent record (C4), lets `match` give labels to participants, then
+ * keeps the speaker warning (C11).
+ */
+export function insertTranscript(
+  ws: CompanyWorkspace,
+  sessionId: string,
+  source: TranscriptSource,
+  input: readonly ScoredSegment[],
+  importedBy: string,
+  at: Timestamp,
+  match: (participants: Record<string, Participant>) => Result<string[]>,
+): Result<Imported> {
   const allowed = canCapture(ws, sessionId, 'transcript-import', at);
   if (!allowed.ok) return allowed;
   if (!isNonEmptyText(importedBy)) return fail('Give your name in Settings first: a transcript records who imported it.');
   // A blank speaker name is no name.
-  const segments = input.segments
+  const segments = input
     .filter((s) => isNonEmptyText(s.text))
     .map((s) => ({ ...s, speakerLabel: s.speakerLabel?.trim() || null }));
   if (!segments.length) return fail('The transcript has nothing anyone said in it.');
   for (const s of segments) {
     const issue = segmentIssue(s);
     if (issue) return fail(issue);
+    if (s.confidence !== null && !(s.confidence >= 0 && s.confidence <= 1))
+      return fail('A segment’s confidence isn’t between 0 and 1.');
+    if (!unsureWordsFit(s.text, s.unsureWords)) return fail('A segment marks words that aren’t in it.');
   }
   const record = consentFor(ws, sessionId);
   const locked = record && lockConsent(record, at);
   if (!locked?.ok) return fail(locked ? locked.error : 'Fill in the consent form for this session first.');
 
-  // Labels that are a participant's name are matched, unless someone already has the label.
   const participants = { ...ws.participants };
-  const inSession = () => Object.values(participants).filter((p) => p.sessionId === sessionId);
-  const matched: string[] = [];
-  for (const label of new Set(segments.map((s) => s.speakerLabel).filter((l): l is string => l !== null))) {
-    if (inSession().some((p) => p.speakerLabels.includes(label))) continue;
-    const named = inSession().filter((p) => isNameOf(p.name, label));
-    if (named.length !== 1) continue;
-    participants[named[0].id] = { ...named[0], speakerLabels: [...named[0].speakerLabels, label] };
-    matched.push(label);
-  }
+  const matchedOrError = match(participants);
+  if (!matchedOrError.ok) return matchedOrError;
+  const matched = matchedOrError.value;
 
   const transcriptId = createId(ID_PREFIX.transcripts);
   const withMatches = { ...ws, participants };
@@ -147,7 +195,7 @@ export function importTranscript(
   const transcript: Transcript = {
     id: transcriptId,
     sessionId,
-    source: input.source,
+    source,
     importedBy: importedBy.trim(),
     importedAt: at,
     unaskedSpeakers: speakers.unaskedSpeakers,
@@ -164,7 +212,8 @@ export function importTranscript(
       startMs: s.startMs,
       endMs: s.endMs,
       text: s.text,
-      confidence: null,
+      confidence: s.confidence,
+      unsureWords: s.unsureWords,
     };
   });
   return ok({

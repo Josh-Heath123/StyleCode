@@ -34,6 +34,7 @@ function bigWorkspace(sessions = 60, segments = 900, findings = 40): CompanyWork
         endMs: i * 4000 + 3900,
         text,
         confidence: null,
+        unsureWords: [],
       };
     }
     for (let f = 0; f < findings; f++) {

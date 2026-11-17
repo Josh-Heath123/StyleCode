@@ -221,7 +221,7 @@ No piece failed. Whisper's live word errors are a little high: in some 30-second
 
 - **Extraction alone held the GPU at 90 to 93 °C,** with its clock at 210 MHz, for 19 minutes (73 of 75 samples at 90 °C or more, 74 at 210 MHz).
 - **Heat costs time as well:** the same extraction took 786 s one night and 1,130 s (44% longer) the next morning, at 90 to 93 °C.
-- **The heaviest combined step cut the power.** Two GPU-hungry jobs at once, on a GPU already at 90 °C, is more than this laptop's cooling handles.
+- **The heaviest combined step cut the power.** A CPU-heavy transcription (Parakeet ran on the CPU) alongside a GPU extraction, with the GPU already at 90 °C, is more than this laptop's cooling handles.
 
 **Recommendation: StyleCode runs one heavy job at a time on this laptop,** whether it runs on the CPU or the GPU (decision 10). A transcription, a speakers run or an extraction run waits for the one before to finish, and says so.
 
@@ -289,7 +289,7 @@ Decision 8's rule: the fastest setup whose transcripts keep extraction's recall 
 - **Engine and model: whisper.cpp with large-v3-turbo (5-bit), on the GPU.** It's the fastest that passes: 2.6 minutes per hour, 2.4% word errors on clean audio, 94% of words to the right speaker, and extraction recall of 61% on its transcripts, between the two typed runs' 57% and 63%. Without an NVIDIA GPU, **Parakeet on the CPU** (11 minutes per hour, and no burst of invented words in noise) is the fallback, not Whisper on the CPU (49 minutes per hour).
 - **Speakers: sherpa-onnx with ERes2Net at threshold 0.7, without the count.** Giving the count merges people.
 - **The names hint: no.** It hurt clean audio.
-- **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Unloading Ollama before a transcription isn't needed for memory (they fit together), only if a model is still loaded when a transcription starts.
+- **The GPU order: one heavy job at a time,** CPU or GPU, the second waiting and saying so. The measured cost of sharing (5.6× slower transcription, 83% slower extraction) and the cut-out both point the same way. Ollama can stay loaded: the two fit in GPU memory together, and only one heavy job runs at a time.
 - **Confidence threshold: 0.7** on Whisper's word confidence. It marks about 7% of words and catches about half the wrong ones. (With `--max-context 0`, decided later, the same balance is at 0.8.)
 - **From the end of an hour-long meeting to the proposals: about 25 to 35 minutes,** most of it speakers, one step after another.
 
@@ -334,6 +334,46 @@ The reviewer's answers at the short check-in, 13 November 2026, on the user's be
 This is shown at WP7's screens check-in.
 
 **Part size: 6144 stays.** 4096 finds more on the hour-long meeting (82% to 83%, against 65% to 70%), but with about twice the proposals to review, lower precision and 1.6 times the time. On Phase 2's short meetings it gained 2 points of recall for 14 of precision. The likely cause: at 4096 a part holds about 500 tokens of transcript, against 2,036 at 6144, so it may be the transcript per part that matters, not the context size. And 8192 didn't test bigger parts: `PART_CONTEXT` (`src/workspace/extraction/prompt.ts`) caps a part's context at 6144, so 8192 made the same 13 parts. Both are open questions below.
+
+## End to end on the laptop (WP8)
+
+Measured on 17 November 2026 through StyleCode itself (`spikes/transcription/wp8.ts`, started from `start-wp8.cmd`), on the same laptop (Intel Core i7-12700H, 16 GB; RTX 3060 Laptop, 6 GB, driver 610.91; plugged in, OMEN performance mode, lid open), in Microsoft Edge 157. The speech is still WP1's synthetic voices, so these numbers are a lower bound on errors too. Records: `eval/transcription/wp8/`, `eval/transcription/runs/wp8-room-*`, `eval/runs/p3-wp8-hour/`.
+
+### The recorded role-play meeting
+
+Karoo Freight's clean audio played through the laptop's own speaker (Realtek) while StyleCode recorded it on the session page with the built-in microphone (Intel Smart Sound array), echo cancellation off. The recording was 214 s, lined up with the clean file 5.3 s in, and quieter than it (RMS 0.056 against 0.096). StyleCode transcribed it and added the transcript in 60 s. The same recording, run through WP2's harness with the app's settings (whisper.cpp large-v3-turbo, `--max-context 0`; ERes2Net at 0.7), against the clean file's runs:
+
+| | Clean file | Recorded in the room |
+| --- | --: | --: |
+| Word errors (raw) | 1.2% (3.5%) | 1.2% (3.5%) |
+| Key terms found | 28 of 32 | 28 of 32 |
+| Speaker labels for 4 people | 7 | 7 |
+| Speech given the wrong speaker | 4.3% | 5.1% |
+| Speech missed | 0.5% | 3.5% |
+| Speaker where nobody spoke | 0.6% | 2.9% |
+| Words given the right speaker | 95.9% | 94.4% |
+
+The words came through the room unchanged; the speakers lost a little at the edges of turns. A real room with real voices will do worse (decision 1).
+
+**The microphone:** Windows' default microphone on this laptop is a virtual device (SteelSeries Sonar) that passed only silence; the first try recorded 3.5 minutes of zeros without a word from StyleCode. Since then a recording says when its microphone hears nothing for about 5 seconds, and the runner chooses the built-in microphone in StyleCode's own list.
+
+### An hour, through the app
+
+Bosveld Citrus's clean WAV (59 min 53 s) was added to a session whose consent says "deleted after transcription", and transcribed with both of decision 18's options, then left alone.
+
+| | Minutes |
+| --- | --: |
+| Transcribe to the transcript added (Whisper 3.6, speakers 12.5) | 16.2 |
+| The transcript added to the AI's proposals (qwen3:4b, 6144) | 20.9 |
+| **Transcribe to the proposals** | **37.0** |
+
+WP3 expected about 32 minutes. Transcribe's estimate said "about 16 minutes", from the first try's speeds. The GPU peaked at 3.7 GB and 84 °C. The recording was gone and the session's line said when, in the same save that added the transcript.
+
+**The proposals,** scored against Bosveld Citrus's key with the key's turns translated to the app's 525 segments by time: 88 shown for review (18 more failed the quote check, 21 repeated others), **precision 78%, recall 56%**. WP3's hour at 6144 found 65% to 70%, but scored the raw proposals with each speaker matched to a person first. Here the AI read "Speaker 1", "Speaker 2"…, unmatched (nobody is at the keyboard with both options), and the app's checks had already removed 39 proposals.
+
+**How the 42 unclear pairs were settled:** blind, as before. Three subagents saw only the two statements and kinds, shuffled, with WP3's rule. Ten of Phase 2's settled pairs were hidden in each of the two main packets: they agreed on 16 of 20 (κ 0.58; two stricter, two more lenient), weaker than WP3's 28 of 30. A third subagent re-settled 7 of the 42 and agreed on 6. With 22 of 42 settled yes, a few answers either way move recall by about 2 points.
+
+**The first try's AI stopped part-way.** On the first try the transcript was added and the recording deleted as above, but the AI run stopped after 7.5 minutes, nine parts in, with nothing added; Ollama's log shows StyleCode cancelling the tenth request mid-answer. Nothing recorded why. The second try, unchanged apart from recording the run's message, finished. The cause isn't found: a run stopped this way loses every part it read, which matters most when nobody is watching.
 
 ## Open questions
 
