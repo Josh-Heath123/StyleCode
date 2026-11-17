@@ -145,7 +145,7 @@ test('the clients list shows every client’s recordings past their time, and th
   );
   const waitingList = card.getByRole('list', { name: /waiting for a transcript/ });
   await expect(waitingList.getByRole('listitem').filter({ hasText: 'Intake.wav' })).toContainText(
-    'Waiting for its transcript: the client was told it’s deleted after transcription',
+    'Waiting for its transcript. The client was told it’s deleted once transcribed, and it was made a day or more ago',
   );
   await expect(waitingList.getByRole('link', { name: /^Open the session Kick-off/ }).first()).toBeVisible();
 
@@ -155,7 +155,7 @@ test('the clients list shows every client’s recordings past their time, and th
   await axe(page);
 
   await card.getByRole('button', { name: /^Delete (this recording|these \d+ recordings)…$/ }).click();
-  const dialog = page.getByRole('dialog', { name: 'Delete the recordings past their time…' });
+  const dialog = page.getByRole('dialog', { name: /^Delete the recordings? past (its|their) time…$/ });
   await axe(page);
   await dialog.getByRole('button', { name: /^Delete/ }).click();
   await expect(card.getByRole('status')).toContainText(/deleted\. Each session keeps its line\./);
@@ -189,7 +189,7 @@ test('after a withdrawal, the flow first offers to delete the recordings, then t
   await withdraw.getByLabel('Reason').fill('Thandi asked us to delete everything.');
   await withdraw.getByRole('button', { name: 'Record the withdrawal' }).click();
 
-  const recordings = page.getByRole('dialog', { name: 'Delete the recordings…' });
+  const recordings = page.getByRole('dialog', { name: 'Delete the recording…' });
   await expect(recordings).toContainText('Consent is withdrawn, so recording is no longer agreed for this session.');
   await expect(recordings.getByRole('list', { name: 'Recordings past their time' })).toContainText('Kick-off.wav');
   await recordings.getByRole('button', { name: /^Delete/ }).click();
@@ -214,7 +214,7 @@ test('an amendment that turns recording off offers to delete the recordings now 
   await form.getByLabel('Reason').fill('Pieter asked us not to keep recordings.');
   await form.getByRole('button', { name: 'Record the change' }).click();
 
-  const offer = page.getByRole('dialog', { name: 'Delete the recordings…' });
+  const offer = page.getByRole('dialog', { name: 'Delete the recording…' });
   await expect(offer).toContainText('After this amendment, a recording is past the time the client agreed.');
   await offer.getByRole('button', { name: /^Delete/ }).click();
   await expect(offer).toHaveCount(0);

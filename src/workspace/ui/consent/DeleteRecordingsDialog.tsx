@@ -39,7 +39,7 @@ export function DeleteRecordingsDialog({
   const due = dueRecordings(view, meeting);
   return (
     <DeleteDialog
-      title="Delete the recordings…"
+      title={due.length === 1 ? 'Delete the recording…' : 'Delete the recordings…'}
       onClose={onClose}
       what={
         <>

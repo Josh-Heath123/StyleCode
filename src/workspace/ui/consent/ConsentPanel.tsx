@@ -148,8 +148,8 @@ export function ConsentPanel({ view, meeting, formHref }: { view: ClientView; me
           meeting={meeting}
           intro={
             <p>
-              Consent is withdrawn. If the client asks, delete the transcript too. Otherwise it stays, and what was imported
-              before the withdrawal can still be used.
+              Consent is withdrawn. If the client asks, delete the transcript too. Otherwise it stays, and what was there before
+              the withdrawal can still be used.
             </p>
           }
           onDeleted={(factIds) => setAfter({ step: 'review', factIds })}

@@ -23,7 +23,7 @@ export function retentionText(r: RecordingRetention, timeZone: string): string {
   if (r.due === 'not-agreed') return 'Past its time: recording is no longer agreed for this session';
   if (r.due === 'transcribed') return 'Past its time: it was transcribed, and the client was told it would then be deleted';
   if (r.waiting === 'transcription')
-    return 'Waiting for its transcript: the client was told it’s deleted after transcription, a day ago or more';
+    return 'Waiting for its transcript. The client was told it’s deleted once transcribed, and it was made a day or more ago';
   if (r.waiting === 'adding') return 'Its transcript is ready: adding it deletes the recording, as the client was told';
   switch (r.kept.kind) {
     case 'date':

@@ -136,8 +136,8 @@ export function PastTimeCard({ companies }: { companies: CompanySummary[] }) {
         <>
           <h3 id="past-time-waiting">{count(waiting.length, 'recording')} waiting for a transcript</h3>
           <p className="ws-help">
-            The client was told these are deleted after transcription, and they were made a day ago or more. Transcribe each one,
-            or add its transcript, on the session’s page, or delete it there.
+            The client was told these are deleted once transcribed, and each was made a day or more ago. Transcribe each one, or
+            add its transcript, on the session’s page, or delete it there.
           </p>
           <ul className="ws-list is-compact" aria-labelledby="past-time-waiting">
             {waiting.map(row)}
@@ -146,7 +146,7 @@ export function PastTimeCard({ companies }: { companies: CompanySummary[] }) {
       )}
       {deleting && (
         <DeleteDialog
-          title="Delete the recordings past their time…"
+          title={due.length === 1 ? 'Delete the recording past its time…' : 'Delete the recordings past their time…'}
           onClose={() => setDeleting(false)}
           what={
             <>
