@@ -14,9 +14,12 @@ import { DESIGN_TYPES, type PropKey } from '../model/types';
  * a `ref` handle.
  */
 
-/** Properties the AI may set. It can't lock layers, point images at stored files or touch notes. */
+/**
+ * Properties the AI may set. It can't lock layers, point images at stored files, touch notes, or link layers to the
+ * record's findings: links are the consultant's statement of what answers what (Workspace Phase 4, decision 16).
+ */
 export const AI_PROPERTIES: readonly PropKey[] = (Object.keys(PROPERTY_DEFS) as PropKey[]).filter(
-  (key) => key !== 'locked' && key !== 'src' && key !== 'noteTarget',
+  (key) => key !== 'locked' && key !== 'src' && key !== 'noteTarget' && key !== 'findings',
 );
 
 const HEX = '^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$';
@@ -34,6 +37,8 @@ function propertySchema(def: PropDef): Record<string, unknown> {
       return spec.nullable ? { anyOf: [{ type: 'string', pattern: HEX }, { type: 'null' }] } : { type: 'string', pattern: HEX };
     case 'enum':
       return { type: 'string', enum: [...spec.values] };
+    case 'ids':
+      return { type: 'array', items: { type: 'string' } };
   }
 }
 

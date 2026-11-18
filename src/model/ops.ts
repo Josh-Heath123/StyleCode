@@ -1,5 +1,5 @@
 import { isValidId } from './ids';
-import { coerceProp, isPropKey, propAppliesTo, PROP_KEYS } from './properties';
+import { coerceProp, isPropKey, propAppliesTo, PROP_KEYS, samePropValue } from './properties';
 import { CONTAINER_TYPES, CREATABLE_TYPES, type DesignDocument, type DesignNode, type NodeProps, type PropKey } from './types';
 
 /**
@@ -124,7 +124,7 @@ function applyUpdate(draft: Draft, op: Extract<Op, { type: 'update' }>, i: numbe
     if (!propAppliesTo(key, node.type)) fail(`"${key}" does not apply to ${node.type} layers`, i);
     const result = coerceProp(key, raw);
     if (!result.ok) fail(result.error, i);
-    if (node[key] !== result.value) {
+    if (!samePropValue(node[key], result.value)) {
       next[key] = result.value;
       previous[key] = node[key];
     }

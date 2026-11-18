@@ -143,6 +143,11 @@ function rng(seed: number) {
   };
 }
 
+/** Some of three findings, in a random order: none, one, or several. */
+function randomFindings(random: () => number): string[] {
+  return ['fi_a', 'fi_b', 'fi_c'].filter(() => random() < 0.4).sort(() => random() - 0.5);
+}
+
 function randomOp(doc: DesignDocument, random: () => number, counter: { n: number }): Op | null {
   const ids = Object.keys(doc.nodes);
   const pick = <T>(arr: readonly T[]) => arr[Math.floor(random() * arr.length)];
@@ -153,9 +158,15 @@ function randomOp(doc: DesignDocument, random: () => number, counter: { n: numbe
   if (kind < 0.35 || layers.length === 0) {
     const parentId = pick(containers);
     const type = pick<NodeType>(['frame', 'rect', 'ellipse', 'text']);
-    const node = createNode(type, { x: Math.round(random() * 500), y: Math.round(random() * 500) }, `n${counter.n++}`);
+    const node = createNode(
+      type,
+      { x: Math.round(random() * 500), y: Math.round(random() * 500), findings: randomFindings(random) },
+      `n${counter.n++}`,
+    );
     return { type: 'create', parentId, index: Math.floor(random() * (doc.nodes[parentId].children.length + 1)), nodes: [node] };
   }
+  // Links to findings (Workspace Phase 4): linking and unlinking are ordinary updates of a list.
+  if (kind < 0.45) return { type: 'update', id: pick(layers), props: { findings: randomFindings(random) } };
   if (kind < 0.65) {
     const id = pick(layers);
     return {

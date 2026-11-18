@@ -13,9 +13,10 @@ export const FILE_FORMAT = 'stylecode';
  * 2: auto-layout, sizing, roles, effects and image layers.
  * 3: wrapping rows.
  * 4: grids, min/max sizes, independent corners, phone overrides and notes.
+ * 5: a layer's links to the findings it answers, in an engagement's design (Workspace Phase 4).
  * Older files load unchanged: every new property defaults to the old behaviour.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 export const FILE_EXTENSION = '.stylecode.json';
 
 export interface ProjectFile {

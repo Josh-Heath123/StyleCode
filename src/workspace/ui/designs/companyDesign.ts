@@ -1,4 +1,5 @@
 import type { Camera } from '../../../editor/camera';
+import { stripFindings } from '../../../model/commands';
 import { createId } from '../../../model/ids';
 import { parseProject, referencedAssets, toProjectFile } from '../../../model/serialize';
 import type { DesignDocument } from '../../../model/types';
@@ -206,8 +207,9 @@ export function attachNewDesign(client: WorkspaceSession, companyId: string, eng
 
 /**
  * A copy of one of the editor's own designs (decision 3): a new document id,
- * the original's name, and its images uploaded into the client. The
- * original, in this browser, is only read.
+ * the original's name, its images uploaded into the client, and no links to
+ * findings (they belong to the design they were made in). The original, in
+ * this browser, is only read.
  */
 export async function attachDesignCopy(
   client: WorkspaceSession,
@@ -226,6 +228,6 @@ export async function attachDesignCopy(
     const stored = await uploadDesignAsset(companyId, new Blob([image.blob], { type: image.type }));
     if (stored.id !== id) return { error: 'An image changed on its way to the client’s folder. Try copying again.' };
   }
-  const copy: DesignDocument = { ...parsed.doc, id: createId('doc') };
+  const copy: DesignDocument = { ...stripFindings(parsed.doc), id: createId('doc') };
   return attach(client, companyId, engagementId, copy);
 }

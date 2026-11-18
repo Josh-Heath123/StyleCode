@@ -14,7 +14,7 @@ import {
 } from './geometry';
 import { createId } from './ids';
 import { OpBuilder, type Op } from './ops';
-import { wrapDegrees } from './properties';
+import { propAppliesTo, wrapDegrees } from './properties';
 import type { DesignDocument, DesignNode, NodeProps, NodeType, Point, Rect } from './types';
 
 /**
@@ -279,6 +279,11 @@ export interface ClipboardData {
   format: typeof CLIPBOARD_FORMAT;
   version: 1;
   items: ClipboardItem[];
+  /**
+   * The design the layers were copied from. Their links to findings survive a paste into that design only
+   * (Workspace Phase 4, decision 10); clipboard data without it counts as from another design.
+   */
+  sourceDocId?: string;
 }
 
 export function copyToClipboardData(doc: DesignDocument, ids: readonly string[]): ClipboardData | null {
@@ -287,6 +292,7 @@ export function copyToClipboardData(doc: DesignDocument, ids: readonly string[])
   return {
     format: CLIPBOARD_FORMAT,
     version: 1,
+    sourceDocId: doc.id,
     items: top.map((id) => {
       const node = doc.nodes[id];
       const world = worldMatrix(doc, id);
@@ -333,7 +339,8 @@ export function pasteOps(doc: DesignDocument, data: ClipboardData, targetId: str
       item.nodes[0].type === 'note'
         ? doc.rootId
         : (target ?? (doc.nodes[item.sourceParentId] ? item.sourceParentId : doc.rootId));
-    const copy = cloneNodes(item.nodes);
+    // Links to findings belong to the design they were made in.
+    const copy = cloneNodes(data.sourceDocId === doc.id ? item.nodes : withoutFindings(item.nodes));
     const root = copy[0];
     const toParent = invert(childSpaceMatrix(builder.doc, parentId));
     const center = applyToPoint(toParent, { x: item.worldCenter.x + shift.x, y: item.worldCenter.y + shift.y });
@@ -370,4 +377,55 @@ export function backgroundBehind(doc: DesignDocument, containerId: string): stri
     if (fill && (fill.length === 7 || parseInt(fill.slice(7, 9), 16) > 128)) return fill.slice(0, 7);
   }
   return '#ffffff';
+}
+
+// ---------------------------------------------------------------------------
+// Links to the record's findings (Workspace Phase 4, decision 10)
+// ---------------------------------------------------------------------------
+
+const NO_LINKS: readonly string[] = Object.freeze([]);
+
+/** The layers among `ids` that can hold links: not the page, and not notes. */
+function linkable(doc: DesignDocument, ids: readonly string[]): DesignNode[] {
+  return ids.flatMap((id) => {
+    const node = doc.nodes[id];
+    return node && propAppliesTo('findings', node.type) ? [node] : [];
+  });
+}
+
+/** Links each of the layers to the finding, after its existing links; one operation per layer that changes. */
+export function linkFindingOps(doc: DesignDocument, layerIds: readonly string[], findingId: string): Op[] {
+  return linkable(doc, layerIds)
+    .filter((n) => !n.findings.includes(findingId))
+    .map((n) => ({ type: 'update', id: n.id, props: { findings: [...n.findings, findingId] } }));
+}
+
+/** Removes the layers' links to the finding. */
+export function unlinkFindingOps(doc: DesignDocument, layerIds: readonly string[], findingId: string): Op[] {
+  return linkable(doc, layerIds)
+    .filter((n) => n.findings.includes(findingId))
+    .map((n) => ({ type: 'update', id: n.id, props: { findings: n.findings.filter((f) => f !== findingId) } }));
+}
+
+/** Layers without their links: for a paste into another design. */
+export function withoutFindings(nodes: readonly DesignNode[]): DesignNode[] {
+  return nodes.map((n) => (n.findings.length ? { ...n, findings: NO_LINKS } : n));
+}
+
+/** A design without any links: a copy of it goes into an engagement with none (decision 3). */
+export function stripFindings(doc: DesignDocument): DesignDocument {
+  if (!Object.values(doc.nodes).some((n) => n.findings.length)) return doc;
+  const nodes: Record<string, DesignNode> = {};
+  for (const [id, n] of Object.entries(doc.nodes)) nodes[id] = n.findings.length ? { ...n, findings: NO_LINKS } : n;
+  return { ...doc, nodes };
+}
+
+/** Every layer linked to the finding, in document order. */
+export function layersLinkedTo(doc: DesignDocument, findingId: string): string[] {
+  return sortByDocumentOrder(
+    doc,
+    Object.values(doc.nodes)
+      .filter((n) => n.findings.includes(findingId))
+      .map((n) => n.id),
+  );
 }
