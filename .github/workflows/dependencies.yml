@@ -1,0 +1,44 @@
+name: Dependencies
+
+# Dependency checks on every pull request (repository brief, R4). They're in their own small workflow because they
+# run again when a label changes, which the main CI needn't. The ruleset requires both jobs.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependencies-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Fails a pull request that adds a dependency with a known vulnerability.
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: low
+
+  new-runtime:
+    # A new entry in package.json's dependencies needs the owner's label dependency-approved
+    # (CLAUDE.md: ask before adding a runtime dependency).
+    name: New runtime dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+      - env:
+          DEPENDENCIES_BASE: ${{ github.event.pull_request.base.sha }}
+          DEPENDENCY_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, 'dependency-approved') }}
+        run: npm run check:dependencies

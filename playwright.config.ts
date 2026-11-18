@@ -34,13 +34,21 @@ const HEAVY = /(extraction|transcription)\.spec\.ts$/;
  * recordings past their time), and those that read back the folder's one settings file, which most tests set.
  */
 const LAST = /(retention|settings)\.spec\.ts$/;
+/**
+ * On CI, the tests that run last get a runner, a server and a data folder of their own (E2E_DESTRUCTIVE_ALONE=1).
+ * No other test shares their folder, so they needn't wait for the rest. Locally they still run after everything else.
+ */
+const LAST_ALONE = process.env.E2E_DESTRUCTIVE_ALONE === '1';
 
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  // A test that passes only on its retry still fails the run: a retry mustn't turn a race into a green tick.
+  failOnFlakyTests: !!process.env.CI,
+  // CI splits the tests across runners. Each keeps a blob report, and they're merged into one HTML report afterwards.
+  reporter: process.env.CI ? [['blob'], ['github']] : 'list',
   use: {
     baseURL: 'http://localhost:5174',
     // Returning visitors: the welcome screen and checklist have been seen (onboarding has its own test).
@@ -61,8 +69,14 @@ export default defineConfig({
     // would wait for each other's; they run one at a time, alongside the rest.
     { name: 'heavy jobs', dependencies: ['workspace folder'], testMatch: HEAVY, workers: 1, use: BROWSER },
     // Deleting every client's recordings past their time would reach into other tests' clients, and the consultant's
-    // name is one setting most tests set, so these come last.
-    { name: 'after the rest', dependencies: ['chromium', 'heavy jobs'], testMatch: LAST, workers: 1, use: BROWSER },
+    // name is one setting most tests set, so these come last, unless they have a folder to themselves.
+    {
+      name: 'after the rest',
+      dependencies: LAST_ALONE ? ['workspace folder'] : ['chromium', 'heavy jobs'],
+      testMatch: LAST,
+      workers: 1,
+      use: BROWSER,
+    },
   ],
   webServer: {
     // The test data folder is emptied first, lock included (e2e/clearTestWorkspace.ts).
