@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addedDependencies,
   commitProblems,
+  fileProblems,
   isBinary,
   isNoreply,
+  mediaOrArchive,
   pathProblems,
   personalProblems,
   secretProblems,
   SIZE_LIMIT,
   textProblems,
   workflowProblems,
-  addedDependencies,
 } from './hygiene.ts';
 
 /**
@@ -24,13 +26,50 @@ const fakeKey = (prefix: string, length: number, alphabet = 'abcXYZ019') =>
 const sha = 'a'.repeat(40);
 // A user's folder, spelt in pieces so this file doesn't hold one.
 const [USERS, HOME] = ['Us' + 'ers', 'ho' + 'me'];
+const bytes = (...parts: (string | number[])[]) =>
+  new Uint8Array(parts.flatMap((p) => (typeof p === 'string' ? [...Buffer.from(p, 'latin1')] : p)));
 
 describe('files', () => {
-  it('refuses audio, video, archives and .env files, at any depth', () => {
-    for (const path of ['take.wav', 'docs/a.MP3', 'clip.mp4', 'old/backup.zip', 'x.tar.gz', 'models.7z', 'a/.env', '.env.local'])
+  it('refuses audio, video, archives and .env files by name, at any depth and in any case', () => {
+    for (const path of [
+      'take.wav',
+      'docs/a.MP3',
+      'clip.mp4',
+      'phone.3gp',
+      'memo.amr',
+      'voice.m4b',
+      'old/backup.zip',
+      'x.tar.gz',
+      'models.7z',
+      'pack.whl',
+      'setup.msi',
+      'a/.env',
+      '.env.local',
+      '.ENV',
+      '.Env.local',
+      '.env-local',
+      '.env_prod',
+      'prod.env',
+      '.envrc',
+    ])
       expect(pathProblems(path, 10), path).not.toEqual([]);
-    for (const path of ['docs/media/demo.gif', 'src/app.ts', '.env.example', 'environment.ts', 'a.envelope'])
+    for (const path of ['docs/media/demo.gif', 'src/app.ts', '.env.example', 'environment.ts', 'a.envelope', 'x.d.ts'])
       expect(pathProblems(path, 10), path).toEqual([]);
+  });
+
+  it('knows audio, video and archives by their first bytes, whatever their name', () => {
+    expect(mediaOrArchive('take.dat', bytes('RIFF', [0, 0, 0, 0], 'WAVEfmt '))).toMatch(/audio/);
+    expect(mediaOrArchive('song.bin', bytes('ID3', [3, 0]))).toMatch(/audio/);
+    expect(mediaOrArchive('x.bin', bytes('fLaC'))).toMatch(/audio/);
+    expect(mediaOrArchive('x.bin', bytes([0, 0, 0, 24], 'ftypisom'))).toMatch(/MP4/);
+    expect(mediaOrArchive('x.bin', bytes([0x1a, 0x45, 0xdf, 0xa3]))).toMatch(/Matroska/);
+    expect(mediaOrArchive('x.bin', bytes('PK', [3, 4]))).toMatch(/zip/);
+    expect(mediaOrArchive('x.bin', bytes([0x1f, 0x8b, 8]))).toMatch(/gzip/);
+    expect(fileProblems('notes.txt', bytes('RIFF', [0, 0, 0, 0], 'WAVE'))).toEqual([expect.stringContaining('never committed')]);
+    // Office documents are zips inside, and HEIF images use MP4's box: neither is refused.
+    expect(mediaOrArchive('sample.docx', bytes('PK', [3, 4]))).toBeNull();
+    expect(mediaOrArchive('photo.avif', bytes([0, 0, 0, 24], 'ftypavif'))).toBeNull();
+    expect(mediaOrArchive('a.gif', bytes('GIF89a'))).toBeNull();
   });
 
   it('refuses a file over the size limit', () => {
@@ -42,29 +81,62 @@ describe('files', () => {
     expect(isBinary(new Uint8Array([71, 73, 70, 0, 1]))).toBe(true);
     expect(isBinary(new TextEncoder().encode('plain text'))).toBe(false);
   });
+
+  it('still reads a binary file: text after a NUL byte, UTF-16, or inside an image', () => {
+    const hidden = `key ${fakeKey('sk-', 48)} at C:\\${USERS}\\someone\\x mail ${madeUpAddress}`;
+    for (const content of [
+      bytes([0], hidden),
+      new Uint8Array(Buffer.from(`\ufeff${hidden}`, 'utf16le')),
+      bytes([0x89], 'PNG', [13, 10, 26, 10, 0, 0, 0, 0], 'tEXt', `Comment${String.fromCharCode(0)}${hidden}`),
+    ]) {
+      const problems = fileProblems('image.png', content);
+      expect(problems.some((p) => p.includes('API key'))).toBe(true);
+      expect(problems.some((p) => p.includes('user’s folder'))).toBe(true);
+      expect(problems.some((p) => p.includes('email address'))).toBe(true);
+    }
+  });
 });
 
 describe('user folders and email addresses', () => {
-  it('finds a user’s folder on Windows, macOS and Linux, written any way', () => {
+  it('finds a user’s folder on Windows, macOS, Linux, Git Bash and WSL, written any way, in any case', () => {
     for (const text of [
       `C:\\${USERS}\\someone\\StyleCode`,
       `'D:\\\\${USERS}\\\\someone\\\\x'`,
       `c:/${USERS}/someone/file`,
+      `C:\\${USERS.toLowerCase()}\\someone`,
+      `C:\\${USERS.toUpperCase()}\\someone`,
       `at /${USERS}/someone/Desktop`,
+      `/${USERS.toLowerCase()}/someone`,
       `"/${HOME}/someone/.ssh"`,
+      `/c/${USERS}/someone/x`,
+      `/mnt/c/${USERS}/someone`,
+      `PATH=/x:/${HOME}/someone/bin`,
+      `file:///${HOME}/someone/x`,
     ])
       expect(personalProblems(text), text).toEqual([expect.stringContaining('user’s folder')]);
   });
 
   it('lets placeholders and other paths through', () => {
-    for (const text of ['C:\\Users\\<you>\\StyleCode Data', '`/Users/…`', 'https://site.example/home/page', '~/StyleCode Data'])
+    for (const text of [
+      `C:\\${USERS}\\<you>\\StyleCode Data`,
+      `\`/${USERS}/…\``,
+      `https://site.example/${HOME}/page`,
+      '~/StyleCode Data',
+      `src/${HOME}/page.ts`,
+    ])
       expect(personalProblems(text), text).toEqual([]);
   });
 
-  it('finds email addresses, but not GitHub’s noreply ones or reserved example domains', () => {
-    expect(personalProblems(`write to ${madeUpAddress}`)).toEqual([expect.stringContaining('email address')]);
-    expect(personalProblems(`Co-authored-by: Someone <someone${at}company.io>`)).toHaveLength(1);
-    for (const ok of [noreply, `noreply${at}github.com`, `you${at}example.com`, `a${at}mail.test`, 'react@19.3.1'])
+  it('finds email addresses, written any way, but not GitHub’s noreply ones', () => {
+    for (const text of [
+      `write to ${madeUpAddress}`,
+      `Co-authored-by: Someone <someone${at}company.io>`,
+      `placeholder you${at}example.com`,
+      `bob${'%40'}corp.com`,
+      `bob${at}exämple.com`,
+    ])
+      expect(personalProblems(text), text).toEqual([expect.stringContaining('email address')]);
+    for (const ok of [noreply, `noreply${at}github.com`, 'react@19.3.1', '@types/node', 'registry.npmjs.org/%40types%2fnode'])
       expect(personalProblems(ok), ok).toEqual([]);
   });
 
@@ -79,10 +151,15 @@ describe('secrets', () => {
       fakeKey('sk-', 48),
       fakeKey('sk-ant-api03-', 90),
       fakeKey('ghp_', 36),
+      fakeKey('gho_', 36),
+      fakeKey('ghs_', 36),
       fakeKey('github_pat_', 82),
       fakeKey('AKIA', 16, 'ABCDEFGHIJKLMNOP234567'),
+      fakeKey('ASIA', 16, 'ABCDEFGHIJKLMNOP234567'),
+      `x${fakeKey('AKIA', 16, 'ABCDEFGHIJKLMNOP234567')}`,
       ['-----BEGIN', 'OPENSSH PRIVATE KEY-----'].join(' '),
       ['-----BEGIN', 'PRIVATE KEY-----'].join(' '),
+      ['PuTTY-User-Key-File', '3: ssh-ed25519'].join('-'),
     ])
       expect(secretProblems(`key = "${text}"`), text).toHaveLength(1);
   });
@@ -94,20 +171,29 @@ describe('secrets', () => {
 });
 
 describe('workflows', () => {
-  it('needs every action pinned to a full commit SHA and every image to a digest', () => {
-    const bad = [
-      'steps:',
+  it('needs every action pinned to a full commit SHA and every image to a digest, in any YAML form', () => {
+    for (const line of [
       '  - uses: actions/checkout@v6',
       `  - uses: actions/setup-node@${sha.slice(0, 7)}`,
-      '    container:',
+      'steps: [{uses: actions/checkout@v4}]',
+      '  - {uses: actions/checkout@v4, with: {fetch-depth: 0}}',
+      '  - "uses": "actions/checkout@v4"',
+      "  - 'uses': actions/checkout@v4",
+      '  - uses : actions/checkout@v4',
       '      image: mcr.microsoft.com/playwright:v1.63.0-noble',
       '    container: node:22',
-    ].join('\n');
-    expect(workflowProblems(bad)).toHaveLength(4);
+      '    container: ${{ env.IMG }}',
+      '      image: ${{ matrix.img }}',
+      '      - run: docker run --rm node:22 node -v',
+    ])
+      expect(workflowProblems(line), line).toHaveLength(1);
     const good = [
       `  - uses: actions/checkout@${sha} # v6.1.0`,
       '  - uses: ./.github/actions/local',
       `      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:${'b'.repeat(64)}`,
+      '    container:',
+      '    # uses: anything in a comment',
+      `      - run: docker run --rm node@sha256:${'c'.repeat(64)} node -v`,
     ].join('\n');
     expect(workflowProblems(good)).toEqual([]);
   });
@@ -125,11 +211,13 @@ describe('commits', () => {
     expect(commitProblems(commit)).toEqual([]);
   });
 
-  it('refuses any other author or committer address, and a user’s folder or address in the message', () => {
+  it('refuses any other author or committer address, and a user’s folder, address or secret in the message', () => {
     expect(commitProblems({ ...commit, authorEmail: madeUpAddress })).toHaveLength(1);
     expect(commitProblems({ ...commit, committerEmail: madeUpAddress })).toHaveLength(1);
     expect(commitProblems({ ...commit, message: `Fix the path C:\\${USERS}\\someone\\x` })).toHaveLength(1);
+    expect(commitProblems({ ...commit, message: `Fix /c/${USERS.toLowerCase()}/someone` })).toHaveLength(1);
     expect(commitProblems({ ...commit, message: `Thanks ${madeUpAddress}` })).toHaveLength(1);
+    expect(commitProblems({ ...commit, message: `Oops ${fakeKey('ghp_', 36)}` })).toHaveLength(1);
   });
 
   it('knows GitHub’s noreply forms', () => {
@@ -142,14 +230,27 @@ describe('commits', () => {
 });
 
 describe('new runtime dependencies', () => {
-  const pkg = (dependencies: object, devDependencies: object = {}) => JSON.stringify({ dependencies, devDependencies });
+  const pkg = (dependencies: object, more: object = {}) => JSON.stringify({ dependencies, ...more });
 
-  it('finds names added to dependencies, and nothing else', () => {
+  it('finds names added to what npm installs at run time, and nothing else', () => {
     expect(addedDependencies(pkg({ react: '^19' }), pkg({ react: '^19', 'left-pad': '1.0.0' }))).toEqual(['left-pad']);
     expect(addedDependencies(pkg({ react: '^19' }), pkg({ react: '^20' }))).toEqual([]);
-    expect(addedDependencies(pkg({ react: '^19' }), pkg({ react: '^19' }, { vitest: '5' }))).toEqual([]);
+    expect(addedDependencies(pkg({ react: '^19' }), pkg({ react: '^19' }, { devDependencies: { vitest: '5' } }))).toEqual([]);
     expect(addedDependencies(pkg({ react: '^19', old: '1' }), pkg({ react: '^19' }))).toEqual([]);
     expect(addedDependencies(JSON.stringify({}), pkg({ react: '^19' }))).toEqual(['react']);
+    expect(addedDependencies(pkg({}), pkg({}, { optionalDependencies: { fsevents: '2' } }))).toEqual(['fsevents']);
+    expect(addedDependencies(pkg({}), pkg({}, { peerDependencies: { vue: '3' } }))).toEqual(['vue']);
+  });
+
+  it('counts an existing name whose package now comes from somewhere other than the registry', () => {
+    for (const spec of [
+      'npm:evil-pkg@1.0.0',
+      'github:evil/react',
+      'git+https://host.invalid/r.git',
+      'file:../react',
+      'https://x.invalid/r.tgz',
+    ])
+      expect(addedDependencies(pkg({ react: '^19' }), pkg({ react: spec })), spec).toEqual([`react (now from ${spec})`]);
   });
 });
 
@@ -158,6 +259,7 @@ describe('speed', () => {
     const started = performance.now();
     expect(personalProblems('a'.repeat(3_000_000))).toEqual([]);
     expect(secretProblems('a'.repeat(3_000_000))).toEqual([]);
-    expect(performance.now() - started).toBeLessThan(2000);
+    expect(fileProblems('big.bin', new Uint8Array(3_000_000))).toEqual([]);
+    expect(performance.now() - started).toBeLessThan(3000);
   });
 });

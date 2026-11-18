@@ -224,11 +224,11 @@ The browser tests need Playwright's Chromium once per machine: `npx playwright i
 
 ## Contributing
 
-StyleCode doesn't take outside contributions. [CONTRIBUTING.md](CONTRIBUTING.md) describes how it is worked on: the principles, the layout of the code and how changes are tested. CI runs formatting, the type-check, a hygiene check, the licence checks, the unit tests, a production build and the browser tests on every pull request, and the browser tests on Windows every night. The owner merges a pull request only when every required check passes.
+StyleCode doesn't take outside contributions. [CONTRIBUTING.md](CONTRIBUTING.md) describes how it is worked on: the principles, the layout of the code and how changes are tested. CI runs formatting, the type-check, a hygiene check, the licence checks, the unit tests, a production build and the browser tests on every pull request (a pull request that changes only documentation skips the browser tests), and the browser tests on Windows every night. The owner merges a pull request only when every required check passes.
 
 ## Tech
 
-React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so the canvas shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM and the Inter font, and nothing else; the AI server uses only Node's standard library (`fetch`, `http`, `fs`), and tests use Vitest and Playwright.
+React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so the canvas shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM (with its scheduler) and the Inter font, and nothing else; the AI server uses only Node's standard library (`fetch`, `http`, `fs`), and tests use Vitest and Playwright.
 
 ## Ownership and licence
 

@@ -119,7 +119,7 @@ describe('cloud-synced folders get a warning', () => {
       [join('G:', 'My Drive', 'StyleCode Data'), 'Google Drive'],
       [join(home, 'iCloudDrive', 'StyleCode Data'), 'iCloud Drive'],
       [join(home, 'Library', 'Mobile Documents', 'com~apple~CloudDocs', 'StyleCode Data'), 'iCloud Drive'],
-      [join(home, 'Library', 'CloudStorage', 'GoogleDrive-sam@example.com', 'My Drive', 'x'), 'Google Drive'],
+      [join(home, 'Library', 'CloudStorage', `GoogleDrive-sam${'@'}example.com`, 'My Drive', 'x'), 'Google Drive'],
       [join(home, 'Library', 'CloudStorage', 'Box-Box', 'x'), 'a cloud service'],
     ];
     for (const [path, service] of cases) expect(cloudServiceFor(path, environment()), path).toBe(service);

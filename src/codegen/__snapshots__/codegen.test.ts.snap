@@ -529,7 +529,7 @@ exports[`generated code is pinned > for a landing page > html 1`] = `
       </nav>
       <div class="text-field">
         <span class="label">Email</span>
-        <input class="input" type="text" placeholder="you@example.com">
+        <input class="input" type="text" placeholder="Enter your email">
       </div>
     </div>
   </body>
@@ -959,7 +959,7 @@ export default function LandingPage() {
       </nav>
       <div className={s.textField}>
         <span className={s.label}>Email</span>
-        <input className={s.input} type="text" placeholder="you@example.com" />
+        <input className={s.input} type="text" placeholder="Enter your email" />
       </div>
     </div>
   );

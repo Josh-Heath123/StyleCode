@@ -138,7 +138,7 @@ describe('settings', () => {
   it('uses a key from the environment and rejects odd addresses', async () => {
     process.env.OPENAI_API_KEY = 'sk-env';
     expect(publicConfig(DEFAULT_CONFIG, 'x').providers.openai).toMatchObject({ hasKey: true, keySource: 'environment' });
-    for (const baseUrl of ['file:///etc/passwd', 'openrouter.ai/api/v1', 'https://user:pass@example.com/v1']) {
+    for (const baseUrl of ['file:///etc/passwd', 'openrouter.ai/api/v1', `https://user:pass${'@'}example.com/v1`]) {
       expect(() => applyUpdate(DEFAULT_CONFIG, { providers: { openai: { baseUrl } } })).toThrow(ConfigError);
     }
     const res = await call('/config', {

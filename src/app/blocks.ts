@@ -166,7 +166,7 @@ export const BLOCKS: readonly BlockDefinition[] = [
               stroke: p.border,
               strokeWidth: 1,
             },
-            [text('you@example.com', { name: 'Placeholder', fontSize: 15, fill: p.muted })],
+            [text('Enter your email', { name: 'Placeholder', fontSize: 15, fill: p.muted })],
           ),
         ]),
       );

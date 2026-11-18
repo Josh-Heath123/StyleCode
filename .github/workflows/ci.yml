@@ -29,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          persist-credentials: false
           fetch-depth: 0
       - id: diff
         name: Docs only? (Markdown under docs/, and README.md)
@@ -38,7 +39,8 @@ jobs:
         run: |
           docs_only=false
           if [ -n "$BASE" ]; then
-            changed=$(git diff --name-only "$BASE...$HEAD")
+            # --no-renames: a file moved into docs/ is listed where it came from as well.
+            changed=$(git diff --name-only --no-renames "$BASE...$HEAD")
             echo "$changed"
             if [ -n "$changed" ] && ! echo "$changed" | grep -qvE '^(docs/.*\.md|README\.md)$'; then docs_only=true; fi
           fi
@@ -51,6 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          persist-credentials: false
           fetch-depth: 0 # The hygiene check reads the pull request's commits.
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
@@ -77,6 +80,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
@@ -90,6 +95,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
@@ -119,6 +126,8 @@ jobs:
         part: [c1/3, c2/3, c3/3, h1/1, alone]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
@@ -138,6 +147,7 @@ jobs:
             alone) E2E_DESTRUCTIVE_ALONE=1 npx playwright test --project "after the rest" ;;
             c*) npx playwright test --project chromium --shard="${PART#c}" ;;
             h*) npx playwright test --project "heavy jobs" --shard="${PART#h}" ;;
+            *) echo "Unknown part: $PART" && exit 1 ;;
           esac
       - name: Name the blob report after its part
         if: ${{ !cancelled() }}
@@ -178,6 +188,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
@@ -204,6 +216,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
