@@ -1174,11 +1174,11 @@ kbd {
 /* Top centre of the canvas: clear of the tool dock, the assistant and the checklist. */
 .notice {
   position: fixed;
-  left: calc(var(--left-w) + (100vw - var(--left-w) - var(--right-w)) / 2);
+  left: calc(var(--left-w) + var(--record-w, 0px) + (100vw - var(--left-w) - var(--record-w, 0px) - var(--right-w)) / 2);
   top: calc(var(--topbar-h) + 12px);
   transform: translateX(-50%);
   width: max-content;
-  max-width: min(480px, calc(100vw - var(--left-w) - var(--right-w) - 32px));
+  max-width: min(480px, calc(100vw - var(--left-w) - var(--record-w, 0px) - var(--right-w) - 32px));
   padding: 9px 12px;
   border-radius: var(--r-menu);
   /* Above dialogs, so what an action in a dialog reports is seen. */
@@ -2958,6 +2958,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 2px;
+  /* On an engagement's design, the client and engagement names give way before the buttons do. */
+  min-width: 0;
 }
 
 .app-nav-link {
@@ -2983,6 +2985,7 @@ kbd {
 }
 
 .app-nav-note {
+  min-width: 0;
   margin-left: 8px;
   color: var(--text-3);
   white-space: nowrap;
@@ -4785,4 +4788,207 @@ a.ws-badge.is-knowledge {
 .ws-segment.is-playing {
   background: var(--blue-faint);
   border-left-color: var(--blue-hi);
+}
+
+/* ==========================================================================
+   The record beside an engagement's design (Workspace Phase 4, decisions 9
+   and 11). Links are the consultant's, so they are electric blue; cantaloupe
+   stays for what the AI proposes.
+   ========================================================================== */
+
+.app.has-record {
+  --record-w: 296px;
+  grid-template-columns: var(--left-w) var(--record-w) minmax(0, 1fr) var(--right-w);
+  grid-template-areas:
+    'top top top top'
+    'left record canvas right';
+}
+
+@media (max-width: 1100px) {
+  .app.has-record {
+    --record-w: 248px;
+  }
+}
+
+.panel-record {
+  grid-area: record;
+  border-right: 1px solid var(--line);
+}
+
+.record-panel-title {
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+}
+
+.record-panel-title h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.record-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.record-panel-head {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.record-panel-head input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.record-panel-head input:focus {
+  border-color: var(--blue);
+}
+
+.record-panel-head .ws-muted {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.record-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0 16px;
+}
+
+.record-panel-body h3 {
+  margin: 12px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.record-panel-body p {
+  margin: 8px 12px;
+  color: var(--text-2);
+}
+
+.record-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.record-finding {
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.record-finding.is-linked {
+  box-shadow: inset 2px 0 0 var(--blue);
+  background: var(--blue-faint);
+}
+
+.record-finding-statement {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.record-finding .ws-labels {
+  gap: 4px;
+}
+
+.record-finding .ws-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+.record-finding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.record-finding-actions .button {
+  height: 26px;
+  font-size: 12px;
+}
+
+/* A selected layer's findings, in the Design panel. */
+.layer-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.layer-finding {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--r-control);
+  background: var(--blue-faint);
+  box-shadow: inset 2px 0 0 var(--blue);
+}
+
+.layer-finding.is-gone {
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 var(--line-strong);
+}
+
+.layer-finding-statement {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.layer-finding-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.layer-finding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.layer-finding-actions a,
+.layer-finding-actions button {
+  font-size: 12px;
+}
+
+/* A finding's layers in the engagement's designs, on the record page (decision 11). */
+.ws-in-designs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.ws-in-designs ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ws-in-designs a {
+  color: var(--blue-hi);
 }

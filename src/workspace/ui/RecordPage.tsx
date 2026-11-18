@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { GROUPS, KIND_LABEL, provenanceLabel, RELATION_LABEL, STATUS_LABEL } from '../model/labels';
 import { addRelation, createFinding, filteredRecord, linksOf, removeRelation, updateFinding } from '../model/record';
@@ -25,14 +25,29 @@ import { NOT_APPLIED, now, step } from './steps';
 import { useConsultant, type Consultant } from './useConsultant';
 import { saveAs } from './download';
 import { exportEngagementMarkdown, exportFileName } from '../exportMarkdown';
+import type { LayerLink } from './designs/designLinks';
+import { useLayerLinks } from './designs/useLayerLinks';
 
 /** An engagement's record (MVP stories 6.4, 7.1, 7.2). */
-export function RecordPage({ companyId, engagementId }: { companyId: string; engagementId: string }) {
+export function RecordPage({
+  companyId,
+  engagementId,
+  findingId = null,
+}: {
+  companyId: string;
+  engagementId: string;
+  /** A finding to show and focus (`…/record/f/<finding>`), as followed from a layer's link. */
+  findingId?: string | null;
+}) {
   return (
     <ClientFrame companyId={companyId}>
       {(view) => {
         const engagement = get(view.workspace.engagements, engagementId);
-        return engagement ? <Record view={view} engagement={engagement} /> : <Missing view={view} what="engagement" />;
+        return engagement ? (
+          <Record view={view} engagement={engagement} findingId={findingId} />
+        ) : (
+          <Missing view={view} what="engagement" />
+        );
       }}
     </ClientFrame>
   );
@@ -44,7 +59,7 @@ type Dialog =
   | { kind: 'promote'; finding: Finding }
   | null;
 
-function Record({ view, engagement }: { view: ClientView; engagement: Engagement }) {
+function Record({ view, engagement, findingId }: { view: ClientView; engagement: Engagement; findingId: string | null }) {
   const { workspace, readOnly } = view;
   const consultant = useConsultant();
   const [kind, setKind] = useState<FindingKind | ''>('');
@@ -52,6 +67,7 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
   const [dialog, setDialog] = useState<Dialog>(null);
   const [error, setError] = useState<string | null>(null);
   const companyHref = `#/c/${view.session.companyId}`;
+  const layerLinks = useLayerLinks(view.session.companyId, workspace, engagement.id);
   const engagementHref = `${companyHref}/e/${engagement.id}`;
   const groups = filteredRecord(workspace, engagement.id, { kind: kind || null, sessionId: sessionId || null });
   const total = Object.values(workspace.findings).filter((f) => f.engagementId === engagement.id && isInRecord(f)).length;
@@ -59,6 +75,11 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
   const sessions = Object.values(workspace.sessions)
     .filter((s) => s.engagementId === engagement.id)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+  // A finding named in the route is shown and focused, once it is on the page.
+  useEffect(() => {
+    if (findingId) requestAnimationFrame(() => focusFinding(findingId));
+  }, [findingId]);
 
   /** Follows a link to another finding; if the filters hide it, they are cleared first, so it can be shown. */
   const follow = (findingId: string) => {
@@ -155,6 +176,7 @@ function Record({ view, engagement }: { view: ClientView; engagement: Engagement
                       view={view}
                       finding={f}
                       engagementHref={engagementHref}
+                      inDesigns={layerLinks?.get(f.id) ?? []}
                       onEdit={() => setDialog({ kind: 'finding', finding: f })}
                       onLink={() => setDialog({ kind: 'link', finding: f })}
                       onPromote={() => setDialog({ kind: 'promote', finding: f })}
@@ -216,6 +238,7 @@ function FindingCard({
   view,
   finding: f,
   engagementHref,
+  inDesigns,
   onEdit,
   onLink,
   onPromote,
@@ -226,6 +249,8 @@ function FindingCard({
   view: ClientView;
   finding: Finding;
   engagementHref: string;
+  /** The layers of the engagement's designs linked to this finding (decision 11). */
+  inDesigns: readonly LayerLink[];
   onEdit: () => void;
   onLink: () => void;
   onPromote: () => void;
@@ -266,6 +291,20 @@ function FindingCard({
           ))}
         </ul>
       )}
+      {inDesigns.length > 0 && (
+        <div className="ws-in-designs">
+          <span className="ws-muted" id={`finding-${f.id}-designs`}>
+            In designs:
+          </span>
+          <ul aria-labelledby={`finding-${f.id}-designs`}>
+            {inDesigns.map((l) => (
+              <li key={`${l.designId}/${l.layerId}`}>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {links.length > 0 && (
         <ul className="ws-links" aria-label="Links">
           {links.map(({ relation, outgoing, other }) => (
@@ -304,7 +343,7 @@ function FindingCard({
                 type="button"
                 className="button"
                 onClick={onPromote}
-                aria-label={`Add “${f.statement}” to company knowledge`}
+                aria-label={`Add to company knowledge: “${f.statement}”`}
               >
                 Add to company knowledge…
               </button>

@@ -4,7 +4,7 @@ import { useEditor, useEditorState } from '../editor/react';
 import type { ProjectSession } from '../persistence/session';
 import { Icon } from '../ui/Icon';
 import { MenuButton, type MenuEntry } from '../ui/Menu';
-import { SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from './actions';
+import { ALT_KEY, SHORTCUT_LABELS as K, zoomBy, zoomTo, zoomToFit, zoomToSelection } from './actions';
 import { useAssistantState } from '../ai/react';
 import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
@@ -22,6 +22,9 @@ interface TopBarProps {
   onOpenShortcuts: () => void;
   /** An engagement's design is open (Phase 4). */
   company?: CompanyEditing;
+  /** Whether the Record panel shows, when the design has a record; undefined otherwise. */
+  recordShown?: boolean;
+  onToggleRecord?: () => void;
 }
 
 const REPO = 'https://github.com/Josh-Heath123/StyleCode';
@@ -44,6 +47,8 @@ export function TopBar({
   onboarding,
   onOpenShortcuts,
   company,
+  recordShown,
+  onToggleRecord,
 }: TopBarProps) {
   const editor = useEditor();
   const ai = useAssistantState();
@@ -70,6 +75,9 @@ export function TopBar({
   // An engagement's design: only the way back and a file of it; the editor's own designs live in this browser.
   const companyEntries = (backHref: string): MenuEntry[] => [
     { label: 'Back to the engagement', onSelect: () => void (location.hash = backHref) },
+    ...(recordShown !== undefined && onToggleRecord
+      ? [{ label: recordShown ? 'Hide the record' : 'Show the record', shortcut: `${ALT_KEY}+R`, onSelect: onToggleRecord }]
+      : []),
     { kind: 'separator' },
     { label: 'Download as file…', onSelect: saveToFile },
   ];

@@ -172,7 +172,14 @@ function renderPage(route: Route): ReactNode {
     case 'engagement':
       return <EngagementPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
     case 'record':
-      return <RecordPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
+      return (
+        <RecordPage
+          key={route.companyId}
+          companyId={route.companyId}
+          engagementId={route.engagementId}
+          findingId={route.findingId ?? null}
+        />
+      );
     case 'consent':
       return (
         <ConsentPage

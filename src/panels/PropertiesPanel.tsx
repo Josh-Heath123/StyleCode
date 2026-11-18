@@ -11,6 +11,7 @@ import { FONT_FAMILIES } from '../render/css';
 import { Icon, type IconName } from '../ui/Icon';
 import { ColorField, MIXED, NumberField, Segmented, SelectField, type Mixed, type Phase } from './controls';
 import { isAutoLayout } from '../model/layout';
+import { FindingsSection } from './FindingsSection';
 import {
   AutoLayoutSection,
   BlurSection,
@@ -158,6 +159,7 @@ export function PropertiesPanel() {
         )}
       </div>
       <RoleRow nodes={nodes} write={write} />
+      {single && <FindingsSection editor={editor} node={single} />}
 
       <div className="align-bar" role="toolbar" aria-label="Align">
         {(

@@ -86,7 +86,7 @@ test('a new design opens from the engagement, saves in the client’s folder, ne
   const id = await kickoff(page);
   await newDesign(page, id, 'Dispatch board');
   await expect(page.getByRole('link', { name: 'Back to the engagement' })).toHaveAttribute('href', `#/c/${id}/e/en_1`);
-  const rect = await draw(page, 'r', [500, 300], [640, 400]);
+  const rect = await draw(page, 'r', [700, 300], [840, 400]);
   await saved(page);
   const [link] = Object.values(onDisk(id).designs);
   expect(link.name).toBe('Dispatch board');
@@ -146,7 +146,7 @@ test('copying one of the editor’s designs leaves the original as it was, and t
   await page.goto('/#/editor');
   await page.waitForSelector('.canvas');
   await expect(page.getByLabel('Design name')).toHaveValue('Brand sketches');
-  await draw(page, 'r', [500, 300], [600, 380]);
+  await draw(page, 'r', [700, 300], [800, 380]);
   await expect(page.locator('.save-status')).toHaveText('Saved on this device');
   expect(designFiles(id).map((f) => readFileSync(join(designsDir(id), f), 'utf8'))).toEqual(files);
 });
@@ -158,9 +158,9 @@ test('a design open in two tabs: the stale save is refused, and the tab says to 
   const other = await context.newPage();
   await other.goto(href);
   await other.waitForSelector('.canvas');
-  await draw(page, 'r', [500, 300], [600, 380]);
+  await draw(page, 'r', [700, 300], [800, 380]);
   await saved(page);
-  await draw(other, 'r', [700, 300], [800, 380]);
+  await draw(other, 'r', [900, 300], [1000, 380]);
   await expect(other.locator('.save-status')).toHaveText('Not saved');
   await expect(other.getByText('This design changed in another tab. Reload it to carry on.').first()).toBeVisible();
   await other.close();
@@ -271,9 +271,9 @@ test('Download as file reads the client’s images from its folder; nothing of t
   const [link] = Object.values(onDisk(id).designs);
   await expect.poll(() => assetFiles(id)).toHaveLength(1);
   const [assetId] = assetFiles(id);
-  // The menu offers only the way back and a file of it.
+  // The menu offers the way back, the record beside the design (Slice B), and a file of it; never the editor's own designs.
   await page.getByRole('button', { name: 'Design', exact: true }).click();
-  await expect(page.getByRole('menuitem')).toHaveText(['Back to the engagement', 'Download as file…']);
+  await expect(page.getByRole('menuitem')).toHaveText(['Back to the engagement', /^Hide the record/, 'Download as file…']);
   await page.evaluate(() => delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker);
   const download = page.waitForEvent('download');
   await page.getByRole('menuitem', { name: 'Download as file…' }).click();
@@ -297,7 +297,7 @@ test('pasting: an image comes into a client’s design only from the editor’s 
   const karoo = await kickoff(page);
   const bakery = await kickoff(page);
   const pasteLayer = async () => {
-    await page.locator('.canvas').click({ position: { x: 900, y: 600 } });
+    await page.locator('.canvas').click({ position: { x: 400, y: 600 } });
     await page.keyboard.press('Control+v');
   };
   const addImage = async (file: string, shade: number) => {
@@ -339,7 +339,7 @@ test('pasting: an image comes into a client’s design only from the editor’s 
 test('a layer’s route opens its design with that layer selected', async ({ page }) => {
   const id = await kickoff(page);
   await newDesign(page, id, 'Layer route');
-  const rect = await draw(page, 'r', [500, 300], [640, 400]);
+  const rect = await draw(page, 'r', [700, 300], [840, 400]);
   await saved(page);
   const [link] = Object.values(onDisk(id).designs);
   await page.goto(`/#/c/${id}/e/en_1`);

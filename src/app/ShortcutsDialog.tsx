@@ -33,6 +33,10 @@ export const WORKSPACE_GROUPS: ShortcutGroup[] = [
     items: [['Pause or resume playing the recording, from anywhere in StyleCode', `${ALT_KEY}+P`]],
   },
   {
+    title: 'An engagement’s design',
+    items: [['Show or hide the engagement’s record beside the layers', `${ALT_KEY}+R`]],
+  },
+  {
     title: 'Any client page',
     items: [
       ['Undo', `${MOD_KEY}+Z`],
