@@ -19,9 +19,10 @@ const designFiles = (companyId: string) =>
   existsSync(designsDir(companyId))
     ? readdirSync(designsDir(companyId)).filter((n) => /^doc_[a-z0-9]+\.stylecode\.json$/.test(n))
     : [];
+/** The images in a client's folder: not their type files, and not an upload still being written (a temporary file). */
 const assetFiles = (companyId: string) =>
   existsSync(join(designsDir(companyId), 'assets'))
-    ? readdirSync(join(designsDir(companyId), 'assets')).filter((n) => !n.endsWith('.type'))
+    ? readdirSync(join(designsDir(companyId), 'assets')).filter((n) => !n.endsWith('.type') && !n.endsWith('.tmp'))
     : [];
 const onDisk = (companyId: string) =>
   JSON.parse(readFileSync(join(E2E_WORKSPACE, 'companies', companyId, 'workspace.json'), 'utf8')) as {
