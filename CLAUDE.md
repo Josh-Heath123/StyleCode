@@ -38,6 +38,8 @@ npm run format:check             # what CI checks
 npm run demos                    # re-record docs/media GIFs (needs ffmpeg)
 npm run site                     # documentation site into site/
 npm run build:pages              # app at site/app/ plus the site, as GitHub Pages publishes it
+npm run check:hygiene            # what may never be committed (scripts/hygiene.ts)
+npm run notices                  # rewrite THIRD-PARTY-NOTICES.md after a dependency or transcription download changes
 ```
 
 Node 22.12 or newer is required. The user works on **Windows**, so keep npm scripts and tooling cross-platform (no bash-only scripts).
@@ -58,8 +60,8 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
 | `server/workspace` | Local workspace server (Vite plugin): the data folder, companies, saves, files, settings. Node only. |
 | `src/workspace` | (new) The consulting workspace: domain model first. |
 | `e2e`, `e2e/demos` | Browser tests; demo recordings. |
-| `scripts` | The documentation site builder and its Markdown renderer. |
-| `.github` | CI (Linux: format, typecheck, unit, build, browser tests; Windows: typecheck, unit, build), the Pages deploy, issue and PR templates. |
+| `scripts` | The documentation site builder and its Markdown renderer, the hygiene check, the third-party notices generator. |
+| `.github` | CI in parallel jobs (quick checks, unit, build, sharded browser tests; Windows typecheck, unit, build), dependency checks, nightly Windows browser tests, the ruleset (`rulesets/main.json`), the Pages deploy, CODEOWNERS, issue and PR templates. |
 | `docs` | Vision, guide, architecture, roadmap, decisions (`docs/decisions/`), specs (`docs/spec/`), research (`docs/research/`), phase briefs and handovers. |
 
 `docs/ARCHITECTURE.md` explains the editor's design and the reasons behind it. Read the relevant section before changing an area.
@@ -82,6 +84,15 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
 
 ## How to work
 
+- **The owner of record is Joshua Heath** (`Josh-Heath123`). See `COPYRIGHT.md` and `docs/legal/AUTHORSHIP.md`.
+- **Never put an email address in a file, commit or setting.** Commits use the GitHub noreply address set in this repository's git config. Don't add `Co-Authored-By` lines with an address.
+- **Every commit is signed** with the repository's SSH signing key (set in this repository's config only), and GitHub must show it as "Verified". History isn't rewritten.
+- **Green means mergeable.** The owner merges when the required checks pass, so they must stay strict:
+  - Never weaken one, or skip or retry a test, to make it pass.
+  - A flaky test fails the run (`failOnFlakyTests`).
+  - The hygiene check (`scripts/hygiene.ts`) refuses audio, video, archives, big files, user folders, email addresses, likely secrets, `.env` files and unpinned actions.
+  - A new runtime dependency needs the owner's `dependency-approved` label.
+  - Every action is pinned to a full commit SHA, and every image to a digest.
 - **Plan first.** For anything non-trivial, show the plan and wait for the user's go-ahead. Follow the current phase brief; stop at its check-ins.
 - **Branch per phase or slice.** Make small, clear commits and open a PR at the end. Never push to `main` or merge without the user.
 - **Keep everything green.** Before calling something done, run `npm run typecheck`, `npm test` and `npm run test:e2e`.

@@ -224,16 +224,22 @@ The browser tests need Playwright's Chromium once per machine: `npx playwright i
 
 ## Contributing
 
-StyleCode doesn't take outside contributions. [CONTRIBUTING.md](CONTRIBUTING.md) describes how it is worked on: the principles, the layout of the code and how changes are tested. CI runs the type-check, the unit tests, a production build and the browser tests on every push and pull request.
+StyleCode doesn't take outside contributions. [CONTRIBUTING.md](CONTRIBUTING.md) describes how it is worked on: the principles, the layout of the code and how changes are tested. CI runs formatting, the type-check, a hygiene check, the licence checks, the unit tests, a production build and the browser tests on every pull request, and the browser tests on Windows every night. The owner merges a pull request only when every required check passes.
 
 ## Tech
 
 React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so the canvas shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM and the Inter font, and nothing else; the AI server uses only Node's standard library (`fetch`, `http`, `fs`), and tests use Vitest and Playwright.
 
-## Licence
+## Ownership and licence
 
-StyleCode is released under the [PolyForm Strict License 1.0.0](LICENSE). In plain words: you may view StyleCode and run it for non-commercial purposes. You may not change it, redistribute it, or use it commercially. The licence text is what counts; this summary only explains it.
+StyleCode is Copyright © 2026 Joshua Heath ([COPYRIGHT.md](COPYRIGHT.md)), released under the [PolyForm Strict License 1.0.0](LICENSE). In plain words: you may view StyleCode and run it for non-commercial purposes. You may not change it, redistribute it, or use it commercially. The licence text is what counts; this summary only explains it.
 
 Versions up to commit `0fdbdcd` were released under the MIT licence.
 
-Third-party dependencies and the Inter font keep their own licences.
+- [COPYRIGHT.md](COPYRIGHT.md): who owns StyleCode, and what the licence allows.
+- [docs/legal/AUTHORSHIP.md](docs/legal/AUTHORSHIP.md): how StyleCode is made, with which AI tools, and who controls it.
+- [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md): the third-party parts, which keep their own licences.
+- [TRADEMARKS.md](TRADEMARKS.md): the name and logo.
+- [REUSE.toml](REUSE.toml) and [LICENSES/](LICENSES/): the licence and copyright of every file, in the [REUSE](https://reuse.software/spec-3.3/) format.
+- [SECURITY.md](SECURITY.md): how to report a vulnerability privately.
+- [CONTRIBUTING.md](CONTRIBUTING.md): outside contributions aren't accepted.
