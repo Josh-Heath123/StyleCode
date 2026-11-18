@@ -83,14 +83,16 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
   const camera = editorShown.current ? editor.getState().camera : initialCamera;
   if (showEditor) editorShown.current = true;
 
+  // On a design's route the editor shows too: its title, and its own shortcuts.
+  const editorShows = showEditor || route.page === 'design';
   useEffect(() => {
-    document.title = showEditor ? 'StyleCode' : 'StyleCode · Clients';
-  }, [showEditor]);
+    document.title = editorShows ? 'StyleCode' : 'StyleCode · Clients';
+  }, [editorShows]);
 
   // On client pages, ? opens the keyboard shortcuts (the editor has its own).
   const [shortcuts, setShortcuts] = useState(false);
   useEffect(() => {
-    if (showEditor) return;
+    if (editorShows) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== '?' || e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
       if ((e.target as Element | null)?.closest?.('[role="dialog"], .menu')) return;
@@ -99,7 +101,7 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showEditor]);
+  }, [editorShows]);
 
   if (showEditor && (leaving || openDesign()))
     return (

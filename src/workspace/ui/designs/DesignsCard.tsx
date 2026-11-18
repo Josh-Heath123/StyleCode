@@ -282,7 +282,8 @@ function RenameDesignDialog({ view, design, onClose }: { view: ClientView; desig
         if (!trimmed) return setError('Give the design a name.');
         if (trimmed === design.name) return onClose();
         try {
-          if (openDesign()?.designId === design.id) {
+          const loaded = openDesign();
+          if (loaded?.companyId === view.session.companyId && loaded.designId === design.id) {
             // Open in the editor: its next save renames the design here too.
             editor.renameDocument(trimmed);
           } else {

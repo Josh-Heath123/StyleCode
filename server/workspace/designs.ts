@@ -64,7 +64,13 @@ export class DesignFiles {
     private readonly store: WorkspaceStore,
     private readonly options: { retry?: RetryOptions; now?: () => Date } = {},
   ) {
-    store.afterPermanentSave.push((companyId, before, after) => this.clearUp(companyId, before, after));
+    // The save itself is done by now: a file another program holds open is left for the next permanent save,
+    // rather than reporting a save that worked as failed. Only the error's code is logged, never a path.
+    store.afterPermanentSave.push((companyId, before, after) =>
+      this.clearUp(companyId, before, after).catch((error: NodeJS.ErrnoException) => {
+        console.error('[stylecode designs] clearing up after a save failed', error?.code ?? 'unknown');
+      }),
+    );
   }
 
   private folder(companyId: string): string {
@@ -266,6 +272,12 @@ export class DesignFiles {
     const dir = this.folder(companyId);
     const names = await readdir(dir).catch(() => null);
     if (!names) return;
+    // Temporary files an interrupted save left behind.
+    for (const folder of [dir, join(dir, 'assets')]) {
+      for (const name of await readdir(folder).catch(() => [] as string[])) {
+        if (/\.[0-9a-f]{12}\.tmp$/.test(name)) await rm(join(folder, name), { force: true }).catch(() => undefined);
+      }
+    }
     const listed = new Set(Object.values(after.designs).map((d) => d.documentId));
     const removed = new Set(
       Object.values(before.designs)
@@ -280,18 +292,29 @@ export class DesignFiles {
       )) <= cutoff;
 
     const used = new Set<string>();
+    let unreadable = false;
     const freed = new Set<string>();
     for (const name of names) {
       const match = /^(.+?)(\.previous)?\.stylecode\.json$/.exec(name);
       if (!match) continue;
       const documentId = match[1];
       const path = join(dir, name);
+      // A design that can't be parsed (damaged, or from a newer StyleCode) still keeps its images: every image id in its
+      // text counts as used, so a repaired or upgraded design comes back whole. One that can't be read at all keeps them all.
       const assets = await readFile(path, 'utf8')
         .then((text) => {
-          const parsed = parseProject(JSON.parse(text));
-          return parsed.ok ? referencedAssets(parsed.doc) : [];
+          try {
+            const parsed = parseProject(JSON.parse(text));
+            if (parsed.ok) return referencedAssets(parsed.doc);
+          } catch {
+            // Read as text, below.
+          }
+          return text.match(/asset_[0-9a-f]{32}/g) ?? [];
         })
-        .catch(() => [] as string[]);
+        .catch(() => {
+          unreadable = true;
+          return [] as string[];
+        });
       const keep =
         listed.has(documentId) ||
         (!removed.has(documentId) && (this.written.has(`${companyId}/${documentId}`) || !(await old(path))));
@@ -304,6 +327,8 @@ export class DesignFiles {
       await rm(path, { force: true, maxRetries: 5, retryDelay: 200 });
     }
 
+    // With a design that couldn't be read, which images it uses is unknown: none is deleted this time.
+    if (unreadable) return;
     const assetDir = join(dir, 'assets');
     for (const name of await readdir(assetDir).catch(() => [] as string[])) {
       const id = name.replace(/\.type$/, '');

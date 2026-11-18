@@ -346,3 +346,33 @@ test('a layer’s route opens its design with that layer selected', async ({ pag
   await page.waitForSelector('.canvas');
   await expect.poll(async () => (await snapshot(page)).selection).toEqual([rect]);
 });
+
+test('if the editor fails to draw a client’s design, the recovery screen offers Download as file only', async ({ page }) => {
+  const id = await kickoff(page);
+  await newDesign(page, id, 'Breaks');
+  await saved(page);
+  const [link] = Object.values(onDisk(id).designs);
+  const before = readFileSync(join(designsDir(id), `${link.documentId}.stylecode.json`), 'utf8');
+  page.on('pageerror', () => {});
+  await page.evaluate(() => {
+    const editor = (window as unknown as { stylecode: { editor: Record<string, unknown> } }).stylecode.editor as unknown as {
+      getState(): { doc: { rootId: string; nodes: Record<string, { children: unknown }> } };
+      set(partial: unknown): void;
+    };
+    const { doc } = editor.getState();
+    const frame = (doc.nodes[doc.rootId].children as string[])[0];
+    editor.set({ doc: { ...doc, nodes: { ...doc.nodes, [frame]: { ...doc.nodes[frame], children: null } } } });
+  });
+  const crash = page.getByRole('alert').filter({ hasText: 'StyleCode hit a problem' });
+  await expect(crash).toBeVisible();
+  await expect(crash.getByRole('button', { name: 'Download as file' })).toBeVisible();
+  await expect(crash.getByRole('button', { name: 'Save a copy to a file' })).toHaveCount(0);
+  await page.evaluate(() => delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker);
+  const download = page.waitForEvent('download');
+  await crash.getByRole('button', { name: 'Download as file' }).click();
+  await download;
+  await expect(crash).toContainText('The last good save is still in the client’s folder.');
+  // The broken design wasn't saved over the last good one, and nothing reached this browser's storage.
+  expect(readFileSync(join(designsDir(id), `${link.documentId}.stylecode.json`), 'utf8')).toBe(before);
+  expect((await browserStore(page)).projects.map((p) => p.id)).not.toContain(link.documentId);
+});

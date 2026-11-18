@@ -138,9 +138,13 @@ export async function storeImage(file: Blob): Promise<StoredAsset> {
     throw new Error('That image format isn\u2019t supported. Use PNG, JPEG, WebP, GIF, AVIF, SVG, BMP or ICO.');
   }
   if (file.size > MAX_IMAGE_BYTES) throw new Error('That image is larger than 15 MB. Use a smaller or compressed version.');
+  // The store the image was added to: if another design opens meanwhile, it isn't written to that one's store.
+  const here = source;
+  const changed = () => new Error('The design changed while the image was read. Add it again.');
   const buffer = await file.arrayBuffer();
   const id = await hashId(buffer);
-  const existing = await source.load(id);
+  const existing = await here.load(id);
+  if (here !== source) throw changed();
   if (existing) return { id, width: existing.width, height: existing.height };
   const blob = new Blob([buffer], { type: file.type });
   let size: { width: number; height: number };
@@ -149,7 +153,8 @@ export async function storeImage(file: Blob): Promise<StoredAsset> {
   } catch {
     throw new Error('That image could not be read. It may be damaged or in an unsupported format.');
   }
-  await source.store({ id, type: file.type, blob, ...size });
+  if (here !== source) throw changed();
+  await here.store({ id, type: file.type, blob, ...size });
   pending.delete(id); // a lookup that started before the image arrived would report it missing
   for (const listener of arrivals) listener(id);
   return { id, ...size };

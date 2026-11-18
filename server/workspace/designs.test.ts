@@ -229,3 +229,26 @@ describe('clearing up after a permanent save', () => {
     expect(existsSync(join(root, 'companies', c.id))).toBe(false);
   });
 });
+
+describe('clearing up keeps what a damaged design uses (Slice A review)', () => {
+  it('keeps the images a listed design names even when its file can’t be parsed, and removes leftover temporary files', async () => {
+    const c = await client('Harbour Bakery', ['doc_a', 'doc_b']);
+    const image = (await designs.addAsset(c.id, PNG, 'image/png')).id;
+    await designs.create(c.id, 'doc_a', designFile('doc_a', 'A', [image]));
+    await designs.create(c.id, 'doc_b', designFile('doc_b', 'B', [image]));
+    // doc_a can't be parsed any more (from a newer StyleCode, say), but still names the image.
+    const pathA = join(folder(c.id), 'doc_a.stylecode.json');
+    const text = readFileSync(pathA, 'utf8').replace('"version":4', '"version":99');
+    expect(text).toContain('"version":99');
+    writeFileSync(pathA, text);
+    writeFileSync(join(folder(c.id), 'doc_b.stylecode.json.0123456789ab.tmp'), 'half a save');
+    // A restart and a day later, doc_b is deleted: its image is still doc_a's.
+    store = new WorkspaceStore(root, { now: () => now, retry: { attempts: 2, delayMs: 1 } });
+    designs = new DesignFiles(store, { now: () => now });
+    const old = new Date(now.getTime() - 2 * DAY);
+    utimesSync(join(folder(c.id), 'assets', image), old, old);
+    await store.save(c.id, withDesigns(c.ws, ['doc_a']), (await store.read(c.id)).revision, true);
+    expect(readdirSync(join(folder(c.id), 'assets')).filter((n) => !n.endsWith('.type'))).toEqual([image]);
+    expect(readdirSync(folder(c.id)).filter((n) => n.endsWith('.tmp'))).toEqual([]);
+  });
+});

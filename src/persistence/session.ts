@@ -111,6 +111,10 @@ export class ProjectSession {
   private lastSavedDoc: DesignDocument | null = null;
   private lastCamera: Camera | null = null;
   private storageAvailable = true;
+  /** Whether what is open can be saved: an engagement's design saves to its client's folder whatever this browser allows. */
+  private get canSave(): boolean {
+    return this.storageAvailable || this.company !== null;
+  }
   private unsubscribe: (() => void) | null = null;
   private readonly channel: BroadcastChannel | null;
   private readonly tabId = createId('tab');
@@ -133,6 +137,8 @@ export class ProjectSession {
   private readonly companyDocs = new Set<string>();
   /** A refused save (another tab saved first, or the design is gone): not retried. */
   private refused = false;
+  /** Counts company designs opened, so a leave that was waiting doesn't undo an open that came after it. */
+  private opened = 0;
 
   /**
    * Asked before replacing a design whose latest changes couldn't be saved.
@@ -243,7 +249,7 @@ export class ProjectSession {
       const docChanged = doc !== this.lastSavedDoc;
       const cameraChanged = camera !== this.lastCamera;
       if (!docChanged && !cameraChanged) return;
-      if (docChanged && this.storageAvailable && !this.failing) this.set({ status: 'pending' });
+      if (docChanged && this.canSave && !this.failing) this.set({ status: 'pending' });
       this.schedule();
     });
     window.addEventListener('pagehide', this.flush);
@@ -254,7 +260,7 @@ export class ProjectSession {
   /** Whether closing the page now would lose work. */
   hasUnsavedWork(): boolean {
     if (this.paused) return false;
-    if (!this.storageAvailable) return this.editor.committedDoc !== this.openedDoc;
+    if (!this.canSave) return this.editor.committedDoc !== this.openedDoc;
     return (
       this.timer !== null || this.state.status === 'saving' || this.state.status === 'pending' || this.state.status === 'error'
     );
@@ -274,7 +280,7 @@ export class ProjectSession {
   };
 
   private schedule(): void {
-    if (!this.storageAvailable) return;
+    if (!this.canSave) return;
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.saveNow(), SAVE_DELAY_MS);
   }
@@ -419,10 +425,11 @@ export class ProjectSession {
    */
   async openCompanyDesign(target: CompanyDesignTarget, doc: DesignDocument): Promise<void> {
     if (doc.id !== target.documentId) throw new Error('The design file is for another document.');
-    if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+    if (!(await this.mayReplace())) throw new KeptOpenError(this.canSave);
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     this.companyDocs.add(doc.id);
+    this.opened++;
     const replaced = this.company;
     this.company = target;
     if (replaced && replaced !== target) replaced.onClosed?.();
@@ -442,10 +449,13 @@ export class ProjectSession {
    */
   async leaveCompanyDesign(discard = false, why?: string): Promise<Camera | null> {
     if (!this.company) return null;
-    if (!discard && !(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+    if (!discard && !(await this.mayReplace())) throw new KeptOpenError(this.canSave);
     this.dropCompany();
     if (why) this.editor.notify(why, 'error');
+    const opened = this.opened;
     const records = await idbGetAll<ProjectRecord>(PROJECTS).catch(() => null);
+    // Another engagement's design opened meanwhile: it stays.
+    if (this.opened !== opened) return null;
     const lastId = readLastProjectId();
     const usable = (records ?? [])
       .filter((r) => !this.companyDocs.has(r.id) && parseProject(r.file).ok)
@@ -485,7 +495,7 @@ export class ProjectSession {
     // Finish a save that is waiting first: whether it works decides whether anything would be lost.
     if (this.timer && !this.paused) await this.saveNow();
     else if (this.inFlight) await this.inFlight;
-    const unsaved = this.storageAvailable ? this.failing : this.editor.committedDoc !== this.openedDoc;
+    const unsaved = this.canSave ? this.failing : this.editor.committedDoc !== this.openedDoc;
     if (unsaved && !this.confirmDiscard(this.editor.committedDoc.name)) return false;
     // Whatever was failing belonged to the design being replaced.
     if (this.retryTimer) clearTimeout(this.retryTimer);
@@ -550,7 +560,7 @@ export class ProjectSession {
   }
 
   private async switchTo(doc: DesignDocument, camera: Camera | null): Promise<Camera | null> {
-    if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+    if (!(await this.mayReplace())) throw new KeptOpenError(this.canSave);
     if (this.company) this.dropCompany();
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
@@ -575,7 +585,7 @@ export class ProjectSession {
     if (!record) throw new Error('That design no longer exists.');
     const parsed = parseProject(record.file);
     if (!parsed.ok) throw new Error(parsed.error);
-    if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+    if (!(await this.mayReplace())) throw new KeptOpenError(this.canSave);
     if (this.company) this.dropCompany();
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
@@ -606,7 +616,7 @@ export class ProjectSession {
     if (!parsed.ok) throw new Error(parsed.error);
     // An imported file becomes one of the editor's own designs: its images go to this browser's store, never a client's.
     if (this.company) {
-      if (!(await this.mayReplace())) throw new KeptOpenError(this.storageAvailable);
+      if (!(await this.mayReplace())) throw new KeptOpenError(this.canSave);
       this.dropCompany();
     }
     await importAssets((picked.data as { assets?: unknown }).assets);

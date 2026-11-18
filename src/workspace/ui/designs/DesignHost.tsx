@@ -76,7 +76,8 @@ export function DesignHost({
         requestAnimationFrame(() => zoomToSelection(editor));
       }
     };
-    if (openDesign()?.designId === designId) return shown();
+    const loaded = openDesign();
+    if (loaded?.companyId === companyId && loaded.designId === designId) return shown();
     setOpening({ state: 'opening' });
     openCompanyDesign(session, client, companyId, link)
       .then(() => {

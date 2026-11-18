@@ -126,7 +126,15 @@ export async function openCompanyDesign(
       step(client, 'Rename the design', (ws) => renameDesign(ws, link.id, doc.name));
   };
   const target = saveTarget(companyId, link.documentId, read.revision, syncName);
+  // Set before opening: if another design replaces this one while it opens, it never starts watching.
+  let stopWatching: (() => void) | null = null;
+  let closedEarly = false;
+  target.onClosed = () => {
+    if (stopWatching) stopWatching();
+    else closedEarly = true;
+  };
   await session.openCompanyDesign(target, parsed.doc);
+  if (closedEarly || session.companyDesign() !== link.documentId) return;
   syncName(parsed.doc);
 
   const letGo = holdCompany(client);
@@ -154,7 +162,7 @@ export async function openCompanyDesign(
       .catch(() => undefined);
   });
   let stopped = false;
-  const stopWatching = () => {
+  stopWatching = () => {
     if (stopped) return;
     stopped = true;
     unsubscribe();
@@ -162,9 +170,8 @@ export async function openCompanyDesign(
     letGo();
     if (open?.designId === link.id) open = null;
   };
+  // However the editor lets the design go, the watching and the hold on its client stop with it (target.onClosed).
   open = { companyId, designId: link.id, stop: stopWatching };
-  // However the editor lets the design go, the watching and the hold on its client stop with it.
-  target.onClosed = stopWatching;
 }
 
 /** Back to the editor's own designs, after the usual check that nothing unsaved would be lost. */
