@@ -131,13 +131,44 @@ describe('user folders and email addresses', () => {
     for (const text of [
       `write to ${madeUpAddress}`,
       `Co-authored-by: Someone <someone${at}company.io>`,
-      `placeholder you${at}example.com`,
       `bob${'%40'}corp.com`,
       `bob${at}exämple.com`,
     ])
       expect(personalProblems(text), text).toEqual([expect.stringContaining('email address')]);
     for (const ok of [noreply, `noreply${at}github.com`, 'react@19.3.1', '@types/node', 'registry.npmjs.org/%40types%2fnode'])
       expect(personalProblems(ok), ok).toEqual([]);
+  });
+
+  it('lets addresses at domains reserved for examples through, but not lookalikes', () => {
+    for (const ok of [
+      `placeholder="you${at}example.com"`,
+      `sam${at}example.net and sam${at}example.org.`,
+      `sam${at}mail.example.com`,
+      `sam${'%40'}example.com`,
+      `SAM${at}EXAMPLE.COM`,
+      `sam${at}shop.example`,
+      `sam${at}host.test`,
+      `sam${at}nowhere.invalid`,
+      `sam${at}app.localhost`,
+    ]) {
+      expect(personalProblems(ok), ok).toEqual([]);
+      expect(fileProblems('image.png', bytes([0], ok)), ok).toEqual([]);
+    }
+    for (const lookalike of [
+      `sam${at}example.com.evil.net`,
+      `sam${at}myexample.com`,
+      `sam${at}example.co`,
+      `sam${at}example.community`,
+      `sam${at}example.com-evil.net`,
+      `sam${at}example.com_evil.net`,
+      `sam${at}test.com`,
+      `sam${at}example.testing`,
+      `sam${at}localhost.co.za`,
+      `sam${at}example.invalid.evil.net`,
+    ]) {
+      expect(personalProblems(lookalike), lookalike).toEqual([expect.stringContaining('email address')]);
+      expect(fileProblems('image.png', bytes([0], lookalike)), lookalike).toEqual([expect.stringContaining('email address')]);
+    }
   });
 
   it('never repeats the whole address in its report', () => {

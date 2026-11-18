@@ -1,7 +1,7 @@
 /**
  * `npm run check:hygiene` (repository brief, R3): fails if the repository holds anything it never should: audio,
- * video or archives, a file over the size limit, a user's folder, an email address other than GitHub's noreply ones,
- * a likely secret, a .env file, or an action or image that isn't pinned.
+ * video or archives, a file over the size limit, a user's folder, an email address other than GitHub's noreply ones
+ * and those at domains reserved for examples, a likely secret, a .env file, or an action or image that isn't pinned.
  *
  * Every tracked file is checked. On a pull request, CI also passes its base and head (HYGIENE_BASE, HYGIENE_HEAD).
  * Then every file any of its commits adds or changes is checked too, so something added and deleted again within the

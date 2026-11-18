@@ -46,6 +46,19 @@ const EMAIL = /(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+(?:@|%40)[\p{L}\p{N}-]+(?
 const ASCII_EMAIL =
   /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+(?:@|%40)[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}(?![A-Za-z0-9])/g;
 
+/**
+ * An address at a domain reserved for examples, which can't reach anyone: example.com, example.net and example.org
+ * and their subdomains (RFC 2606), and names ending in .example, .test, .invalid or .localhost (RFC 2606, RFC 6761).
+ * A lookalike such as example.com.evil.net or myexample.com isn't one.
+ */
+export function isReservedExample(address: string): boolean {
+  const domain = address.replace(/%40/i, '@').split('@')[1]?.toLowerCase() ?? '';
+  return /(^|\.)example\.(com|net|org)$/.test(domain) || /\.(example|test|invalid|localhost)$/.test(domain);
+}
+
+/** The address carries on past what the pattern matched (a domain of example.com_evil.net), so its domain is longer. */
+const CONTINUES = /^(?:[\p{L}\p{N}_-]|\.[\p{L}\p{N}])/u;
+
 /** GitHub's own noreply addresses: a user's (`123+name@users.noreply.github.com`) and GitHub's (`noreply@github.com`). */
 export function isNoreply(address: string): boolean {
   const a = address.replace(/%40/i, '@');
@@ -94,14 +107,15 @@ export function mediaOrArchive(path: string, b: Uint8Array): string | null {
   return null;
 }
 
-/** User folders and email addresses in text: a file's or a commit message's. */
+/** User folders and email addresses in text: a file's or a commit message's. Noreply and example addresses pass. */
 export function personalProblems(text: string, { emailsAllowed = false, binary = false } = {}): string[] {
   const problems: string[] = [];
   for (const pattern of USER_PATHS)
     for (const m of text.matchAll(pattern)) problems.push(`a user’s folder, line ${lineOf(text, m.index)}`);
   if (!emailsAllowed)
     for (const m of text.matchAll(binary ? ASCII_EMAIL : EMAIL))
-      if (!isNoreply(m[0])) problems.push(`an email address (${mask(m[0])}), line ${lineOf(text, m.index)}`);
+      if (!isNoreply(m[0]) && !(isReservedExample(m[0]) && !CONTINUES.test(text.slice(m.index + m[0].length))))
+        problems.push(`an email address (${mask(m[0])}), line ${lineOf(text, m.index)}`);
   return problems;
 }
 
