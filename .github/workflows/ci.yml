@@ -8,14 +8,7 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch:
-    # Measurement only (WP1): how many shards pay off.
-    inputs:
-      shards:
-        description: 'Browser test shards'
-        type: choice
-        options: ['4', '6', '8']
-        default: '6'
+  workflow_dispatch: # So CI can be rerun on a branch.
 
 permissions:
   contents: read
@@ -121,7 +114,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: ${{ fromJSON(inputs.shards == '4' && '["c1/3","c2/3","c3/3","h1/1","alone"]' || inputs.shards == '8' && '["c1/6","c2/6","c3/6","c4/6","c5/6","c6/6","h1/2","h2/2","alone"]' || '["c1/4","c2/4","c3/4","c4/4","h1/2","h2/2","alone"]') }}
+        # Four shards, the fewest that kept every required check under 4 minutes (WP1, 5 runs each: medians of 199 s
+        # with 4, 174 s with 6, 146 s with 8).
+        part: [c1/3, c2/3, c3/3, h1/1, alone]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
