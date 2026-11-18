@@ -88,6 +88,27 @@ test('a panel field left before the next frame keeps the focus away, so Ctrl+Z u
   await expect.poll(async () => (await node(page, rect)).fill).not.toBe('#2f7bff');
 });
 
+test('typing into a panel field before the next frame keeps what was typed', async ({ page }) => {
+  const rect = await draw(page, 'r', [420, 300], [560, 400]);
+  // A slow frame: the field's text would be selected only after typing has begun.
+  await page.evaluate(() => {
+    const raf = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (cb) => {
+      setTimeout(() => raf(cb), 300);
+      return 0;
+    };
+  });
+  const width = page.getByRole('textbox', { name: 'Width', exact: true }).first();
+  await width.focus();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.type('9');
+  // The late frame comes and goes: it mustn't select the 9, or "00" would replace it.
+  await page.waitForTimeout(400);
+  await page.keyboard.type('00');
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => (await node(page, rect)).width).toBe(900);
+});
+
 test('keeps the project after a reload', async ({ page }) => {
   await draw(page, 'r', [420, 300], [560, 400]);
   const name = page.getByLabel('Design name');

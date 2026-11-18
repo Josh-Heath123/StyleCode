@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { CompanyWorkspace } from '../../src/workspace/model/index.ts';
+import { createDocument } from '../../src/model/document';
+import { toProjectFile } from '../../src/model/serialize';
 import { attachmentHeader, createWorkspaceHandler, MAX_FILE_BYTES, WORKSPACE_HEADER } from './handler.ts';
 
 let root: string;
@@ -232,5 +234,83 @@ describe('transcription routes (Phase 3)', () => {
     expect((await call(`/companies/${id}/transcriptions`)).status).toBe(200);
     expect((await call(`/companies/${id}/transcriptions/tj_0123456789abcdef`)).status).toBe(404);
     expect((await call(`/companies/${id}/transcriptions/tj_0123456789abcdef/result`)).status).toBe(404);
+  });
+});
+
+describe('design routes (Phase 4, decisions 2 and 8)', () => {
+  const PNG = Buffer.from(
+    '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a0f60000000049454e44ae426082',
+    'hex',
+  );
+  const file = (id: string) => toProjectFile({ ...createDocument('Checkout'), id });
+
+  it('creates, lists, reads, saves and downloads a listed design, and refuses ids, other clients and stale saves', async () => {
+    const opened = await newCompany(`Harbour Bakery designs ${Math.random().toString(36).slice(2, 6)}`);
+    const id = opened.workspace.company.id;
+    const at = opened.workspace.company.createdAt;
+    const ws = {
+      ...opened.workspace,
+      engagements: {
+        en_1: {
+          id: 'en_1',
+          companyId: id,
+          name: 'Ordering',
+          goal: '',
+          status: { state: 'active' },
+          createdAt: at,
+          updatedAt: at,
+        },
+      },
+      designs: { de_1: { id: 'de_1', engagementId: 'en_1', name: 'Checkout', documentId: 'doc_route', createdAt: at } },
+    };
+    expect(
+      (await call(`/companies/${id}`, { method: 'PUT', json: { workspace: ws, baseRevision: opened.revision } })).status,
+    ).toBe(200);
+
+    const created = await call(`/companies/${id}/designs`, {
+      method: 'POST',
+      json: { documentId: 'doc_route', file: file('doc_route') },
+    });
+    expect(created.status).toBe(201);
+    const { revision } = (await created.json()) as { revision: string };
+    expect(
+      (await call(`/companies/${id}/designs`, { method: 'POST', json: { documentId: 'doc_route', file: file('doc_route') } }))
+        .status,
+    ).toBe(409);
+    expect(await (await call(`/companies/${id}/designs`)).json()).toMatchObject({
+      designs: [{ documentId: 'doc_route', problem: null }],
+    });
+    expect(await (await call(`/companies/${id}/designs/doc_route`)).json()).toMatchObject({ revision });
+    const download = await call(`/companies/${id}/designs/doc_route/file`);
+    expect(download.headers.get('content-disposition')).toMatch(/^attachment/);
+    expect(download.headers.get('x-content-type-options')).toBe('nosniff');
+
+    const saved = await call(`/companies/${id}/designs/doc_route`, {
+      method: 'PUT',
+      json: { file: file('doc_route'), baseRevision: revision },
+    });
+    expect(saved.status).toBe(200);
+    const stale = await call(`/companies/${id}/designs/doc_route`, {
+      method: 'PUT',
+      json: { file: file('doc_route'), baseRevision: revision },
+    });
+    expect(stale.status).toBe(409);
+    expect(await stale.json()).toEqual({ error: 'This design changed in another tab. Reload it to carry on.' });
+
+    expect((await call(`/companies/${id}/designs/DOC_X`)).status).toBe(400);
+    const other = await newCompany(`Karoo Freight designs ${Math.random().toString(36).slice(2, 6)}`);
+    expect((await call(`/companies/${other.workspace.company.id}/designs/doc_route`)).status).toBe(404);
+
+    const image = await call(`/companies/${id}/design-assets`, {
+      method: 'POST',
+      body: PNG,
+      headers: { 'content-type': 'image/png' },
+    });
+    expect(image.status).toBe(201);
+    const { id: assetId } = (await image.json()) as { id: string };
+    const served = await call(`/companies/${id}/design-assets/${assetId}`);
+    expect(served.headers.get('content-type')).toBe('image/png');
+    expect(Buffer.from(await served.arrayBuffer())).toEqual(PNG);
+    expect((await call(`/companies/${other.workspace.company.id}/design-assets/${assetId}`)).status).toBe(404);
   });
 });

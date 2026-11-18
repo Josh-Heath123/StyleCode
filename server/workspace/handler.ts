@@ -8,6 +8,7 @@ import { heavyLeases as sharedLeases, type HeavyLeases } from '../shared/heavy.t
 import { TranscriptionJobs } from '../transcription/jobs.ts';
 import { transcriptionStatus } from '../transcription/status.ts';
 import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
+import { DesignFiles, MAX_DESIGN_BYTES, MAX_IMAGE_BYTES } from './designs.ts';
 
 /**
  * The local workspace routes, served by StyleCode's own dev and preview servers:
@@ -27,6 +28,13 @@ import { isSafeId, ProblemsError, WorkspaceStore } from './store.ts';
  *   PUT    /api/workspace/companies/:id/recordings/:fileId?session=…&offset=…   write a piece of sound (the body)
  *   POST   /api/workspace/companies/:id/recordings/:fileId/finish[?recover=1]   write its header, giving size and length
  *   POST   /api/workspace/companies/:id/added-recordings?session=…  convert and store a WAV made elsewhere (the body), if consent allows
+ *   GET    /api/workspace/companies/:id/designs        the client's designs, each with whether it can be opened
+ *   POST   /api/workspace/companies/:id/designs        create a design's file { documentId, file }; never overwrites
+ *   GET    /api/workspace/companies/:id/designs/:docId          a listed design: { file, revision }
+ *   PUT    /api/workspace/companies/:id/designs/:docId          save it { file, baseRevision }
+ *   GET    /api/workspace/companies/:id/designs/:docId/file     download it exactly as stored
+ *   POST   /api/workspace/companies/:id/design-assets           store an image (the body), giving its content-hash id
+ *   GET    /api/workspace/companies/:id/design-assets/:assetId  an image of the client's designs
  *   GET    /api/workspace/transcription                what's installed, the versions, the GPU, and any job going
  *   POST   /api/workspace/heavy                        take the heavy slot for an AI run { kind: 'extraction' } (decision 10)
  *   GET    /api/workspace/heavy/:leaseId               whether it runs or waits, and for what; keeps the lease
@@ -76,6 +84,7 @@ export function createWorkspaceHandler(
   recordings = new RecordingFiles(store),
   transcriptions = new TranscriptionJobs(store),
   leases: HeavyLeases = sharedLeases,
+  designs = new DesignFiles(store),
 ) {
   // A recording left unfinished by a crash gets its header now; the app marks it recovered when the client opens.
   void recordings.closeUnfinished().catch(() => undefined);
@@ -129,7 +138,8 @@ export function createWorkspaceHandler(
       const finishing = sub === 'recordings' && rest.length === 1 && rest[0] === 'finish';
       const jobAction =
         sub === 'transcriptions' && rest.length === 1 && ['result', 'cancel', 'start-now'].includes(rest[0]) ? rest[0] : null;
-      if (section !== 'companies' || (rest.length && !finishing && !jobAction))
+      const designFile = sub === 'designs' && rest.length === 1 && rest[0] === 'file';
+      if (section !== 'companies' || (rest.length && !finishing && !jobAction && !designFile))
         return sendJson(res, 404, { error: 'Not found.' });
 
       if (companyId === undefined) {
@@ -211,6 +221,49 @@ export function createWorkspaceHandler(
         const forSession = url.searchParams.get('session');
         if (!isSafeId(forSession)) return sendJson(res, 400, { error: 'Invalid id.' });
         return sendJson(res, 201, await recordings.addWav(companyId, forSession, req));
+      }
+      if (sub === 'designs') {
+        if (fileId === undefined) {
+          if (method === 'GET') return sendJson(res, 200, { designs: await designs.list(companyId) });
+          if (method !== 'POST') return notAllowed();
+          const body = await readJson(req, MAX_DESIGN_BYTES + MAX_SMALL_BODY);
+          return sendJson(res, 201, await designs.create(companyId, body.documentId, body.file));
+        }
+        if (designFile) {
+          if (method !== 'GET') return notAllowed();
+          const bytes = await designs.raw(companyId, fileId);
+          res.statusCode = 200;
+          res.setHeader('content-type', 'application/json');
+          res.setHeader('content-length', String(bytes.length));
+          res.setHeader('content-disposition', attachmentHeader(`${fileId}.stylecode.json`));
+          res.setHeader('x-content-type-options', 'nosniff');
+          res.setHeader('content-security-policy', "default-src 'none'; sandbox");
+          res.setHeader('cache-control', 'no-store');
+          return void res.end(bytes);
+        }
+        if (method === 'GET') return sendJson(res, 200, await designs.read(companyId, fileId));
+        if (method === 'PUT') {
+          const body = await readJson(req, MAX_DESIGN_BYTES + MAX_SMALL_BODY);
+          return sendJson(res, 200, await designs.save(companyId, fileId, body.file, body.baseRevision));
+        }
+        return notAllowed();
+      }
+      if (sub === 'design-assets') {
+        if (fileId === undefined) {
+          if (method !== 'POST') return notAllowed();
+          const bytes = await readBody(req, MAX_IMAGE_BYTES);
+          return sendJson(res, 201, await designs.addAsset(companyId, bytes, req.headers['content-type']));
+        }
+        if (method !== 'GET') return notAllowed();
+        const image = await designs.openAsset(companyId, fileId);
+        res.statusCode = 200;
+        res.setHeader('content-type', image.type);
+        res.setHeader('content-length', String(image.bytes.length));
+        res.setHeader('content-disposition', attachmentHeader(fileId));
+        res.setHeader('x-content-type-options', 'nosniff');
+        res.setHeader('content-security-policy', "default-src 'none'; sandbox");
+        res.setHeader('cache-control', 'no-store');
+        return void res.end(image.bytes);
       }
       if (sub !== 'files') return sendJson(res, 404, { error: 'Not found.' });
 

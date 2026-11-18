@@ -252,3 +252,77 @@ export const checkHeavySlot = (leaseId: string) => request<LeaseView>(`/heavy/${
 
 export const releaseHeavySlot = (leaseId: string) =>
   request<{ released: string }>(`/heavy/${encodeURIComponent(leaseId)}`, { method: 'DELETE' });
+
+// Designs (Phase 4, decisions 2, 3 and 8): an engagement's designs, in the company's folder.
+
+export interface DesignSummary {
+  documentId: string;
+  /** Why it can't be opened: missing, damaged or from a newer StyleCode. */
+  problem: string | null;
+  sizeBytes: number;
+}
+
+const designPath = (companyId: string, documentId?: string) =>
+  `/companies/${encodeURIComponent(companyId)}/designs${documentId === undefined ? '' : `/${encodeURIComponent(documentId)}`}`;
+
+export const listDesigns = (companyId: string) =>
+  request<{ designs: DesignSummary[] }>(designPath(companyId)).then((r) => r.designs);
+
+/** Creates a design's file, new or copied; never overwrites. The app lists it in the workspace afterwards. */
+export const createDesignFile = (companyId: string, documentId: string, file: unknown) =>
+  request<{ revision: string }>(designPath(companyId), json({ documentId, file }));
+
+export const readDesignFile = (companyId: string, documentId: string) =>
+  request<{ file: unknown; revision: string }>(designPath(companyId, documentId));
+
+export const saveDesignFile = (companyId: string, documentId: string, file: unknown, baseRevision: string) =>
+  request<{ revision: string }>(designPath(companyId, documentId), { ...json({ file, baseRevision }), method: 'PUT' });
+
+/** A design's file exactly as stored, as a download (decision 7). */
+export async function downloadDesignFile(companyId: string, documentId: string): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${designPath(companyId, documentId)}/file`, { headers: { 'x-stylecode-workspace': '1' } });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new WorkspaceApiError(body?.error ?? `The design couldn’t be read (${response.status}).`, response.status);
+  }
+  return new Blob([await response.arrayBuffer()], { type: 'application/octet-stream' });
+}
+
+/** Stores an image in the company named, under the id its bytes hash to. */
+export async function uploadDesignAsset(companyId: string, image: Blob): Promise<{ id: string }> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}/companies/${encodeURIComponent(companyId)}/design-assets`, {
+      method: 'POST',
+      headers: { 'content-type': image.type, 'x-stylecode-workspace': '1' },
+      body: image,
+    });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  const body = (await response.json().catch(() => null)) as { id?: string; error?: string } | null;
+  if (!response.ok || !body?.id)
+    throw new WorkspaceApiError(body?.error ?? `The image couldn’t be stored (${response.status}).`, response.status);
+  return { id: body.id };
+}
+
+/** An image of the company's designs, or null if it has none by that id. */
+export async function downloadDesignAsset(companyId: string, assetId: string): Promise<Blob | null> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}/companies/${encodeURIComponent(companyId)}/design-assets/${encodeURIComponent(assetId)}`, {
+      headers: { 'x-stylecode-workspace': '1' },
+    });
+  } catch {
+    throw new WorkspaceApiError('StyleCode’s local server isn’t reachable. Is the window where it runs still open?', 0);
+  }
+  if (response.status === 404) return null;
+  if (!response.ok) throw new WorkspaceApiError(`The image couldn’t be read (${response.status}).`, response.status);
+  const type = response.headers.get('content-type') ?? 'application/octet-stream';
+  return new Blob([await response.arrayBuffer()], { type });
+}

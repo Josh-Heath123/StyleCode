@@ -33,9 +33,20 @@ interface AppProps {
   initialCamera: Camera | null;
   /** Navigation between the workspace and the editor, shown in the top bar. */
   nav?: ReactNode;
+  /**
+   * An engagement's design is open, kept in its client's folder (Phase 4,
+   * decisions 1 and 4): the Designs menu offers only the way back and Download
+   * as file, since the editor's own designs live in this browser.
+   */
+  company?: CompanyEditing;
 }
 
-export function App({ editor, assistant, session, initialCamera, nav }: AppProps) {
+export interface CompanyEditing {
+  /** The engagement's page. */
+  backHref: string;
+}
+
+export function App({ editor, assistant, session, initialCamera, nav, company }: AppProps) {
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'design' | 'code'>('design');
@@ -94,6 +105,7 @@ export function App({ editor, assistant, session, initialCamera, nav }: AppProps
         <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}`}>
           <TopBar
             nav={nav}
+            company={company}
             session={session}
             onOpenProjects={() => setProjectsOpen(true)}
             onCameraRestore={restoreCamera}
@@ -152,7 +164,7 @@ export function App({ editor, assistant, session, initialCamera, nav }: AppProps
           <div className="canvas-corner">
             <Checklist onboarding={onboarding} />
           </div>
-          {!welcomed && (
+          {!welcomed && !company && (
             <WelcomeDialog
               onboarding={onboarding}
               onOpenExample={async () => {

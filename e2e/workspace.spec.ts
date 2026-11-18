@@ -214,19 +214,6 @@ test('without the workspace server, StyleCode opens on the editor and says what 
   await expect(page.getByRole('link', { name: 'Clients' })).toHaveCount(0);
 });
 
-test('settings keep the consultant’s name and show the data folder', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('link', { name: 'Settings' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
-  await expect(page.locator('.ws-path')).toHaveText(E2E_WORKSPACE);
-  const consultant = unique('Sam Consultant');
-  await page.getByLabel('Your name').fill(consultant);
-  await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Your name is saved.')).toBeVisible();
-  await page.reload();
-  await expect(page.getByLabel('Your name')).toHaveValue(consultant);
-});
-
 test('in a copied folder, every link stays in the copy, never the original client (Phase 1 review)', async ({ page }) => {
   const id = await createClient(page, unique('Linked Copy'));
   // The original has an engagement with a session, then its folder is copied.

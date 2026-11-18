@@ -29,6 +29,24 @@ import { RequestError } from '../shared/requests.ts';
  * never become paths: only ids do, and only after `isSafeId`.
  */
 
+/** Writes bytes to a file through a temporary file, flushed to disk, then renamed into place. */
+export async function replaceFile(path: string, bytes: Buffer | string, retry?: RetryOptions): Promise<void> {
+  const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
+  const handle = await open(temp, 'wx', 0o600);
+  try {
+    await handle.writeFile(bytes);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  try {
+    await renameWithRetry(temp, path, retry);
+  } catch (error) {
+    await rm(temp, { force: true });
+    throw error;
+  }
+}
+
 /** A request with problems in the workspace it sent, or in the one on disk. */
 export class ProblemsError extends RequestError {
   constructor(
@@ -81,7 +99,7 @@ export interface Settings {
 const SETTINGS_FORMAT = 'stylecode-settings';
 const PROFILE_FIELDS = ['name', 'industry', 'description', 'existingSystems', 'notes'] as const;
 /** Maps whose entries are permanent deletions when they disappear (Phase 1 brief, decision 5). */
-const PERMANENT_MAPS = ['engagements', 'sessions', 'transcripts', 'files'] as const;
+const PERMANENT_MAPS = ['engagements', 'sessions', 'transcripts', 'files', 'designs'] as const;
 /** How long an upload nothing lists is kept, so undo and redo across a restart can't lose it. */
 const ORPHAN_GRACE_MS = 24 * 60 * 60 * 1000;
 
@@ -96,6 +114,8 @@ export class WorkspaceStore {
   private readonly queues = new Map<string, Promise<unknown>>();
   /** Files uploaded since the server started. A save never removes them, so undo and redo can't lose one. */
   private readonly uploaded = new Set<string>();
+  /** Run inside the company's queue after a permanent save: the design files clear up what the client no longer lists. */
+  readonly afterPermanentSave: ((companyId: string, before: CompanyWorkspace, after: CompanyWorkspace) => Promise<void>)[] = [];
 
   constructor(
     readonly root: string,
@@ -148,21 +168,8 @@ export class WorkspaceStore {
   }
 
   /** Writes bytes to a file through a temporary file, flushed to disk, then renamed into place. */
-  private async replaceFile(path: string, bytes: Buffer | string): Promise<void> {
-    const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
-    const handle = await open(temp, 'wx', 0o600);
-    try {
-      await handle.writeFile(bytes);
-      await handle.sync();
-    } finally {
-      await handle.close();
-    }
-    try {
-      await renameWithRetry(temp, path, this.options.retry);
-    } catch (error) {
-      await rm(temp, { force: true });
-      throw error;
-    }
+  private replaceFile(path: string, bytes: Buffer | string): Promise<void> {
+    return replaceFile(path, bytes, this.options.retry);
   }
 
   private async readCompanyFile(companyId: string): Promise<Buffer> {
@@ -274,7 +281,7 @@ export class WorkspaceStore {
    * Saves a company's workspace over the revision it was based on.
    *
    * A save is a permanent deletion when the app says so (`permanent`), or when
-   * an engagement, session, transcript or file on disk is missing from the new
+   * an engagement, session, transcript, file or design on disk is missing from the new
    * workspace, whatever the app says. Then the previous copy gets the new
    * state too, so the deleted data doesn't stay behind in it (Phase 1 brief,
    * decision 5), and the bytes of every file no longer listed are deleted.
@@ -331,6 +338,7 @@ export class WorkspaceStore {
           if (isSafeId(id)) await this.deleteBytes(companyId, id);
         }
         await this.removeOrphanedFiles(companyId, workspace);
+        for (const hook of this.afterPermanentSave) await hook(companyId, onDisk.workspace, workspace);
       } else {
         await this.replaceFile(previous, current);
         await this.replaceFile(main, bytes);
