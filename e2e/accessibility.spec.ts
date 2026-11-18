@@ -290,6 +290,8 @@ test.describe('keyboard only', () => {
 
     // Enter renames, and focus comes back to the tree.
     await page.keyboard.press('Enter');
+    // Ctrl+A before the name field has focus would select every layer in the tree instead of the name's text.
+    await expect(tree.getByRole('textbox', { name: 'Layer name' })).toBeFocused();
     await page.keyboard.press('Control+a');
     await page.keyboard.type('Renamed from the keyboard');
     await page.keyboard.press('Enter');
