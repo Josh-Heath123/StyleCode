@@ -493,6 +493,8 @@ test('transcribing passes the accessibility check: the dialog, progress, the pre
   expect(await scan()).toEqual([]);
   await dialog.getByRole('button', { name: 'Add transcript' }).click();
   await expect(card(page)).toContainText('Transcribed on this computer');
+  // For a moment the finished job is still shown beside the transcript, each with its short labels: wait for it to go.
+  await expect(card(page).getByRole('group', { name: 'Transcription' })).toHaveCount(0);
   await card(page).locator('.ws-short-labels summary').click();
   expect(await scan()).toEqual([]);
 });
