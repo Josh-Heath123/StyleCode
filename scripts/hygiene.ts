@@ -31,7 +31,8 @@ const USER_PATHS = [
   /(?<![A-Za-z0-9._~:-])\/(Users|home)\/[A-Za-z0-9._-]/g,
 ];
 
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
+// Anchored at the start of a word, so a long run of letters is scanned once, not once from every position.
+const EMAIL = /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 
 /** GitHub's own noreply addresses: a user's (`123+name@users.noreply.github.com`) and GitHub's (`noreply@github.com`). */
 export function isNoreply(address: string): boolean {

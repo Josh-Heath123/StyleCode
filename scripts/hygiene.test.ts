@@ -152,3 +152,12 @@ describe('new runtime dependencies', () => {
     expect(addedDependencies(JSON.stringify({}), pkg({ react: '^19' }))).toEqual(['react']);
   });
 });
+
+describe('speed', () => {
+  it('reads a long run of letters in one pass', () => {
+    const started = performance.now();
+    expect(personalProblems('a'.repeat(3_000_000))).toEqual([]);
+    expect(secretProblems('a'.repeat(3_000_000))).toEqual([]);
+    expect(performance.now() - started).toBeLessThan(2000);
+  });
+});
