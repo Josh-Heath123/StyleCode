@@ -46,7 +46,7 @@ async function withFinding(page: Page): Promise<string> {
 }
 
 async function promote(page: Page) {
-  await page.getByRole('button', { name: `Add “${OFFLINE}” to company knowledge` }).click();
+  await page.getByRole('button', { name: `Add to company knowledge: “${OFFLINE}”` }).click();
   const dialog = page.getByRole('dialog', { name: 'Add to company knowledge' });
   await expect(dialog).toContainText('as constraint, confirmed, with its quotes');
   await dialog.getByRole('button', { name: 'Add to company knowledge' }).click();
@@ -61,7 +61,7 @@ test('a promoted finding shows on the client’s page and in its next engagement
   const finding = page.locator('.ws-finding').filter({ hasText: OFFLINE });
   await expect(finding.getByRole('link', { name: 'In company knowledge' })).toHaveAttribute('href', `#/c/${id}`);
   // A finding is promoted once.
-  await expect(page.getByRole('button', { name: `Add “${OFFLINE}” to company knowledge` })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: `Add to company knowledge: “${OFFLINE}”` })).toHaveCount(0);
   const record = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(record.violations.map((v) => v.id)).toEqual([]);
   await expect

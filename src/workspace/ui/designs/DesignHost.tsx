@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { Assistant } from '../../../ai/assistant';
 import { App } from '../../../app/App';
-import { fitAllCamera, zoomToSelection } from '../../../app/actions';
+import { zoomToSelection } from '../../../app/actions';
+import type { EngagementRecord } from '../../../app/record';
 import type { Editor } from '../../../editor/editor';
 import type { ProjectSession } from '../../../persistence/session';
 import { Icon } from '../../../ui/Icon';
 import { downloadDesignFile } from '../../api';
+import { isInRecord } from '../../model/findings';
+import { KIND_LABEL, STATUS_LABEL } from '../../model/labels';
+import type { CompanyWorkspace } from '../../model/types';
 import { get } from '../../model/util';
+import { routeHref } from '../../routes';
 import type { WorkspaceSession } from '../../session';
 import { Page, WorkspaceHeader } from '../chrome';
 import { saveAs } from '../download';
 import { useCompanySession } from '../useCompanySession';
 import { DesignUnavailableError, openCompanyDesign, openDesign } from './companyDesign';
+import { RecordPanel } from './RecordPanel';
 
 type Opening = { state: 'opening' } | { state: 'open' } | { state: 'problem'; title: string; message: string; download: boolean };
 
@@ -43,7 +49,23 @@ export function DesignHost({
   const [load] = useCompanySession(companyId);
   const client = load.state === 'open' ? load.session : null;
   const [opening, setOpening] = useState<Opening>({ state: 'opening' });
+  // A design just read from the client's folder is framed by the editor once its canvas has measured itself;
+  // one already open keeps the view it has.
+  const justOpened = useRef(false);
+  // Whether the editor is showing: a layer route then zooms to its layer at once, rather than with the first view.
+  const shownOnce = useRef(false);
   const backHref = `#/c/${companyId}/e/${engagementId}`;
+  const workspace = useClientWorkspace(client);
+  const record = useMemo<EngagementRecord | null>(
+    () =>
+      client && workspace
+        ? {
+            describe: (findingId) => describeFinding(workspace, companyId, engagementId, findingId),
+            panel: <RecordPanel client={client} companyId={companyId} engagementId={engagementId} />,
+          }
+        : null,
+    [client, workspace, companyId, engagementId],
+  );
 
   useEffect(() => {
     if (!client) return;
@@ -73,7 +95,8 @@ export function DesignHost({
       setOpening({ state: 'open' });
       if (layerId && editor.getState().doc.nodes[layerId]) {
         editor.select([layerId]);
-        requestAnimationFrame(() => zoomToSelection(editor));
+        // The editor zooms to it with its first view (focusSelection); if it is showing already, now.
+        if (shownOnce.current) requestAnimationFrame(() => zoomToSelection(editor));
       }
     };
     const loaded = openDesign();
@@ -81,7 +104,7 @@ export function DesignHost({
     setOpening({ state: 'opening' });
     openCompanyDesign(session, client, companyId, link)
       .then(() => {
-        editor.setCamera(fitAllCamera(editor));
+        justOpened.current = true;
         shown();
       })
       .catch((error: Error) => {
@@ -136,14 +159,16 @@ export function DesignHost({
   }
 
   const ws = client!.getState().workspace;
+  shownOnce.current = true;
   return (
     <App
       key={`design-${designId}`}
       editor={editor}
       assistant={assistant}
       session={session}
-      initialCamera={editor.getState().camera}
-      company={{ backHref }}
+      initialCamera={justOpened.current ? null : editor.getState().camera}
+      focusSelection={!!layerId}
+      company={{ backHref, record: record ?? undefined }}
       nav={
         <nav className="app-nav" aria-label="Design">
           <a className="app-nav-link" href={backHref}>
@@ -156,6 +181,27 @@ export function DesignHost({
       }
     />
   );
+}
+
+/** The client's workspace as it changes, or null while the client isn't open. */
+function useClientWorkspace(client: WorkspaceSession | null): CompanyWorkspace | null {
+  const state = useSyncExternalStore(client?.subscribe ?? noSubscribe, () => client?.getState() ?? null);
+  return state?.workspace ?? null;
+}
+const noSubscribe = () => () => {};
+
+/** A finding linked from a layer, as the editor shows it; null if it is no longer in this engagement's record. */
+function describeFinding(ws: CompanyWorkspace, companyId: string, engagementId: string, findingId: string) {
+  const f = get(ws.findings, findingId);
+  if (!f || f.engagementId !== engagementId || !isInRecord(f)) return null;
+  return {
+    id: f.id,
+    statement: f.statement,
+    kind: KIND_LABEL[f.kind],
+    status: STATUS_LABEL[f.status],
+    statusKey: f.status,
+    href: routeHref({ page: 'record', companyId, engagementId, findingId: f.id }),
+  };
 }
 
 function DownloadButton({ client, companyId, designId }: { client: WorkspaceSession; companyId: string; designId: string }) {

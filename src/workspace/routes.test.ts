@@ -8,6 +8,7 @@ describe('hash routes', () => {
       { page: 'company', companyId: 'co_abc123' },
       { page: 'engagement', companyId: 'co_abc123', engagementId: 'en_def456' },
       { page: 'record', companyId: 'co_abc123', engagementId: 'en_def456' },
+      { page: 'record', companyId: 'co_abc123', engagementId: 'en_def456', findingId: 'fi_stu901' },
       { page: 'session', companyId: 'co_abc123', engagementId: 'en_def456', sessionId: 'se_ghi789' },
       { page: 'session', companyId: 'co_abc123', engagementId: 'en_def456', sessionId: 'se_ghi789', passageId: 'sg_jkl012' },
       { page: 'consent', companyId: 'co_abc123', engagementId: 'en_def456', sessionId: 'se_ghi789' },
@@ -41,6 +42,9 @@ describe('hash routes', () => {
       '#/c/co_1/e/en_1/s/se_1/p/../x',
       '#/c/co_1/e/en_1/s/se_1/p/sg_1/x',
       '#/c/co_1/e/en_1/record/x',
+      '#/c/co_1/e/en_1/record/f',
+      '#/c/co_1/e/en_1/record/f/a b',
+      '#/c/co_1/e/en_1/record/f/fi_1/x',
     ])
       expect(parseRoute(hash)).toEqual({ page: 'clients' });
   });

@@ -125,7 +125,7 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
       <WorkspaceInfoContext.Provider value={info}>
         <DesignEditorContext.Provider value={{ editor, session }}>
           <DesignHost
-            key={`${route.companyId}/${route.designId}`}
+            key={`${route.companyId}/${route.engagementId}/${route.designId}`}
             companyId={route.companyId}
             engagementId={route.engagementId}
             designId={route.designId}
@@ -172,7 +172,14 @@ function renderPage(route: Route): ReactNode {
     case 'engagement':
       return <EngagementPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
     case 'record':
-      return <RecordPage key={route.companyId} companyId={route.companyId} engagementId={route.engagementId} />;
+      return (
+        <RecordPage
+          key={route.companyId}
+          companyId={route.companyId}
+          engagementId={route.engagementId}
+          findingId={route.findingId ?? null}
+        />
+      );
     case 'consent':
       return (
         <ConsentPage

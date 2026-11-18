@@ -94,7 +94,7 @@ export class DesignFiles {
   private async editable(companyId: string): Promise<void> {
     const opened = await this.store.read(companyId);
     if (opened.access !== 'editable') {
-      throw new RequestError("This client's file has problems, so nothing can be added to it or saved.", 409);
+      throw new RequestError('This client’s file has problems, so nothing can be added to it or saved.', 409);
     }
   }
 
@@ -132,7 +132,7 @@ export class DesignFiles {
       try {
         bytes = await readFile(this.fileOf(companyId, d.documentId));
       } catch {
-        out.push({ documentId: d.documentId, problem: "The design's file is missing from the client's folder.", sizeBytes: 0 });
+        out.push({ documentId: d.documentId, problem: 'The design’s file is missing from the client’s folder.', sizeBytes: 0 });
         continue;
       }
       let problem: string | null = null;
@@ -140,7 +140,7 @@ export class DesignFiles {
         const parsed = parseProject(JSON.parse(bytes.toString('utf8')));
         problem = parsed.ok ? null : parsed.error;
       } catch {
-        problem = "The design's file is damaged and can't be read.";
+        problem = 'The design’s file is damaged and can’t be read.';
       }
       out.push({ documentId: d.documentId, problem, sizeBytes: bytes.length });
     }
@@ -154,13 +154,13 @@ export class DesignFiles {
     try {
       bytes = await readFile(this.fileOf(companyId, documentId));
     } catch {
-      throw new RequestError("The design's file is missing from the client's folder.", 404);
+      throw new RequestError('The design’s file is missing from the client’s folder.', 404);
     }
     let file: unknown;
     try {
       file = JSON.parse(bytes.toString('utf8'));
     } catch {
-      throw new RequestError("The design's file is damaged and can't be read.", 422);
+      throw new RequestError('The design’s file is damaged and can’t be read.', 422);
     }
     const parsed = parseProject(file);
     if (!parsed.ok) throw new RequestError(parsed.error, 422);
@@ -173,7 +173,7 @@ export class DesignFiles {
     try {
       return await readFile(this.fileOf(companyId, documentId));
     } catch {
-      throw new RequestError("The design's file is missing from the client's folder.", 404);
+      throw new RequestError('The design’s file is missing from the client’s folder.', 404);
     }
   }
 
@@ -208,13 +208,13 @@ export class DesignFiles {
     const bytes = DesignFiles.check(file, documentId);
     return this.store.inQueue(companyId, async () => {
       const { editable } = await this.listed(companyId, documentId);
-      if (!editable) throw new RequestError("This client's file has problems, so StyleCode won't save over its designs.", 409);
+      if (!editable) throw new RequestError('This client’s file has problems, so StyleCode won’t save over its designs.', 409);
       const path = this.fileOf(companyId, documentId);
       let current: Buffer;
       try {
         current = await readFile(path);
       } catch {
-        throw new RequestError("The design's file is missing from the client's folder.", 404);
+        throw new RequestError('The design’s file is missing from the client’s folder.', 404);
       }
       if (revisionOf(current) !== baseRevision) {
         throw new RequestError('This design changed in another tab. Reload it to carry on.', 409);

@@ -100,7 +100,7 @@ export class RecordingFiles {
     await this.store.inQueue(companyId, async () => {
       await this.store.read(companyId).then((opened) => {
         if (opened.access !== 'editable')
-          throw new RequestError("This client's file has problems, so nothing can be recorded to it.", 409);
+          throw new RequestError('This client’s file has problems, so nothing can be recorded to it.', 409);
       });
       const handle = await open(this.path(companyId, id), 'wx', 0o600);
       try {
@@ -259,7 +259,7 @@ export class RecordingFiles {
     const handle = await this.store.inQueue(companyId, async () => {
       const opened = await this.store.read(companyId);
       if (opened.access !== 'editable')
-        throw new RequestError("This client's file has problems, so nothing can be added to it.", 409);
+        throw new RequestError('This client’s file has problems, so nothing can be added to it.', 409);
       // Consent is checked before any sound is stored, as for a recording's pieces (decision 15): a tab left open
       // after a withdrawal in another window can't store the client's audio.
       const allowed = canCapture(opened.workspace, sessionId, 'recording');

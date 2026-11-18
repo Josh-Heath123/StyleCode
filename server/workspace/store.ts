@@ -191,13 +191,13 @@ export class WorkspaceStore {
     try {
       data = JSON.parse(bytes.toString('utf8'));
     } catch {
-      return { ok: false, error: "The client's file is damaged and can't be read." };
+      return { ok: false, error: 'The client’s file is damaged and can’t be read.' };
     }
     const parsed = parseWorkspace(data);
     if (!parsed.ok || parsed.workspace.company.id === companyId) return parsed;
     const problem: Problem = {
       code: 'company.folder',
-      message: `This client's file says it belongs to another client (${String(parsed.workspace.company.id)}), not to the folder it is in (${companyId}). Was a folder copied or renamed?`,
+      message: `This client’s file says it belongs to another client (${String(parsed.workspace.company.id)}), not to the folder it is in (${companyId}). Was a folder copied or renamed?`,
       where: { map: 'company' },
     };
     return { ok: true, access: 'read-only', workspace: parsed.workspace, problems: [problem, ...parsed.problems] };
@@ -247,7 +247,7 @@ export class WorkspaceStore {
     for (const key of PROFILE_FIELDS) {
       const value = profile[key];
       if (value === undefined) continue;
-      if (typeof value !== 'string') throw new RequestError(`The company's ${key} must be text.`, 400);
+      if (typeof value !== 'string') throw new RequestError(`The company’s ${key} must be text.`, 400);
       fields[key] = value;
     }
     const name = (fields.name ?? '').trim();
@@ -299,7 +299,7 @@ export class WorkspaceStore {
       }
       const onDisk = WorkspaceStore.parse(current, companyId);
       if (!onDisk.ok || onDisk.access !== 'editable') {
-        throw new RequestError("This client's file has problems, so StyleCode won't save over it.", 409);
+        throw new RequestError('This client’s file has problems, so StyleCode won’t save over it.', 409);
       }
       const parsed = parseWorkspace(input);
       if (!parsed.ok) throw new RequestError(parsed.error, 400);
@@ -393,7 +393,7 @@ export class WorkspaceStore {
     await this.serial(companyId, async () => {
       const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId), companyId);
       const expected = parsed.ok && typeof parsed.workspace.company.name === 'string' ? parsed.workspace.company.name : companyId;
-      if (confirmName !== expected) throw new RequestError("The name doesn't match the client's name.", 400);
+      if (confirmName !== expected) throw new RequestError('The name doesn’t match the client’s name.', 400);
       // Move it out of the list first, so a deletion interrupted by a busy file can't leave half a client.
       const doomed = join(this.companies, `.deleting-${companyId}-${randomBytes(4).toString('hex')}`);
       await renameWithRetry(folder, doomed, this.options.retry);
@@ -433,7 +433,7 @@ export class WorkspaceStore {
     const ready = async () => {
       const parsed = WorkspaceStore.parse(await this.readCompanyFile(companyId), companyId);
       if (!parsed.ok || parsed.access !== 'editable') {
-        throw new RequestError("This client's file has problems, so nothing can be added to it.", 409);
+        throw new RequestError('This client’s file has problems, so nothing can be added to it.', 409);
       }
       // Never recursive: the company's folder must already exist.
       await mkdir(dir, { mode: 0o700 }).catch((error: NodeJS.ErrnoException) => {
@@ -479,7 +479,7 @@ export class WorkspaceStore {
       const { size } = await stat(path);
       return { ref: opened.workspace.files[fileId], size, stream: () => createReadStream(path) };
     } catch {
-      throw new RequestError("The file's contents are missing from the client's folder.", 404);
+      throw new RequestError('The file’s contents are missing from the client’s folder.', 404);
     }
   }
 

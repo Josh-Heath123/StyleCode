@@ -1,5 +1,5 @@
 import { isValidId } from './ids';
-import { coerceProp, isPropKey, propAppliesTo, PROP_KEYS } from './properties';
+import { coerceProp, isPropKey, propAppliesTo, PROP_KEYS, samePropValue } from './properties';
 import { CONTAINER_TYPES, CREATABLE_TYPES, type DesignDocument, type DesignNode, type NodeProps, type PropKey } from './types';
 
 /**
@@ -102,6 +102,7 @@ class Draft {
 }
 
 const NOTES_ON_CANVAS = 'Notes stay on the canvas, outside frames.';
+const NO_FINDINGS: readonly string[] = Object.freeze([]);
 
 function clampIndex(index: number, length: number): number {
   if (!Number.isInteger(index) || index < 0 || index > length) return length;
@@ -124,7 +125,7 @@ function applyUpdate(draft: Draft, op: Extract<Op, { type: 'update' }>, i: numbe
     if (!propAppliesTo(key, node.type)) fail(`"${key}" does not apply to ${node.type} layers`, i);
     const result = coerceProp(key, raw);
     if (!result.ok) fail(result.error, i);
-    if (node[key] !== result.value) {
+    if (!samePropValue(node[key], result.value)) {
       next[key] = result.value;
       previous[key] = node[key];
     }
@@ -146,6 +147,8 @@ function validateNewNode(node: DesignNode, i: number): DesignNode {
     if (!result.ok) fail(`Layer ${node.id}: ${result.error}`, i);
     (clean as unknown as Record<string, unknown>)[key] = result.value;
   }
+  // Only layers that can hold links keep them (a pasted page or note never brings any).
+  if (clean.findings.length && !propAppliesTo('findings', clean.type)) clean.findings = NO_FINDINGS;
   return clean;
 }
 

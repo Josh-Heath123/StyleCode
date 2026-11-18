@@ -22,6 +22,8 @@ function typeOf(key: (typeof AI_PROPERTIES)[number]): string {
       return spec.nullable ? 'hex colour or null' : 'hex colour';
     case 'enum':
       return spec.values.join('|');
+    case 'ids':
+      return 'list of ids';
   }
 }
 

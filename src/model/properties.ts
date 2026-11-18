@@ -1,3 +1,4 @@
+import { isValidId } from './ids';
 import { ROLES, type NodeProps, type NodeType, type PropKey } from './types';
 
 /**
@@ -14,7 +15,9 @@ export type PropSpec =
   | { kind: 'boolean' }
   | { kind: 'string'; maxLength: number; pattern?: RegExp }
   | { kind: 'color'; nullable: boolean }
-  | { kind: 'enum'; values: readonly string[] };
+  | { kind: 'enum'; values: readonly string[] }
+  /** A list of distinct ids, in order. */
+  | { kind: 'ids'; maxItems: number };
 
 export interface PropDef {
   spec: PropSpec;
@@ -237,6 +240,12 @@ export const PROPERTY_DEFS: Readonly<Record<PropKey, PropDef>> = {
     appliesTo: ['note'],
     description: 'The layer a note points at, or empty',
   },
+
+  findings: {
+    spec: { kind: 'ids', maxItems: 500 },
+    appliesTo: SHAPES,
+    description: 'The findings of the engagement’s record this layer answers, by id',
+  },
 };
 
 export const PROP_KEYS = Object.keys(PROPERTY_DEFS) as PropKey[];
@@ -321,5 +330,19 @@ export function coerceProp<K extends PropKey>(key: K, value: unknown): CoerceRes
         return { ok: false, error: `${key} must be one of ${spec.values.join(', ')}` };
       }
       return { ok: true, value: value as NodeProps[K] };
+    case 'ids': {
+      if (!Array.isArray(value)) return { ok: false, error: `${key} must be a list of ids` };
+      if (value.length > spec.maxItems) return { ok: false, error: `${key} has more than ${spec.maxItems} ids` };
+      if (!value.every(isValidId)) return { ok: false, error: `${key} has an invalid id` };
+      if (new Set(value).size !== value.length) return { ok: false, error: `${key} lists an id twice` };
+      return { ok: true, value: Object.freeze([...value]) as unknown as NodeProps[K] };
+    }
   }
+}
+
+/** Whether two values of a property are the same: lists by their contents, everything else as it is. */
+export function samePropValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  return a.every((v, i) => v === b[i]);
 }

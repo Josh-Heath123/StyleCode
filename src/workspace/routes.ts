@@ -8,6 +8,7 @@ import { isValidId } from '../model/ids.ts';
  *   #/c/<company>                       a client
  *   #/c/<company>/e/<engagement>        an engagement
  *   #/c/<company>/e/<engagement>/record   its record of findings
+ *   #/c/<company>/e/<engagement>/record/f/<finding>   the record, at one finding (Phase 4, decision 11)
  *   #/c/<company>/e/<engagement>/s/<session>   a session
  *   #/c/<company>/e/<engagement>/s/<session>/p/<passage>   a session, at a quoted segment or note
  *   #/c/<company>/e/<engagement>/s/<session>/consent   its consent form
@@ -20,7 +21,7 @@ export type Route =
   | { page: 'clients' }
   | { page: 'company'; companyId: string }
   | { page: 'engagement'; companyId: string; engagementId: string }
-  | { page: 'record'; companyId: string; engagementId: string }
+  | { page: 'record'; companyId: string; engagementId: string; findingId?: string }
   | { page: 'session'; companyId: string; engagementId: string; sessionId: string; passageId?: string }
   | { page: 'consent'; companyId: string; engagementId: string; sessionId: string }
   | { page: 'design'; companyId: string; engagementId: string; designId: string; layerId?: string }
@@ -37,7 +38,12 @@ export function parseRoute(hash: string): Route {
   if (e === undefined) return { page: 'company', companyId };
   if (e !== 'e' || !isValidId(engagementId)) return { page: 'clients' };
   if (s === undefined) return { page: 'engagement', companyId, engagementId };
-  if (s === 'record' && sessionId === undefined) return { page: 'record', companyId, engagementId };
+  if (s === 'record') {
+    if (sessionId === undefined) return { page: 'record', companyId, engagementId };
+    if (sessionId === 'f' && isValidId(sub) && passageId === undefined)
+      return { page: 'record', companyId, engagementId, findingId: sub };
+    return { page: 'clients' };
+  }
   if (s === 'd' && isValidId(sessionId)) {
     if (sub === undefined) return { page: 'design', companyId, engagementId, designId: sessionId };
     if (sub === 'l' && isValidId(passageId))
@@ -61,7 +67,7 @@ export function routeHref(route: Route): string {
     case 'engagement':
       return `#/c/${route.companyId}/e/${route.engagementId}`;
     case 'record':
-      return `#/c/${route.companyId}/e/${route.engagementId}/record`;
+      return `#/c/${route.companyId}/e/${route.engagementId}/record${route.findingId ? `/f/${route.findingId}` : ''}`;
     case 'session':
       return `#/c/${route.companyId}/e/${route.engagementId}/s/${route.sessionId}${route.passageId ? `/p/${route.passageId}` : ''}`;
     case 'consent':

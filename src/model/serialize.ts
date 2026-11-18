@@ -1,7 +1,7 @@
 import { defaultProps } from './defaults';
 import { applyToPoint, childSpaceMatrix } from './geometry';
 import { isValidId } from './ids';
-import { coerceProp, PROP_KEYS } from './properties';
+import { coerceProp, PROP_KEYS, propAppliesTo } from './properties';
 import { CONTAINER_TYPES, type DesignDocument, type DesignNode, type NodeType } from './types';
 
 /**
@@ -13,9 +13,10 @@ export const FILE_FORMAT = 'stylecode';
  * 2: auto-layout, sizing, roles, effects and image layers.
  * 3: wrapping rows.
  * 4: grids, min/max sizes, independent corners, phone overrides and notes.
+ * 5: a layer's links to the findings it answers, in an engagement's design (Workspace Phase 4).
  * Older files load unchanged: every new property defaults to the old behaviour.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 export const FILE_EXTENSION = '.stylecode.json';
 
 export interface ProjectFile {
@@ -104,6 +105,11 @@ export function parseDocument(input: unknown): ParseResult {
         if (result && !result.ok) warnings.push(`Layer ${key}: ${result.error}; reset to default.`);
         (node as unknown as Record<string, unknown>)[prop] = defaults[prop];
       }
+    }
+    // Links to findings belong on the layers that can hold them, never on the page or a note.
+    if (node.findings.length && !propAppliesTo('findings', type)) {
+      warnings.push(`Layer ${key}: a ${type} can't link to findings; its links were removed.`);
+      node.findings = defaults.findings;
     }
     node.children = Array.isArray(n.children) ? n.children.filter((c): c is string => typeof c === 'string') : [];
     clean[key] = node;

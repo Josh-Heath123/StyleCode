@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Canvas } from '../canvas/Canvas';
 import type { Camera } from '../editor/camera';
 import type { Editor } from '../editor/editor';
@@ -10,7 +10,7 @@ import { CodePanel } from '../panels/CodePanel';
 import { listScreens, screenOf } from '../codegen/screen';
 import { PreviewDialog } from './PreviewDialog';
 import type { ProjectSession } from '../persistence/session';
-import { fitAllCamera } from './actions';
+import { ALT_KEY, fitAllCamera, zoomToSelection } from './actions';
 import type { Assistant } from '../ai/assistant';
 import { AssistantContext } from '../ai/react';
 import { AiSettingsDialog } from './AiSettingsDialog';
@@ -18,6 +18,7 @@ import { DockArea } from './AssistantBar';
 import { Notice } from './Notice';
 import { Announcer } from './Announcer';
 import { PanelBoundary } from '../ui/ErrorBoundary';
+import { Icon } from '../ui/Icon';
 import { Onboarding } from './onboardingState';
 import { Checklist, useOnboardingState, WelcomeDialog } from './Onboarding';
 import { ShortcutsDialog } from './ShortcutsDialog';
@@ -25,6 +26,7 @@ import { isTypingTarget } from '../canvas/Canvas';
 import { ProjectsDialog } from './ProjectsDialog';
 import { useShortcuts } from './shortcuts';
 import { TopBar } from './TopBar';
+import { RecordContext, type EngagementRecord } from './record';
 
 interface AppProps {
   editor: Editor;
@@ -33,6 +35,8 @@ interface AppProps {
   initialCamera: Camera | null;
   /** Navigation between the workspace and the editor, shown in the top bar. */
   nav?: ReactNode;
+  /** Whether the first view zooms to the selection, after framing (a layer's route, Phase 4 decision 8). */
+  focusSelection?: boolean;
   /**
    * An engagement's design is open, kept in its client's folder (Phase 4,
    * decisions 1 and 4): the Designs menu offers only the way back and Download
@@ -44,9 +48,11 @@ interface AppProps {
 export interface CompanyEditing {
   /** The engagement's page. */
   backHref: string;
+  /** The engagement's record, shown beside the layers (decision 9). */
+  record?: EngagementRecord;
 }
 
-export function App({ editor, assistant, session, initialCamera, nav, company }: AppProps) {
+export function App({ editor, assistant, session, initialCamera, nav, company, focusSelection }: AppProps) {
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [rightTab, setRightTab] = useState<'design' | 'code'>('design');
@@ -54,7 +60,37 @@ export function App({ editor, assistant, session, initialCamera, nav, company }:
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [onboarding] = useState(() => new Onboarding());
   const { welcomed } = useOnboardingState(onboarding);
+  const record = company?.record ?? null;
+  const [recordShown, setRecordShown] = useState(true);
   useShortcuts(editor);
+
+  /** Shows or hides the Record panel; shown from the keyboard, focus goes into it. */
+  const toggleRecord = useCallback(
+    (focus: boolean) => {
+      // Into the panel when it shows. When it hides with focus inside it, to the layers beside it (or the canvas, when
+      // the Insert tab is showing), so focus isn't lost with it; focus elsewhere stays where it is.
+      const inPanel = !!document.activeElement?.closest('.panel-record');
+      if (focus && !recordShown) requestAnimationFrame(() => document.getElementById('record-filter')?.focus());
+      if (recordShown && inPanel)
+        requestAnimationFrame(() =>
+          (document.querySelector<HTMLElement>('[role="tree"]') ?? document.querySelector<HTMLElement>('.canvas'))?.focus(),
+        );
+      setRecordShown(!recordShown);
+    },
+    [recordShown],
+  );
+
+  // Alt+R shows or hides the record beside an engagement's design.
+  useEffect(() => {
+    if (!record) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.code !== 'KeyR') return;
+      e.preventDefault();
+      toggleRecord(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [record, toggleRecord]);
 
   // The checklist ticks itself off as things are done.
   useEffect(() => onboarding.watch(editor), [onboarding, editor]);
@@ -96,87 +132,116 @@ export function App({ editor, assistant, session, initialCamera, nav, company }:
   /** Restores a project's saved view, or frames its content when it has none. */
   const restoreCamera = useCallback((camera: Camera | null) => editor.setCamera(camera ?? fitAllCamera(editor)), [editor]);
 
-  // The canvas measures the viewport in its own layout effect, which runs first.
-  useLayoutEffect(() => restoreCamera(initialCamera), [restoreCamera, initialCamera]);
+  // The canvas measures the viewport in its own layout effect, which runs first. The first view is set once: a later
+  // render with another camera or selection (the client's workspace changing beside its design) never moves it.
+  const viewSet = useRef(false);
+  useLayoutEffect(() => {
+    if (viewSet.current) return;
+    viewSet.current = true;
+    restoreCamera(initialCamera);
+    if (focusSelection) zoomToSelection(editor);
+  }, [restoreCamera, initialCamera, focusSelection, editor]);
 
   return (
     <EditorContext.Provider value={editor}>
       <AssistantContext.Provider value={assistant}>
-        <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}`}>
-          <TopBar
-            nav={nav}
-            company={company}
-            session={session}
-            onOpenProjects={() => setProjectsOpen(true)}
-            onCameraRestore={restoreCamera}
-            onPreview={() => openPreview()}
-            onOpenAiSettings={() => setAiSettingsOpen(true)}
-            onboarding={onboarding}
-            onOpenShortcuts={() => setShortcutsOpen(true)}
-          />
-          <aside className="panel panel-left" aria-label="Layers and insert panel">
-            <PanelBoundary name="Layers">
-              <LeftPanel />
-            </PanelBoundary>
-          </aside>
-          <main className="canvas-area" style={{ display: 'contents' }}>
-            <Canvas />
-          </main>
-          <aside className="panel panel-right" aria-label="Design and code panel">
-            <PanelTabs
-              label="Inspector"
-              tabs={[
-                { id: 'design', label: 'Design' },
-                { id: 'code', label: 'Code' },
-              ]}
-              value={rightTab}
-              onChange={setRightTab}
-            />
-            <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${rightTab}`} aria-labelledby={`tab-${rightTab}`}>
-              {rightTab === 'design' ? (
-                <PanelBoundary key="design" name="Design">
-                  <PropertiesPanel />
-                </PanelBoundary>
-              ) : (
-                <PanelBoundary key="code" name="Code">
-                  <CodePanel onPreview={openPreview} />
-                </PanelBoundary>
-              )}
-            </div>
-          </aside>
-          <PanelBoundary name="Tools">
-            <DockArea onOpenSettings={() => setAiSettingsOpen(true)} />
-          </PanelBoundary>
-          <Notice />
-          <Announcer />
-          {preview && (
-            <PreviewDialog
-              screenId={preview}
-              onClose={() => setPreview(null)}
-              onDevice={(device) => device === 'mobile' && onboarding.complete('preview')}
-            />
-          )}
-          {projectsOpen && (
-            <ProjectsDialog session={session} onClose={() => setProjectsOpen(false)} onCameraRestore={restoreCamera} />
-          )}
-          {aiSettingsOpen && <AiSettingsDialog onClose={() => setAiSettingsOpen(false)} />}
-          {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
-          <div className="canvas-corner">
-            <Checklist onboarding={onboarding} />
-          </div>
-          {!welcomed && !company && (
-            <WelcomeDialog
+        <RecordContext.Provider value={record}>
+          <div className={`app${rightTab === 'code' ? ' is-code-open' : ''}${record && recordShown ? ' has-record' : ''}`}>
+            <TopBar
+              nav={nav}
+              company={company}
+              session={session}
+              onOpenProjects={() => setProjectsOpen(true)}
+              onCameraRestore={restoreCamera}
+              onPreview={() => openPreview()}
+              onOpenAiSettings={() => setAiSettingsOpen(true)}
               onboarding={onboarding}
-              onOpenExample={async () => {
-                try {
-                  restoreCamera(await session.newExampleProject());
-                } catch (error) {
-                  editor.notify((error as Error).message, 'error');
-                }
-              }}
+              onOpenShortcuts={() => setShortcutsOpen(true)}
+              recordShown={record ? recordShown : undefined}
+              onToggleRecord={() => toggleRecord(true)}
             />
-          )}
-        </div>
+            <aside className="panel panel-left" aria-label="Layers and insert panel">
+              <PanelBoundary name="Layers">
+                <LeftPanel />
+              </PanelBoundary>
+            </aside>
+            {record && recordShown && (
+              <aside className="panel panel-record" aria-labelledby="record-panel-title">
+                <div className="panel-title record-panel-title">
+                  <h2 id="record-panel-title">Record</h2>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    aria-label="Hide the record"
+                    data-tip={`Hide the record  ${ALT_KEY}+R`}
+                    data-tip-side="left"
+                    onClick={() => toggleRecord(true)}
+                  >
+                    <Icon name="x" size={13} />
+                  </button>
+                </div>
+                <PanelBoundary name="Record">{record.panel}</PanelBoundary>
+              </aside>
+            )}
+            <main className="canvas-area" style={{ display: 'contents' }}>
+              <Canvas />
+            </main>
+            <aside className="panel panel-right" aria-label="Design and code panel">
+              <PanelTabs
+                label="Inspector"
+                tabs={[
+                  { id: 'design', label: 'Design' },
+                  { id: 'code', label: 'Code' },
+                ]}
+                value={rightTab}
+                onChange={setRightTab}
+              />
+              <div className="panel-tabpanel" role="tabpanel" id={`tabpanel-${rightTab}`} aria-labelledby={`tab-${rightTab}`}>
+                {rightTab === 'design' ? (
+                  <PanelBoundary key="design" name="Design">
+                    <PropertiesPanel />
+                  </PanelBoundary>
+                ) : (
+                  <PanelBoundary key="code" name="Code">
+                    <CodePanel onPreview={openPreview} />
+                  </PanelBoundary>
+                )}
+              </div>
+            </aside>
+            <PanelBoundary name="Tools">
+              <DockArea onOpenSettings={() => setAiSettingsOpen(true)} />
+            </PanelBoundary>
+            <Notice />
+            <Announcer />
+            {preview && (
+              <PreviewDialog
+                screenId={preview}
+                onClose={() => setPreview(null)}
+                onDevice={(device) => device === 'mobile' && onboarding.complete('preview')}
+              />
+            )}
+            {projectsOpen && (
+              <ProjectsDialog session={session} onClose={() => setProjectsOpen(false)} onCameraRestore={restoreCamera} />
+            )}
+            {aiSettingsOpen && <AiSettingsDialog onClose={() => setAiSettingsOpen(false)} />}
+            {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+            <div className="canvas-corner">
+              <Checklist onboarding={onboarding} />
+            </div>
+            {!welcomed && !company && (
+              <WelcomeDialog
+                onboarding={onboarding}
+                onOpenExample={async () => {
+                  try {
+                    restoreCamera(await session.newExampleProject());
+                  } catch (error) {
+                    editor.notify((error as Error).message, 'error');
+                  }
+                }}
+              />
+            )}
+          </div>
+        </RecordContext.Provider>
       </AssistantContext.Provider>
     </EditorContext.Provider>
   );

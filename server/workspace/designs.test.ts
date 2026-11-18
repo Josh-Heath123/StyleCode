@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createNode } from '../../src/model/defaults';
 import { createDocument } from '../../src/model/document';
 import { applyOps } from '../../src/model/ops';
-import { toProjectFile } from '../../src/model/serialize';
+import { SCHEMA_VERSION, toProjectFile } from '../../src/model/serialize';
 import type { CompanyWorkspace } from '../../src/workspace/model/index.ts';
 import { assetIdOf, DesignFiles } from './designs.ts';
 import { WorkspaceStore } from './store.ts';
@@ -238,7 +238,7 @@ describe('clearing up keeps what a damaged design uses (Slice A review)', () => 
     await designs.create(c.id, 'doc_b', designFile('doc_b', 'B', [image]));
     // doc_a can't be parsed any more (from a newer StyleCode, say), but still names the image.
     const pathA = join(folder(c.id), 'doc_a.stylecode.json');
-    const text = readFileSync(pathA, 'utf8').replace('"version":4', '"version":99');
+    const text = readFileSync(pathA, 'utf8').replace(`"version":${SCHEMA_VERSION}`, '"version":99');
     expect(text).toContain('"version":99');
     writeFileSync(pathA, text);
     writeFileSync(join(folder(c.id), 'doc_b.stylecode.json.0123456789ab.tmp'), 'half a save');

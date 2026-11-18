@@ -29,6 +29,54 @@ async function scan(page: Page, label: string): Promise<void> {
   expect(problems, `${label} has accessibility problems`).toEqual([]);
 }
 
+/**
+ * A role-played client with an engagement "Bookings" and a session "First visit" whose one participant is Pat Physio,
+ * with no consent record: what the keyboard test of the workspace pages builds from the keyboard.
+ */
+async function physioSession(page: Page): Promise<{ id: string; name: string }> {
+  const headers = { 'x-stylecode-workspace': '1' };
+  const name = `Accessible Physio ${Math.random().toString(36).slice(2, 8)}`;
+  const res = await page.request.post('/api/workspace/companies', { headers, data: { profile: { name } } });
+  const opened = (await res.json()) as { workspace: Record<string, unknown> & { company: { id: string } }; revision: string };
+  const ws = opened.workspace;
+  const id = ws.company.id;
+  const at = new Date().toISOString();
+  ws.engagements = {
+    en_1: { id: 'en_1', companyId: id, name: 'Bookings', goal: '', status: { state: 'active' }, createdAt: at, updatedAt: at },
+  };
+  ws.sessions = {
+    se_1: {
+      id: 'se_1',
+      engagementId: 'en_1',
+      title: 'First visit',
+      startsAt: at,
+      timeZone: 'Africa/Johannesburg',
+      audioFileIds: [],
+      deletedRecordings: [],
+      aiStop: null,
+      createdAt: at,
+      updatedAt: at,
+    },
+  };
+  ws.participants = {
+    pa_pat: {
+      id: 'pa_pat',
+      sessionId: 'se_1',
+      name: 'Pat Physio',
+      role: '',
+      organisation: '',
+      side: 'client',
+      speakerLabels: [],
+    },
+  };
+  const saved = await page.request.put(`/api/workspace/companies/${id}`, {
+    headers,
+    data: { workspace: ws, baseRevision: opened.revision },
+  });
+  expect(saved.status()).toBe(200);
+  return { id, name };
+}
+
 test.describe('accessibility checks', () => {
   test.beforeEach(async ({ page }) => openExample(page));
 
@@ -44,33 +92,49 @@ test.describe('accessibility checks', () => {
     await scan(page, 'The code panel');
   });
 
-  test('the dialogs and menus', async ({ page }) => {
+  // One test per dialog: seven scans of the whole editor in one test ran past the time limit on a busy laptop.
+  test('the keyboard shortcuts dialog', async ({ page }) => {
     await page.keyboard.press('?');
     await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeVisible();
     await scan(page, 'Keyboard shortcuts');
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeHidden();
+  });
 
+  test('the designs dialog', async ({ page }) => {
     await page.getByRole('button', { name: 'Designs' }).click();
     await page.getByRole('menuitem', { name: /All designs/ }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await scan(page, 'Projects');
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+  });
 
+  test('the preview', async ({ page }) => {
     await page.getByRole('button', { name: 'Preview', exact: true }).first().click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await scan(page, 'Preview');
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+  });
 
+  test('the help menu', async ({ page }) => {
     await page.getByRole('button', { name: 'Help' }).click();
     await expect(page.getByRole('menu')).toBeVisible();
     await scan(page, 'Help menu');
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toBeHidden();
+  });
 
+  test('the AI settings dialog', async ({ page }) => {
     await page.getByRole('button', { name: /^AI settings/ }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await scan(page, 'AI settings');
     await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toBeHidden();
+  });
 
+  test('the AI assistant', async ({ page }) => {
     await page.keyboard.press('/');
     await expect(page.getByRole('region', { name: 'AI assistant' })).toBeVisible();
     await scan(page, 'AI assistant');
@@ -158,6 +222,14 @@ test.describe('the workspace pages', () => {
     await page.keyboard.press('Enter');
     await expect(participant).toBeHidden();
     await scan(page, 'A session');
+  });
+
+  // Split from the test above: nine scans in one test ran past the time limit on a busy laptop. This one starts where
+  // that one ends, a session with one participant and no consent record, saved through the API.
+  test('a session’s consent form and its dialogs, and the client’s', async ({ page }) => {
+    const { id, name } = await physioSession(page);
+    await page.goto(`/#/c/${id}/e/en_1/s/se_1`);
+    await expect(page.getByRole('heading', { level: 1, name: 'First visit' })).toBeVisible();
 
     // Confirming needs the consultant's name, from settings.
     await page.request.put('/api/workspace/settings', {

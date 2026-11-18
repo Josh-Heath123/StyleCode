@@ -187,6 +187,12 @@ export interface NodeProps {
 
   /** Notes only: the layer the note points at, or empty. */
   noteTarget: string;
+
+  /**
+   * The ids of the findings this layer answers, in an engagement's design (Workspace Phase 4, decision 10). Ids only:
+   * what they mean comes from the workspace. Not for the AI, the preview or exported code.
+   */
+  findings: readonly string[];
 }
 
 export type PropKey = keyof NodeProps;

@@ -3,6 +3,9 @@ import type { DesignNode, NodeProps, NodeType } from './types';
 
 export const DEFAULT_FONT_FAMILY = 'Inter';
 
+/** Shared by every layer without links: lists are never changed in place, only replaced. */
+const NO_FINDINGS: readonly string[] = Object.freeze([]);
+
 const BASE_PROPS: NodeProps = {
   name: '',
   visible: true,
@@ -67,6 +70,7 @@ const BASE_PROPS: NodeProps = {
   mobileFontSize: 0,
   mobileTextAlign: 'same',
   noteTarget: '',
+  findings: NO_FINDINGS,
 };
 
 const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {

@@ -302,8 +302,8 @@ export function createWorkspaceHandler(
       const busy = code === 'EPERM' || code === 'EBUSY' || code === 'EACCES';
       return sendJson(res, 500, {
         error: busy
-          ? "Another program is using a file in the client's folder (often antivirus or backup software). Try again in a moment."
-          : "Something went wrong reading or writing the client's folder.",
+          ? 'Another program is using a file in the client’s folder (often antivirus or backup software). Try again in a moment.'
+          : 'Something went wrong reading or writing the client’s folder.',
       });
     }
   };
