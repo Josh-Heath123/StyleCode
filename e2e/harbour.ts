@@ -7,8 +7,9 @@ import { expect, type Page } from '@playwright/test';
  * and an open question, all entered by the consultant. The design "Order
  * page" has a frame with a heading, a date picker and a Pay button; the Pay
  * button is linked to "Customers pay online when they order", and the date
- * picker to "Orders need two days' notice". The client's name is unique per
- * call, so tests can run side by side.
+ * picker to "Orders need two days' notice". A second engagement, Wholesale, has a
+ * finding of its own. The client's name is unique per call, so tests can run
+ * side by side.
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
@@ -22,6 +23,8 @@ export const BAKERY = {
     notice: { id: 'fd_notice', statement: 'Orders need two days’ notice.' },
     pickup: { id: 'fd_pickup', statement: 'Most customers collect from the Harbour Road shop.' },
     delivery: { id: 'fd_delivery', statement: 'Should the bakery deliver cakes?' },
+    /** Another engagement's: never in this one's record. */
+    wholesale: { id: 'fd_wholesale', statement: 'Cafés order bread by six each morning.' },
   },
 } as const;
 
@@ -60,12 +63,22 @@ export async function harbourBakery(page: Page): Promise<{ id: string; name: str
       createdAt: at,
       updatedAt: at,
     },
+    en_2: {
+      id: 'en_2',
+      companyId: id,
+      name: 'Wholesale',
+      goal: 'Supply bread to cafés.',
+      status: { state: 'active' },
+      createdAt: at,
+      updatedAt: at,
+    },
   };
   ws.findings = {
     [f.pay.id]: finding(f.pay.id, 'functional-requirement', f.pay.statement, 'confirmed', 1),
     [f.notice.id]: finding(f.notice.id, 'constraint', f.notice.statement, 'confirmed', 2),
     [f.pickup.id]: finding(f.pickup.id, 'expectation', f.pickup.statement, 'assumption', 3),
     [f.delivery.id]: finding(f.delivery.id, 'open-question', f.delivery.statement, 'unresolved', 4),
+    [f.wholesale.id]: { ...finding(f.wholesale.id, 'constraint', f.wholesale.statement, 'confirmed', 5), engagementId: 'en_2' },
   };
   ws.designs = {
     [BAKERY.designId]: {

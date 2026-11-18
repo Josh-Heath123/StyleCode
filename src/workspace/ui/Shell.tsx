@@ -125,7 +125,7 @@ export function Shell({ editor, assistant, session, initialCamera, info }: Shell
       <WorkspaceInfoContext.Provider value={info}>
         <DesignEditorContext.Provider value={{ editor, session }}>
           <DesignHost
-            key={`${route.companyId}/${route.designId}`}
+            key={`${route.companyId}/${route.engagementId}/${route.designId}`}
             companyId={route.companyId}
             engagementId={route.engagementId}
             designId={route.designId}

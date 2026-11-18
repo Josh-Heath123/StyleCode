@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Canvas } from '../canvas/Canvas';
 import type { Camera } from '../editor/camera';
 import type { Editor } from '../editor/editor';
@@ -67,13 +67,13 @@ export function App({ editor, assistant, session, initialCamera, nav, company, f
   /** Shows or hides the Record panel; shown from the keyboard, focus goes into it. */
   const toggleRecord = useCallback(
     (focus: boolean) => {
-      // Into the panel when it shows; to the layers beside it when it hides, so focus isn't lost with it.
-      if (focus)
+      // Into the panel when it shows. When it hides with focus inside it, to the layers beside it (or the canvas, when
+      // the Insert tab is showing), so focus isn't lost with it; focus elsewhere stays where it is.
+      const inPanel = !!document.activeElement?.closest('.panel-record');
+      if (focus && !recordShown) requestAnimationFrame(() => document.getElementById('record-filter')?.focus());
+      if (recordShown && inPanel)
         requestAnimationFrame(() =>
-          (recordShown
-            ? document.querySelector<HTMLElement>('[role="tree"]')
-            : document.getElementById('record-filter')
-          )?.focus(),
+          (document.querySelector<HTMLElement>('[role="tree"]') ?? document.querySelector<HTMLElement>('.canvas'))?.focus(),
         );
       setRecordShown(!recordShown);
     },
@@ -132,12 +132,15 @@ export function App({ editor, assistant, session, initialCamera, nav, company, f
   /** Restores a project's saved view, or frames its content when it has none. */
   const restoreCamera = useCallback((camera: Camera | null) => editor.setCamera(camera ?? fitAllCamera(editor)), [editor]);
 
-  // The canvas measures the viewport in its own layout effect, which runs first.
+  // The canvas measures the viewport in its own layout effect, which runs first. The first view is set once: a later
+  // render with another camera or selection (the client's workspace changing beside its design) never moves it.
+  const viewSet = useRef(false);
   useLayoutEffect(() => {
+    if (viewSet.current) return;
+    viewSet.current = true;
     restoreCamera(initialCamera);
     if (focusSelection) zoomToSelection(editor);
-    // Only the first view: the selection's later changes don't move the camera.
-  }, [restoreCamera, initialCamera]);
+  }, [restoreCamera, initialCamera, focusSelection, editor]);
 
   return (
     <EditorContext.Provider value={editor}>

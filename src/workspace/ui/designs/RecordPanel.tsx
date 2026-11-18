@@ -29,7 +29,9 @@ export function RecordPanel({
 }) {
   const editor = useEditor();
   const { workspace } = useSyncExternalStore(client.subscribe, client.getState);
-  const doc = useEditorState((s) => s.doc);
+  // The document as committed: not every frame of a drag, which can't change a layer's links.
+  useEditorState((s) => s.historyVersion);
+  const doc = editor.committedDoc;
   const selection = useEditorState((s) => s.selection);
   const [filter, setFilter] = useState('');
 
@@ -39,18 +41,20 @@ export function RecordPanel({
   const matches = (f: Finding) => !q || f.statement.toLowerCase().includes(q) || KIND_LABEL[f.kind].toLowerCase().includes(q);
   const shown = GROUPS.reduce((n, g) => n + groups[g.key].filter(matches).length, 0);
   const layerCounts = useMemo(() => linkedLayerCounts(doc), [doc]);
-  // The selected layers that can be linked: not the page, and not notes.
-  const linkable = selection.map((id) => doc.nodes[id]).filter((n) => n && propAppliesTo('findings', n.type));
+  const linkable = linkableLayers(doc, selection);
   const recordHref = routeHref({ page: 'record', companyId, engagementId });
 
   const toggle = (f: Finding, linked: boolean) => {
-    const ids = linkable.map((n) => n.id);
-    const ops = linked ? unlinkFindingOps(doc, ids, f.id) : linkFindingOps(doc, ids, f.id);
+    // From the editor as it is now, not as last drawn.
+    const { doc: now, selection: selected } = editor.getState();
+    const layers = linkableLayers(now, selected);
+    const ids = layers.map((n) => n.id);
+    const ops = linked ? unlinkFindingOps(now, ids, f.id) : linkFindingOps(now, ids, f.id);
     const tx = editor.apply(ops, { label: linked ? 'Unlink a finding' : 'Link to a finding' });
     if (!tx) return;
-    const layers = linkable.length === 1 ? `“${displayName(linkable[0])}”` : `${linkable.length} layers`;
+    const which = layers.length === 1 ? `“${displayName(layers[0])}”` : `${layers.length} layers`;
     // The notice is read out, so a screen reader hears the link made or removed.
-    editor.notify(linked ? `Unlinked ${layers} from “${f.statement}”.` : `Linked ${layers} to “${f.statement}”.`);
+    editor.notify(linked ? `Unlinked ${which} from “${f.statement}”.` : `Linked ${which} to “${f.statement}”.`);
   };
 
   return (
@@ -135,6 +139,11 @@ export function RecordPanel({
       </div>
     </div>
   );
+}
+
+/** The selected layers that can be linked: not the page, and not notes. */
+function linkableLayers(doc: DesignDocument, selection: readonly string[]) {
+  return selection.map((id) => doc.nodes[id]).filter((n) => n && propAppliesTo('findings', n.type));
 }
 
 /** How many layers link to each finding. */

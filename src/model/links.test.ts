@@ -11,6 +11,7 @@ import {
   unlinkFindingOps,
   withoutFindings,
 } from './commands';
+import { createNode } from './defaults';
 import { applyOps } from './ops';
 import { coerceProp } from './properties';
 import { parseProject, SCHEMA_VERSION, toProjectFile } from './serialize';
@@ -107,6 +108,30 @@ describe('the design file', () => {
     expect(opened.warnings).toEqual([]);
     expect(opened.doc).toEqual(doc);
     for (const node of Object.values(opened.doc.nodes)) expect(node.findings).toEqual([]);
+  });
+
+  it('drops links on the page or a note, which can’t hold them, whether read from a file or created', () => {
+    const base = design();
+    // Created with links (a pasted note, say): the note keeps none.
+    const doc = applyOps(base, [
+      {
+        type: 'create',
+        parentId: base.rootId,
+        index: 0,
+        nodes: [{ ...createNode('note', { text: 'Ask about deposits' }, 'n_note'), findings: ['fi_pay'] }],
+      },
+    ]).doc;
+    expect(doc.nodes.n_note.findings).toEqual([]);
+    // Read from a file: the page's and the note's links go, with a warning; a shape's stay.
+    const file = JSON.parse(JSON.stringify(toProjectFile(linked(doc))));
+    file.document.nodes[doc.rootId].findings = ['fi_pay'];
+    file.document.nodes.n_note.findings = ['fi_pay'];
+    const opened = parseProject(file);
+    if (!opened.ok) throw new Error(opened.error);
+    expect(opened.doc.nodes[doc.rootId].findings).toEqual([]);
+    expect(opened.doc.nodes.n_note.findings).toEqual([]);
+    expect(opened.doc.nodes.button.findings).toEqual(['fi_pay', 'fi_card']);
+    expect(opened.warnings).toHaveLength(2);
   });
 
   it('drops a damaged list of links rather than the layer, and says so', () => {

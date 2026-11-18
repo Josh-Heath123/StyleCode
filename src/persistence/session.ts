@@ -9,6 +9,7 @@ import { BROWSER_ASSETS, exportAssets, importAssets, setAssetSource, type AssetS
 import type { DesignDocument } from '../model/types';
 import { createExampleDocument } from './examples';
 import { exportProjectFile, pickProjectFile, saveFile } from './files';
+import { stripFindings } from '../model/commands';
 import { idbDelete, idbGet, idbGetAll, idbPut, PROJECTS } from './idb';
 
 /**
@@ -620,8 +621,9 @@ export class ProjectSession {
       this.dropCompany();
     }
     await importAssets((picked.data as { assets?: unknown }).assets);
-    // A fresh id means importing never overwrites a local project with the same origin.
-    const doc = { ...parsed.doc, id: createId('doc') };
+    // A fresh id means importing never overwrites a local project with the same origin. The editor's own designs
+    // have no record, so a client's design brought in as a file leaves its links to findings behind (decision 18).
+    const doc = { ...stripFindings(parsed.doc), id: createId('doc') };
     await this.switchTo(doc, null);
     return { camera: null, warnings: parsed.warnings.length };
   }

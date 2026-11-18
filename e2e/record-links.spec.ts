@@ -75,6 +75,8 @@ test('link a layer from the canvas, see it from both sides, follow it back to th
   await expect(page.locator('.notice')).toHaveText(`Linked “Heading” to “${F.pickup.statement}”.`);
   await expect(findingsSection(page).getByRole('listitem')).toHaveText([has(F.pickup.statement)]);
   await expect(findingsSection(page)).toContainText('Expectation · Status: Assumption');
+  // The editor with a live link: the panel's linked row and the layer's findings pass the accessibility check.
+  await axe(page);
   await expect(panel.getByRole('button', { name: `Unlink from the selected layer: “${F.pickup.statement}”` })).toBeVisible();
   // Saved into the design, in the client's folder, as design file version 5.
   await expect.poll(() => linksOnDisk(id).findings(L.heading)).toEqual([F.pickup.id]);
@@ -155,12 +157,24 @@ test('from the keyboard: Alt+R hides and shows the record, focus goes into it, a
   const { id } = await harbourBakery(page);
   await openOrderPage(page, id, L.heading);
   await expect.poll(async () => (await snapshot(page)).selection).toEqual([L.heading]);
+  // Hidden while focus is elsewhere, focus stays where it was.
   await page.locator('.canvas').focus();
   await page.keyboard.press('Alt+r');
   await expect(recordPanel(page)).toHaveCount(0);
-  await expect(page.getByRole('tree', { name: 'Layers' })).toBeFocused();
+  await expect(page.locator('.canvas')).toBeFocused();
   await page.keyboard.press('Alt+r');
   const filter = recordPanel(page).getByRole('searchbox', { name: 'Filter the record' });
+  await expect(filter).toBeFocused();
+  // Hidden from inside it, focus goes to the layers beside it; with the Insert tab showing, to the canvas.
+  await page.keyboard.press('Alt+r');
+  await expect(page.getByRole('tree', { name: 'Layers' })).toBeFocused();
+  await page.getByRole('tab', { name: 'Insert' }).click();
+  await page.keyboard.press('Alt+r');
+  await expect(filter).toBeFocused();
+  await page.keyboard.press('Alt+r');
+  await expect(page.locator('.canvas')).toBeFocused();
+  await page.getByRole('tab', { name: 'Layers' }).click();
+  await page.keyboard.press('Alt+r');
   await expect(filter).toBeFocused();
   // Tab from the filter reaches the first finding's Link button.
   const link = recordPanel(page).getByRole('button', { name: `Link to the selected layer: “${F.pay.statement}”` });
@@ -202,7 +216,7 @@ test('the standalone editor has no record and no findings, and a layer pasted fr
   expect(s.doc.nodes[s.selection[0]].name).toBe('Pay button');
   expect(s.doc.nodes[s.selection[0]].findings).toEqual([]);
   await expect(page.getByText('Not linked to a finding.')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Findings' })).toHaveCount(0);
+  await expect(page.locator('#layer-findings-title')).toHaveCount(0);
 });
 
 test('a design’s route opened directly shows the design in view, and its layer route shows that layer (Slice A’s camera)', async ({
@@ -225,4 +239,53 @@ test('a design’s route opened directly shows the design in view, and its layer
   await expect.poll(async () => (await snapshot(page)).selection).toEqual([L.pay]);
   await expect.poll(async () => (await snapshot(page)).camera.zoom).toBeGreaterThan(0.5);
   await inCanvas(L.pay, 100);
+});
+
+test('only this engagement’s findings appear: another engagement’s is neither listed nor shown on a layer', async ({ page }) => {
+  const { id } = await harbourBakery(page);
+  await openOrderPage(page, id, L.heading);
+  await expect.poll(async () => (await snapshot(page)).selection).toEqual([L.heading]);
+  await expect(recordPanel(page).getByRole('listitem')).toHaveCount(4);
+  await expect(recordPanel(page)).not.toContainText(F.wholesale.statement);
+  // A link to the Wholesale engagement's finding (as a hand-edited file could carry) isn't shown as that finding.
+  await page.evaluate(
+    ([layer, finding]) =>
+      (
+        window as unknown as { stylecode: { editor: { apply(ops: unknown[], o: { label: string }): unknown } } }
+      ).stylecode.editor.apply([{ type: 'update', id: layer, props: { findings: [finding] } }], { label: 'Link' }),
+    [L.heading, F.wholesale.id],
+  );
+  await expect(findingsSection(page).getByRole('listitem')).toHaveText([has('No longer in the record')]);
+  await expect(page.getByText(F.wholesale.statement)).toHaveCount(0);
+});
+
+test('the view stays where it is when the client’s workspace changes beside the design, after a layer’s route', async ({
+  page,
+}) => {
+  const { id } = await harbourBakery(page);
+  // Open once, then come back by a layer's route while the design is still loaded, as "In designs:" does.
+  await openOrderPage(page, id);
+  await page.getByRole('link', { name: 'Back to the engagement' }).click();
+  await openOrderPage(page, id, L.pay);
+  await expect.poll(async () => (await snapshot(page)).selection).toEqual([L.pay]);
+  await expect.poll(async () => (await snapshot(page)).camera.zoom).toBeGreaterThan(0.5);
+  // Pan away, then rename the design: a change to the client's workspace.
+  const before = (await snapshot(page)).camera;
+  await page.locator('.canvas').hover({ position: { x: 300, y: 300 } });
+  await page.mouse.wheel(0, 400);
+  await expect.poll(async () => (await snapshot(page)).camera.y).not.toBe(before.y);
+  const panned = (await snapshot(page)).camera;
+  const name = page.getByLabel('Design name');
+  await name.fill('Order page, renamed');
+  await name.press('Enter');
+  // The rename reaches the client's saved workspace (the design link's name), which re-renders the design's host.
+  await expect
+    .poll(async () => {
+      const res = await page.request.get(`/api/workspace/companies/${id}`, { headers: { 'x-stylecode-workspace': '1' } });
+      const ws = (await res.json()) as { workspace: { designs: Record<string, { name: string }> } };
+      return ws.workspace.designs[BAKERY.designId].name;
+    })
+    .toBe('Order page, renamed');
+  await expect(page.locator('.save-status')).toHaveText('Saved in the client’s folder');
+  expect((await snapshot(page)).camera).toEqual(panned);
 });

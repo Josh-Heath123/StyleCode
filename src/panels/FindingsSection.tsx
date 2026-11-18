@@ -44,7 +44,9 @@ export function FindingsSection({ editor, node }: { editor: Editor; node: Design
               return (
                 <li key={id} className="layer-finding is-gone">
                   <p className="layer-finding-statement">No longer in the record</p>
-                  <p className="layer-finding-meta">The finding this layer was linked to has been deleted.</p>
+                  <p className="layer-finding-meta">
+                    The finding this layer was linked to is no longer in this engagement’s record.
+                  </p>
                   <div className="layer-finding-actions">
                     <button type="button" className="link-button" onClick={() => unlink(id, null)}>
                       Remove link

@@ -1,4 +1,5 @@
 import { sortByDocumentOrder } from '../../../model/document';
+import { propAppliesTo } from '../../../model/properties';
 import type { DesignDocument } from '../../../model/types';
 import { displayName } from '../../../panels/LayersPanel';
 import type { DesignLink } from '../../model/types';
@@ -24,7 +25,7 @@ export function layersByFinding(
   const byFinding = new Map<string, LayerLink[]>();
   const sorted = [...designs].sort((a, b) => a.link.name.localeCompare(b.link.name) || a.link.id.localeCompare(b.link.id));
   for (const { link, doc } of sorted) {
-    const linked = Object.values(doc.nodes).filter((n) => n.findings.length > 0);
+    const linked = Object.values(doc.nodes).filter((n) => n.findings.length > 0 && propAppliesTo('findings', n.type));
     for (const layerId of sortByDocumentOrder(
       doc,
       linked.map((n) => n.id),
