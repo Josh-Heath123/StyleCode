@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { FAKE_MODEL, startFakeOllama, type FakeOllama } from './fakeOllama';
+import { expectHeavySlotFree } from './heavySlot';
 import { kickoff } from './karoo';
 import { E2E_WORKSPACE } from './workspaceFolder';
 
@@ -20,6 +21,10 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => {
   await fake.close();
+});
+// Each test's run lets go of the heavy slot before the next starts (e2e/heavySlot.ts).
+test.afterEach(async ({ request }) => {
+  await expectHeavySlotFree(request);
 });
 
 const SAMPLES = join(import.meta.dirname, '..', 'docs', 'phase-2', 'samples', 'karoo-freight-kickoff');
@@ -245,7 +250,9 @@ test('Stop partway keeps what the parts that finished proposed, says which, and 
   await expect(card(page)).toContainText(coverage);
   await expect.poll(() => findings(id).length).toBeGreaterThan(0);
 
-  // After a reload, what that run read is still said, until its proposals are reviewed or discarded.
+  // After a reload, what that run read is still said, until its proposals are reviewed or discarded. The reload waits
+  // for the run to let go of the heavy slot (e2e/heavySlot.ts).
+  await expectHeavySlotFree(page.request);
   await page.reload();
   await expect(card(page)).toContainText(coverage);
   await expect(card(page)).not.toContainText('Stopped after');
@@ -342,7 +349,9 @@ test('a client closed mid-run keeps what the finished parts proposed, added to i
     (onDisk(id) as unknown as { sessions: Record<string, { aiStop: { reason: string } | null }> }).sessions;
   await expect.poll(() => Object.values(stopOnDisk())[0].aiStop?.reason).toBe('The client was closed, so the AI stopped.');
 
-  // Still said after a reload, until dismissed.
+  // Still said after a reload, until dismissed. The run writes why it stopped before it lets go of the heavy slot,
+  // so the reload waits for that: a reload sooner could cancel the "let go" and leave the slot taken.
+  await expectHeavySlotFree(page.request);
   await page.reload();
   const stop = card(page).getByRole('group', { name: 'Why the AI stopped' });
   await expect(stop).toContainText(`The AI (${FAKE_MODEL}) stopped on `);

@@ -9,13 +9,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-    # Measurement only (WP1): which way of getting Chromium is faster, and how many shards pay off.
+    # Measurement only (WP1): how many shards pay off.
     inputs:
-      chromium:
-        description: 'Chromium from the Playwright container or a cache'
-        type: choice
-        options: [container, cache]
-        default: container
       shards:
         description: 'Browser test shards'
         type: choice
@@ -109,12 +104,16 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-  e2e-container:
-    # Each part runs on its own runner, with its own server and data folder. The tests that run last (retention and
-    # settings) are one part, alone in their folder (E2E_DESTRUCTIVE_ALONE); the rest are split into shards.
+  e2e:
+    # Each part runs on its own runner, with its own server and data folder:
+    # - cN/K: a shard of the chromium project;
+    # - hN/M: a shard of the heavy jobs, which run one at a time on a server (Phase 3, decision 10), so they're spread
+    #   over runners of their own rather than queued on one;
+    # - alone: the tests that run last locally (retention and settings), alone in their folder (E2E_DESTRUCTIVE_ALONE).
+    # Chromium comes with the Playwright container, pinned by digest: it measured faster than a cache (WP1).
     name: Browser tests (${{ matrix.part }})
     needs: changes
-    if: needs.changes.outputs.docs-only != 'true' && inputs.chromium != 'cache'
+    if: needs.changes.outputs.docs-only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -122,7 +121,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: ${{ fromJSON(inputs.shards == '4' && '[1,2,3,4,"alone"]' || inputs.shards == '8' && '[1,2,3,4,5,6,7,8,"alone"]' || '[1,2,3,4,5,6,"alone"]') }}
+        part: ${{ fromJSON(inputs.shards == '4' && '["c1/3","c2/3","c3/3","h1/1","alone"]' || inputs.shards == '8' && '["c1/6","c2/6","c3/6","c4/6","c5/6","c6/6","h1/2","h2/2","alone"]' || '["c1/4","c2/4","c3/4","c4/4","h1/2","h2/2","alone"]') }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -130,62 +129,30 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - id: name
+        # One name per part, for its artifact and its blob report: c1/4 and h1/2 would both be shard 1.
+        # An artifact's name can't hold a slash.
+        env:
+          PART: ${{ matrix.part }}
+        run: echo "name=$(echo "$PART" | tr / -)" >> "$GITHUB_OUTPUT"
       - name: Browser tests
         env:
           PART: ${{ matrix.part }}
-          SHARDS: ${{ inputs.shards || '6' }}
         run: |
-          if [ "$PART" = alone ]; then
-            E2E_DESTRUCTIVE_ALONE=1 npx playwright test --project "after the rest"
-          else
-            npx playwright test --project chromium --project "heavy jobs" --shard="$PART/$SHARDS"
-          fi
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+          case "$PART" in
+            alone) E2E_DESTRUCTIVE_ALONE=1 npx playwright test --project "after the rest" ;;
+            c*) npx playwright test --project chromium --shard="${PART#c}" ;;
+            h*) npx playwright test --project "heavy jobs" --shard="${PART#h}" ;;
+          esac
+      - name: Name the blob report after its part
         if: ${{ !cancelled() }}
-        with:
-          name: blob-report-${{ matrix.part }}
-          path: blob-report/
-          retention-days: 7
-
-  e2e-cache:
-    name: Browser tests (${{ matrix.part }})
-    needs: changes
-    if: needs.changes.outputs.docs-only != 'true' && inputs.chromium == 'cache'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        part: ${{ fromJSON(inputs.shards == '4' && '[1,2,3,4,"alone"]' || inputs.shards == '8' && '[1,2,3,4,5,6,7,8,"alone"]' || '[1,2,3,4,5,6,"alone"]') }}
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - id: browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: npx playwright install chromium
-      - run: npx playwright install-deps chromium
-      - name: Browser tests
         env:
-          PART: ${{ matrix.part }}
-          SHARDS: ${{ inputs.shards || '6' }}
-        run: |
-          if [ "$PART" = alone ]; then
-            E2E_DESTRUCTIVE_ALONE=1 npx playwright test --project "after the rest"
-          else
-            npx playwright test --project chromium --project "heavy jobs" --shard="$PART/$SHARDS"
-          fi
+          NAME: ${{ steps.name.outputs.name }}
+        run: for f in blob-report/*.zip; do [ -e "$f" ] && mv "$f" "blob-report/report-$NAME.zip"; done; ls blob-report
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: ${{ !cancelled() }}
         with:
-          name: blob-report-${{ matrix.part }}
+          name: blob-report-${{ steps.name.outputs.name }}
           path: blob-report/
           retention-days: 7
 
@@ -193,7 +160,7 @@ jobs:
     # The one required check for the browser tests: it passes only if every part succeeded, or every part was skipped
     # because the change is docs only. A failure, a cancellation or any other skip fails it.
     name: Browser tests
-    needs: [changes, e2e-container, e2e-cache]
+    needs: [changes, e2e]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -201,7 +168,7 @@ jobs:
       - env:
           CHANGES: ${{ needs.changes.result }}
           DOCS_ONLY: ${{ needs.changes.outputs.docs-only }}
-          E2E: ${{ inputs.chromium == 'cache' && needs.e2e-cache.result || needs.e2e-container.result }}
+          E2E: ${{ needs.e2e.result }}
         run: |
           echo "What changed: $CHANGES (docs only: $DOCS_ONLY). Browser tests: $E2E."
           if [ "$CHANGES" = success ] && { [ "$E2E" = success ] || { [ "$E2E" = skipped ] && [ "$DOCS_ONLY" = true ]; }; }; then exit 0; fi
@@ -210,8 +177,8 @@ jobs:
   report:
     # One HTML report from every part's blob report, kept for a week. Not a required check.
     name: Browser test report
-    needs: [e2e-container, e2e-cache]
-    if: ${{ !cancelled() && (needs.e2e-container.result != 'skipped' || needs.e2e-cache.result != 'skipped') }}
+    needs: e2e
+    if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
