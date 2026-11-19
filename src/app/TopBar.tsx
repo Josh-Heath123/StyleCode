@@ -10,6 +10,7 @@ import { aiStatusLabel } from './AssistantBar';
 import { exportZip } from './codeExport';
 import type { Onboarding } from './onboardingState';
 import type { CompanyEditing } from './App';
+import { Mark } from '../ui/Mark';
 
 interface TopBarProps {
   nav?: ReactNode;
@@ -194,10 +195,7 @@ export function TopBar({
   return (
     <header className="topbar">
       <div className="brand">
-        <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="5" y="5" width="15" height="15" rx="3" fill="none" stroke="#2F7BFF" strokeWidth="2.6" />
-          <circle cx="21.5" cy="21.5" r="6" fill="#FFA05C" />
-        </svg>
+        <Mark className="brand-mark" />
         StyleCode
       </div>
       {nav}

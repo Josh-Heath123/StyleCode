@@ -1,44 +1,82 @@
 /* ==========================================================================
-   StyleCode design system
-   Midnight surfaces, electric blue for what you are touching, cantaloupe for
-   where things will land (and, later, what the AI proposes). Chrome stays
-   quiet so the design on the canvas is the brightest thing on screen.
+   StyleCode design system (docs/brand/IDENTITY.md)
+   Charcoal is the canvas, warm white is you, orange is the AI. Surfaces
+   differ by lightness alone; orange appears only on what the AI proposes or
+   does. Chrome stays quiet so the design on the canvas is the brightest
+   thing on screen. Colours are set here, by role, and nowhere else in the
+   app's chrome (scripts/check-tokens.ts).
    ========================================================================== */
 
 :root {
-  /* Surfaces, darkest to lightest */
-  --midnight: #05070c;
-  --surface-1: #0a0d14;
-  --surface-2: #10141d;
-  --surface-3: #171c27;
-  --surface-4: #1f2532;
+  /* Surfaces by lightness alone, darkest to lightest */
+  --well: #0b0b0b; /* recessed: the code view */
+  --surface-1: #121212; /* the ground: charcoal; body, top bar, canvas */
+  --surface-2: #1a1a1a; /* panels, cards, menus */
+  --surface-3: #222222; /* fields, buttons */
+  --surface-4: #2b2b2b; /* hover, the active tab */
+  --surface-5: #333333; /* pressed buttons and tooltips only, never with the subtle grey */
 
-  --line: rgba(255, 255, 255, 0.065);
-  --line-strong: rgba(255, 255, 255, 0.12);
+  --line: rgba(253, 249, 234, 0.07);
+  --line-strong: rgba(253, 249, 234, 0.13);
 
-  /* Text */
-  --text: #f3f5fa;
-  --text-2: #a7afbf;
-  /* Readable on every surface (WCAG AA, 4.5:1 or better) */
-  --text-3: #868fa5;
-  --text-4: #474e5e;
+  /* Text: warm white, then muted and subtle */
+  --text: #fdf9ea;
+  --text-muted: #b9b5a8;
+  /* The subtle grey: on surfaces up to --surface-3 only (4.72:1 there, 4.20:1 on --surface-4) */
+  --text-subtle: #8f8c82;
+  /* Disabled controls only (exempt from contrast); never for text someone reads */
+  --text-disabled: #5e5b54;
 
-  /* Accents */
-  --blue: #2f7bff;
-  --blue-hi: #5c98ff;
-  /* Filled buttons: the same electric blue, a shade deeper so white text on it reads at 4.5:1 */
-  --blue-fill: #2167e6;
-  --blue-fill-hi: #296dee;
-  --blue-soft: rgba(47, 123, 255, 0.16);
-  --blue-faint: rgba(47, 123, 255, 0.08);
-  --melon: #ffa05c;
-  --melon-soft: rgba(255, 160, 92, 0.14);
-  --danger: #ff6b78;
+  /* You: warm white. Selection, handles, focus, links, primary buttons, the consultant's marks */
+  --you: #fdf9ea;
+  --you-hi: #ffffff;
+  --you-soft: rgba(253, 249, 234, 0.12);
+  --you-faint: rgba(253, 249, 234, 0.06);
+  /* Text on a warm-white fill */
+  --on-you: #121212;
+
+  /* The AI: orange, only on what the AI proposes or does. Never orange text on --ai-soft */
+  --ai: #fe5105;
+  --ai-soft: rgba(254, 81, 5, 0.14);
+  --ai-selected: rgba(254, 81, 5, 0.08);
+  --ai-line: rgba(254, 81, 5, 0.45);
+
+  /* Saved, done */
+  --ok: #3dd68c;
+
+  /* Danger: delete, withdraw, errors. A filled danger button takes charcoal text (--on-danger) */
+  --danger: #ff5c8a;
+  --danger-hi: #ff7fa2;
+  --danger-soft: rgba(255, 92, 138, 0.08);
+  --danger-line: rgba(255, 92, 138, 0.4);
+  --on-danger: #121212;
+
+  /* Warnings that aren't errors, always with their word or icon */
+  --warn: #f2c94c;
+  --warn-soft: rgba(242, 201, 76, 0.1);
+  --warn-line: rgba(242, 201, 76, 0.4);
+
+  /* Code: warm-white tones (the code is yours, not the AI's) */
+  --code-num: #8f8c82;
+  --code-tag: #fdf9ea;
+  --code-key: #b9b5a8;
+  --code-value: #e3d9b5;
 
   /* Glass, used only for things that float over the canvas */
-  --glass-bg: rgba(14, 18, 27, 0.74);
-  --glass-border: rgba(255, 255, 255, 0.09);
-  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --glass-bg: rgba(18, 18, 18, 0.82);
+  --glass-border: rgba(253, 249, 234, 0.09);
+  --glass-shadow: 0 1px 0 rgba(253, 249, 234, 0.05) inset, 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --menu-bg: rgba(26, 26, 26, 0.97);
+  --dialog-bg: rgba(26, 26, 26, 0.96);
+  --hint-bg: rgba(18, 18, 18, 0.82);
+  --backdrop: rgba(5, 5, 5, 0.66);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --halo: #121212; /* around canvas affordances, so they show on light designs too */
+  --highlight: rgba(253, 249, 234, 0.04); /* a faint lift on hover */
+  --canvas-dot: rgba(253, 249, 234, 0.07);
+  /* An image layer still loading, drawn on the design (often light), so these are dark */
+  --placeholder-text: rgba(17, 20, 26, 0.35);
+  --placeholder-hatch: rgba(0, 0, 0, 0.04);
 
   --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-code: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
@@ -69,7 +107,7 @@ body,
 }
 
 body {
-  background: var(--midnight);
+  background: var(--surface-1);
   color: var(--text);
   font-family: var(--font-ui);
   font-size: 12px;
@@ -92,14 +130,21 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
+  outline: 2px solid var(--you);
+  outline-offset: 2px;
 }
 
 kbd {
   font-family: var(--font-ui);
   font-size: 11px;
-  color: var(--text-3);
+  color: var(--text-subtle);
+}
+
+/* The display voice (I3): Inter 800 in its true italic, for the wordmark and one large moment per screen only. */
+.display {
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .glass {
@@ -128,7 +173,7 @@ kbd {
   display: grid;
   place-items: center;
   height: 100%;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .topbar {
@@ -137,7 +182,7 @@ kbd {
   align-items: center;
   gap: 6px;
   padding: 0 8px 0 12px;
-  background: var(--midnight);
+  background: var(--surface-1);
   border-bottom: 1px solid var(--line);
 }
 
@@ -154,6 +199,15 @@ kbd {
 .brand-mark {
   width: 20px;
   height: 20px;
+}
+
+/* The mark (src/ui/Mark.tsx): a warm-white square, yours, and an orange dot, the AI's. */
+.mark-square {
+  stroke: var(--you);
+}
+
+.mark-dot {
+  fill: var(--ai);
 }
 
 .topbar-divider {
@@ -180,8 +234,8 @@ kbd {
 }
 
 .project-name:focus {
-  border-color: var(--blue);
-  background: var(--surface-2);
+  border-color: var(--you);
+  background: var(--surface-3);
   outline: none;
 }
 
@@ -193,7 +247,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   padding: 0 8px;
   white-space: nowrap;
 }
@@ -209,16 +263,16 @@ kbd {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--text-4);
+  background: var(--text-disabled);
 }
 
 .save-status-text[data-status='saved']::before {
-  background: #3ecf8e;
+  background: var(--ok);
 }
 
 .save-status-text[data-status='saving']::before,
 .save-status-text[data-status='pending']::before {
-  background: var(--blue);
+  background: var(--you);
 }
 
 .save-status-text[data-status='error']::before,
@@ -232,7 +286,7 @@ kbd {
 }
 
 .panel {
-  background: var(--surface-1);
+  background: var(--surface-2);
   min-height: 0;
   overflow: hidden;
   display: flex;
@@ -283,28 +337,28 @@ kbd {
   border: 0;
   border-radius: var(--r-control);
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   position: relative;
 }
 
 .icon-button:hover:not(:disabled) {
-  background: var(--surface-3);
+  background: var(--surface-4);
   color: var(--text);
 }
 
 .icon-button.is-active,
 .icon-button[aria-pressed='true'] {
-  background: var(--blue-soft);
-  color: var(--blue-hi);
+  background: var(--you-soft);
+  color: var(--you);
 }
 
 .icon-button.is-open {
-  background: var(--surface-3);
+  background: var(--surface-4);
   color: var(--text);
 }
 
 .icon-button:disabled {
-  color: var(--text-4);
+  color: var(--text-disabled);
   cursor: default;
 }
 
@@ -314,7 +368,7 @@ kbd {
   border: 0;
   border-radius: var(--r-control);
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -323,12 +377,12 @@ kbd {
 
 .text-button:hover:not(:disabled),
 .text-button.is-open {
-  background: var(--surface-3);
+  background: var(--surface-4);
   color: var(--text);
 }
 
 .text-button:disabled {
-  color: var(--text-4);
+  color: var(--text-disabled);
   cursor: default;
 }
 
@@ -337,13 +391,13 @@ kbd {
   padding: 0 12px;
   border-radius: var(--r-control);
   border: 1px solid var(--line-strong);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   font-weight: 500;
 }
 
 .button:hover {
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .button:disabled {
@@ -352,17 +406,17 @@ kbd {
 }
 
 .button:disabled:hover {
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .button.primary {
-  background: var(--blue-fill);
-  border-color: var(--blue-fill);
-  color: #fff;
+  background: var(--you);
+  border-color: var(--you);
+  color: var(--on-you);
 }
 
 .button.primary:hover {
-  background: var(--blue-fill-hi);
+  background: var(--you-hi);
 }
 
 .button.danger {
@@ -378,7 +432,7 @@ kbd {
   transform: translateX(-50%);
   padding: 5px 8px;
   border-radius: 6px;
-  background: var(--surface-4);
+  background: var(--surface-5);
   border: 1px solid var(--line-strong);
   color: var(--text);
   font-size: 11px;
@@ -413,7 +467,7 @@ kbd {
 
 .menu {
   /* Menus sit over arbitrary design colours, so they are nearly opaque. */
-  background: rgba(16, 20, 29, 0.96);
+  background: var(--menu-bg);
   position: fixed;
   z-index: 100;
   padding: 5px;
@@ -441,16 +495,16 @@ kbd {
 }
 
 .menu-item.is-active:not(:disabled) {
-  background: var(--blue-fill);
-  color: #fff;
+  background: var(--you);
+  color: var(--on-you);
 }
 
 .menu-item.is-active kbd {
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-you);
 }
 
 .menu-item:disabled {
-  color: var(--text-3);
+  color: var(--text-subtle);
   opacity: 0.55;
   cursor: default;
 }
@@ -468,7 +522,7 @@ kbd {
 .menu-header {
   padding: 6px 10px 2px;
   font-size: 11px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 /* --------------------------------------------------------------------------
@@ -486,7 +540,7 @@ kbd {
 .canvas-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.07) 1px, transparent 1.2px);
+  background-image: radial-gradient(circle at center, var(--canvas-dot) 1px, transparent 1.2px);
   pointer-events: none;
 }
 
@@ -536,7 +590,7 @@ kbd {
 
 .sc-text:has(.sc-text-editor),
 .sc-note:has(.sc-text-editor) {
-  outline: 1px solid var(--blue);
+  outline: 1px solid var(--you);
   outline-offset: 0;
 }
 
@@ -547,8 +601,8 @@ kbd {
   transform: translateX(-50%);
   padding: 8px 14px;
   border-radius: 999px;
-  color: var(--text-2);
-  background: rgba(10, 13, 20, 0.8);
+  color: var(--text-muted);
+  background: var(--hint-bg);
   border: 1px solid var(--line);
   white-space: nowrap;
   pointer-events: none;
@@ -562,7 +616,7 @@ kbd {
   padding: 0 4px;
   margin: 0 1px;
   border-radius: 4px;
-  background: var(--surface-3);
+  background: var(--surface-4);
   color: var(--text);
   font-weight: 600;
 }
@@ -590,66 +644,79 @@ kbd {
 
 .ov-hover {
   fill: none;
-  stroke: var(--blue);
+  stroke: var(--you);
   stroke-width: 1.5;
 }
 
 .ov-outline {
   fill: none;
-  stroke: var(--blue);
+  stroke: var(--you);
   stroke-width: 1;
   opacity: 0.7;
 }
 
 .ov-selection {
   fill: none;
-  stroke: var(--blue);
+  stroke: var(--you);
   stroke-width: 1.25;
 }
 
 .ov-drop {
-  fill: var(--melon-soft);
-  stroke: var(--melon);
+  fill: var(--you-soft);
+  stroke: var(--you);
   stroke-width: 2;
 }
 
 .ov-guide {
-  stroke: var(--melon);
+  stroke: var(--you);
   stroke-width: 1;
 }
 
-/* AI proposals under review: cantaloupe marks what the AI would change. */
+/* AI proposals under review: orange marks what the AI would change. */
 .ov-proposal-changed {
-  fill: var(--melon-soft);
-  stroke: var(--melon);
+  fill: var(--ai-soft);
+  stroke: var(--ai);
   stroke-width: 1.5;
 }
 
 .ov-proposal-removed {
   fill: none;
-  stroke: var(--melon);
+  stroke: var(--ai);
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
   opacity: 0.8;
 }
 
 .ov-insert {
-  stroke: var(--melon);
+  stroke: var(--you);
   stroke-width: 3;
   stroke-linecap: round;
 }
 
 .ov-marquee {
-  fill: var(--blue-faint);
-  stroke: var(--blue);
+  fill: var(--you-faint);
+  stroke: var(--you);
   stroke-width: 1;
 }
 
 .ov-handle {
-  fill: #fff;
-  stroke: var(--blue);
+  fill: var(--halo);
+  stroke: var(--you);
   stroke-width: 1.25;
   pointer-events: none;
+}
+
+/* Warm white with a charcoal halo, so the canvas's affordances show on light designs too (never orange). */
+.ov-hover,
+.ov-selection,
+.ov-drop,
+.ov-guide,
+.ov-insert,
+.ov-marquee,
+.ov-handle,
+.ov-gap,
+.ov-measure {
+  filter: drop-shadow(0 0 0.75px var(--halo)) drop-shadow(0 0 0.75px var(--halo));
 }
 
 .ov-hit {
@@ -665,7 +732,7 @@ kbd {
   height: 18px;
   line-height: 18px;
   font-size: 11px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -678,7 +745,7 @@ kbd {
 }
 
 .ov-frame-label.is-selected {
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .ov-size {
@@ -687,8 +754,9 @@ kbd {
   top: 0;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--blue-fill);
-  color: #fff;
+  background: var(--you);
+  color: var(--on-you);
+  box-shadow: 0 0 0 1px var(--halo);
   font-size: 11px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -715,8 +783,8 @@ kbd {
 }
 
 .dock .icon-button.is-active {
-  background: var(--blue);
-  color: #fff;
+  background: var(--you);
+  color: var(--on-you);
 }
 
 .dock-divider {
@@ -742,16 +810,16 @@ kbd {
   align-items: center;
   height: 28px;
   padding-right: 6px;
-  color: var(--text-2);
+  color: var(--text-muted);
   cursor: default;
 }
 
 .layer-row:hover {
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .layer-row.is-selected {
-  background: var(--blue-soft);
+  background: var(--you-soft);
   color: var(--text);
 }
 
@@ -761,7 +829,7 @@ kbd {
 }
 
 .layers:focus-visible .layer-row.is-active {
-  box-shadow: inset 0 0 0 2px var(--blue);
+  box-shadow: inset 0 0 0 2px var(--you);
 }
 
 .canvas:focus-visible {
@@ -769,12 +837,12 @@ kbd {
 }
 
 .canvas.is-tabbed-in:focus {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--you);
   outline-offset: -2px;
 }
 
 .layer-row.is-child-of-selected {
-  background: var(--blue-faint);
+  background: var(--you-faint);
 }
 
 .layer-row.is-hidden .layer-name,
@@ -783,8 +851,8 @@ kbd {
 }
 
 .layer-row.is-drop-inside {
-  box-shadow: inset 0 0 0 1.5px var(--melon);
-  background: var(--melon-soft);
+  box-shadow: inset 0 0 0 1.5px var(--you);
+  background: var(--you-soft);
 }
 
 .layer-chevron {
@@ -796,7 +864,7 @@ kbd {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .layer-chevron:hover {
@@ -806,11 +874,11 @@ kbd {
 .layer-icon {
   flex: none;
   margin-right: 6px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .layer-row.is-selected .layer-icon {
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .layer-row[data-type='frame'] .layer-name {
@@ -830,9 +898,9 @@ kbd {
   min-width: 0;
   height: 22px;
   padding: 0 4px;
-  border: 1px solid var(--blue);
+  border: 1px solid var(--you);
   border-radius: 4px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   outline: none;
 }
 
@@ -858,14 +926,14 @@ kbd {
   right: 6px;
   height: 2px;
   margin-top: -1px;
-  background: var(--melon);
+  background: var(--you);
   border-radius: 1px;
   pointer-events: none;
 }
 
 .layers-empty {
   padding: 16px 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   line-height: 1.5;
 }
 
@@ -883,7 +951,7 @@ kbd {
 
 .props-header .layer-icon {
   margin: 0;
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .props-header-name {
@@ -904,8 +972,8 @@ kbd {
 
 .props-header-name:focus {
   outline: none;
-  border-color: var(--blue);
-  background: var(--surface-2);
+  border-color: var(--you);
+  background: var(--surface-3);
 }
 
 .props-header-count {
@@ -935,7 +1003,7 @@ kbd {
 
 .section-head.is-empty {
   margin-bottom: 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-weight: 500;
 }
 
@@ -964,7 +1032,7 @@ kbd {
   height: 28px;
   min-width: 0;
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
   border: 1px solid transparent;
 }
 
@@ -973,7 +1041,7 @@ kbd {
 }
 
 .field:focus-within {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .field-label {
@@ -983,7 +1051,7 @@ kbd {
   min-width: 24px;
   height: 100%;
   padding: 0 2px 0 6px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 11px;
   cursor: ew-resize;
   touch-action: none;
@@ -1006,12 +1074,12 @@ kbd {
 }
 
 .field input::placeholder {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .field-suffix {
   padding-right: 8px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .select {
@@ -1020,7 +1088,7 @@ kbd {
   padding: 0 24px 0 8px;
   border-radius: var(--r-control);
   border: 1px solid transparent;
-  background: var(--surface-2)
+  background: var(--surface-3)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236c7486' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 8px center;
   appearance: none;
@@ -1032,11 +1100,11 @@ kbd {
 }
 
 .select:focus {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .select option {
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .color-field {
@@ -1051,8 +1119,8 @@ kbd {
   margin: 0 4px 0 5px;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  background-image: conic-gradient(#555 25%, #888 0 50%, #555 0 75%, #888 0);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  background-image: conic-gradient(#555 25%, #888 0 50%, #555 0 75%, #888 0); /* token-check: design content */
   background-size: 8px 8px;
 }
 
@@ -1085,7 +1153,7 @@ kbd {
   display: flex;
   padding: 2px;
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
   gap: 2px;
 }
 
@@ -1096,7 +1164,7 @@ kbd {
 }
 
 .segmented .icon-button[aria-pressed='true'] {
-  background: var(--surface-4);
+  background: var(--surface-5);
   color: var(--text);
 }
 
@@ -1104,12 +1172,12 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-2);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .toggle-row input {
-  accent-color: var(--blue);
+  accent-color: var(--you);
   margin: 0;
 }
 
@@ -1139,17 +1207,17 @@ kbd {
   padding: 8px 10px;
   border-radius: var(--r-control);
   border: 1px solid var(--line);
-  background: var(--surface-2);
+  background: var(--surface-3);
   text-align: left;
 }
 
 .preset:hover {
-  border-color: var(--blue);
-  background: var(--surface-3);
+  border-color: var(--you);
+  background: var(--surface-4);
 }
 
 .preset span:last-child {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1159,7 +1227,7 @@ kbd {
   list-style: none;
   display: grid;
   gap: 6px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .hint-list li {
@@ -1191,7 +1259,7 @@ kbd {
 }
 
 .notice[data-tone='error'] {
-  border-color: rgba(255, 107, 120, 0.45);
+  border-color: var(--danger-line);
 }
 
 .notice[data-tone='error']::before {
@@ -1217,7 +1285,7 @@ kbd {
   z-index: 90;
   display: grid;
   place-items: center;
-  background: rgba(2, 3, 6, 0.55);
+  background: var(--backdrop);
 }
 
 .dialog {
@@ -1231,7 +1299,7 @@ kbd {
 
 /* Dialogs sit over whatever is on the canvas (often a white page), so their glass is nearly opaque. */
 .dialog.glass {
-  background: rgba(14, 18, 27, 0.95);
+  background: var(--dialog-bg);
 }
 
 .dialog-head {
@@ -1258,7 +1326,7 @@ kbd {
 }
 
 .project-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--highlight);
 }
 
 .project-item.is-current .project-item-name::after {
@@ -1266,7 +1334,7 @@ kbd {
   margin-left: 8px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .project-item-main {
@@ -1283,7 +1351,7 @@ kbd {
 }
 
 .project-item-date {
-  color: var(--text-3);
+  color: var(--text-subtle);
   margin-top: 2px;
 }
 
@@ -1348,8 +1416,8 @@ kbd {
   place-items: center;
   width: 100%;
   height: 100%;
-  color: rgba(17, 20, 26, 0.35);
-  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.04) 0 10px, transparent 10px 20px);
+  color: var(--placeholder-text);
+  background-image: repeating-linear-gradient(45deg, var(--placeholder-hatch) 0 10px, transparent 10px 20px);
   pointer-events: none;
 }
 
@@ -1373,7 +1441,7 @@ kbd {
   border: 0;
   border-radius: var(--r-control);
   background: transparent;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-weight: 600;
 }
 
@@ -1383,7 +1451,7 @@ kbd {
 
 .panel-tab.is-active {
   color: var(--text);
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .panel-tabpanel {
@@ -1395,7 +1463,7 @@ kbd {
 
 .panel-hint {
   margin: 8px 0 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
   line-height: 1.45;
 }
 
@@ -1423,13 +1491,13 @@ kbd {
   padding: 6px 6px 8px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   text-align: left;
   cursor: grab;
 }
 
 .block-card:hover {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .block-preview {
@@ -1438,12 +1506,12 @@ kbd {
   height: 84px;
   border-radius: 6px;
   overflow: hidden;
-  background: #e9ecf1;
+  background: #e9ecf1; /* token-check: design content */
   pointer-events: none;
 }
 
 .block-preview[data-theme='dark'] {
-  background: #070a10;
+  background: #070a10; /* token-check: design content */
 }
 
 .block-preview-inner {
@@ -1466,7 +1534,7 @@ kbd {
 }
 
 .block-description {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .role-row {
@@ -1479,7 +1547,7 @@ kbd {
 }
 
 .role-label {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .gradient-toggle {
@@ -1501,13 +1569,13 @@ kbd {
   border-radius: 4px;
   font-size: 10px;
   line-height: 16px;
-  color: var(--text-3);
-  background: var(--surface-3);
+  color: var(--text-muted);
+  background: var(--surface-4);
 }
 
 .layer-row.is-selected .layer-role {
-  color: var(--blue-hi);
-  background: rgba(47, 123, 255, 0.18);
+  color: var(--you);
+  background: var(--you-soft);
 }
 
 /* --------------------------------------------------------------------------
@@ -1527,8 +1595,8 @@ kbd {
 }
 
 .text-button.is-on {
-  background: var(--blue-soft);
-  color: var(--blue-hi);
+  background: var(--you-soft);
+  color: var(--you);
 }
 
 .link-button {
@@ -1536,7 +1604,7 @@ kbd {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--blue-hi);
+  color: var(--you);
   font-weight: 600;
 }
 
@@ -1547,7 +1615,7 @@ kbd {
 .panel-empty {
   margin: 0;
   padding: 16px 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   line-height: 1.5;
 }
 
@@ -1580,13 +1648,13 @@ kbd {
 }
 
 .code-screen svg {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .code-note {
   margin: 0;
   padding: 10px 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   line-height: 1.45;
   border-bottom: 1px solid var(--line);
 }
@@ -1608,11 +1676,11 @@ kbd {
 .layer-css-head code {
   font-family: var(--font-code);
   font-size: 11.5px;
-  color: var(--melon);
+  color: var(--text);
 }
 
 .layer-css-hint {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 11px;
 }
 
@@ -1624,7 +1692,7 @@ kbd {
   padding: 8px 10px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
   font-family: var(--font-code);
   font-size: 11.5px;
   line-height: 1.6;
@@ -1635,7 +1703,7 @@ kbd {
 
 .layer-css-input:focus {
   outline: none;
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .layer-css-errors {
@@ -1665,14 +1733,14 @@ kbd {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  color: var(--text-2);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
 .code-warning svg {
   flex: none;
   margin-top: 2px;
-  color: var(--melon);
+  color: var(--text-muted);
 }
 
 .code-tabs {
@@ -1701,7 +1769,7 @@ kbd {
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-family: var(--font-code);
   font-size: 11px;
 }
@@ -1712,7 +1780,7 @@ kbd {
 
 .code-tab.is-active {
   color: var(--text);
-  border-bottom-color: var(--blue);
+  border-bottom-color: var(--you);
 }
 
 .code-copy {
@@ -1724,7 +1792,7 @@ kbd {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  background: var(--midnight);
+  background: var(--well);
   scrollbar-width: thin;
   scrollbar-color: var(--surface-4) transparent;
 }
@@ -1735,7 +1803,7 @@ kbd {
   font-family: var(--font-code);
   font-size: 11.5px;
   line-height: 18px;
-  color: var(--text-2);
+  color: var(--text-muted);
   user-select: text;
   cursor: default;
   min-width: max-content;
@@ -1747,12 +1815,12 @@ kbd {
 }
 
 .code-line:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--highlight);
 }
 
 .code-line.is-on {
-  background: var(--blue-faint);
-  box-shadow: inset 2px 0 0 var(--blue);
+  background: var(--you-faint);
+  box-shadow: inset 2px 0 0 var(--you);
 }
 
 .code-num {
@@ -1761,12 +1829,12 @@ kbd {
   padding-right: 12px;
   text-align: right;
   /* Dim, but still readable (4.5:1 on the code background) */
-  color: #737c8f;
+  color: var(--code-num);
   user-select: none;
 }
 
 .code-line.is-on .code-num {
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .code-text {
@@ -1774,20 +1842,20 @@ kbd {
 }
 
 .tok-comment {
-  color: var(--text-4);
+  color: var(--text-subtle);
   font-style: italic;
 }
 
 .tok-tag {
-  color: #7fb0ff;
+  color: var(--code-tag);
 }
 
 .tok-key {
-  color: #c8a6ff;
+  color: var(--code-key);
 }
 
 .tok-value {
-  color: var(--melon);
+  color: var(--code-value);
 }
 
 /* --------------------------------------------------------------------------
@@ -1798,7 +1866,7 @@ kbd {
   position: fixed;
   inset: 0;
   z-index: 95;
-  background: rgba(2, 3, 6, 0.72);
+  background: var(--backdrop);
 }
 
 .preview {
@@ -1818,7 +1886,7 @@ kbd {
   gap: 10px;
   height: var(--topbar-h);
   padding: 0 8px 0 14px;
-  background: var(--surface-1);
+  background: var(--surface-2);
   border-bottom: 1px solid var(--line);
   flex: none;
 }
@@ -1832,7 +1900,7 @@ kbd {
 }
 
 .preview-title svg {
-  color: var(--melon);
+  color: var(--text);
 }
 
 .preview-select {
@@ -1840,7 +1908,7 @@ kbd {
   padding: 0 8px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .preview-devices {
@@ -1850,7 +1918,7 @@ kbd {
 }
 
 .preview-width {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1861,7 +1929,7 @@ kbd {
 .preview-scale {
   min-width: 96px;
   margin-right: auto;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 11px;
 }
 
@@ -1878,22 +1946,22 @@ kbd {
   position: relative;
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
+  background: #fff; /* token-check: design content */
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 24px 64px rgba(0, 0, 0, 0.5);
+    0 0 0 1px var(--line),
+    0 24px 64px var(--shadow);
 }
 
 .preview-device iframe {
   display: block;
   border: 0;
   transform-origin: 0 0;
-  background: #fff;
+  background: #fff; /* token-check: design content */
 }
 
 .preview-message {
   margin: 48px 0 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 /* --------------------------------------------------------------------------
@@ -1901,16 +1969,18 @@ kbd {
    -------------------------------------------------------------------------- */
 
 .dock .dock-ai {
-  color: var(--melon);
+  color: var(--ai);
 }
 
+/* Open: outlined in orange, never orange on its own soft fill (I10). */
 .dock .dock-ai[aria-expanded='true'] {
-  background: var(--melon-soft);
-  color: var(--melon);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ai);
+  color: var(--ai);
 }
 
 .assistant-mark {
-  color: var(--melon);
+  color: var(--ai);
   flex: none;
 }
 
@@ -1934,7 +2004,7 @@ kbd {
 }
 
 .assistant[data-status='review'] {
-  border-color: rgba(255, 160, 92, 0.38);
+  border-color: var(--ai-line);
 }
 
 .assistant-head {
@@ -1961,7 +2031,7 @@ kbd {
   max-width: 220px;
   padding: 0 8px;
   font-size: 11px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1977,13 +2047,13 @@ kbd {
   gap: 8px;
   padding: 6px 6px 6px 12px;
   border-radius: 11px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   border: 1px solid var(--line-strong);
 }
 
 .assistant-compose:focus-within {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px var(--blue-faint);
+  border-color: var(--you);
+  box-shadow: 0 0 0 3px var(--you-faint);
 }
 
 .assistant-input {
@@ -2002,7 +2072,7 @@ kbd {
 }
 
 .assistant-input::placeholder {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .assistant-send {
@@ -2013,18 +2083,18 @@ kbd {
   height: 28px;
   border: 0;
   border-radius: 8px;
-  background: var(--blue-fill);
-  color: #fff;
+  background: var(--you);
+  color: var(--on-you);
   position: relative;
 }
 
 .assistant-send:hover:not(:disabled) {
-  background: var(--blue-fill-hi);
+  background: var(--you-hi);
 }
 
 .assistant-send:disabled {
   background: var(--surface-4);
-  color: var(--text-4);
+  color: var(--text-disabled);
   cursor: default;
 }
 
@@ -2040,20 +2110,20 @@ kbd {
   border-radius: 13px;
   border: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
 .assistant-chip:hover {
-  border-color: rgba(255, 160, 92, 0.5);
+  border-color: var(--ai-line);
   color: var(--text);
-  background: var(--melon-soft);
+  background: var(--ai-soft);
 }
 
 .assistant-request {
   margin: 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2083,7 +2153,7 @@ kbd {
   margin-left: 2px;
   vertical-align: -2px;
   border-radius: 1px;
-  background: var(--melon);
+  background: var(--ai);
   animation: caret-blink 1s steps(2, start) infinite;
 }
 
@@ -2098,7 +2168,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .assistant-swatch {
@@ -2106,8 +2176,8 @@ kbd {
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: var(--melon-soft);
-  border: 1.5px solid var(--melon);
+  background: var(--ai-soft);
+  border: 1.5px solid var(--ai);
 }
 
 .assistant-warning,
@@ -2120,7 +2190,7 @@ kbd {
 }
 
 .assistant-warning {
-  color: var(--melon);
+  color: var(--ai);
 }
 
 .assistant-warning svg {
@@ -2144,18 +2214,18 @@ kbd {
 
 .assistant-note {
   margin: 0;
-  color: var(--text-2);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 .assistant-problems {
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .assistant-problems summary {
   cursor: pointer;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .assistant-problems ul {
@@ -2189,7 +2259,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 12px;
 }
 
@@ -2197,7 +2267,7 @@ kbd {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--melon);
+  background: var(--ai);
   animation: pulse 1.2s ease-in-out infinite;
 }
 
@@ -2211,11 +2281,11 @@ kbd {
 .button.danger-fill {
   background: var(--danger);
   border-color: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
 }
 
 .button.danger-fill:hover {
-  background: #ff8591;
+  background: var(--danger-hi);
 }
 
 /* Top bar */
@@ -2228,7 +2298,7 @@ kbd {
 }
 
 .ai-button[data-on='true'] svg {
-  color: var(--melon);
+  color: var(--ai);
 }
 
 .ai-button-label {
@@ -2269,19 +2339,19 @@ kbd {
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   text-align: left;
 }
 
 .ai-provider:hover {
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .ai-provider.is-on {
-  border-color: var(--blue);
-  background: var(--blue-faint);
-  box-shadow: 0 0 0 1px var(--blue) inset;
+  border-color: var(--you);
+  background: var(--you-faint);
+  box-shadow: 0 0 0 1px var(--you) inset;
 }
 
 .ai-provider-name {
@@ -2289,7 +2359,7 @@ kbd {
 }
 
 .ai-provider-blurb {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -2312,19 +2382,19 @@ kbd {
   border-radius: 13px;
   border: 1px solid var(--line-strong);
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .ai-preset:hover {
   color: var(--text);
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .ai-preset.is-on {
-  border-color: var(--blue);
-  color: var(--blue-hi);
-  background: var(--blue-faint);
+  border-color: var(--you);
+  color: var(--you);
+  background: var(--you-faint);
 }
 
 .ai-field {
@@ -2335,7 +2405,7 @@ kbd {
 
 .ai-field > span:first-child,
 .ai-field > label {
-  color: var(--text-2);
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 12px;
 }
@@ -2347,7 +2417,7 @@ kbd {
   padding: 0 10px;
   border-radius: var(--r-control);
   border: 1px solid var(--line-strong);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   font: inherit;
   outline: none;
@@ -2355,7 +2425,7 @@ kbd {
 
 .ai-field input:focus,
 .ai-field select:focus {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .ai-key-row {
@@ -2376,7 +2446,7 @@ kbd {
 }
 
 .ai-hint {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -2387,7 +2457,7 @@ kbd {
 
 .ai-settings-note {
   margin: 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -2395,7 +2465,7 @@ kbd {
 .ai-settings-note code {
   font-family: var(--font-code);
   font-size: 11px;
-  color: var(--text-2);
+  color: var(--text-muted);
   word-break: break-all;
 }
 
@@ -2424,17 +2494,17 @@ kbd {
 
 .sc-note:empty::before {
   content: 'Write a note for yourself or the AI…';
-  color: rgba(43, 29, 14, 0.45);
+  color: rgba(18, 18, 18, 0.45); /* token-check: design content */
 }
 
 .ov-note-arrow {
-  stroke: var(--melon);
+  stroke: var(--you);
   stroke-width: 1.5;
   fill: none;
 }
 
 .ov-arrowhead {
-  fill: var(--melon);
+  fill: var(--you);
 }
 
 .ov-connector .ov-hit {
@@ -2442,36 +2512,36 @@ kbd {
 }
 
 .ov-connector-dot {
-  fill: var(--melon);
-  stroke: var(--midnight);
+  fill: var(--you);
+  stroke: var(--surface-1);
   stroke-width: 2;
   pointer-events: auto;
   cursor: crosshair;
 }
 
 .ov-connector-line {
-  stroke: var(--melon);
+  stroke: var(--you);
   stroke-width: 1.5;
   stroke-dasharray: 4 3;
 }
 
 .ov-gap line {
-  stroke: #ff5c8a;
+  stroke: var(--you);
   stroke-width: 1;
 }
 
 .ov-measure line {
-  stroke: #ff5c8a;
+  stroke: var(--you);
   stroke-width: 1;
 }
 
 .ov-gap text,
 .ov-measure text {
-  fill: var(--midnight);
+  fill: var(--surface-1);
   font-size: 10px;
   font-weight: 600;
   paint-order: stroke;
-  stroke: #ff5c8a;
+  stroke: var(--you);
   stroke-width: 6px;
   stroke-linejoin: round;
 }
@@ -2481,7 +2551,7 @@ kbd {
   height: 24px;
   padding: 0 6px;
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .field-with-button {
@@ -2516,8 +2586,8 @@ kbd {
 .section-badge {
   font-size: 10px;
   font-weight: 600;
-  color: var(--melon);
-  background: var(--melon-soft);
+  color: var(--text);
+  background: var(--you-soft);
   border-radius: 4px;
   padding: 1px 6px;
 }
@@ -2537,8 +2607,8 @@ kbd {
 
 .note-swatch[aria-pressed='true'] {
   box-shadow:
-    0 0 0 2px var(--surface-1),
-    0 0 0 4px var(--blue);
+    0 0 0 2px var(--surface-2),
+    0 0 0 4px var(--you);
 }
 
 .note-target {
@@ -2547,7 +2617,7 @@ kbd {
   align-items: flex-start;
   gap: 4px;
   margin-top: 10px;
-  color: var(--text-2);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -2575,7 +2645,7 @@ kbd {
 }
 
 .welcome-backdrop {
-  background: rgba(2, 3, 6, 0.7);
+  background: var(--backdrop);
 }
 
 .dialog.welcome {
@@ -2601,7 +2671,7 @@ kbd {
 
 .welcome-lead {
   margin: 0 0 18px;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -2618,7 +2688,7 @@ kbd {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  color: var(--text-2);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
@@ -2635,13 +2705,14 @@ kbd {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: var(--blue-faint);
-  color: var(--blue-hi);
+  background: var(--you-faint);
+  color: var(--you);
 }
 
 .welcome-points li:nth-child(3) .welcome-icon {
-  background: var(--melon-soft);
-  color: var(--melon);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ai);
+  color: var(--ai);
 }
 
 /* The checklist floats in the top-left corner of the canvas. */
@@ -2682,7 +2753,7 @@ kbd {
 
 .checklist-count {
   margin-left: 6px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-weight: 500;
 }
 
@@ -2697,7 +2768,7 @@ kbd {
 .checklist-bar span {
   display: block;
   height: 100%;
-  background: var(--blue);
+  background: var(--you);
   transition: width 240ms ease;
 }
 
@@ -2713,7 +2784,7 @@ kbd {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .checklist-steps li.is-next {
@@ -2722,7 +2793,7 @@ kbd {
 
 .checklist-steps li.is-done .checklist-title {
   text-decoration: line-through;
-  text-decoration-color: var(--text-4);
+  text-decoration-color: var(--text-disabled);
 }
 
 .checklist-check {
@@ -2733,30 +2804,30 @@ kbd {
   height: 16px;
   margin-top: 1px;
   border-radius: 50%;
-  border: 1.5px solid var(--text-4);
+  border: 1.5px solid var(--text-disabled);
 }
 
 .is-next .checklist-check {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .is-done .checklist-check {
-  border-color: var(--blue);
-  background: var(--blue);
-  color: #fff;
+  border-color: var(--you);
+  background: var(--you);
+  color: var(--on-you);
 }
 
 .checklist-hint {
   display: block;
   margin-top: 3px;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
 
 .checklist-done {
   margin: 0;
-  color: var(--text-2);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -2776,14 +2847,14 @@ kbd {
   padding: 0 10px;
   border-radius: var(--r-control);
   border: 1px solid var(--line-strong);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   font: inherit;
   outline: none;
 }
 
 .shortcuts-filter input:focus {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .shortcuts-body {
@@ -2803,7 +2874,7 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .shortcuts-body dl {
@@ -2819,7 +2890,7 @@ kbd {
 }
 
 .shortcut-row dt {
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .shortcut-row dd {
@@ -2849,7 +2920,7 @@ kbd {
 .projects-space {
   padding: 10px 16px 14px;
   border-top: 1px solid var(--line);
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-size: 11.5px;
   line-height: 1.5;
 }
@@ -2865,7 +2936,7 @@ kbd {
 .projects-space-bar span {
   display: block;
   height: 100%;
-  background: var(--blue);
+  background: var(--you);
 }
 
 .projects-space.is-full .projects-space-bar span {
@@ -2877,7 +2948,7 @@ kbd {
   gap: 8px;
   justify-items: start;
   padding: 16px;
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -2897,8 +2968,8 @@ kbd {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: var(--midnight);
-  color: var(--text-2);
+  background: var(--surface-1);
+  color: var(--text-muted);
   font-family: var(--font-ui);
 }
 
@@ -2925,7 +2996,7 @@ kbd {
   margin: 0;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--surface-2);
+  background: var(--surface-3);
   border: 1px solid var(--line);
   color: var(--danger);
   font-family: var(--font-code);
@@ -2946,7 +3017,7 @@ kbd {
 }
 
 .crash-actions .text-button {
-  color: var(--text-2);
+  color: var(--text-muted);
   text-decoration: underline;
 }
 
@@ -2969,25 +3040,25 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-2);
+  color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .app-nav-link:hover {
-  background: var(--surface-3);
+  background: var(--surface-4);
   color: var(--text);
 }
 
 .app-nav-link[aria-current='page'] {
-  background: var(--blue-soft);
+  background: var(--you-soft);
   color: var(--text);
 }
 
 .app-nav-note {
   min-width: 0;
   margin-left: 8px;
-  color: var(--text-3);
+  color: var(--text-subtle);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2998,12 +3069,6 @@ kbd {
    Same chrome as the editor; the pages read like documents, so their text
    is larger and can be selected.
    ========================================================================== */
-
-:root {
-  /* Cautions that aren't errors, such as a cloud-synced data folder */
-  --caution: #f2c94c;
-  --caution-soft: rgba(242, 201, 76, 0.1);
-}
 
 .ws {
   height: 100%;
@@ -3024,7 +3089,7 @@ kbd {
 
 .ws-main a,
 .ws-folder a {
-  color: var(--blue-hi);
+  color: var(--you);
 }
 
 .ws-warning {
@@ -3033,9 +3098,9 @@ kbd {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: var(--caution-soft);
+  background: var(--warn-soft);
   border-bottom: 1px solid var(--line);
-  color: var(--caution);
+  color: var(--warn);
 }
 
 .ws-warning a {
@@ -3058,17 +3123,17 @@ kbd {
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-crumbs li + li::before {
   content: '›';
   margin-right: 6px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-crumbs a {
-  color: var(--text-2);
+  color: var(--text-muted);
   text-decoration: none;
 }
 
@@ -3087,12 +3152,12 @@ kbd {
 
 .ws-lede {
   margin: 0;
-  color: var(--text-2);
+  color: var(--text-muted);
   min-height: 1.5em;
 }
 
 .ws-muted {
-  color: var(--text-3);
+  color: var(--text-subtle);
   margin: 0;
 }
 
@@ -3121,7 +3186,7 @@ kbd {
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--surface-1);
+  background: var(--surface-2);
   overflow: hidden;
 }
 
@@ -3143,7 +3208,7 @@ kbd {
 }
 
 a.ws-row:hover {
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 a.ws-row:focus-visible {
@@ -3166,19 +3231,19 @@ a.ws-row:focus-visible {
 }
 
 .ws-row-sub {
-  color: var(--text-2);
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ws-row-meta {
-  color: var(--text-3);
+  color: var(--text-subtle);
   white-space: nowrap;
 }
 
 .ws-row-go {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-list.is-compact {
@@ -3201,15 +3266,15 @@ a.ws-row:focus-visible {
 .ws-badge {
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--text-2);
+  background: var(--surface-4);
+  color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
 .ws-badge.is-active {
-  background: var(--blue-faint);
-  color: var(--blue-hi);
+  background: var(--you-faint);
+  color: var(--you);
 }
 
 .ws-empty {
@@ -3227,7 +3292,7 @@ a.ws-row:focus-visible {
 .ws-empty p {
   margin: 0 auto 18px;
   max-width: 420px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-columns {
@@ -3248,7 +3313,7 @@ a.ws-row:focus-visible {
   padding: 18px 20px 20px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--surface-1);
+  background: var(--surface-2);
 }
 
 .ws-card h2 {
@@ -3265,12 +3330,12 @@ a.ws-row:focus-visible {
 }
 
 .ws-label {
-  color: var(--text-2);
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .ws-optional {
-  color: var(--text-3);
+  color: var(--text-subtle);
   font-weight: 400;
 }
 
@@ -3279,18 +3344,18 @@ a.ws-row:focus-visible {
   padding: 7px 10px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   font: inherit;
   resize: vertical;
 }
 
 .ws-input:hover:not(:read-only):not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--line-strong);
 }
 
 .ws-input:focus-visible {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--you);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -3298,7 +3363,7 @@ a.ws-row:focus-visible {
 .ws-input:read-only,
 .ws-input:disabled {
   background: transparent;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-input[aria-invalid='true'] {
@@ -3307,7 +3372,7 @@ a.ws-row:focus-visible {
 
 .ws-help {
   margin: 0;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-error {
@@ -3325,7 +3390,7 @@ a.ws-row:focus-visible {
   margin: 0 0 8px;
   padding: 8px 10px;
   border-radius: var(--r-control);
-  background: var(--surface-2);
+  background: var(--surface-3);
   font-family: var(--font-code);
   font-size: 12px;
   overflow-wrap: anywhere;
@@ -3340,9 +3405,9 @@ a.ws-row:focus-visible {
 .ws-alert {
   margin: 16px 0 0;
   padding: 12px 16px;
-  border: 1px solid rgba(255, 107, 120, 0.35);
+  border: 1px solid var(--danger-line);
   border-radius: 10px;
-  background: rgba(255, 107, 120, 0.07);
+  background: var(--danger-soft);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3362,16 +3427,16 @@ a.ws-row:focus-visible {
 
 .ws-alert ul {
   padding-left: 18px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-card .ws-alert {
-  border-color: rgba(242, 201, 76, 0.35);
-  background: var(--caution-soft);
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
 }
 
 .ws-readonly-status {
-  color: var(--caution);
+  color: var(--warn);
 }
 
 .ws-crash {
@@ -3384,13 +3449,13 @@ a.ws-row:focus-visible {
   flex: none;
   padding: 10px 32px;
   border-top: 1px solid var(--line);
-  color: var(--text-3);
+  color: var(--text-subtle);
   user-select: text;
 }
 
 .ws-folder-path {
   font-family: var(--font-code);
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-dialog {
@@ -3461,7 +3526,7 @@ a.ws-row:focus-visible {
 }
 
 .ws-value.is-empty {
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-fieldset {
@@ -3491,7 +3556,7 @@ a.ws-row:focus-visible {
 
 .ws-choice input[type='radio'] {
   margin: 0;
-  accent-color: var(--blue);
+  accent-color: var(--you);
 }
 
 .ws-date {
@@ -3510,8 +3575,8 @@ a.ws-row:focus-visible {
 }
 
 .ws-alert.is-caution {
-  border-color: rgba(242, 201, 76, 0.35);
-  background: var(--caution-soft);
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
 }
 
 .ws-problems {
@@ -3524,7 +3589,7 @@ a.ws-row:focus-visible {
 
 .ws-problems li {
   padding-left: 12px;
-  border-left: 2px solid rgba(242, 201, 76, 0.5);
+  border-left: 2px solid var(--warn-line);
 }
 
 .ws-problems p {
@@ -3533,17 +3598,17 @@ a.ws-row:focus-visible {
 }
 
 .ws-problems .ws-fix {
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .button.danger-fill {
-  background: #c22f45;
-  border-color: #c22f45;
-  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--on-danger);
 }
 
 .button.danger-fill:hover:not(:disabled) {
-  background: #d23a51;
+  background: var(--danger-hi);
 }
 
 .ws-delete-what p {
@@ -3564,13 +3629,13 @@ a.ws-row:focus-visible {
   margin-top: 20px;
   padding: 14px 18px;
   border: 1px solid var(--line-strong);
-  border-left: 3px solid var(--text-3);
+  border-left: 3px solid var(--text-subtle);
   border-radius: 10px;
-  background: var(--surface-1);
+  background: var(--surface-2);
 }
 
 .ws-consent[data-state='confirmed'] {
-  border-left-color: var(--blue);
+  border-left-color: var(--you);
 }
 
 .ws-consent[data-state='withdrawn'] {
@@ -3584,7 +3649,7 @@ a.ws-row:focus-visible {
 
 .ws-consent p {
   margin: 2px 0 0;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-consent-actions {
@@ -3622,7 +3687,7 @@ a.ws-row:focus-visible {
 
 .ws-choice input[type='checkbox'] {
   margin: 0;
-  accent-color: var(--blue);
+  accent-color: var(--you);
 }
 
 .ws-yesno {
@@ -3650,13 +3715,13 @@ a.ws-row:focus-visible {
 .ws-c2 {
   flex-basis: 100%;
   margin: 0;
-  color: var(--caution);
+  color: var(--warn);
 }
 
 .ws-issues {
   margin: 8px 0 0;
   padding-left: 18px;
-  color: var(--caution);
+  color: var(--warn);
 }
 
 .ws-inline {
@@ -3687,7 +3752,7 @@ a.ws-row:focus-visible {
 
 .ws-dialog-text {
   margin: 0 0 14px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-dl {
@@ -3698,7 +3763,7 @@ a.ws-row:focus-visible {
 }
 
 .ws-dl dt {
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-dl dd {
@@ -3789,12 +3854,12 @@ a.ws-row:focus-visible {
   margin-left: 4px;
   padding: 0 5px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--you-soft);
   font-size: 11px;
 }
 
 .ws-caution {
-  color: var(--caution);
+  color: var(--warn);
 }
 
 /* The record: findings in groups. */
@@ -3837,11 +3902,11 @@ a.ws-row:focus-visible {
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--surface-1);
+  background: var(--surface-2);
 }
 
 .ws-finding:focus-visible {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--you);
 }
 
 .ws-finding-statement {
@@ -3857,14 +3922,14 @@ a.ws-row:focus-visible {
 }
 
 .ws-badge.is-status[data-status='confirmed'] {
-  background: var(--blue-faint);
-  color: var(--blue-hi);
+  background: var(--you-faint);
+  color: var(--you);
 }
 
 .ws-badge.is-status[data-status='suggested'],
 .ws-badge.is-status[data-status='unresolved'] {
-  background: var(--caution-soft);
-  color: var(--caution);
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 .ws-badge.is-provenance {
@@ -3876,7 +3941,7 @@ a.ws-row:focus-visible {
 a.ws-badge.is-knowledge {
   background: transparent;
   border: 1px solid var(--line-strong);
-  color: var(--blue-hi);
+  color: var(--you);
   text-decoration: underline;
 }
 
@@ -3910,7 +3975,7 @@ a.ws-badge.is-knowledge {
   border: 0;
   padding: 0;
   background: none;
-  color: var(--blue-hi);
+  color: var(--you);
   text-align: left;
   text-decoration: underline;
 }
@@ -3929,13 +3994,13 @@ a.ws-badge.is-knowledge {
 
 .ws-history summary {
   cursor: pointer;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-history ol {
   margin: 6px 0 0;
   padding-left: 18px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-evidence-pick {
@@ -4007,13 +4072,13 @@ a.ws-badge.is-knowledge {
 
 .ws-segment.is-cited,
 .ws-note.is-cited {
-  background: var(--blue-soft);
-  border-left-color: var(--blue);
+  background: var(--you-soft);
+  border-left-color: var(--you);
 }
 
 .ws-segment:focus-visible,
 .ws-note:focus-visible {
-  outline: 2px solid var(--blue-hi);
+  outline: 2px solid var(--you);
   outline-offset: 2px;
 }
 
@@ -4023,7 +4088,7 @@ a.ws-badge.is-knowledge {
 
 .ws-speakers summary {
   cursor: pointer;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-speaker-table {
@@ -4040,7 +4105,7 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-speaker-table thead th {
-  color: var(--text-2);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -4059,8 +4124,8 @@ a.ws-badge.is-knowledge {
 
 .ws-preview .ws-alert {
   margin: 0;
-  border-color: rgba(242, 201, 76, 0.35);
-  background: var(--caution-soft);
+  border-color: var(--warn-line);
+  background: var(--warn-soft);
 }
 
 .ws-preview-speakers {
@@ -4157,7 +4222,7 @@ a.ws-badge.is-knowledge {
 .ws-proposal {
   padding: 10px 12px;
   border: 1px solid var(--line-strong);
-  border-left: 3px solid var(--melon);
+  border-left: 3px solid var(--ai);
   border-radius: 8px;
   cursor: pointer;
   display: grid;
@@ -4165,11 +4230,11 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-proposal.is-selected {
-  background: var(--melon-soft);
+  background: var(--ai-selected);
 }
 
 .ws-proposal:focus-visible {
-  outline: 2px solid var(--blue-hi);
+  outline: 2px solid var(--you);
   outline-offset: 2px;
 }
 
@@ -4187,22 +4252,23 @@ a.ws-badge.is-knowledge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: var(--melon-soft);
-  color: var(--melon);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ai);
+  color: var(--ai);
 }
 
 /* What the selected proposal quotes, in the transcript and notes. */
 .ws-segment.is-quoted,
 .ws-note.is-quoted {
-  border-left-color: var(--melon);
+  border-left-color: var(--ai);
 }
 
 .ws-segment mark,
 .ws-note mark {
-  background: var(--melon-soft);
+  background: var(--ai-soft);
   color: var(--text);
   border-radius: 3px;
-  box-shadow: 0 0 0 1px rgba(255, 160, 92, 0.45);
+  box-shadow: 0 0 0 1px var(--ai-line);
 }
 
 .ws-report {
@@ -4220,7 +4286,7 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-table-wrap:focus-visible {
-  outline: 2px solid var(--blue-hi);
+  outline: 2px solid var(--you);
   outline-offset: 2px;
 }
 
@@ -4258,7 +4324,7 @@ a.ws-badge.is-knowledge {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--melon);
+  color: var(--ai);
 }
 
 /* The run's progress, summary and coverage stay in sight above the proposals. */
@@ -4270,7 +4336,7 @@ a.ws-badge.is-knowledge {
   gap: 8px;
   margin: 0 -20px;
   padding: 8px 20px;
-  background: var(--surface-1);
+  background: var(--surface-2);
 }
 
 .ws-run-status:empty {
@@ -4285,7 +4351,7 @@ a.ws-badge.is-knowledge {
   display: grid;
   gap: 6px;
   padding: 10px 12px;
-  border: 1px solid var(--melon);
+  border: 1px solid var(--ai);
   border-radius: 8px;
 }
 
@@ -4298,16 +4364,16 @@ a.ws-badge.is-knowledge {
 .button.stop-button {
   background: var(--danger);
   border-color: var(--danger);
-  color: #1b0609;
+  color: var(--on-danger);
   font-weight: 600;
 }
 
 .button.stop-button:hover {
-  background: #ff8591;
+  background: var(--danger-hi);
 }
 
 .button.stop-button kbd {
-  color: #3a0f15;
+  color: var(--on-danger);
   font-weight: 500;
 }
 
@@ -4323,9 +4389,9 @@ a.ws-badge.is-knowledge {
   gap: 8px 12px;
   margin: 4px 0 12px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 107, 120, 0.35);
+  border: 1px solid var(--danger-line);
   border-radius: 10px;
-  background: rgba(255, 107, 120, 0.07);
+  background: var(--danger-soft);
 }
 
 .ws-live .ws-help {
@@ -4390,7 +4456,7 @@ a.ws-badge.is-knowledge {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: #3ecf8e;
+  background: var(--ok);
   transition: width 90ms linear;
 }
 
@@ -4414,7 +4480,7 @@ a.ws-badge.is-knowledge {
   margin: 0 0 2px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-deleted-recordings .ws-help {
@@ -4423,13 +4489,13 @@ a.ws-badge.is-knowledge {
 
 .ws-badge.is-live {
   color: var(--danger);
-  border-color: rgba(255, 107, 120, 0.4);
+  border-color: var(--danger-line);
 }
 
 /* A recording past its time (decision 23). */
 .ws-badge.is-due {
-  color: var(--caution);
-  background: var(--caution-soft);
+  color: var(--warn);
+  background: var(--warn-soft);
 }
 
 .ws-notice {
@@ -4440,7 +4506,7 @@ a.ws-badge.is-knowledge {
   padding: 10px 14px;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .ws-notice p {
@@ -4449,7 +4515,7 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-notice.is-error {
-  border-color: rgba(255, 107, 120, 0.35);
+  border-color: var(--danger-line);
 }
 
 .app-nav-recording {
@@ -4466,11 +4532,11 @@ a.ws-badge.is-knowledge {
   align-items: flex-start;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid var(--caution);
+  border: 1px solid var(--warn);
   border-radius: 8px;
   /* Opaque, as it floats over the page: the caution tint over the raised surface. */
-  background: linear-gradient(var(--caution-soft), var(--caution-soft)), var(--surface-3);
-  color: var(--caution);
+  background: linear-gradient(var(--warn-soft), var(--warn-soft)), var(--surface-4);
+  color: var(--warn);
   line-height: 1.45;
 }
 
@@ -4481,7 +4547,7 @@ a.ws-badge.is-knowledge {
   z-index: 40;
   width: 380px;
   white-space: normal;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 6px 20px var(--shadow);
   /* It only tells: what it hangs over can still be clicked. */
   pointer-events: none;
 }
@@ -4502,7 +4568,7 @@ a.ws-badge.is-knowledge {
 }
 
 .app-nav-recording.is-ended .app-nav-link {
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 /* ==========================================================================
@@ -4519,7 +4585,7 @@ a.ws-badge.is-knowledge {
   padding: 12px 14px;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .ws-transcribing p {
@@ -4527,8 +4593,8 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-transcribing.is-ready {
-  border-color: var(--blue);
-  background: var(--blue-faint);
+  border-color: var(--you);
+  background: var(--you-faint);
 }
 
 .ws-transcribing-head,
@@ -4562,7 +4628,7 @@ a.ws-badge.is-knowledge {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: var(--blue);
+  background: var(--you);
   transition: width 300ms ease-out;
 }
 
@@ -4578,7 +4644,7 @@ a.ws-badge.is-knowledge {
 /* Words the engine was unsure of: "may be misheard", in words on hover and focus, not only by the line. */
 .ws-unsure,
 .ws-unsure-sample {
-  text-decoration: underline dotted var(--text-2);
+  text-decoration: underline dotted var(--text-muted);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
@@ -4589,7 +4655,7 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-unsure:focus-visible {
-  outline: 2px solid var(--blue-hi);
+  outline: 2px solid var(--you);
   outline-offset: 1px;
 }
 
@@ -4603,7 +4669,7 @@ a.ws-badge.is-knowledge {
   transform: translateX(-50%);
   padding: 4px 8px;
   border-radius: 6px;
-  background: var(--surface-4);
+  background: var(--surface-5);
   border: 1px solid var(--line-strong);
   color: var(--text);
   font-size: 11px;
@@ -4625,7 +4691,7 @@ a.ws-badge.is-knowledge {
   top: 0;
   width: 24px;
   height: 24px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .ws-play-here:hover,
@@ -4646,12 +4712,12 @@ a.ws-badge.is-knowledge {
   padding: 8px 12px;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
-  background: var(--surface-3);
+  background: var(--surface-4);
 }
 
 .ws-player-what {
   flex: 1;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-player-clock {
@@ -4676,7 +4742,7 @@ a.ws-badge.is-knowledge {
 
 .ws-short-labels summary {
   cursor: pointer;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-short-labels .ws-help {
@@ -4713,7 +4779,7 @@ a.ws-badge.is-knowledge {
   margin: 4px 0 0;
   padding: 0;
   list-style: none;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-short-labels .ws-short-words li {
@@ -4739,7 +4805,7 @@ a.ws-badge.is-knowledge {
   margin: 16px 0 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .ws-installed {
@@ -4782,17 +4848,17 @@ a.ws-badge.is-knowledge {
   position: sticky;
   top: calc(var(--topbar-h) + 8px);
   z-index: 5;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 18px var(--shadow);
 }
 
 .ws-segment.is-playing {
-  background: var(--blue-faint);
-  border-left-color: var(--blue-hi);
+  background: var(--you-faint);
+  border-left-color: var(--you);
 }
 
 /* ==========================================================================
    The record beside an engagement's design (Workspace Phase 4, decisions 9
-   and 11). Links are the consultant's, so they are electric blue; cantaloupe
+   and 11). Links are the consultant's, so they are warm white; orange
    stays for what the AI proposes.
    ========================================================================== */
 
@@ -4846,19 +4912,19 @@ a.ws-badge.is-knowledge {
   padding: 0 10px;
   border-radius: var(--r-control);
   border: 1px solid var(--line-strong);
-  background: var(--surface-2);
+  background: var(--surface-3);
   color: var(--text);
   font: inherit;
   outline: none;
 }
 
 .record-panel-head input:focus {
-  border-color: var(--blue);
+  border-color: var(--you);
 }
 
 .record-panel-head .ws-muted {
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .record-panel-body {
@@ -4874,12 +4940,12 @@ a.ws-badge.is-knowledge {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .record-panel-body p {
   margin: 8px 12px;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .record-findings {
@@ -4896,8 +4962,8 @@ a.ws-badge.is-knowledge {
 }
 
 .record-finding.is-linked {
-  box-shadow: inset 2px 0 0 var(--blue);
-  background: var(--blue-faint);
+  box-shadow: inset 2px 0 0 var(--you);
+  background: var(--you-faint);
 }
 
 .record-finding-statement {
@@ -4940,12 +5006,12 @@ a.ws-badge.is-knowledge {
   gap: 4px;
   padding: 8px;
   border-radius: var(--r-control);
-  background: var(--blue-faint);
-  box-shadow: inset 2px 0 0 var(--blue);
+  background: var(--you-faint);
+  box-shadow: inset 2px 0 0 var(--you);
 }
 
 .layer-finding.is-gone {
-  background: var(--surface-2);
+  background: var(--surface-3);
   box-shadow: inset 2px 0 0 var(--line-strong);
 }
 
@@ -4958,7 +5024,7 @@ a.ws-badge.is-knowledge {
 .layer-finding-meta {
   margin: 0;
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--text-subtle);
 }
 
 .layer-finding-actions {
@@ -4990,5 +5056,5 @@ a.ws-badge.is-knowledge {
 }
 
 .ws-in-designs a {
-  color: var(--blue-hi);
+  color: var(--you);
 }

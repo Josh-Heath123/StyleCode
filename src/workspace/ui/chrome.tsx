@@ -3,6 +3,7 @@ import { AppNav } from '../../app/AppNav';
 import { Icon } from '../../ui/Icon';
 import type { WorkspaceInfo } from '../api';
 import { formatDateTime } from '../time';
+import { Mark } from '../../ui/Mark';
 
 /** The workspace server's data folder, for every workspace page. */
 export const WorkspaceInfoContext = createContext<WorkspaceInfo | null>(null);
@@ -32,10 +33,7 @@ export function Id({ children }: { children: ReactNode }) {
 export function Brand() {
   return (
     <div className="brand">
-      <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="5" y="5" width="15" height="15" rx="3" fill="none" stroke="#2F7BFF" strokeWidth="2.6" />
-        <circle cx="21.5" cy="21.5" r="6" fill="#FFA05C" />
-      </svg>
+      <Mark className="brand-mark" />
       StyleCode
     </div>
   );

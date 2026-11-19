@@ -22,6 +22,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:tokens": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-tokens.ts",
     "check:hygiene": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-hygiene.ts",
     "check:dependencies": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-new-dependencies.ts",
     "notices": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/third-party-notices.ts",

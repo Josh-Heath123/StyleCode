@@ -672,7 +672,13 @@ export function ShadowSection({ nodes, write }: { nodes: DesignNode[]; write: Wr
         onAdd={() =>
           write(
             ids,
-            { shadowColor: '#0b0f1733', shadowX: 0, shadowY: 8, shadowBlur: 24, shadowSpread: 0 },
+            {
+              shadowColor: '#0b0f1733', // token-check: design content
+              shadowX: 0,
+              shadowY: 8,
+              shadowBlur: 24,
+              shadowSpread: 0,
+            },
             'commit',
             'Add shadow',
           )
@@ -754,7 +760,7 @@ export function GradientRow({ nodes, write }: { nodes: DesignNode[]; write: Writ
           onChange={(e) =>
             write(
               ids,
-              { gradientTo: e.target.checked ? '#7c4dff' : null },
+              /* token-check: design content */ { gradientTo: e.target.checked ? '#7c4dff' : null },
               'commit',
               e.target.checked ? 'Add gradient' : 'Remove gradient',
             )
