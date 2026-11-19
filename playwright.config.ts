@@ -85,6 +85,9 @@ export default defineConfig({
     url: 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
+    // On CI, the dev server's own output is in the log too: when it optimizes dependencies again, reloads the pages
+    // or restarts, a test failing at that moment can be explained. Locally it would only crowd the list.
+    stdout: process.env.CI ? 'pipe' : 'ignore',
     env: {
       STYLECODE_AI_CONFIG: join(tmpdir(), 'stylecode-e2e', 'ai.json'),
       STYLECODE_WORKSPACE: E2E_WORKSPACE,

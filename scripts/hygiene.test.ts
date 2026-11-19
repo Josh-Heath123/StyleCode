@@ -171,6 +171,21 @@ describe('user folders and email addresses', () => {
     }
   });
 
+  it('reads every %40 in an address, so one that holds two is never taken for an example or a noreply address', () => {
+    for (const text of [
+      `jo${'%40'}mailhost.co.za${'%40'}example.com`,
+      `jo${'%40'}example.com${'%40'}mailhost.co.za`,
+      `jo${at}mailhost.co.za${'%40'}example.com`,
+      `jo${'%40'}mailhost.co.za${'%40'}users.noreply.github.com`,
+      `jo${'%40'}MAILHOST.CO.ZA${'%40'}EXAMPLE.COM`,
+    ]) {
+      expect(personalProblems(text), text).toEqual([expect.stringContaining('email address')]);
+      expect(fileProblems('image.png', bytes([0], text)), text).toEqual([expect.stringContaining('email address')]);
+    }
+    expect(isNoreply(`jo${'%40'}mailhost.co.za${'%40'}users.noreply.github.com`)).toBe(false);
+    expect(personalProblems(`jo${'%40'}x.co.za${'%40'}mailhost.co.za`)[0]).toContain('…@mailhost.co.za');
+  });
+
   it('never repeats the whole address in its report', () => {
     expect(personalProblems(madeUpAddress)[0]).not.toContain(madeUpAddress);
   });
@@ -257,6 +272,56 @@ describe('commits', () => {
     expect(isNoreply(`noreply${at}github.com`)).toBe(true);
     expect(isNoreply(`someone${at}users.noreply.github.com.evil.io`)).toBe(false);
     expect(isNoreply(madeUpAddress)).toBe(false);
+  });
+
+  it('knows an app bot’s noreply form, such as Dependabot’s, and nothing like it', () => {
+    expect(isNoreply(`12345+made-up-app[bot]${at}users.noreply.github.com`)).toBe(true);
+    expect(isNoreply(`12345+made-up-app[bot]${'%40'}users.noreply.github.com`)).toBe(true);
+    for (const lookalike of [
+      `made-up-app[bot]${at}users.noreply.github.com`,
+      `12345+made-up-app[bot]${at}users.noreply.github.com.evil.io`,
+      `12345+made-up-app[bot]${at}noreply.github.com`,
+      `12345+made-up-app[robot]${at}users.noreply.github.com`,
+      `12345+made-up-app[bot]x${at}users.noreply.github.com`,
+      `12345+made up[bot]${at}users.noreply.github.com`,
+      `12345+made.up[bot]${at}users.noreply.github.com`,
+      `12345+[bot]${at}users.noreply.github.com`,
+      `x+made-up-app[bot]${at}users.noreply.github.com`,
+      `12345+made-up-app[bot]${at}users.noreply.github.com\n`,
+    ])
+      expect(isNoreply(lookalike), lookalike).toBe(false);
+  });
+
+  it('passes a Dependabot commit: its bot author, GitHub as committer, and its sign-off', () => {
+    const bot = `49699333+dependabot[bot]${at}users.noreply.github.com`;
+    const message = [
+      'Bump made-up-package from 1.0.0 to 1.0.1',
+      '',
+      '---',
+      'updated-dependencies:',
+      '- dependency-name: made-up-package',
+      '...',
+      '',
+      `Signed-off-by: dependabot[bot] <support${at}github.com>`,
+    ].join('\n');
+    expect(commitProblems({ sha, authorEmail: bot, committerEmail: `noreply${at}github.com`, message })).toEqual([]);
+    expect(commitProblems({ sha, authorEmail: bot, committerEmail: bot, message })).toEqual([]);
+  });
+
+  it('allows GitHub’s support address only on Dependabot’s exact sign-off line', () => {
+    const support = `support${at}github.com`;
+    for (const message of [
+      `Write to ${support}`,
+      `Signed-off-by: Someone <${support}>`,
+      `Signed-off-by: dependabot <${support}>`,
+      `Signed-off-by: dependabot[bot] <${support}> and more`,
+      `  Signed-off-by: dependabot[bot] <${support}>`,
+      `Signed-off-by: dependabot[bot] <support${at}github.com.evil.io>`,
+      `Signed-off-by: dependabot[bot] <help${at}github.com>`,
+      `Signed-off-by: dependabot[bot] <${madeUpAddress}>`,
+    ])
+      expect(commitProblems({ ...commit, message }), message).toEqual([expect.stringContaining('email address')]);
+    expect(personalProblems(`Signed-off-by: dependabot[bot] <${support}>`)).toHaveLength(1);
   });
 });
 

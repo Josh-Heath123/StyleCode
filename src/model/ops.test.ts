@@ -67,6 +67,14 @@ describe('applyOps', () => {
       expect(
         tryApplyOps(base, [{ type: 'create', parentId: base.rootId, index: 0, nodes: [createNode('rect', {}, id)] }]).ok,
       ).toBe(false);
+      expect(tryApplyOps(base, [{ type: 'create', parentId: id, index: 0, nodes: [createNode('rect', {}, 'r')] }]).ok).toBe(
+        false,
+      );
+      expect(tryApplyOps(base, [{ type: 'move', id, parentId: base.rootId, index: 0 }]).ok).toBe(false);
+      const withFrame = applyOps(base, [
+        { type: 'create', parentId: base.rootId, index: 0, nodes: [createNode('frame', {}, 'f')] },
+      ]).doc;
+      expect(tryApplyOps(withFrame, [{ type: 'move', id: 'f', parentId: id, index: 0 }]).ok).toBe(false);
     }
     expect(Object.getPrototypeOf(base.nodes)).toBe(Object.prototype);
     expect(checkIntegrity(base)).toEqual([]);

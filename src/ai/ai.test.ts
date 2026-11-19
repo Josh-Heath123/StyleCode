@@ -168,6 +168,41 @@ describe('interpreting replies', () => {
     expect(result.proposal.summary).toBe('Changes 1 layer and adds 2.');
   });
 
+  it('refuses layer names that are built-in object properties, and a new layer’s ref never becomes its id', () => {
+    const doc = page();
+    const ctx = ctxFor(doc, ['basic']);
+    const basic = ctx.alias.get('basic')!;
+    for (const name of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
+      const result = interpret(
+        reply([
+          { op: 'update', id: name, set: { fill: '#000000' } },
+          { op: 'delete', id: name },
+          { op: 'move', id: basic, parent: name, index: 0 },
+          { op: 'create', ref: 'n1', parent: name, type: 'rect', set: {} },
+        ]),
+        doc,
+        ctx,
+      );
+      expect(result.ok, name).toBe(false);
+      if (result.ok) return;
+      expect(result.errors).toEqual([
+        `Operation 1: there is no layer "${name}".`,
+        `Operation 2: there is no layer "${name}".`,
+        `Operation 3: there is no layer "${name}" to move into.`,
+        `Operation 4: there is no layer "${name}" to add to.`,
+      ]);
+
+      const created = interpret(reply([{ op: 'create', ref: name, parent: basic, type: 'rect', set: {} }]), doc, ctx);
+      expect(created.ok, name).toBe(true);
+      if (!created.ok) return;
+      const after = applyOps(doc, created.proposal.ops).doc;
+      expect(created.proposal.created).toHaveLength(1);
+      expect(created.proposal.created[0]).not.toBe(name);
+      expect(Object.prototype.hasOwnProperty.call(after.nodes, name)).toBe(false);
+      expect(Object.getPrototypeOf(after.nodes)).toBe(Object.prototype);
+    }
+  });
+
   it('keeps to the layers it was given and never touches locked ones', () => {
     const doc = page();
     const ctx = ctxFor(doc, ['basic']);

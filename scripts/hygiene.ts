@@ -52,18 +52,40 @@ const ASCII_EMAIL =
  * A lookalike such as example.com.evil.net or myexample.com isn't one.
  */
 export function isReservedExample(address: string): boolean {
-  const domain = address.replace(/%40/i, '@').split('@')[1]?.toLowerCase() ?? '';
+  const domain = soleDomain(address)?.toLowerCase() ?? '';
   return /(^|\.)example\.(com|net|org)$/.test(domain) || /\.(example|test|invalid|localhost)$/.test(domain);
 }
 
 /** The address carries on past what the pattern matched (a domain of example.com_evil.net), so its domain is longer. */
 const CONTINUES = /^(?:[\p{L}\p{N}_-]|\.[\p{L}\p{N}])/u;
 
-/** GitHub's own noreply addresses: a user's (`123+name@users.noreply.github.com`) and GitHub's (`noreply@github.com`). */
-export function isNoreply(address: string): boolean {
-  const a = address.replace(/%40/i, '@');
-  return /^(\d+\+)?[A-Za-z0-9-]+@users\.noreply\.github\.com$/i.test(a) || /^noreply@github\.com$/i.test(a);
+/** Every %40 written out as @. */
+const decoded = (address: string) => address.replace(/%40/gi, '@');
+
+/** The domain of an address with exactly one @ (written out or as %40). An address that holds two has none. */
+function soleDomain(address: string): string | null {
+  const parts = decoded(address).split('@');
+  return parts.length === 2 ? parts[1] : null;
 }
+
+/**
+ * GitHub's own noreply addresses: a user's (`123+name@users.noreply.github.com`), an app's bot, such as Dependabot
+ * (`49699333+dependabot[bot]@users.noreply.github.com`), and GitHub's (`noreply@github.com`).
+ */
+export function isNoreply(address: string): boolean {
+  const a = decoded(address);
+  return (
+    /^(\d+\+)?[A-Za-z0-9-]+@users\.noreply\.github\.com$/i.test(a) ||
+    /^\d+\+[A-Za-z0-9-]+\[bot\]@users\.noreply\.github\.com$/i.test(a) ||
+    /^noreply@github\.com$/i.test(a)
+  );
+}
+
+/**
+ * The sign-off Dependabot ends its commit messages with. GitHub's support address passes on this exact line of a
+ * commit message, and nowhere else.
+ */
+const DEPENDABOT_SIGN_OFF = /^Signed-off-by: dependabot\[bot\] <support@github\.com>$/gm;
 
 const SECRETS: [string, RegExp][] = [
   ['an API key (sk-…)', /(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{32,}/],
@@ -198,8 +220,18 @@ export function commitProblems(commit: CommitDetails): string[] {
   const problems: string[] = [];
   if (!isNoreply(commit.authorEmail)) problems.push('its author’s email isn’t a GitHub noreply address');
   if (!isNoreply(commit.committerEmail)) problems.push('its committer’s email isn’t a GitHub noreply address');
-  for (const p of [...personalProblems(commit.message), ...secretProblems(commit.message)]) problems.push(`its message has ${p}`);
+  const message = commit.message.replace(DEPENDABOT_SIGN_OFF, '');
+  for (const p of [...personalProblems(message), ...secretProblems(message)]) problems.push(`its message has ${p}`);
   return problems;
+}
+
+/**
+ * The commits to check, as a git range: a pull request's (its base and head), or a push's to main (the commit main
+ * was at before, and the one it's at now). A push that created the branch has a base of all zeros and no range.
+ */
+export function commitRange(base: string | undefined, head: string | undefined): string | null {
+  if (!base || !head || /^0+$/.test(base)) return null;
+  return `${base}..${head}`;
 }
 
 /** A file with a NUL byte near its start is binary. */
@@ -213,8 +245,8 @@ function lineOf(text: string, index = 0): number {
 
 /** An address is reported without being repeated in full in the CI log. */
 function mask(address: string): string {
-  const a = address.replace(/%40/i, '@');
-  const at = a.indexOf('@');
+  const a = decoded(address);
+  const at = a.lastIndexOf('@');
   return `${a.slice(0, 1)}…@${a.slice(at + 1)}`;
 }
 
