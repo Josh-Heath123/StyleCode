@@ -12,8 +12,8 @@ test.use({ deviceScaleFactor: 2, video: 'off' });
 
 const PAGES = [
   { name: 'hero', file: 'hero', width: 1600, height: 500, scale: 'device' },
-  { name: 'flow', file: 'flow', width: 1600, height: 560, scale: 'device' },
-  { name: 'architecture', file: 'architecture', width: 1600, height: 840, scale: 'device' },
+  { name: 'flow', file: 'flow', width: 1600, height: 480, scale: 'device' },
+  { name: 'architecture', file: 'architecture', width: 1600, height: 780, scale: 'device' },
   { name: 'social', file: 'social-preview', width: 1280, height: 640, scale: 'css' },
 ] as const;
 

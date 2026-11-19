@@ -61,8 +61,8 @@ export function inline(text: string, link: (href: string) => string = (h) => h):
       i += image[0].length;
       continue;
     }
-    // Link [text](href)
-    const anchor = /^\[((?:[^\]]|\][^(])*)\]\(([^)\s]+)\)/.exec(rest);
+    // Link [text](href), or a linked image [![alt](src)](href), such as the README's CI badge
+    const anchor = /^\[(!\[[^\]]*\]\([^)\s]+\))\]\(([^)\s]+)\)/.exec(rest) ?? /^\[((?:[^\]]|\][^(])*)\]\(([^)\s]+)\)/.exec(rest);
     if (anchor) {
       const href = safeHref(link(anchor[2]));
       const external = /^https?:/.test(href);

@@ -14,12 +14,12 @@
       html,
       body {
         width: 1600px;
-        height: 560px;
+        height: 480px;
       }
 
       /* The grid shows only in the margins, never behind the stages (I4). */
       .grid {
-        mask-image: linear-gradient(180deg, black 0, black 88px, transparent 120px, transparent 470px, black 520px);
+        mask-image: linear-gradient(180deg, black 0, black 32px, transparent 56px, transparent 390px, black 440px);
       }
 
       main {
@@ -35,7 +35,7 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 40px;
-        margin: 48px 0 0;
+        margin: 0;
         padding: 0;
         list-style: none;
       }
@@ -76,7 +76,7 @@
       }
 
       h2 {
-        margin: 8px 0 16px;
+        margin: 8px 0 20px;
         font-size: 30px;
       }
 
@@ -160,7 +160,6 @@
   <body>
     <div class="grid" aria-hidden="true"></div>
     <main>
-      <h1 class="display">From conversation to interface</h1>
       <ol class="stages">
         <li class="stage">
           <span class="caps step-number">Step 1</span>

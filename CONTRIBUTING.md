@@ -51,11 +51,41 @@ node --experimental-strip-types e2e/fakeOllama.ts
 | `src/ai` | The assistant: context, instructions, schema, interpreting replies. |
 | `src/app` | The app shell, top bar, dock, dialogs, onboarding, shortcuts. |
 | `src/persistence` | IndexedDB storage, images, project files. |
+| `src/workspace` | The consulting workspace: its domain model (`model/`, pure and versioned), transcript import, extraction, recording, transcription and its pages (`ui/`). |
 | `server/ai` | The local AI server (settings, keys, providers). |
-| `e2e` | Browser tests, and `e2e/demos` for the demo GIFs. |
-| `scripts` | The documentation site builder. |
+| `server/workspace` | The local workspace server: the data folder, clients, saves, files, recordings. |
+| `server/transcription` | Transcription on this computer: setup, jobs, the GPU's turn. |
+| `server/shared` | Request checks and renames that retry, shared by the local servers. |
+| `e2e` | Browser tests, and `e2e/demos` for the README's pictures. |
+| `scripts` | The documentation site builder, the hygiene, token and dependency checks, the third-party notices. |
+| `spikes` | Experiments with their own dependencies, never imported by `src`. |
 
 A few rules that keep the layers clean: `model` and `codegen` don't depend on React, the DOM or `app` (test fixtures aside), so they run anywhere; every change to a document goes through `applyOps` (usually via `editor.apply` or a gesture); a new layer property is added to `model/types.ts`, `model/defaults.ts` and the registry in `model/properties.ts`, which then drives validation, the AI schema and the file format.
+
+## Scripts
+
+| Script | What it does |
+| --- | --- |
+| `npm start` | Build if needed and serve StyleCode for client work, with the real data folder |
+| `npm run dev` | Start the development server (data in `StyleCode Data (development)`) |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Serve the production build (uses the real data folder, like `npm start`) |
+| `npm test` | Run the unit tests |
+| `npm run test:e2e` | Run the browser tests (starts its own dev server on port 5174, with AI settings and workspace data in temporary places) |
+| `npm run test:all` | Unit tests, then browser tests |
+| `npm run typecheck` | Type-check the app and the browser tests |
+| `npm run format` / `format:check` | Format with Prettier / check the formatting, as CI does |
+| `npm run check:hygiene` | What may never be committed: audio, video, archives, big files, user folders, email addresses, likely secrets |
+| `npm run check:tokens` | Colours only through the tokens, orange only for the AI |
+| `npm run check:readme` | Every relative link, image and anchor in the Markdown resolves, and the README's figures match their sources |
+| `npm run notices` | Rewrite THIRD-PARTY-NOTICES.md after a dependency or transcription download changes |
+| `npm run transcription:setup` | Download and check what transcription on this computer needs (Windows with an NVIDIA graphics card; about 1.3 GB) |
+| `npm run demos` | Make the README's pictures (needs ffmpeg) |
+| `npm run site` | Build the documentation site into `site/` (`npm run build:pages` also builds the app into it) |
+
+## Tech
+
+React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM elements, so it shows exactly what the exported CSS will render. Runtime dependencies are React, React DOM (with its scheduler) and the Inter font, and nothing else. The local servers use only Node's standard library (`fetch`, `http`, `fs`); transcription runs whisper.cpp and sherpa-onnx, downloaded by `npm run transcription:setup`, never committed. Tests use Vitest and Playwright, with axe for accessibility.
 
 ## Making a change
 

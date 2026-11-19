@@ -23,6 +23,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:tokens": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-tokens.ts",
+    "check:readme": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-readme.ts",
     "check:hygiene": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-hygiene.ts",
     "check:dependencies": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-new-dependencies.ts",
     "notices": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/third-party-notices.ts",

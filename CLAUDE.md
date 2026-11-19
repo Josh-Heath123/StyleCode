@@ -35,11 +35,12 @@ npm run test:all                 # unit tests, then browser tests
 npm run build                    # type-check + production build
 npm run format                   # Prettier on everything except Markdown
 npm run format:check             # what CI checks
-npm run demos                    # re-record docs/media GIFs (needs ffmpeg)
+npm run demos                    # the README's pictures in docs/media: screenshots, GIFs, docs/brand pages (needs ffmpeg)
 npm run site                     # documentation site into site/
 npm run build:pages              # app at site/app/ plus the site, as GitHub Pages publishes it
 npm run check:hygiene            # what may never be committed (scripts/hygiene.ts)
 npm run check:tokens             # colours only through the tokens, orange only for the AI (scripts/tokens.ts)
+npm run check:readme             # links, images and anchors in every Markdown file; the README's figures against their research (scripts/readme.ts)
 npm run notices                  # rewrite THIRD-PARTY-NOTICES.md after a dependency or transcription download changes
 ```
 
@@ -105,4 +106,4 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
   1. Run an independent review subagent over the work.
   2. Fix what it finds.
   3. Write `docs/phase-N/HANDOVER.md`.
-  4. Update the README, guide and roadmap if users would notice the change.
+  4. Update the README, guide and roadmap if users would notice the change. The phase's docs work package updates the README's status, tour and highlights, and re-records the pictures with `npm run demos`, checking each by eye (CONTRIBUTING.md, "The README's pictures").
