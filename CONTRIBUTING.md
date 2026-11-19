@@ -2,6 +2,8 @@
 
 StyleCode doesn't take outside contributions: pull requests from outside the project aren't merged. Reporting a bug is still welcome (see the end of this page).
 
+If an outside contribution is ever accepted, it will be only after its contributor has signed a written assignment, or a written licence, of their rights in it to the owner, Joshua Heath. Until then, nothing from outside the project is merged.
+
 This page describes how StyleCode is worked on: its few firm principles, the layout of the code, and what a change needs before it is merged. StyleCode is released under the [PolyForm Strict License 1.0.0](LICENSE), which doesn't allow changing or redistributing it.
 
 ## Principles
@@ -102,4 +104,4 @@ The AI demo uses a scripted stand-in model so the recording is repeatable; keep 
 
 ## Reporting bugs and security issues
 
-Use the issue templates for bugs and ideas. For a security problem, especially anything involving API keys, please don't open a public issue: contact the maintainer privately through their GitHub profile.
+Use the issue templates for bugs and ideas. For a security problem, especially anything involving API keys, please don't open a public issue: report it privately, as [SECURITY.md](SECURITY.md) explains.

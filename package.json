@@ -3,6 +3,7 @@
   "version": "0.5.0",
   "private": true,
   "description": "A local-first visual UI editor where the canvas is the prompt: draw interfaces, collaborate with an AI through structured edits, and export real frontend code.",
+  "author": "Joshua Heath",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://josh-heath123.github.io/StyleCode/",
   "repository": {
@@ -21,6 +22,10 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:hygiene": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-hygiene.ts",
+    "check:dependencies": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-new-dependencies.ts",
+    "notices": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/third-party-notices.ts",
+    "notices:check": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/third-party-notices.ts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

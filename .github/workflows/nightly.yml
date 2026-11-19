@@ -1,0 +1,42 @@
+name: Nightly
+
+# The browser tests on Windows (repository brief, R7): every night on main, and on demand. The owner works on Windows,
+# whose file system ignores letter case. A full Windows run on every pull request would double each merge's wait.
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # 03:00 in South Africa
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-browser-tests:
+    name: Browser tests (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      # Every test, in today's local order: the retention and settings tests after the rest, in one folder.
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: failure()
+        with:
+          name: windows-test-results
+          path: |
+            test-results/
+            blob-report/
+          retention-days: 7

@@ -129,20 +129,24 @@ test(`Alt+S stops a recording from anywhere, even while typing a note`, async ({
 });
 
 test('Alt+S also stops a recording that is still starting, as Stop does', async ({ page }) => {
-  const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
-  // The sound's worklet is held back, so the recording stays "Starting…".
-  let release!: () => void;
-  const held = new Promise<void>((resolve) => (release = resolve));
-  await page.route('**/capture-worklet.js*', async (route) => {
-    await held;
-    await route.continue().catch(() => undefined);
+  // The sound's worklet is held back, so the recording stays "Starting…". The hold is in the page before it loads:
+  // page.route never sees the worklet's own fetch (addModule's request isn't reported to Playwright), so a route
+  // held nothing, and the test passed only while starting happened to be slow.
+  await page.addInitScript(() => {
+    const addModule = AudioWorklet.prototype.addModule;
+    const held = new Promise<void>((resolve) => ((window as unknown as { releaseWorklet: () => void }).releaseWorklet = resolve));
+    AudioWorklet.prototype.addModule = async function (...args: Parameters<AudioWorklet['addModule']>) {
+      await held;
+      return addModule.apply(this, args);
+    };
   });
+  const id = await kickoff(page, { recording: { kind: 'until-engagement-ends' } });
   await card(page).getByRole('button', { name: 'Record', exact: true }).click();
   await page.getByRole('dialog', { name: 'Start recording' }).getByRole('button', { name: 'Start recording' }).click();
   await expect(live(page)).toContainText('Starting…');
   await page.keyboard.press('Alt+s');
   await expect(live(page)).toHaveCount(0);
-  release();
+  await page.evaluate(() => (window as unknown as { releaseWorklet: () => void }).releaseWorklet());
   const fileId = onDisk(id).sessions.se_1.audioFileIds[0];
   await expect.poll(() => onDisk(id).files[fileId]?.audio?.state).toBe('finished');
 });

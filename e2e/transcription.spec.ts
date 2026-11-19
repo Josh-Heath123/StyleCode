@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { FAKE_MODEL, startFakeOllama, type FakeOllama } from './fakeOllama';
+import { expectHeavySlotFree } from './heavySlot';
 import { kickoff } from './karoo';
 import { E2E_WORKSPACE } from './workspaceFolder';
 import { E2E_GPU_TEMPERATURE } from './workspacePath';
@@ -20,6 +21,10 @@ import { E2E_GPU_TEMPERATURE } from './workspacePath';
 
 // One heavy job at a time on the one test server (decision 10): these tests would wait for each other's transcriptions.
 test.describe.configure({ mode: 'default' });
+// Each test's transcriptions and runs let go of the heavy slot before the next starts (e2e/heavySlot.ts).
+test.afterEach(async ({ request }) => {
+  await expectHeavySlotFree(request);
+});
 
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
@@ -488,6 +493,8 @@ test('transcribing passes the accessibility check: the dialog, progress, the pre
   expect(await scan()).toEqual([]);
   await dialog.getByRole('button', { name: 'Add transcript' }).click();
   await expect(card(page)).toContainText('Transcribed on this computer');
+  // For a moment the finished job is still shown beside the transcript, each with its short labels: wait for it to go.
+  await expect(card(page).getByRole('group', { name: 'Transcription' })).toHaveCount(0);
   await card(page).locator('.ws-short-labels summary').click();
   expect(await scan()).toEqual([]);
 });

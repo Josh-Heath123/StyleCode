@@ -1,9 +1,14 @@
 name: CI
 
+# Every required check, in parallel (repository brief, R2 to R9, R11). The ruleset on main requires the jobs named
+# "Quick checks", "Unit tests", "Build", "Browser tests" and "Type-check, test and build (Windows)", and the two in
+# dependencies.yml.
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch: # So CI can be rerun on a branch.
 
 permissions:
   contents: read
@@ -13,55 +18,206 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Type-check, test and build
+  changes:
+    # Docs-only pull requests skip the browser tests (R9). A job skipped by its condition counts as passed; a
+    # workflow-level path filter would leave required checks waiting forever.
+    name: What changed
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    outputs:
+      docs-only: ${{ steps.diff.outputs.docs-only }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        name: Docs only? (Markdown under docs/, and README.md)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          docs_only=false
+          if [ -n "$BASE" ]; then
+            # --no-renames: a file moved into docs/ is listed where it came from as well.
+            changed=$(git diff --name-only --no-renames "$BASE...$HEAD")
+            echo "$changed"
+            if [ -n "$changed" ] && ! echo "$changed" | grep -qvE '^(docs/.*\.md|README\.md)$'; then docs_only=true; fi
+          fi
+          echo "docs-only=$docs_only" | tee -a "$GITHUB_OUTPUT"
 
+  quick:
+    name: Quick checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # The hygiene check reads the pull request's commits.
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
       - name: Formatting (Prettier)
         run: npm run format:check
-
       - name: Type-check
         run: npm run typecheck
+      - name: Hygiene
+        env:
+          HYGIENE_BASE: ${{ github.event.pull_request.base.sha }}
+          HYGIENE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: npm run check:hygiene
+      - name: Third-party notices up to date
+        run: npm run notices:check
+      - name: Licence and copyright on every file (REUSE)
+        run: pipx run --spec reuse==6.3.0 reuse lint
 
-      - name: Unit tests
-        run: npm test
-
-      - name: Production build
-        run: npm run build
-
-      - name: Install Chromium for the browser tests
-        run: npx playwright install --with-deps chromium
-
-      - name: Browser tests
-        run: npm run test:e2e
-
-      - name: Keep the browser test results
-        if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          name: playwright-results
-          path: test-results/
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  e2e:
+    # Each part runs on its own runner, with its own server and data folder:
+    # - cN/K: a shard of the chromium project;
+    # - hN/M: a shard of the heavy jobs, which run one at a time on a server (Phase 3, decision 10), so they're spread
+    #   over runners of their own rather than queued on one;
+    # - alone: the tests that run last locally (retention and settings), alone in their folder (E2E_DESTRUCTIVE_ALONE).
+    # Chromium comes with the Playwright container, pinned by digest: it measured faster than a cache (WP1).
+    name: Browser tests (${{ matrix.part }})
+    needs: changes
+    if: needs.changes.outputs.docs-only != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    strategy:
+      fail-fast: false
+      matrix:
+        # Four shards, the fewest that kept every required check under 4 minutes (WP1, 5 runs each: medians of 199 s
+        # with 4, 174 s with 6, 146 s with 8).
+        part: [c1/3, c2/3, c3/3, h1/1, alone]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: name
+        # One name per part, for its artifact and its blob report: c1/4 and h1/2 would both be shard 1.
+        # An artifact's name can't hold a slash.
+        env:
+          PART: ${{ matrix.part }}
+        run: echo "name=$(echo "$PART" | tr / -)" >> "$GITHUB_OUTPUT"
+      - name: Browser tests
+        env:
+          PART: ${{ matrix.part }}
+        run: |
+          case "$PART" in
+            alone) E2E_DESTRUCTIVE_ALONE=1 npx playwright test --project "after the rest" ;;
+            c*) npx playwright test --project chromium --shard="${PART#c}" ;;
+            h*) npx playwright test --project "heavy jobs" --shard="${PART#h}" ;;
+            *) echo "Unknown part: $PART" && exit 1 ;;
+          esac
+      - name: Name the blob report after its part
+        if: ${{ !cancelled() }}
+        env:
+          NAME: ${{ steps.name.outputs.name }}
+        run: for f in blob-report/*.zip; do [ -e "$f" ] && mv "$f" "blob-report/report-$NAME.zip"; done; ls blob-report
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: blob-report-${{ steps.name.outputs.name }}
+          path: blob-report/
+          retention-days: 7
+
+  browser-tests:
+    # The one required check for the browser tests: it passes only if every part succeeded, or every part was skipped
+    # because the change is docs only. A failure, a cancellation or any other skip fails it.
+    name: Browser tests
+    needs: [changes, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          CHANGES: ${{ needs.changes.result }}
+          DOCS_ONLY: ${{ needs.changes.outputs.docs-only }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "What changed: $CHANGES (docs only: $DOCS_ONLY). Browser tests: $E2E."
+          if [ "$CHANGES" = success ] && { [ "$E2E" = success ] || { [ "$E2E" = skipped ] && [ "$DOCS_ONLY" = true ]; }; }; then exit 0; fi
+          exit 1
+
+  report:
+    # One HTML report from every part's blob report, kept for a week. Not a required check.
+    name: Browser test report
+    needs: e2e
+    if: ${{ !cancelled() && needs.e2e.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: blob-report-*
+          path: all-blob-reports
+          merge-multiple: true
+      - run: npx playwright merge-reports --reporter html ./all-blob-reports
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playwright-report
+          path: playwright-report/
           retention-days: 7
 
   windows:
     # The user develops on Windows, whose file system ignores letter case:
     # this catches clashes such as onboarding.ts beside Onboarding.tsx.
+    # The browser tests run on Windows nightly (nightly.yml).
     name: Type-check, test and build (Windows)
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
