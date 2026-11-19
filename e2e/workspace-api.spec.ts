@@ -25,12 +25,12 @@ test('a page from another origin cannot read the workspace', async ({ page, requ
     res.setHeader('content-type', 'text/html');
     res.end('<!doctype html><title>Other site</title>');
   });
-  await new Promise<void>((resolve) => other.listen(0, 'localhost', resolve));
+  await new Promise<void>((resolve) => other.listen(0, '127.0.0.1', resolve));
   try {
-    await page.goto(`http://localhost:${(other.address() as AddressInfo).port}/`);
+    await page.goto(`http://127.0.0.1:${(other.address() as AddressInfo).port}/`);
     const outcome = await page.evaluate(async () => {
       try {
-        const res = await fetch('http://localhost:5174/api/workspace/companies', {
+        const res = await fetch('http://127.0.0.1:5174/api/workspace/companies', {
           headers: { 'x-stylecode-workspace': '1' },
         });
         return `status ${res.status}`;

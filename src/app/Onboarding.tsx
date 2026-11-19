@@ -2,6 +2,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Icon, type IconName } from '../ui/Icon';
 import { STEPS, type Onboarding } from './onboardingState';
 import { useDialogFocus } from '../ui/useDialogFocus';
+import { Mark } from '../ui/Mark';
 
 export function useOnboardingState(onboarding: Onboarding) {
   return useSyncExternalStore(onboarding.subscribe, onboarding.getState, onboarding.getState);
@@ -30,7 +31,7 @@ export function WelcomeDialog({
     <div className="dialog-backdrop welcome-backdrop">
       <div
         ref={ref}
-        className="dialog glass welcome"
+        className="dialog glass welcome motif"
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-title"
@@ -40,11 +41,10 @@ export function WelcomeDialog({
         }}
       >
         <div className="welcome-body">
-          <svg className="welcome-mark" viewBox="0 0 32 32" aria-hidden="true">
-            <rect x="5" y="5" width="15" height="15" rx="3" fill="none" stroke="#2F7BFF" strokeWidth="2.6" />
-            <circle cx="21.5" cy="21.5" r="6" fill="#FFA05C" />
-          </svg>
-          <h1 id="welcome-title">Welcome to StyleCode</h1>
+          <Mark className="welcome-mark" />
+          <h1 id="welcome-title" className="display">
+            Welcome to StyleCode
+          </h1>
           <p className="welcome-lead">
             Draw an interface, turn it into a real layout and export the code. Your work stays on this computer.
           </p>

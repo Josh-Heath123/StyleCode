@@ -108,11 +108,11 @@ function initialProps(doc: DesignDocument, tool: DrawTool, parentId: string): Pa
   const darkBehind = luminance(backgroundBehind(doc, parentId)) < 0.35;
   if (tool === 'text') {
     // Pick a readable text colour for whatever the text is drawn on.
-    props.fill = darkBehind ? '#f4f6fb' : '#11141a';
+    props.fill = darkBehind ? '#f4f6fb' : '#11141a'; // token-check: design content
     props.text = '';
   } else if (tool === 'frame' && parentId !== doc.rootId) {
     // A section inside a frame gets a gentle tint so it is visible against its parent.
-    props.fill = darkBehind ? '#1b2130' : '#f1f3f6';
+    props.fill = darkBehind ? '#1b2130' : '#f1f3f6'; // token-check: design content
   }
   return props;
 }

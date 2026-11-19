@@ -61,7 +61,7 @@ Notes live on the canvas, outside your pages, and never appear in exported code.
 
 AI is optional and off until you choose a provider (the **AI** button in the top bar): a free model on your own computer with [Ollama](https://ollama.com), or an OpenAI-compatible or Anthropic API with your own key. The [README](../README.md#ai-optional) covers setting it up and where keys are kept.
 
-Select what you want to change (or nothing, for the whole page), press <kbd>/</kbd> and describe the change, or pick a suggestion. The AI explains what it is doing while it works, then shows its proposal on the canvas in cantaloupe: <kbd>Enter</kbd> accepts it as one step you can undo, <kbd>Esc</kbd> rejects it. It only changes what you selected (plus new layers inside or next to it), never locked layers, and asks before deleting a lot.
+Select what you want to change (or nothing, for the whole page), press <kbd>/</kbd> and describe the change, or pick a suggestion. The AI explains what it is doing while it works, then shows its proposal on the canvas in orange: <kbd>Enter</kbd> accepts it as one step you can undo, <kbd>Esc</kbd> rejects it. It only changes what you selected (plus new layers inside or next to it), never locked layers, and asks before deleting a lot.
 
 If a model stops answering for two minutes (a large local model loading for the first time can be slow), the request is given up with a message, and you can try again or pick a smaller model.
 

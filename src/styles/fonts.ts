@@ -3,6 +3,9 @@
 // designs reference the same family name the exported code will use.
 import latinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import latin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+// Inter's true italic, for StyleCode's display voice only (docs/brand/IDENTITY.md, I3): never slanted body text.
+import latinItalic from '@fontsource-variable/inter/files/inter-latin-wght-italic.woff2?url';
+import latinExtItalic from '@fontsource-variable/inter/files/inter-latin-ext-wght-italic.woff2?url';
 import { LATIN_EXT_RANGE, LATIN_RANGE } from '../codegen/fonts';
 
 /** URLs of the bundled font files, by file name, for the canvas and for exported code. */
@@ -13,6 +16,14 @@ export const FONT_URLS: Record<string, string> = {
 
 /** Registers the bundled Inter font and resolves once it is ready to measure with. */
 export async function loadFonts(): Promise<void> {
+  // The italic loads when the display voice first uses it; the canvas and measurement wait only for the upright.
+  for (const [url, range] of [
+    [latinItalic, LATIN_RANGE],
+    [latinExtItalic, LATIN_EXT_RANGE],
+  ])
+    document.fonts.add(
+      new FontFace('Inter', `url(${url}) format('woff2')`, { weight: '100 900', style: 'italic', unicodeRange: range }),
+    );
   const faces = [
     new FontFace('Inter', `url(${latin}) format('woff2')`, { weight: '100 900', style: 'normal', unicodeRange: LATIN_RANGE }),
     new FontFace('Inter', `url(${latinExt}) format('woff2')`, {

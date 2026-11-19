@@ -65,14 +65,14 @@ export function shadowValue(node: DesignNode): string | undefined {
 
 /** The space between a note's edge and its text. */
 export const NOTE_PADDING = { x: 12, y: 10 } as const;
-/** Colours offered for notes; the first is the default. */
-export const NOTE_COLORS = ['#ffd8a8', '#fff3bf', '#d0ebff', '#d3f9d8', '#ffc9c9'] as const;
+/** Colours offered for notes; the first, warm white, is the default (docs/brand/IDENTITY.md, I12). The others stay. */
+export const NOTE_COLORS = ['#fdf9ea', '#ffd8a8', '#fff3bf', '#d0ebff', '#d3f9d8', '#ffc9c9'] as const;
 
 /** A note on the canvas: a sticky note, never part of exported code. */
 function noteDeclarations(node: DesignNode): CssDeclarations {
   return {
     background: node.fill ?? NOTE_COLORS[0],
-    color: '#2b1d0e',
+    color: '#121212',
     fontFamily: fontStack(node.fontFamily),
     fontSize: px(node.fontSize),
     lineHeight: node.lineHeight,

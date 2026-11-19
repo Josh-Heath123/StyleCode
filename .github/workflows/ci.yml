@@ -70,6 +70,8 @@ jobs:
           HYGIENE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           HYGIENE_HEAD: ${{ github.event.pull_request.head.sha || github.event.after }}
         run: npm run check:hygiene
+      - name: Colours through the tokens, orange only for the AI (docs/brand/IDENTITY.md)
+        run: npm run check:tokens
       - name: Third-party notices up to date
         run: npm run notices:check
       - name: Licence and copyright on every file (REUSE)

@@ -224,7 +224,7 @@ export function ColorField({ name, value, onChange }: ColorFieldProps) {
   onChangeRef.current = onChange;
   const alphaRef = useRef(1);
   const mixed = value === MIXED;
-  const { rgb, alpha } = mixed ? { rgb: '#000000', alpha: 1 } : splitColor(value);
+  const { rgb, alpha } = mixed ? { rgb: '#000000', alpha: 1 } : splitColor(value); // token-check: design content (a mixed value shows black)
   const [text, setText] = useState(mixed ? '' : rgb.slice(1).toUpperCase());
   const [focused, setFocused] = useState(false);
   const cancelled = useRef(false);

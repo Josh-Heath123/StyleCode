@@ -117,7 +117,7 @@ test('a request becomes a proposal on the canvas: accept applies it as one undo 
   await ask(page, 'make it dark');
   await expect(assistant(page)).toContainText('Gave it a dark background with rounded corners.');
   await expect(assistant(page)).toContainText('Changes 1 layer.');
-  // Shown on the canvas in cantaloupe, not yet recorded.
+  // Shown on the canvas in orange, not yet recorded.
   await expect(page.locator('.ov-proposal-changed')).toHaveCount(1);
   expect(await node(page, cards[0])).toMatchObject({ fill: '#11141a', radius: 16 });
   // Undo would reject it; nothing has been recorded yet.

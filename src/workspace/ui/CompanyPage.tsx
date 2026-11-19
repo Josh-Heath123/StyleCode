@@ -36,6 +36,7 @@ function Company({ view }: { view: ClientView }) {
     <>
       <Page
         title={company.name}
+        display
         crumbs={[{ label: 'Clients', href: '#/' }, { label: company.name }]}
         lede={company.industry || undefined}
         notices={notices}

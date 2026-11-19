@@ -1,7 +1,8 @@
 const svgCursor = (svg: string, x: number, y: number, fallback: string) =>
   `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${x} ${y}, ${fallback}`;
 
-const ROTATE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 12.5a6.5 6.5 0 1 1-2.2-4.9" stroke="#fff" stroke-width="4"/><path d="M17.5 4v4h-4" stroke="#fff" stroke-width="4"/><path d="M18.5 12.5a6.5 6.5 0 1 1-2.2-4.9" stroke="#000" stroke-width="1.6"/><path d="M17.5 4v4h-4" stroke="#000" stroke-width="1.6"/></g></svg>`;
+// A cursor, drawn in black and white so it shows on any design (a data URL takes no token)
+const ROTATE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 12.5a6.5 6.5 0 1 1-2.2-4.9" stroke="#fff" stroke-width="4"/><path d="M17.5 4v4h-4" stroke="#fff" stroke-width="4"/><path d="M18.5 12.5a6.5 6.5 0 1 1-2.2-4.9" stroke="#000" stroke-width="1.6"/><path d="M17.5 4v4h-4" stroke="#000" stroke-width="1.6"/></g></svg>`; // token-check: cursor
 
 export const ROTATE_CURSOR = svgCursor(ROTATE_SVG, 12, 12, 'crosshair');
 

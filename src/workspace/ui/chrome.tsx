@@ -3,6 +3,7 @@ import { AppNav } from '../../app/AppNav';
 import { Icon } from '../../ui/Icon';
 import type { WorkspaceInfo } from '../api';
 import { formatDateTime } from '../time';
+import { Mark } from '../../ui/Mark';
 
 /** The workspace server's data folder, for every workspace page. */
 export const WorkspaceInfoContext = createContext<WorkspaceInfo | null>(null);
@@ -32,11 +33,8 @@ export function Id({ children }: { children: ReactNode }) {
 export function Brand() {
   return (
     <div className="brand">
-      <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="5" y="5" width="15" height="15" rx="3" fill="none" stroke="#2F7BFF" strokeWidth="2.6" />
-        <circle cx="21.5" cy="21.5" r="6" fill="#FFA05C" />
-      </svg>
-      StyleCode
+      <Mark className="brand-mark" />
+      <span className="display">StyleCode</span>
     </div>
   );
 }
@@ -98,6 +96,7 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
  */
 export function Page({
   title,
+  display = false,
   crumbs,
   lede,
   actions,
@@ -105,6 +104,8 @@ export function Page({
   children,
 }: {
   title: string;
+  /** The title in the display voice (docs/brand/IDENTITY.md, I3): a client's name on its page. */
+  display?: boolean;
   crumbs?: Crumb[];
   lede?: ReactNode;
   /** Buttons beside the title. */
@@ -120,7 +121,7 @@ export function Page({
       {crumbs && crumbs.length > 1 && <Breadcrumb crumbs={crumbs} />}
       <div className="ws-heading">
         <div className="ws-heading-text">
-          <h1 className="ws-title" ref={heading} tabIndex={-1}>
+          <h1 className={`ws-title${display ? ' display' : ''}`} ref={heading} tabIndex={-1}>
             {title}
           </h1>
           {lede && <p className="ws-lede">{lede}</p>}

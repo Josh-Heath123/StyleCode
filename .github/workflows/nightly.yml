@@ -2,6 +2,10 @@ name: Nightly
 
 # The browser tests on Windows (repository brief, R7): every night on main, and on demand. The owner works on Windows,
 # whose file system ignores letter case. A full Windows run on every pull request would double each merge's wait.
+#
+# The dev server listens on 127.0.0.1 (playwright.config.ts): with "localhost", 3 runs in 7 had a module request at page
+# load refused, and none in 5 after. One run in those 5 (44574273815) had a request fail with ERR_NO_BUFFER_SPACE
+# instead, likely a socket limit on GitHub's Windows runners; it isn't chased further unless it comes back often.
 
 on:
   schedule:

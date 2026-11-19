@@ -53,8 +53,8 @@ export function ClientsPage() {
         {companies === null && !error && <p className="ws-muted">Loading clients…</p>}
         {companies && companies.length > 0 && <PastTimeCard companies={companies} />}
         {companies?.length === 0 && (
-          <div className="ws-empty">
-            <h2>No clients yet</h2>
+          <div className="ws-empty motif">
+            <h2 className="display">No clients yet</h2>
             <p>Add your first client to start keeping their meetings, consent and notes in one place.</p>
             <button type="button" className="button primary" onClick={() => setAdding(true)}>
               <Icon name="plus" size={14} /> New client

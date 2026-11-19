@@ -21,7 +21,7 @@ export function aiStatusLabel(config: AiConfig | null, unavailable: string | nul
 /**
  * The bottom of the canvas: the tool dock, and above it the AI assistant.
  * The assistant opens with the dock's AI button or "/", streams what the AI
- * is doing, and then shows its proposal on the canvas in cantaloupe to accept
+ * is doing, and then shows its proposal on the canvas in orange to accept
  * (Enter) or reject (Esc).
  */
 export function DockArea({ onOpenSettings }: { onOpenSettings: () => void }) {

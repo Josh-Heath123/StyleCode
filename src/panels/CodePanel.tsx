@@ -67,8 +67,8 @@ const cssColorParser: ColorParser = (() => {
       ctx!.fillStyle = v;
       return ctx!.fillStyle;
     };
-    const a = read('#010203');
-    const b = read('#040506');
+    const a = read('#010203'); // token-check: not shown (a sentinel for the colour parser)
+    const b = read('#040506'); // token-check: not shown
     if (a !== b) return undefined;
     if (a.startsWith('#')) return a;
     const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/.exec(a);

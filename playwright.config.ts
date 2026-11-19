@@ -50,7 +50,7 @@ export default defineConfig({
   // CI splits the tests across runners. Each keeps a blob report, and they're merged into one HTML report afterwards.
   reporter: process.env.CI ? [['blob'], ['github']] : 'list',
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: 'http://127.0.0.1:5174',
     // Returning visitors: the welcome screen and checklist have been seen (onboarding has its own test).
     storageState: 'e2e/storage-state.json',
     viewport: { width: 1440, height: 900 },
@@ -81,8 +81,8 @@ export default defineConfig({
   webServer: {
     // The test data folder is emptied first, lock included (e2e/clearTestWorkspace.ts).
     command:
-      'node --experimental-strip-types --disable-warning=ExperimentalWarning e2e/clearTestWorkspace.ts && npm run dev -- --port 5174 --strictPort',
-    url: 'http://localhost:5174',
+      'node --experimental-strip-types --disable-warning=ExperimentalWarning e2e/clearTestWorkspace.ts && npm run dev -- --host 127.0.0.1 --port 5174 --strictPort',
+    url: 'http://127.0.0.1:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
     // On CI, the dev server's own output is in the log too: when it optimizes dependencies again, reloads the pages

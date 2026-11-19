@@ -39,6 +39,7 @@ npm run demos                    # re-record docs/media GIFs (needs ffmpeg)
 npm run site                     # documentation site into site/
 npm run build:pages              # app at site/app/ plus the site, as GitHub Pages publishes it
 npm run check:hygiene            # what may never be committed (scripts/hygiene.ts)
+npm run check:tokens             # colours only through the tokens, orange only for the AI (scripts/tokens.ts)
 npm run notices                  # rewrite THIRD-PARTY-NOTICES.md after a dependency or transcription download changes
 ```
 
@@ -80,6 +81,7 @@ Node 22.12 or newer is required. The user works on **Windows**, so keep npm scri
   - New UI passes `e2e/accessibility.spec.ts` and works from the keyboard.
 - Performance budgets live in `src/model/performance.test.ts`. Don't loosen them to make a change pass.
 - Interface text is plain English: short, specific, no exclamation marks. Colours and spacing come from the tokens in `src/styles/app.css`, and text meets WCAG AA contrast.
+- New interface follows `docs/brand/IDENTITY.md`: charcoal is the canvas, warm white is you, orange is only the AI's. `npm run check:tokens` enforces it.
 - Ask before adding a runtime dependency. Experiments go under `spikes/` with their own dependencies, and `src/` never imports them.
 
 ## How to work

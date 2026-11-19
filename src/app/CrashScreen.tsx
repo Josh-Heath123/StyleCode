@@ -60,7 +60,7 @@ export function CrashScreen({
   };
 
   return (
-    <div className="crash" role="alert">
+    <div className="crash motif" role="alert">
       <div className="crash-card">
         <h1 ref={heading} tabIndex={-1}>
           StyleCode hit a problem

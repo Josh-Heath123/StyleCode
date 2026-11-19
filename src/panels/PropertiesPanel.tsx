@@ -334,7 +334,7 @@ export function PropertiesPanel() {
         <PaintSection
           title={all('text') ? 'Colour' : 'Fill'}
           value={common(nodes, 'fill')}
-          defaultColor={all('text') ? '#11141a' : all('frame') ? '#ffffff' : '#d9dde4'}
+          defaultColor={/* token-check: design content */ all('text') ? '#11141a' : all('frame') ? '#ffffff' : '#d9dde4'}
           removable={!all('text')}
           onChange={(fill, phase, label) =>
             // Removing the fill removes a gradient too, rather than leaving one with no controls.
@@ -549,7 +549,9 @@ function StrokeSection({
             aria-label="Add stroke"
             data-tip="Add stroke"
             data-tip-side="left"
-            onClick={() => onChange({ stroke: '#11141a', strokeWidth: 1 }, 'commit', 'Add stroke')}
+            onClick={
+              /* token-check: design content */ () => onChange({ stroke: '#11141a', strokeWidth: 1 }, 'commit', 'Add stroke')
+            }
           >
             <Icon name="plus" size={14} />
           </button>
@@ -683,7 +685,7 @@ function PagePanel({ editor }: { editor: Editor }) {
         <PaintSection
           title="Background"
           value={fill}
-          defaultColor="#0d1017"
+          defaultColor={/* token-check: design content */ '#0d1017'}
           removable={false}
           onChange={(v, phase) => write([rootId], { fill: v }, phase, 'Page background')}
         />
