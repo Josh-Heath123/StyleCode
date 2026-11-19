@@ -121,6 +121,32 @@ I7. **What else changes, and what doesn't.**
   - "the consultant's, in electric blue" becomes "in warm white";
   - this covers the guide, the README, `ARCHITECTURE.md`, `docs/phase-4/PHASE-4-BRIEF.md`'s clarifications (with a dated note), and `CLAUDE.md`'s interface rule.
 
+### Answers at Part 1's WP0 check-in (19 November 2026)
+
+The owner saw the proposal on two screens and approved the look. The reviewer answered WP0's points on his behalf; they add to I1 to I7 and go into `docs/brand/IDENTITY.md`.
+
+I8. **Orange is only the AI's.** Every use of orange that isn't the AI's work becomes warm white or neutral: snap guides, drop and insert marks, the note's arrow, the code's syntax colours, the "Changed" badge, the preview icon, and anything else that used it outside the AI's files. The token check enforces it.
+
+I9. **Warning yellow** `#F2C94C` stays as its own role, `--warn` (11.8:1 on charcoal, 8.9:1 on `#2B2B2B`; hue 45°, against orange's 18°): consent warnings, read-only states, "Suggested (not agreed yet)". It always comes with its word or icon.
+
+I10. **Three more contrast rules** for I2, enforced by the token check where it can:
+- no orange text on the orange soft fill (4.49:1 over `#1A1A1A`);
+- the subtle grey only on surfaces up to `#222222` (4.20:1 on `#2B2B2B`);
+- filled danger buttons take charcoal text (warm white on danger is 2.78:1).
+
+I11. **Surfaces and greys.**
+- A fifth raised step, `#333333`, for pressed buttons and tooltips only (warm white 12.0:1, muted 6.2:1; never the subtle grey on it).
+- `#5E5B54` is for disabled text only (2.8:1; disabled controls are exempt).
+- Code comments are read, so they take the subtle grey `#8F8C82`.
+
+I12. **Notes.** Notes are never exported to code, and every saved note stores its own colour, so new notes default to warm white (`#FDF9EA`) with charcoal text: the peach default (`#FFD8A8`, hue 33°) read as part of the AI's orange family. Saved notes keep their colour, and the other swatches stay.
+
+I13. **Smaller decisions.**
+- The focus ring's offset is 2px, so it shows around the warm-white primary button.
+- The AI's badge ("Proposed by the AI") is outlined in orange rather than filled: on a selected proposal a filled badge stacked two soft fills (3.74:1).
+- A selected proposal's orange fill is 8%.
+- "Ask the AI for findings" is a warm-white button (the consultant asks), with its sparkle in orange (the AI).
+
 ### Part 2: the README and the repository
 
 P1. **What StyleCode is, in one line.** Lead with the whole product, with the editor's idea as the second line. A starting point to sharpen in Part 2's WP0, as long as every word stays true:
