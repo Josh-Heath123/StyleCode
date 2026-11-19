@@ -144,6 +144,33 @@ function reply(body: FakeOllama['requests'][number]): FakeReply {
   return { text: json('I can’t do that with the tools I have.', []), delay: 2 };
 }
 
+const ABORTED = Symbol('aborted');
+const INVALID = Symbol('invalid');
+
+/**
+ * A chat request's body. A request can end before its body does: its caller
+ * goes away, or this fake closes (a test's afterAll) while a request is still
+ * arriving. Reading it then fails with "aborted", and what arrived is cut off,
+ * often after one 64 KiB chunk. Neither may throw: the handler is async, so
+ * the error would be unhandled, and Playwright pins an unhandled error on
+ * whichever test its worker is running, often one that never used the fake.
+ */
+async function readChat(req: http.IncomingMessage): Promise<FakeOllama['requests'][number] | typeof ABORTED | typeof INVALID> {
+  const chunks: Buffer[] = [];
+  try {
+    for await (const chunk of req) chunks.push(chunk as Buffer);
+  } catch {
+    return ABORTED;
+  }
+  if (!req.complete) return ABORTED;
+  try {
+    // Decoded once, whole: a character split between two chunks stays one character.
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    return INVALID;
+  }
+}
+
 /**
  * Starts the fake. The demo recordings pass their own scripted `respond` and
  * model name; the tests use the defaults above.
@@ -161,9 +188,13 @@ export async function startFakeOllama(
       return;
     }
     if (req.method === 'POST' && req.url === '/api/chat') {
-      let raw = '';
-      for await (const chunk of req) raw += chunk;
-      const body = JSON.parse(raw);
+      const body = await readChat(req);
+      if (body === ABORTED) return; // The caller went away mid-request, or the fake is closing: nobody to answer.
+      if (body === INVALID) {
+        res.writeHead(400, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid JSON body' }));
+        return;
+      }
       requests.push(body);
       const answer = respond(body);
       if ('status' in answer) {
