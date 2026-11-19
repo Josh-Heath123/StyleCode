@@ -129,6 +129,9 @@ test.describe('code panel', () => {
     await select(page, [card.id]);
     await page.keyboard.press('Control+z');
     expect((await node(page, card.id)).radius).toBe(16);
+    // The field follows the design again before it's typed in: typed sooner, the re-selection's render could reach the
+    // field after the text and put the design's CSS back over it (it failed once on Windows, run 44532315604).
+    await expect(css).toHaveValue(/border-radius: 16px;/);
 
     // CSS StyleCode can't represent is reported, and nothing changes.
     await css.fill('filter: blur(4px);');
