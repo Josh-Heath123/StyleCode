@@ -96,6 +96,8 @@ I4. **The construction grid motif, used sparingly:** hairline lines in warm whit
 
 I5. **The mark.** `public/favicon.svg` becomes a warm-white square with an orange dot, the same idea as today's blue square and orange dot, in the new colours. A new `docs/brand/` holds `mark.svg`, `wordmark.svg` (Inter 800 italic, outlined) and a one-page `docs/brand/IDENTITY.md` with I1 to I7, so future work follows it.
 
+*Note to I5, 19 November 2026:* there is no outlined `wordmark.svg`, and no font library to outline one. The wordmark is set live in Inter 800 italic in `docs/brand/`'s HTML pages, and Part 2 renders it into the hero and the social preview with Playwright (P5).
+
 I6. **Tokens by role, and restraint checked.**
 - **Rename** `app.css`'s colour tokens by role (for example `--you`, `--ai`, `--ai-soft`, `--ok`, `--danger` and `--surface-1…5`) in place of colour names (`--blue`, `--melon`). The rename is mechanical, across every use.
 - **A token check,** `scripts/check-tokens.ts` with no new dependency, in the quick-checks job:

@@ -58,7 +58,9 @@ Hairlines in warm white at very low opacity, with one guide slanted at the itali
 
 ## The mark
 
-A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`). The wordmark is "StyleCode" in the display voice beside the mark; an outlined `docs/brand/wordmark.svg` isn't made yet.
+A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`). The wordmark is "StyleCode" in the display voice beside the mark.
+
+*Note, 19 November 2026:* there is no outlined `wordmark.svg`, and no font library to make one. The wordmark is set live in Inter 800 italic in `docs/brand/`'s HTML pages (`hero.html`, and later `social.html`), which `npm run demos` renders to PNG with Playwright.
 
 ## Design content isn't chrome
 
