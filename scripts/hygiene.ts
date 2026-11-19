@@ -225,6 +225,15 @@ export function commitProblems(commit: CommitDetails): string[] {
   return problems;
 }
 
+/**
+ * The commits to check, as a git range: a pull request's (its base and head), or a push's to main (the commit main
+ * was at before, and the one it's at now). A push that created the branch has a base of all zeros and no range.
+ */
+export function commitRange(base: string | undefined, head: string | undefined): string | null {
+  if (!base || !head || /^0+$/.test(base)) return null;
+  return `${base}..${head}`;
+}
+
 /** A file with a NUL byte near its start is binary. */
 export function isBinary(bytes: Uint8Array): boolean {
   return bytes.subarray(0, 8000).includes(0);
