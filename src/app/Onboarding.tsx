@@ -31,7 +31,7 @@ export function WelcomeDialog({
     <div className="dialog-backdrop welcome-backdrop">
       <div
         ref={ref}
-        className="dialog glass welcome"
+        className="dialog glass welcome motif"
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-title"
@@ -42,7 +42,9 @@ export function WelcomeDialog({
       >
         <div className="welcome-body">
           <Mark className="welcome-mark" />
-          <h1 id="welcome-title">Welcome to StyleCode</h1>
+          <h1 id="welcome-title" className="display">
+            Welcome to StyleCode
+          </h1>
           <p className="welcome-lead">
             Draw an interface, turn it into a real layout and export the code. Your work stays on this computer.
           </p>

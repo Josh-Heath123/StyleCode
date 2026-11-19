@@ -80,7 +80,7 @@ const TYPE_DEFAULTS: Record<NodeType, Partial<NodeProps>> = {
   ellipse: { name: 'Ellipse', fill: '#d9dde4' },
   text: { name: 'Text', fill: '#11141a', text: 'Text', width: 40, height: 22 },
   image: { name: 'Image', fill: '#e4e7ec', width: 240, height: 160 },
-  note: { name: 'Note', fill: '#ffd8a8', text: '', fontSize: 14, width: 200, height: 96, lineHeight: 1.45 },
+  note: { name: 'Note', fill: '#fdf9ea', text: '', fontSize: 14, width: 200, height: 96, lineHeight: 1.45 },
 };
 
 export function defaultProps(type: NodeType): NodeProps {

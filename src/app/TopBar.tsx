@@ -196,7 +196,7 @@ export function TopBar({
     <header className="topbar">
       <div className="brand">
         <Mark className="brand-mark" />
-        StyleCode
+        <span className="display">StyleCode</span>
       </div>
       {nav}
       {nav && <span className="topbar-divider" />}

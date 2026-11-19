@@ -173,6 +173,7 @@ The user asked the reviewer (Claude, in the planning Project) to settle what it 
   - the order and budget of the findings in the context (decision 15).
 - **No network and no real model in tests.** Browser tests use the fake Ollama, as the editor's AI tests do, and extend the Harbour Bakery fixture with a design that has links. Test data is role-played.
 - **Not the AI's colour.** Links and the Record panel are the consultant's, in electric blue. Cantaloupe stays for what the AI proposes, including its "Drew on" list while the proposal is under review.
+  - *Note, 19 November 2026:* the identity work (`docs/presentation/PRESENTATION-BRIEF.md`, I1 and I7) keeps this split in new colours: the consultant's marks are warm white, and the AI's are orange (`docs/brand/IDENTITY.md`).
 - **PowerShell is denied to you on this laptop,** as before.
 
 ## Ground rules

@@ -18,7 +18,7 @@ Under the hood, one design document is the single source of truth. Every edit (y
 
 ![Selecting a freely drawn landing page and pressing Shift+A turns it into rows and columns; a card is dragged to the front of its row; the Code tab highlights the card's HTML; the preview shows the page at desktop and then phone width](docs/media/sketch-to-code.gif)
 
-**A note the AI follows.** Press <kbd>N</kbd> and click a card to pin a note to it, then ask the AI to do what the note says. Its proposal appears in cantaloupe, and <kbd>Enter</kbd> accepts it. *The reply in this recording comes from a scripted stand-in model, so the demo is repeatable; a real model words and decides things its own way.*
+**A note the AI follows.** Press <kbd>N</kbd> and click a card to pin a note to it, then ask the AI to do what the note says. Its proposal appears in orange, and <kbd>Enter</kbd> accepts it. *The reply in this recording comes from a scripted stand-in model, so the demo is repeatable; a real model words and decides things its own way.*
 
 ![A note reading "Make this card stand out: brand blue, white text" is pinned to a card with an arrow; with the card selected, the assistant opens, "Do what the note says" is chosen, the explanation streams in, the card turns blue in the proposal, and Enter accepts it](docs/media/notes-for-the-ai.gif)
 
@@ -60,7 +60,7 @@ Everything works with AI off, and with a local model nothing leaves your compute
 
 Earlier phases built the rest:
 
-- **Ask AI** (<kbd>/</kbd>): select part of a design (or nothing, for the whole screen), describe a change, and watch the AI explain what it is doing. Its proposal appears on the canvas in cantaloupe; <kbd>Enter</kbd> accepts it as one undoable step, <kbd>Esc</kbd> rejects it. Suggestions fit what is selected.
+- **Ask AI** (<kbd>/</kbd>): select part of a design (or nothing, for the whole screen), describe a change, and watch the AI explain what it is doing. Its proposal appears on the canvas in orange; <kbd>Enter</kbd> accepts it as one undoable step, <kbd>Esc</kbd> rejects it. Suggestions fit what is selected.
 - **Your choice of AI**: a free local model with [Ollama](https://ollama.com), any OpenAI-compatible API (OpenAI, LM Studio, OpenRouter, Groq…) or Anthropic, with your own key. Or none: AI is off until you turn it on.
 - **Safe by design**: the AI changes the design, never the code, through the same validated operations as your own edits. It only touches what you selected, never locked layers, and asks before deleting a lot. API keys stay on your computer and never reach the browser.
 - **Code beside the canvas**: the Code tab shows the selected screen as HTML, CSS and React, with the selected layer's code highlighted. Click a line to select its layer.
