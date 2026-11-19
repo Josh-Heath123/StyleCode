@@ -9,7 +9,7 @@ import { expect, type Page } from '@playwright/test';
  * button is linked to "Customers pay online when they order", and the date
  * picker to "Orders need two days' notice". A second engagement, Wholesale, has a
  * finding of its own. The client's name is unique per call, so tests can run
- * side by side.
+ * side by side, unless `name` gives it (the demos, in their own data folder).
  */
 const HEADERS = { 'x-stylecode-workspace': '1' };
 
@@ -28,8 +28,10 @@ export const BAKERY = {
   },
 } as const;
 
-export async function harbourBakery(page: Page): Promise<{ id: string; name: string }> {
-  const name = `Harbour Bakery ${Math.random().toString(36).slice(2, 8)}`;
+export async function harbourBakery(
+  page: Page,
+  name = `Harbour Bakery ${Math.random().toString(36).slice(2, 8)}`,
+): Promise<{ id: string; name: string }> {
   const res = await page.request.post('/api/workspace/companies', { headers: HEADERS, data: { profile: { name } } });
   const opened = (await res.json()) as { workspace: Record<string, unknown> & { company: { id: string } }; revision: string };
   const ws = opened.workspace;

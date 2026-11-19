@@ -10,43 +10,16 @@
       italic. One orange element only: the mark's dot, the AI's part.
     -->
     <link rel="stylesheet" href="../../src/styles/app.css" />
+    <link rel="stylesheet" href="brand.css" />
     <style>
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 100 900;
-        src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Inter';
-        font-style: italic;
-        font-weight: 100 900;
-        src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-italic.woff2') format('woff2');
-      }
-
       html,
       body {
         width: 1600px;
         height: 500px;
-        overflow: hidden;
-      }
-
-      body {
-        position: relative;
-        background: var(--surface-1);
-        color: var(--text);
-        font-family: 'Inter', sans-serif;
-        font-feature-settings: 'cv11', 'ss01';
       }
 
       /* The construction grid (I4): hairlines on a 40px grid, fading out to the right. */
       .grid {
-        position: absolute;
-        inset: 0;
-        background-image:
-          linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-        background-size: 40px 40px;
-        background-position: -1px -1px;
         mask-image: linear-gradient(90deg, black 0%, black 55%, transparent 100%);
       }
 
@@ -97,20 +70,8 @@
         height: 132px;
         flex: none;
       }
-      .mark-square {
-        stroke: var(--you);
-      }
-      .mark-dot {
-        fill: var(--ai);
-      }
-
       .wordmark {
-        margin: 0;
         font-size: 168px;
-        line-height: 1;
-        font-style: italic;
-        font-weight: 800;
-        letter-spacing: -0.03em;
       }
 
       .line {
@@ -154,7 +115,7 @@
           <rect class="mark-square" x="5" y="5" width="15" height="15" rx="3" fill="none" stroke-width="2.6" />
           <circle class="mark-dot" cx="21.5" cy="21.5" r="6" />
         </svg>
-        <h1 class="wordmark">StyleCode</h1>
+        <h1 class="display wordmark">StyleCode</h1>
       </div>
       <p class="line">
         A local-first workspace for software consultants.

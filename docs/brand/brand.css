@@ -1,0 +1,68 @@
+/*
+  Shared by the rendered pages in docs/brand/ (hero, flow, architecture, social; docs/presentation/PRESENTATION-BRIEF.md,
+  P5). Each page links src/styles/app.css first, so every colour here is one of the app's tokens. Rendered by
+  `npm run demos -- brand` (e2e/demos/brand.demo.ts) through the demo's dev server, so the paths resolve.
+*/
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100 900;
+  src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-italic.woff2') format('woff2');
+}
+
+html,
+body {
+  overflow: hidden;
+}
+
+/* Each picture carries its own charcoal field, so it looks deliberate on GitHub's light and dark themes alike. */
+body {
+  position: relative;
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* The construction grid (I4): hairlines on a 40px grid. Never behind data: pages fade it where their content sits. */
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: -1px -1px;
+}
+
+/* The mark (I5): a warm-white square, yours, and an orange dot, the AI's. The same drawing as src/ui/Mark.tsx. */
+.mark-square {
+  stroke: var(--you);
+}
+.mark-dot {
+  fill: var(--ai);
+}
+
+/* The display voice (I3): Inter 800 in its true italic. */
+.display {
+  margin: 0;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.caps {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}

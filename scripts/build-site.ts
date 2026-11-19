@@ -160,7 +160,6 @@ for (const p of PAGES) {
     ),
   );
 }
-copyFileSync(join(ROOT, 'docs', 'editor.png'), join(OUT, 'editor.png'));
 copyFileSync(join(ROOT, 'public', 'favicon.svg'), join(OUT, 'favicon.svg'));
 // Inter, upright and its true italic for the wordmark, from the installed package (never committed).
 mkdirSync(join(OUT, 'fonts'), { recursive: true });

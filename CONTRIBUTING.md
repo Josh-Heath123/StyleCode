@@ -88,15 +88,22 @@ A few rules that keep the layers clean: `model` and `codegen` don't depend on Re
 - Interface text is plain English: short, specific, no jargon, no exclamation marks. Say what happened and what the user can do about it.
 - Colours, spacing and type come from the tokens at the top of `src/styles/app.css`. Text must meet WCAG AA contrast (4.5:1) on the surfaces it sits on.
 
-## Demo GIFs and the screenshot
+## The README's pictures
 
-The GIFs in `docs/media` and `docs/editor.png` are recorded from the real editor by Playwright. To re-record them after a visible change you need [ffmpeg](https://ffmpeg.org) on your PATH:
+Every picture in `docs/media` is made by Playwright with `npm run demos`:
+
+- **The screenshots** (`e2e/demos/screenshot.demo.ts`, `workspace.demo.ts`): the real app at 1440×900 and 2×, from role-played clients (Karoo Freight, Harbour Bakery).
+- **The GIFs** (`e2e/demos/record.demo.ts`): the real editor at 1440×900, turned into GIFs by [ffmpeg](https://ffmpeg.org), which needs to be on your PATH (on Windows, `winget install Gyan.FFmpeg`).
+- **The hero, the two diagrams and the social preview** (`e2e/demos/brand.demo.ts`): the HTML pages in `docs/brand/`, rendered to PNG with the app's tokens and Inter.
 
 ```bash
-npm run demos
+npm run demos            # everything
+npm run demos -- brand   # only the pages in docs/brand/
 ```
 
-The AI demo uses a scripted stand-in model so the recording is repeatable; keep that labelled wherever the GIF is shown.
+The demos' dev server keeps its data in its own folder, `C:\StyleCode Demo Data` on Windows (`e2e/demos/demoWorkspace.ts`), emptied before each run: the workspace pages show their data folder's path, so it names no user. Look at every picture before committing it, and at frames from across each GIF: no user folder or account name, no test suffixes in names, role-played data only. Keep each screenshot under about 600 KB and each GIF under about 3 MB, shortening a GIF rather than lowering its quality.
+
+The AI in the pictures is a scripted stand-in model, so they are repeatable; keep that labelled wherever they are shown.
 
 ## The documentation site
 

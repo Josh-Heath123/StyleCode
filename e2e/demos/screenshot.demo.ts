@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test';
 import { startFakeOllama, type FakeOllama } from '../fakeOllama';
 import { box, exampleProject, focusOn, pause, SCRIPTED_MODEL, scriptedReply, useScriptedModel } from './scenes';
 
-/** The screenshot at the top of the README (docs/editor.png), at 2× for sharp text. */
+/**
+ * The README's screenshot of the editor (docs/media/editor.png), at 2× for sharp text: a note pinned to a card, the
+ * scripted stand-in model's proposal following it in orange on the canvas, and the card's code beside it.
+ */
 
 test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, video: 'off' });
 
@@ -13,7 +16,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => fake.close());
 
-test('editor with a note, the code and the assistant', async ({ page }) => {
+test('editor with a note, the AI’s proposal and the code', async ({ page }) => {
   const { find } = await exampleProject(page, true);
   await useScriptedModel(page, fake);
   const middle = await find('Shared by default card');
@@ -26,9 +29,10 @@ test('editor with a note, the code and the assistant', async ({ page }) => {
   await page.evaluate((id) => (window as any).stylecode.editor.select([id]), middle);
   await page.getByRole('tab', { name: 'Code' }).click();
   await page.keyboard.press('/');
-  await expect(page.getByRole('button', { name: 'Do what the note says' })).toBeVisible();
+  await page.getByRole('button', { name: 'Do what the note says' }).click();
+  await expect(page.getByRole('button', { name: /Accept/ })).toBeVisible({ timeout: 20_000 });
   // Out of the picture: the demo pointer, and the key badges (they fade after a second).
   await page.evaluate(() => document.querySelector('.demo-cursor')?.remove());
   await pause(page, 1500);
-  await page.screenshot({ path: join(process.cwd(), 'docs', 'editor.png') });
+  await page.screenshot({ path: join(process.cwd(), 'docs', 'media', 'editor.png') });
 });
