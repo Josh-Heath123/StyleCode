@@ -1,6 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { aiProblems, contrastProblems, cssRules, isChrome, literalProblems, tokenProblems, TOKEN_FILE } from './tokens.ts';
+import {
+  aiProblems,
+  contrastProblems,
+  cssRules,
+  isAiSelector,
+  isChrome,
+  literalProblems,
+  tokenProblems,
+  TOKEN_FILE,
+} from './tokens.ts';
 
 /**
  * The token rules (docs/brand/IDENTITY.md). Each rule is shown failing on a mutation of the real stylesheet or a
@@ -129,6 +138,52 @@ describe('contrast rules (I10)', () => {
     ]);
     // A dot or a bar on the danger colour holds no text.
     expect(contrastProblems(TOKEN_FILE, '.dot::before {\n  background: var(--danger);\n}')).toEqual([]);
+  });
+});
+
+describe('the holes the review found, closed', () => {
+  it('fails a literal in a custom property outside :root, and the AI’s colour passed through one', () => {
+    expect(literalProblems(TOKEN_FILE, '.foo {\n  --c: #fe5105;\n  color: var(--c);\n}')).toHaveLength(1);
+    expect(aiProblems(TOKEN_FILE, '.foo {\n  --accent: var(--ai);\n  color: var(--accent);\n}')).toHaveLength(1);
+    // Inside a :root block, also one inside @media, a literal defines a token.
+    expect(literalProblems(TOKEN_FILE, '@media (x) {\n  :root {\n    --left-w: 208px;\n    --c: #121212;\n  }\n}')).toEqual([]);
+  });
+
+  it('fails a colour written as a word', () => {
+    expect(literalProblems(TOKEN_FILE, '.a {\n  color: orange;\n}')).toHaveLength(1);
+    expect(literalProblems(TOKEN_FILE, '.a {\n  border-color: tomato;\n}')).toHaveLength(1);
+    expect(literalProblems(TOKEN_FILE, '.a {\n  fill: currentColor;\n  stroke: none;\n  color: var(--text);\n}')).toEqual([]);
+    expect(literalProblems('src/panels/Example.tsx', "const c = 'white';")).toHaveLength(1);
+    expect(literalProblems('src/panels/Example.tsx', "const weight = { label: 'Black' };")).toEqual([]);
+  });
+
+  it('accepts a marker only in a comment, with one of its reasons', () => {
+    const path = 'src/panels/Example.tsx';
+    expect(literalProblems(path, "const c = '#123456'; // token-check: because")).toHaveLength(1);
+    expect(literalProblems(path, "const c = '#123456 token-check: design content';")).toHaveLength(1);
+    expect(literalProblems(path, "const c = '#123456'; // token-check: not shown")).toEqual([]);
+  });
+
+  it('matches the AI’s selectors as whole class names', () => {
+    expect(isAiSelector('.ws-note.is-quoted')).toBe(true);
+    expect(isAiSelector('.ws-note mark')).toBe(true);
+    for (const selector of [
+      '.ws-note-text',
+      '.ws-notes',
+      '.ws-segment',
+      '.assistant .button.primary',
+      '.assistant-chip:hover',
+      '.ws-run-actions',
+    ])
+      expect(isAiSelector(selector), selector).toBe(false);
+    const mutated = mutate(
+      appCss,
+      '.assistant-chip:hover {\n  border-color: var(--line-strong);',
+      '.assistant-chip:hover {\n  border-color: var(--ai-line);',
+    );
+    expect(aiProblems(TOKEN_FILE, mutated)).toEqual([
+      expect.objectContaining({ message: expect.stringContaining('.assistant-chip:hover') }),
+    ]);
   });
 });
 

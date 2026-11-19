@@ -80,6 +80,8 @@
   /* An image layer still loading, drawn on the design (often light), so these are dark */
   --placeholder-text: rgba(17, 20, 26, 0.35);
   --placeholder-hatch: rgba(0, 0, 0, 0.04);
+  /* A new note's hint, on warm-white paper: charcoal at 62% is 5.15:1 there */
+  --note-placeholder: rgba(18, 18, 18, 0.62);
 
   --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-code: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
@@ -143,6 +145,15 @@ kbd {
   color: var(--text-subtle);
 }
 
+/* A key on a button: muted on the raised and hovered grounds, charcoal on a warm-white one (I10). */
+.button kbd {
+  color: var(--text-muted);
+}
+
+.button.primary kbd {
+  color: var(--on-you);
+}
+
 /*
  * The construction grid (I4): hairlines in warm white at very low opacity, and one guide slanted at the italic's
  * angle, like letterforms drawn on a layout grid. Only on the welcome screen, empty states and the recovery screen;
@@ -170,8 +181,15 @@ kbd {
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
 }
 
+/* The sparkle on the warm-white Ask button is the AI's (I13). */
+.ask-ai svg {
+  color: var(--ai);
+}
+
 /* The display voice (I3): Inter 800 in its true italic, for the wordmark and one large moment per screen only. */
-.display {
+.display,
+.welcome h1.display,
+.ws-title.display {
   font-style: italic;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -745,7 +763,11 @@ kbd {
 .ov-marquee,
 .ov-handle,
 .ov-gap,
-.ov-measure {
+.ov-measure,
+.ov-note-arrow,
+.ov-arrowhead,
+.ov-connector-line,
+.ov-connector-dot {
   filter: drop-shadow(0 0 0.75px var(--halo)) drop-shadow(0 0 0.75px var(--halo));
 }
 
@@ -1249,6 +1271,11 @@ kbd {
 .preset span:last-child {
   color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
+}
+
+/* On hover the ground is --surface-4, above where the subtle grey reads (I10). */
+.preset:hover span:last-child {
+  color: var(--text-muted);
 }
 
 .hint-list {
@@ -2145,10 +2172,11 @@ kbd {
   white-space: nowrap;
 }
 
+/* A suggestion is the consultant's to send, so it isn't orange (I8, as the Ask button in I13). */
 .assistant-chip:hover {
-  border-color: var(--ai-line);
+  border-color: var(--line-strong);
   color: var(--text);
-  background: var(--ai-soft);
+  background: var(--you-soft);
 }
 
 .assistant-request {
@@ -2219,8 +2247,9 @@ kbd {
   line-height: 1.45;
 }
 
+/* "This deletes N layers": a warning, with its icon and words (I9). */
 .assistant-warning {
-  color: var(--ai);
+  color: var(--warn);
 }
 
 .assistant-warning svg {
@@ -2524,7 +2553,7 @@ kbd {
 
 .sc-note:empty::before {
   content: 'Write a note for yourself or the AI…';
-  color: rgba(18, 18, 18, 0.45); /* token-check: design content */
+  color: var(--note-placeholder);
 }
 
 .ov-note-arrow {

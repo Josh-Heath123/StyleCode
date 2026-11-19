@@ -59,6 +59,26 @@ test('a note pinned to a layer points at it, stays out of the code, and can be r
   expect(after.y).not.toBe(note.y);
 });
 
+test('a new note is warm-white paper with charcoal text, and the other note colours are still offered', async ({ page }) => {
+  await page.keyboard.press('n');
+  await page.mouse.click(300, 650);
+  await page.keyboard.type('A note');
+  await page.keyboard.press('Escape');
+  const note = Object.values((await snapshot(page)).doc.nodes).find((n) => n.type === 'note')!;
+  // docs/brand/IDENTITY.md (I12): the peach default read as part of the AI's orange.
+  expect(note.fill).toBe('#fdf9ea');
+  await expect(page.locator(`[data-node-id="${note.id}"]`)).toHaveCSS('color', 'rgb(18, 18, 18)');
+
+  await select(page, [note.id]);
+  const colours = page.getByRole('group', { name: 'Note colour' }).getByRole('button');
+  await expect(colours).toHaveCount(6);
+  await expect(colours.first()).toHaveAccessibleName('Colour #fdf9ea');
+  await expect(colours.first()).toHaveAttribute('aria-pressed', 'true');
+  // A note saved in the old peach keeps it: the colour is the note's own, and still on offer.
+  await page.getByRole('button', { name: 'Colour #ffd8a8' }).click();
+  expect((await node(page, note.id)).fill).toBe('#ffd8a8');
+});
+
 test('a frame becomes a grid from the panel, items span columns, and phones get their own layout', async ({ page }) => {
   const ids: string[] = [];
   for (const x of [400, 520, 640, 760]) ids.push(await draw(page, 'r', [x, 300], [x + 90, 360]));

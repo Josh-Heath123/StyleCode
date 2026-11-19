@@ -43,22 +43,22 @@ Measured with WCAG 2.x; every pair is in the brief (I2, I10, I11).
 ## Type
 
 - **Inter** for everything read.
-- **The display voice:** Inter 800 in its true italic, with tight tracking (`.display`), for the wordmark and one large moment per screen: the welcome screen's title, a client's name on its page, and empty states.
+- **The display voice:** Inter 800 in its true italic, with tight tracking (`.display`), for the wordmark and one large moment per screen: the welcome screen's title, a client's name on its page, and the clients list's empty state. The small empty states inside cards stay plain.
 - Never slanted body text, and never a faked italic.
 
 ## The construction grid
 
-Hairlines in warm white at very low opacity, with one guide slanted at the italic's angle (`.motif`). It appears on the welcome screen, empty states and the recovery screen, and on the README's hero and the social preview; **never behind data, the canvas or a form.**
+Hairlines in warm white at very low opacity, with one guide slanted at the italic's angle (`.motif`). It appears on the welcome screen, the clients list's empty state and the recovery screen, and on the README's hero and the social preview; **never behind data, the canvas or a form.**
 
 ## The canvas
 
-- Its affordances (selection, handles, marquee, guides, distances, drop and insert lines, frame labels) are warm white with a charcoal halo, so they show on light designs too, and never orange.
+- Its affordances (selection, handles, marquee, guides, distances, drop and insert lines, a note's arrow, frame labels) are warm white with a charcoal halo, so they show on light designs too, and never orange.
 - Notes are the user's instructions: new notes are warm-white paper with charcoal text. A note keeps the colour it was saved with, and the other note colours stay on offer.
 - The AI's proposal is orange: changed and new layers outlined, deleted ones dashed.
 
 ## The mark
 
-A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`).
+A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`). The wordmark is "StyleCode" in the display voice beside the mark; an outlined `docs/brand/wordmark.svg` isn't made yet.
 
 ## Design content isn't chrome
 

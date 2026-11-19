@@ -11,7 +11,7 @@ export function demoOverlay(): void {
         transform: translate(-3px, -2px); filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); transition: transform .08s; }
       .demo-cursor.is-down { transform: translate(-3px, -2px) scale(.88); }
       .demo-ripple { position: fixed; z-index: 2147483646; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
-        border: 2px solid #ffa05c; pointer-events: none; animation: demo-ripple .45s ease-out forwards; }
+        border: 2px solid #fdf9ea; box-shadow: 0 0 0 1px rgba(18,18,18,.6); pointer-events: none; animation: demo-ripple .45s ease-out forwards; }
       @keyframes demo-ripple { from { transform: scale(.3); opacity: 1 } to { transform: scale(1.4); opacity: 0 } }
       .demo-keys { position: fixed; z-index: 2147483647; left: 50%; bottom: 96px; transform: translateX(-50%); pointer-events: none;
         display: flex; gap: 6px; transition: opacity .25s; font: 600 15px Inter, system-ui, sans-serif; }

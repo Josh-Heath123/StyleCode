@@ -191,7 +191,7 @@ function RunPanel({ view, meeting, run }: { view: ClientView; meeting: Session; 
     }
   };
   const askButton = ready && (
-    <button type="button" className="button primary" onClick={() => void ask()}>
+    <button type="button" className="button primary ask-ai" onClick={() => void ask()}>
       <Icon name="sparkle" size={14} /> {summary ? 'Ask the AI again' : 'Ask the AI for findings'}
     </button>
   );
