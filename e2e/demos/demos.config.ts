@@ -14,22 +14,22 @@ export default defineConfig({
   reporter: 'list',
   outputDir: join(tmpdir(), 'stylecode-demos'),
   use: {
-    baseURL: 'http://localhost:5177',
+    baseURL: 'http://127.0.0.1:5177',
     viewport: { width: 1280, height: 800 },
     video: { mode: 'on', size: { width: 1280, height: 800 } },
     storageState: {
       cookies: [],
       origins: [
         {
-          origin: 'http://localhost:5177',
+          origin: 'http://127.0.0.1:5177',
           localStorage: [{ name: 'stylecode.onboarding', value: '{"welcomed":true,"checklistOpen":false,"done":{}}' }],
         },
       ],
     },
   },
   webServer: {
-    command: 'npm run dev -- --port 5177 --strictPort',
-    url: 'http://localhost:5177',
+    command: 'npm run dev -- --host 127.0.0.1 --port 5177 --strictPort',
+    url: 'http://127.0.0.1:5177',
     reuseExistingServer: false,
     timeout: 60_000,
     env: { STYLECODE_AI_CONFIG: join(tmpdir(), 'stylecode-demos', 'ai.json') },
