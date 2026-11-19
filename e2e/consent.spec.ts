@@ -252,7 +252,8 @@ test('with an external AI provider set up, the form names it in the statement an
   const provider = 'Anthropic (api.anthropic.com)';
   await page.getByLabel(/^Alex Owner/).check();
   await page.getByLabel(/use AI to help/).check();
-  await page.getByLabel(new RegExp(`may be sent to ${provider.replace(/[()]/g, '\\$&')}`)).check();
+  // Every character special in a pattern is escaped, the dots in the address too, so only this provider's label matches.
+  await page.getByLabel(new RegExp(`may be sent to ${provider.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)).check();
   await page.getByLabel(/can ask me to stop/).check();
   await page
     .getByRole('group', { name: `AI by ${provider}` })
