@@ -1,7 +1,7 @@
 ![StyleCode, in heavy italic type beside its mark, a warm-white square with an orange dot. A local-first workspace for software consultants: from a client conversation recorded with consent, to a requirements record you've reviewed, to the interface design. Local-first, consent-first, the AI proposes and you decide.](docs/media/hero.png)
 
 **StyleCode**: a local-first workspace for software consultants. From a client conversation recorded with consent, to a requirements record you've reviewed, to the interface design.
-*The canvas is the prompt. The AI proposes; you decide.*
+*The canvas is the prompt:* select a layer or pin a note to it, and the AI works on what you point at. *The AI proposes; you decide.*
 
 A consultant's meeting usually becomes scattered notes and a guessed spec. StyleCode turns it into a reviewed record where every requirement traces back to what the client said, and a design whose layers link to those requirements, on the consultant's own computer.
 
@@ -41,11 +41,11 @@ The AI in these pictures is a scripted stand-in model, so they can be made again
 
 ## Engineering highlights
 
-- **One design document, changed only through operations.** Every edit, yours or the AI's, is a validated, invertible operation, so undo is exact and code is compiled from the document deterministically: the canvas, the code and the preview can't drift apart. [Architecture §4](docs/ARCHITECTURE.md#4-operations-transactions-and-undo), [`src/model`](src/model).
+- **One design document, changed only through operations.** Every edit, yours or the AI's, is a validated, invertible operation, so undo is exact and code is compiled from the document deterministically. The canvas and the exported code share one mapping to CSS, and a browser test renders the export and checks every box against the canvas to within a pixel. [Architecture §4](docs/ARCHITECTURE.md#4-operations-transactions-and-undo), [`src/model`](src/model), [`e2e/code.spec.ts`](e2e/code.spec.ts).
 - **A layout engine that matches the browser.** Auto layout (rows, columns, wrapping, grids, size limits) is resolved by a pure engine in the model. A seeded random browser test lays out 200 nested trees with the engine and with real CSS, and checks they agree to half a pixel, a pixel for text. [`e2e/layout-parity.spec.ts`](e2e/layout-parity.spec.ts), [Architecture §5](docs/ARCHITECTURE.md#parity-with-the-browser).
 - **The AI can only propose.** Its reply must fit a schema generated from the property registry; it may touch only what you selected, never locked layers, and its change waits on the canvas until you accept it as one undoable step or reject it. [`src/ai/schema.ts`](src/ai/schema.ts), [Architecture §8](docs/ARCHITECTURE.md#8-ai-collaboration).
-- **Consent as code.** Rules C1 to C11 live in a pure, versioned domain model with migrations. They gate every recording, import and AI run in the page, and the local servers check again only before they store a recording or an added WAV and before they start a transcription. [Consent rules](docs/spec/CONSENT.md#rules), [`src/workspace/model`](src/workspace/model).
-- **Extraction whose quotes are checked.** A proposal whose quote isn't in the cited passage is dropped before the consultant sees it. On three short role-played meetings, qwen3:4b on the laptop's GPU reached 98% precision and 63 to 69% recall over two runs; real meetings will differ. [Extraction: results](docs/research/EXTRACTION.md#results).
+- **Consent as code.** Eleven consent rules (C1 to C11) live in a pure, versioned domain model with migrations. They gate every recording, import and AI run in the page. The local servers check consent again before they store a recording or an added WAV and before they start a transcription, and the workspace server refuses any save holding a transcript imported without consent to transcription, audio added without consent to recording, or an AI proposal made where the session's consent didn't allow that AI. AI requests themselves are checked in the page only. [Consent rules](docs/spec/CONSENT.md#rules), [`src/workspace/model`](src/workspace/model).
+- **Extraction whose quotes are checked.** A proposal whose quote isn't in the cited passage is dropped before the consultant sees it. On three short role-played meetings, a small open model run locally (qwen3:4b, on the laptop's GPU) reached 98% precision and 63 to 69% recall over two runs; real meetings will differ. [Extraction: results](docs/research/EXTRACTION.md#results).
 - **Transcription on the consultant's own computer.** With an NVIDIA graphics card, the words come from whisper.cpp on the GPU and the speakers from sherpa-onnx on the CPU. Measured on the laptop, on clean audio: 2.4% word errors and 94% of words given the right speaker, with the words alone transcribed at 2.6 minutes per hour of meeting ([recommendation](docs/research/TRANSCRIPTION.md#recommendation)). Through the app, an hour's meeting went from Transcribe to the AI's proposals in 37 minutes ([an hour, through the app](docs/research/TRANSCRIPTION.md#an-hour-through-the-app)). All on synthetic speech, so a lower bound on errors.
 
 ## Architecture at a glance
@@ -66,7 +66,7 @@ The AI in these pictures is a scripted stand-in model, so they can be made again
 | Workspace Phase 6: costs and capacity, computed from sourced, dated prices | Planned |
 | Workspace Phase 7: the full specification export, live transcription and follow-up questions | Planned |
 
-StyleCode isn't used with real clients yet: the consent wording awaits a POPIA review, and transcription has been measured on synthetic speech only.
+StyleCode isn't used with real clients yet: the consent wording awaits a review under POPIA, South Africa's data protection law, and transcription has been measured on synthetic speech only.
 
 ## Quick start
 
