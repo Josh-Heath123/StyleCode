@@ -43,8 +43,13 @@ function prose(source: string, blankCode = true): { text: string; line: number }
 
 /** GitHub's anchor for a heading: lower case, punctuation dropped (code's backticks too), each space a hyphen. */
 export function githubSlug(heading: string): string {
-  return heading
-    .replace(/<[^>]+>/g, '')
+  // Tags go until none is left, so removing one can't join the text around it into another ("<<b>b>").
+  let text = heading;
+  for (let previous = ''; previous !== text;) {
+    previous = text;
+    text = text.replace(/<[^<>]*>/g, '');
+  }
+  return text
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s_-]/gu, '')
     .trim()

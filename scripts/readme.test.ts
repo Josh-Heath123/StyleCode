@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anchors, appears, figures, linkProblems, readmeProblems, section } from './readme.ts';
+import { anchors, appears, figures, githubSlug, linkProblems, readmeProblems, section } from './readme.ts';
 
 /** A small repository: the README, the guide and a research document. Each test mutates one thing and sees it fail. */
 const RESEARCH = `# Extraction
@@ -102,6 +102,11 @@ describe('the README check', () => {
     const doc = '# Notices\n\n## Downloaded by `npm run x:setup`\n';
     expect(anchors(doc).has('downloaded-by-npm-run-xsetup')).toBe(true);
     expect(anchors(doc).has('downloaded-by')).toBe(false);
+  });
+
+  it('rule 1: tags in a heading are dropped from its anchor, even one hidden inside another', () => {
+    expect(githubSlug('Press <kbd>Shift</kbd> and A')).toBe('press-shift-and-a');
+    expect(githubSlug('A <<b>script>tag')).toBe('a-tag');
   });
 
   it('rule 1: an anchor that works on GitHub but not on the docs site fails, saying so', () => {
