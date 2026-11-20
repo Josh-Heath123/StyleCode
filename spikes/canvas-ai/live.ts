@@ -3,8 +3,9 @@
  * `start-live-check.cmd`, never from a tool call. Every company, person and statement is role-played
  * (`records.ts`).
  *
- * It starts StyleCode for client work (`scripts/start.ts`, port 4173) with a data folder of its own in
- * `~/.stylecode/canvas-ai/`, outside the repository and apart from the consultant's real data, emptied first. It
+ * It starts StyleCode for client work (`scripts/start.ts`, port 4173) with a data folder of its own,
+ * `~/.stylecode/canvas-ai/data/`, outside the repository and apart from the consultant's real data, emptied first, and
+ * AI settings beside it (`~/.stylecode/canvas-ai/ai.json`). It
  * seeds Harbour Bakery and Karoo Freight, each with a design and a record, and points the AI at qwen3:4b in Ollama on
  * this computer. It refuses a cloud model and any address that isn't this computer.
  *

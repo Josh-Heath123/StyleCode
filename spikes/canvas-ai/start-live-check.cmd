@@ -10,7 +10,8 @@ rem through StyleCode itself. Ollama must be running with qwen3:4b pulled.
 rem It refuses a cloud model and any address that isn't this computer.
 rem
 rem StyleCode runs on port 4173 with its own data folder
-rem (%USERPROFILE%\.stylecode\canvas-ai, emptied first), so close any
+rem (%USERPROFILE%\.stylecode\canvas-ai\data, emptied first; its AI settings
+rem are in ai.json beside it), so close any
 rem StyleCode window (npm start) first. A browser window opens: leave it be.
 rem
 rem Before starting: OMEN's Balanced mode, the laptop on a hard surface with
