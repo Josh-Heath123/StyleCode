@@ -7,6 +7,7 @@ import { AiUnavailableError, chat, getAiConfig, type AiConfig } from './client';
 import { buildContext, resolveTarget, type AiContext, type AiTarget } from './context';
 import { repairMessage, systemPrompt, userMessage } from './prompt';
 import { interpret, streamedExplanation, type Proposal } from './proposal';
+import type { AiWait, RecordFinding, RecordSource } from './record';
 import { responseSchema } from './schema';
 
 /**
@@ -41,6 +42,14 @@ export interface AssistantState {
   /** Problems the AI's reply still had after its repair attempt. */
   problems: string[];
   targetLabel: string;
+  /** On an engagement's design: what a local request waits for before it starts (Workspace Phase 4, decision 17). */
+  wait: AiWait | null;
+  /** Why some of the record's findings weren't given to the AI (decision 14). */
+  leftOut: string | null;
+  /** The findings the proposal drew on (decision 16). */
+  drewOn: { id: string; statement: string; href: string }[];
+  /** How many findings the reply named that it wasn't given: ignored. */
+  ignoredFindings: number;
 }
 
 const IDLE: Omit<AssistantState, 'config' | 'unavailable'> = {
@@ -55,6 +64,10 @@ const IDLE: Omit<AssistantState, 'config' | 'unavailable'> = {
   error: null,
   problems: [],
   targetLabel: '',
+  wait: null,
+  leftOut: null,
+  drewOn: [],
+  ignoredFindings: 0,
 };
 
 /**
@@ -87,6 +100,10 @@ export class Assistant {
   private controller: AbortController | null = null;
   /** Set while the assistant itself accepts or rejects, to tell that apart from the design changing. */
   private settling = false;
+  /** The engagement's record, while one of its designs is open; null in the standalone editor (decision 18). */
+  private record: RecordSource | null = null;
+  /** The consultant chose not to wait for the graphics card to cool, for this request. */
+  private skipCooling = false;
 
   constructor(private readonly editor: Editor) {
     let docId = editor.getState().doc.id;
@@ -138,6 +155,16 @@ export class Assistant {
     this.set({ config, unavailable: null });
   }
 
+  /** The engagement's record, when one of its designs opens; null when it closes. */
+  setRecord(record: RecordSource | null): void {
+    this.record = record;
+  }
+
+  /** Starts a request waiting for the graphics card to cool without waiting (Phase 3, decision 10). */
+  dontWait(): void {
+    this.skipCooling = true;
+  }
+
   /** The screen in the middle of the view, for requests made with nothing selected. */
   private screenInView(doc: DesignDocument): string | null {
     const { camera } = this.editor.getState();
@@ -155,12 +182,13 @@ export class Assistant {
   }
 
   /** Builds the context for the current selection, or explains why there is nothing to work on. */
-  context(): AiContext | { error: string } {
+  context(findings?: readonly RecordFinding[]): AiContext | { error: string } {
     const doc = this.editor.committedDoc;
     const config = this.state.config;
     return buildContext(doc, this.editor.getState().selection, {
       maxChars: config ? contextBudget(config) : undefined,
       fallbackScreen: this.screenInView(doc),
+      findings,
     });
   }
 
@@ -172,36 +200,94 @@ export class Assistant {
       return;
     }
     if (this.editor.hasProposal) this.reject();
-    const context = this.context();
-    if ('error' in context) {
-      this.set({ ...IDLE, status: 'error', request: text, error: context.error });
+    const target = this.context();
+    if ('error' in target) {
+      this.set({ ...IDLE, status: 'error', request: text, error: target.error });
       return;
     }
 
     const controller = new AbortController();
     this.controller = controller;
-    this.set({ ...IDLE, status: 'thinking', phase: 'writing', request: text, targetLabel: context.targetLabel });
+    this.set({ ...IDLE, status: 'thinking', phase: 'writing', request: text, targetLabel: target.targetLabel });
 
-    const system = systemPrompt();
-    const schema = responseSchema();
-    const messages: { role: 'user' | 'assistant'; content: string }[] = [{ role: 'user', content: userMessage(context, text) }];
     const onText = (soFar: string) => {
       const explanation = streamedExplanation(soFar);
       if (explanation !== null && explanation !== this.state.explanation) this.set({ explanation });
     };
+    const record = this.record;
+    const config = this.state.config!;
+    let release: () => void = () => undefined;
 
     try {
-      let reply = await chat({ system, messages, schema }, onText, controller.signal);
+      // On an engagement's design, a request on a model on this computer takes its turn first, after a hot graphics
+      // card has cooled (decision 17). The standalone editor doesn't wait (decision 18).
+      if (record) {
+        this.skipCooling = false;
+        release = await record.takeTurn(config, {
+          signal: controller.signal,
+          onWait: (wait) => this.set({ wait }),
+          skipCooling: () => this.skipCooling,
+        });
+        if (controller.signal.aborted) return;
+      }
+      // On an engagement's design, the settings are read again now, the findings checked for exactly them, and the
+      // request pinned to them, so a change in AI settings can't send the record elsewhere (decision 14; rules C5, C6).
+      const current = record ? await getAiConfig() : config;
+      if (controller.signal.aborted) return;
+      if (record && current.provider === 'off') {
+        this.set({ status: 'error', phase: null, error: 'AI is turned off. Turn it on in AI settings.' });
+        return;
+      }
+      const pinned =
+        record && current.provider !== 'off'
+          ? {
+              provider: current.provider,
+              settings: {
+                baseUrl: current.providers[current.provider].baseUrl,
+                model: current.providers[current.provider].model,
+                ...(current.provider === 'ollama' ? { contextSize: current.providers.ollama.contextSize } : {}),
+              },
+            }
+          : {};
+      // The findings this request may use, checked now, just before it is sent (decision 14).
+      const offered = record?.findings(current) ?? null;
+      const context = this.context(offered?.findings);
+      if ('error' in context) {
+        this.set({ status: 'error', phase: null, error: context.error });
+        return;
+      }
+      const withFindings = context.findings.shown.length > 0;
+      this.set({ leftOut: offered?.leftOut ?? null, targetLabel: context.targetLabel });
+      const system = systemPrompt({ findings: withFindings });
+      const schema = responseSchema({ findings: withFindings });
+      const messages: { role: 'user' | 'assistant'; content: string }[] = [{ role: 'user', content: userMessage(context, text) }];
+
+      let reply = await chat({ system, messages, schema, ...pinned }, onText, controller.signal);
       if (controller.signal.aborted) return;
       let result = interpret(reply, this.editor.committedDoc, context);
       if (!result.ok) {
+        // The repair is a second request: the findings it repeats must still be allowed.
+        if (record && withFindings) {
+          const still = new Set(record.findings(current).findings.map((f) => f.id));
+          if (context.findings.shown.some((f) => !still.has(f.id))) {
+            this.set({
+              status: 'error',
+              phase: null,
+              error: 'A session’s consent changed while the AI was working, so it stopped. Nothing was changed.',
+            });
+            return;
+          }
+        }
         // One repair attempt: show the model what was wrong, in its own terms.
         this.set({ phase: 'repairing', explanation: '' });
         messages.push({ role: 'assistant', content: reply }, { role: 'user', content: repairMessage(result.errors) });
-        reply = await chat({ system, messages, schema }, onText, controller.signal);
+        reply = await chat({ system, messages, schema, ...pinned }, onText, controller.signal);
         if (controller.signal.aborted) return;
         result = interpret(reply, this.editor.committedDoc, context);
       }
+      // The AI is done with the computer: the slot goes before the review.
+      release();
+      release = () => undefined;
       if (result.ok) {
         // Never interrupt an edit: a drag, a scrub or text being typed finishes first.
         const before = this.editor.committedDoc;
@@ -223,7 +309,8 @@ export class Assistant {
         });
         return;
       }
-      this.show(result.proposal, text);
+      const offeredById = new Map(context.findings.shown.map((f) => [f.id, f]));
+      this.show(result.proposal, text, (id) => ({ id, statement: offeredById.get(id)!.statement, href: record!.href(id) }));
     } catch (error) {
       if ((error as Error).name === 'AbortError' || controller.signal.aborted) return;
       this.set({
@@ -233,7 +320,9 @@ export class Assistant {
         ...(error instanceof AiUnavailableError ? { unavailable: (error as Error).message } : {}),
       });
     } finally {
+      release();
       if (this.controller === controller) this.controller = null;
+      if (this.state.wait) this.set({ wait: null });
     }
   }
 
@@ -260,7 +349,7 @@ export class Assistant {
     });
   }
 
-  private show(proposal: Proposal, request: string): void {
+  private show(proposal: Proposal, request: string, finding: (id: string) => AssistantState['drewOn'][number]): void {
     const base = this.editor.committedDoc;
     const noChanges = proposal.ops.length === 0;
     if (!noChanges) {
@@ -280,6 +369,8 @@ export class Assistant {
       needsConfirmation: proposal.needsConfirmation,
       removedCount: proposal.removedCount,
       noChanges,
+      drewOn: proposal.drewOn.map(finding),
+      ignoredFindings: proposal.ignoredFindings,
     });
   }
 

@@ -16,6 +16,7 @@ import type { AddressInfo } from 'node:net';
  *   "nothing"  → proposes no changes
  *   "slow"     → streams slowly (to test Stop)
  *   "fail"     → the model server returns an error
+ *   "from the record" → changes the first layer it may change, naming every finding it was given, and F99
  */
 
 export interface FakeOllama {
@@ -84,6 +85,18 @@ function reply(body: FakeOllama['requests'][number]): FakeReply {
   const repairing = last.startsWith('That reply had problems');
 
   if (request.includes('fail')) return { status: 500, error: 'model runner has unexpectedly stopped' };
+  if (request.includes('from the record')) {
+    // Says it drew on every finding it was given (Workspace Phase 4, decision 16), and one it wasn't, F99.
+    const offered = [...first.matchAll(/^- (F\d+) /gm)].map((m) => m[1]);
+    return {
+      text: JSON.stringify({
+        explanation: 'Made it stand out, as the record asks.',
+        operations: [{ op: 'update', id: target, set: { fill: '#2f7bff' } }],
+        findings: [...offered, 'F99'],
+      }),
+      delay: 2,
+    };
+  }
   if (request.includes('nonsense')) return { text: 'Sure! I would make it blue.', delay: 2 };
   if (request.includes('broken') && !repairing) {
     return { text: json('Made it dark.', [{ op: 'update', id: 'e999', set: { fill: '#11141a' } }]), delay: 2 };

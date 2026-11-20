@@ -29,6 +29,23 @@ export interface Proposal {
   summary: string;
   /** Deletes a lot: accepting asks for a second look. */
   needsConfirmation: boolean;
+  /** The findings the reply says it drew on, as finding ids, in its order (Workspace Phase 4, decision 16). */
+  drewOn: string[];
+  /** How many ids the reply named that weren't offered: ignored, and counted. */
+  ignoredFindings: number;
+}
+
+/** The findings a reply drew on: ids offered are kept once each, in order; anything else is ignored and counted. */
+export function findingsDrawnOn(value: unknown, context: AiContext): { drewOn: string[]; ignored: number } {
+  if (!Array.isArray(value)) return { drewOn: [], ignored: 0 };
+  const drewOn: string[] = [];
+  let ignored = 0;
+  for (const item of value) {
+    const id = typeof item === 'string' ? context.findings.real.get(item.trim()) : undefined;
+    if (id === undefined) ignored++;
+    else if (!drewOn.includes(id)) drewOn.push(id);
+  }
+  return { drewOn, ignored };
 }
 
 export type Interpretation = { ok: true; proposal: Proposal } | { ok: false; errors: string[]; explanation?: string };
@@ -285,6 +302,7 @@ export function interpret(raw: string, doc: DesignDocument, context: AiContext):
   const updated = [...changed].filter((id) => builder.doc.nodes[id] && !created.has(id));
   const summary = describeChanges(updated.length, created.size, removedCount);
   const scopeSize = context.scope.roots.reduce((sum, root) => sum + collectSubtree(doc, root).length, 0);
+  const { drewOn, ignored } = findingsDrawnOn(reply.findings, context);
   return {
     ok: true,
     proposal: {
@@ -296,6 +314,8 @@ export function interpret(raw: string, doc: DesignDocument, context: AiContext):
       removedCount,
       summary,
       needsConfirmation: removedCount > 10 || (removedCount >= 3 && removedCount * 2 >= scopeSize),
+      drewOn,
+      ignoredFindings: ignored,
     },
   };
 }

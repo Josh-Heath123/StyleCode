@@ -27,8 +27,8 @@ const BROWSER = {
   },
 };
 
-/** Tests that start heavy jobs: AI runs on a local model, and transcriptions. */
-const HEAVY = /(extraction|transcription)\.spec\.ts$/;
+/** Tests that start heavy jobs: AI runs on a local model (extraction, and the canvas AI on an engagement's design), and transcriptions. */
+const HEAVY = /(extraction|transcription|canvas-ai)\.spec\.ts$/;
 /**
  * Tests that run after the rest, one at a time: those whose actions cover every client in the test folder (the
  * recordings past their time), and those that read back the folder's one settings file, which most tests set.

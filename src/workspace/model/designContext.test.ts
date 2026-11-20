@@ -53,7 +53,7 @@ function finding(id: string, evidence: Evidence[], more: Partial<Finding> = {}):
     statement: `Finding ${id}.`,
     status: 'confirmed',
     statusSet: { by: { kind: 'consultant', name: 'Sam Consultant' }, at: T3 },
-    provenance: evidence.length ? { kind: 'said-in-session' } : { kind: 'consultant-observation' },
+    provenance: evidence.length ? { kind: 'said-in-session' } : { kind: 'consultant' },
     evidence,
     origin: { kind: 'consultant', by: 'Sam Consultant', at: T3 },
     history: [],

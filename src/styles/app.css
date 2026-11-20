@@ -2229,6 +2229,33 @@ kbd {
   color: var(--text-muted);
 }
 
+/* "Drew on": the findings the AI's proposal used (Workspace Phase 4, decision 16). The AI's, so marked in orange. */
+.assistant-drew-on {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 2px solid var(--ai-line);
+}
+
+.assistant-drew-on-label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ai);
+  font-weight: 600;
+}
+
+.assistant-drew-on ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.assistant-drew-on a {
+  color: var(--text);
+}
+
 .assistant-swatch {
   flex: none;
   width: 12px;

@@ -17,6 +17,7 @@ import { Page, WorkspaceHeader } from '../chrome';
 import { saveAs } from '../download';
 import { useCompanySession } from '../useCompanySession';
 import { DesignUnavailableError, openCompanyDesign, openDesign } from './companyDesign';
+import { canvasRecord } from './canvasAi';
 import { RecordPanel } from './RecordPanel';
 
 type Opening = { state: 'opening' } | { state: 'open' } | { state: 'problem'; title: string; message: string; download: boolean };
@@ -66,6 +67,15 @@ export function DesignHost({
         : null,
     [client, workspace, companyId, engagementId],
   );
+
+  // The canvas AI draws on the engagement's record while its design is open (decisions 14 to 17); the standalone
+  // editor has none (decision 18).
+  const designOpen = opening.state === 'open';
+  useEffect(() => {
+    if (!client || !designOpen) return;
+    assistant.setRecord(canvasRecord(client, companyId, engagementId));
+    return () => assistant.setRecord(null);
+  }, [assistant, client, designOpen, companyId, engagementId]);
 
   useEffect(() => {
     if (!client) return;

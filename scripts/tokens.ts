@@ -37,6 +37,8 @@ export const AI_SELECTORS = [
   '.assistant-explanation.is-streaming', // the AI writing its explanation
   '.assistant-swatch', // the key to the proposal's colour
   '.assistant-pulse', // the AI working
+  '.assistant-drew-on', // the findings the AI's proposal drew on (Workspace Phase 4, decision 16)
+  '.assistant-drew-on-label',
   ".ai-button[data-on='true']", // the AI settings button, when the AI is on
   '.ask-ai', // the sparkle on "Ask the AI for findings" (I13)
   '.ws-proposal', // the AI's proposed findings under review
