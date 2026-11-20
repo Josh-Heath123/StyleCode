@@ -309,9 +309,10 @@ function wordingLines(
 ): string[] {
   const wording = wordingFor(version);
   if (!wording) return [`- This StyleCode doesn't have the text of wording ${md(version)}.`];
-  return CONSENT_STATEMENTS.filter((s) => s !== 'processingExternal' || provider || told(s)).map(
-    (s) => `- [${told(s) ? 'x' : ' '}] “${md(wording.statement(s, { provider, retention }))}”`,
-  );
+  // The statements of the wording the client was shown, and no others (rule C9).
+  return wording.statements
+    .filter((s) => s !== 'processingExternal' || provider || told(s))
+    .map((s) => `- [${told(s) ? 'x' : ' '}] “${md(wording.statement(s, { provider, retention }) ?? s)}”`);
 }
 
 function amendmentLines(

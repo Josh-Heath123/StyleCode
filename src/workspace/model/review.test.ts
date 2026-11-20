@@ -211,6 +211,7 @@ describe('5: company knowledge outlives its source', () => {
     expect(ws.knowledge.kf_1.source).toEqual({
       findingId: 'fd_peak',
       deletedAt: null,
+      engagementId: 'en_1',
       engagementName: 'Online ordering',
       statement: 'Orders peak in December, at about five times the usual volume.',
       quotes: [

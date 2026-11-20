@@ -81,6 +81,7 @@ async function engagementWithNotes(page: Page): Promise<string> {
         recorded: false,
         transcribed: true,
         aiExtraction: true,
+        aiDesign: false,
         processingLocal: true,
         processingExternal: false,
         retention: false,

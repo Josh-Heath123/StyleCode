@@ -278,7 +278,7 @@ function ConsentForm({
 
       <Section title={`What you told them (wording ${CURRENT_WORDING})`} issues={at('told')}>
         <p className="ws-help">Tick each statement you said or sent to them, as it is written here.</p>
-        {STATEMENTS.filter((s) => s !== 'processingExternal' || provider).map((s) => (
+        {STATEMENTS.filter((s) => wording.statements.includes(s) && (s !== 'processingExternal' || provider)).map((s) => (
           <label key={s} className="ws-choice ws-statement">
             <input
               type="checkbox"

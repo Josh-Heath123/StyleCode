@@ -219,6 +219,11 @@ export interface FactSource {
   findingId: string | null;
   /** When the finding was deleted; set exactly when `findingId` is null. */
   deletedAt: Timestamp | null;
+  /**
+   * The engagement it was promoted from, kept after the engagement is deleted, so the export still finds the fact
+   * (version 6; Workspace Phase 4, decision 22). Null when a version 5 fact's finding and sessions were already gone.
+   */
+  engagementId: string | null;
   engagementName: string;
   /** The finding's statement when it was promoted. */
   statement: string;
@@ -488,6 +493,8 @@ export const CONSENT_STATEMENTS = [
   'recorded',
   'transcribed',
   'aiExtraction',
+  /** Wording draft-2 on (Workspace Phase 4, decision 13): the AI may help sketch screens from the findings. Not a new yes. */
+  'aiDesign',
   'processingLocal',
   'processingExternal',
   'retention',
@@ -572,8 +579,10 @@ export const WORKSPACE_FORMAT = 'stylecode-workspace';
  * 2: sessions keep their time zone; transcripts can come from `.txt` files (Workspace Phase 2).
  * 3: company facts have a status (Workspace Phase 2, decision 17).
  * 4: recordings, transcripts made from them, and the lines kept when a recording is deleted (Workspace Phase 3).
+ * 5: why an AI run stopped part-way (Workspace Phase 3).
+ * 6: the consent statement `aiDesign` (wording draft-2), and a company fact's engagement (Workspace Phase 4).
  */
-export const WORKSPACE_VERSION = 5;
+export const WORKSPACE_VERSION = 6;
 
 /** One company and everything that belongs to it. */
 export interface CompanyWorkspace {

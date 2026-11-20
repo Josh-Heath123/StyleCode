@@ -150,6 +150,7 @@ export function statementName(s: ConsentStatement): string {
     recorded: 'recording the audio',
     transcribed: 'the transcript',
     aiExtraction: 'using AI',
+    aiDesign: 'sketching screens with AI',
     processingLocal: 'the AI running on this computer',
     processingExternal: 'the external AI provider',
     retention: 'how long the recording is kept',

@@ -63,6 +63,7 @@ function twoEngagements(): CompanyWorkspace {
       ...ws.knowledge.kf_1.source!,
       findingId: null,
       deletedAt: T5,
+      engagementId: 'en_2',
       engagementName: 'Second engagement',
       sessionIds: ['se_2'],
     },
@@ -82,7 +83,7 @@ describe('an engagement’s company facts', () => {
     expect(factsFromEngagement(ws, 'en_2').map((f) => f.id)).toEqual(['kf_3']);
   });
 
-  it('still lists a fact once its finding is deleted, through the sessions it came from', () => {
+  it('still lists a fact once its finding is deleted, through the engagement it records (version 6)', () => {
     const ws = value(removeFinding(twoEngagements(), 'fd_peak', T5));
     expect(ws.knowledge.kf_1.source?.findingId).toBeNull();
     expect(factsFromEngagement(ws, 'en_1').map((f) => f.id)).toEqual(['kf_1']);

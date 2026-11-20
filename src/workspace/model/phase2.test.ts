@@ -114,7 +114,7 @@ describe('workspace version 2', () => {
     const parsed = parseWorkspace(v1, { timeZone: 'Europe/London' });
     expect(parsed.ok && parsed.access).toBe('editable');
     if (!parsed.ok) return;
-    expect(parsed.workspace.version).toBe(5);
+    expect(parsed.workspace.version).toBe(6);
     expect(parsed.workspace.sessions.se_1.timeZone).toBe('Europe/London');
     expect({ ...parsed.workspace, version: 1, sessions: before.sessions }).toEqual(before);
     expect(v1).toEqual(before); // The input isn't changed.

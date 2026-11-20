@@ -8,6 +8,7 @@ export const STATEMENTS: ConsentStatement[] = [
   'recorded',
   'transcribed',
   'aiExtraction',
+  'aiDesign',
   'processingLocal',
   'processingExternal',
   'retention',

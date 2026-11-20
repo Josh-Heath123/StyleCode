@@ -100,7 +100,7 @@ test('a locked record is amended: what changed, what was newly told and why, che
   const changes = page.getByRole('list', { name: 'Changes since' });
   await expect(changes).toContainText(/Amended by Sam Consultant, .*Reason: Thandi agreed by email/);
   await expect(changes).toContainText('Audio recording: yes');
-  await expect(changes).toContainText('Newly told (wording draft-1):');
+  await expect(changes).toContainText('Newly told (wording draft-2):');
   await expect(page.getByText(/^Audio recording \(audio kept until the engagement ends\), transcription/)).toBeVisible();
   // The original stays as it was.
   await expect(page.getByRole('heading', { name: 'The record' }).locator('..')).toContainText('Audio recording: no');
@@ -111,7 +111,7 @@ test('a locked record is amended: what changed, what was newly told and why, che
         kind: 'change',
         given: { audioRecording: true },
         told: { recorded: true, retention: true },
-        wordingVersion: 'draft-1',
+        wordingVersion: 'draft-2',
         reason: 'Thandi agreed by email to recording the next sessions.',
       },
     ]);

@@ -178,6 +178,7 @@ export function promoteToKnowledge(
     source: {
       findingId,
       deletedAt: null,
+      engagementId: finding.engagementId,
       engagementName: get(ws.engagements, finding.engagementId)?.name ?? '',
       statement: finding.statement,
       quotes,
@@ -513,16 +514,12 @@ export function enterFact(
  * listed: the export never takes in another engagement's knowledge.
  */
 export function factsFromEngagement(ws: CompanyWorkspace, engagementId: string): CompanyFact[] {
-  return Object.values(ws.knowledge)
-    .filter((f) => {
-      if (!f.source) return false;
-      const finding = f.source.findingId ? get(ws.findings, f.source.findingId) : undefined;
-      if (finding) return finding.engagementId === engagementId;
-      return (Array.isArray(f.source.sessionIds) ? f.source.sessionIds : []).some(
-        (id) => get(ws.sessions, id)?.engagementId === engagementId,
-      );
-    })
-    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return (
+    Object.values(ws.knowledge)
+      // The fact records its engagement (version 6, decision 22), so it is found after its finding and sessions are gone.
+      .filter((f) => f.source?.engagementId === engagementId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  );
 }
 
 /** The company fact promoted from a finding, if there is one. */

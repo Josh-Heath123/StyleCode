@@ -17,6 +17,7 @@ import {
   type Timestamp,
 } from './types.ts';
 import { fail, get, isNonEmptyText, isTimestamp, ok, time, type Result } from './util.ts';
+import { wordingFor } from './wording.ts';
 
 /** What a consent record agrees to: the terms an amendment can change. */
 export interface ConsentTerms {
@@ -99,6 +100,26 @@ export function toldIssues(t: unknown): ConsentIssue[] {
   return [];
 }
 
+/**
+ * A wording this StyleCode doesn't know, or a statement told that the wording shown doesn't have: a draft-1 form
+ * never said `aiDesign` (Workspace Phase 4, decision 13). Nothing for a `told` that isn't readable (`toldIssues`).
+ */
+export function wordingIssues(t: unknown, version: unknown): ConsentIssue[] {
+  if (!isNonEmptyText(version)) return [];
+  const wording = wordingFor(version);
+  if (!wording) return [{ code: 'consent.wording', message: `It names a wording this StyleCode doesn't know (${version}).` }];
+  const told = t as Record<string, unknown> | null;
+  if (!told || typeof told !== 'object') return [];
+  const extra = CONSENT_STATEMENTS.filter((s) => told[s] === true && !wording.statements.includes(s));
+  if (!extra.length) return [];
+  return [
+    {
+      code: 'consent.wording',
+      message: `It says the client was told something wording ${version} doesn't have (${extra.join(', ')}).`,
+    },
+  ];
+}
+
 /** Problems with the fields an amendment sets, before it is applied. */
 export function amendmentIssues(a: ConsentAmendment): ConsentIssue[] {
   if (a.kind === 'withdrawal') return [];
@@ -118,6 +139,9 @@ export function amendmentIssues(a: ConsentAmendment): ConsentIssue[] {
         code: 'consent.wording',
         message: 'An amendment that records what the client was told names the wording shown.',
       });
+    else
+      for (const i of wordingIssues(a.told, a.wordingVersion))
+        issues.push({ code: i.code, message: `An amendment: ${i.message.charAt(0).toLowerCase()}${i.message.slice(1)}` });
   } else if (a.wordingVersion !== undefined) {
     issues.push({
       code: 'consent.wording',

@@ -84,6 +84,7 @@ async function session(page: Page, options: { minutesAgo: number; quoted?: boole
           recorded: false,
           transcribed: false,
           aiExtraction: false,
+          aiDesign: false,
           processingLocal: false,
           processingExternal: false,
           retention: false,

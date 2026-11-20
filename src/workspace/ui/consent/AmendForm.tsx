@@ -90,7 +90,7 @@ export function AmendForm({
 
       <Section title={`What you told them since (wording ${CURRENT_WORDING})`} issues={at('told')}>
         <p className="ws-help">Tick each statement you have now said or sent to them, as it is written here.</p>
-        {STATEMENTS.filter((s) => s !== 'processingExternal' || provider).map((s) => {
+        {STATEMENTS.filter((s) => wording.statements.includes(s) && (s !== 'processingExternal' || provider)).map((s) => {
           const open = canTellOnAmend(record, values, s);
           return (
             <label key={s} className="ws-choice ws-statement">

@@ -117,7 +117,7 @@ test('the consent form from the keyboard alone: filled in, confirmed, edited, co
 
   await press(page, page.getByLabel(/^Alex Owner/));
   await press(page, page.getByLabel(/written transcript/));
-  await press(page, page.getByLabel(/use AI to help/));
+  await press(page, page.getByLabel(/use AI to help pick out/));
   await press(page, page.getByLabel(/runs on my computer only/));
   await press(page, page.getByLabel(/can ask me to stop/));
   await press(page, page.getByRole('group', { name: 'Transcription' }).getByLabel('Yes'));
@@ -131,7 +131,7 @@ test('the consent form from the keyboard alone: filled in, confirmed, edited, co
   await expect(page.getByRole('heading', { name: 'Consent: given · transcription, AI on this computer' })).toBeVisible();
   await saved(page);
   let [record] = consentOnDisk(id);
-  expect(record).toMatchObject({ askedParticipantIds: ['pa_alex'], wordingVersion: 'draft-1', lockedAt: null });
+  expect(record).toMatchObject({ askedParticipantIds: ['pa_alex'], wordingVersion: 'draft-2', lockedAt: null });
   expect(record.confirmed?.by).toBe('Sam Consultant');
 
   // Editing clears the confirmation (C3) until it is confirmed again.
@@ -251,7 +251,7 @@ test('with an external AI provider set up, the form names it in the statement an
   await page.goto(`${href}/consent`);
   const provider = 'Anthropic (api.anthropic.com)';
   await page.getByLabel(/^Alex Owner/).check();
-  await page.getByLabel(/use AI to help/).check();
+  await page.getByLabel(/use AI to help pick out/).check();
   // Matched as text, not as a pattern, so the dots in the address are only dots.
   await page.getByLabel(`may be sent to ${provider}`).check();
   await page.getByLabel(/can ask me to stop/).check();
@@ -267,6 +267,26 @@ test('with an external AI provider set up, the form names it in the statement an
     told: { processingExternal: true, externalProvider: provider },
     given: { aiExternal: true, externalProvider: provider },
   });
+});
+
+test('the form can say the client was told the AI may help sketch the screens, in wording draft-2 (Phase 4, decision 13)', async ({
+  page,
+}) => {
+  const { id, href } = await sessionWithPeople(page);
+  await page.goto(`${href}/consent`);
+  await expect(page.getByRole('group', { name: 'What you told them (wording draft-2)' })).toBeVisible();
+  await page.getByLabel(/^Alex Owner/).check();
+  await page.getByLabel(/use AI to help pick out/).check();
+  // Not a new yes: the AI questions stay as they are, and this statement alone agrees to nothing.
+  await page.getByLabel(/use AI to help sketch the screens from what we agree/).check();
+  await page.getByLabel(/runs on my computer only/).check();
+  await page.getByLabel(/can ask me to stop/).check();
+  await page.getByRole('group', { name: 'AI on this computer' }).getByLabel('Yes').check();
+  await page.getByLabel('I asked for consent as recorded above.').check();
+  await page.getByRole('button', { name: 'Save and confirm' }).click();
+  await expect(page.getByRole('heading', { name: 'Consent: given · AI on this computer' })).toBeVisible();
+  await saved(page);
+  expect(consentOnDisk(id)[0]).toMatchObject({ wordingVersion: 'draft-2', told: { aiDesign: true } });
 });
 
 test('consent given to nothing can’t be confirmed', async ({ page }) => {

@@ -21,6 +21,7 @@ export function consentRecord(overrides: Partial<ConsentRecord> = {}): ConsentRe
       recorded: true,
       transcribed: true,
       aiExtraction: true,
+      aiDesign: false,
       processingLocal: true,
       processingExternal: false,
       retention: true,
@@ -118,7 +119,7 @@ const pendingAiFinding: Finding = {
 export function sampleWorkspace(): CompanyWorkspace {
   return structuredClone({
     format: 'stylecode-workspace',
-    version: 5,
+    version: 6,
     company: {
       id: 'co_bakery',
       name: 'Harbour Bakery',

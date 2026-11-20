@@ -17,6 +17,7 @@ import {
   termsIssues,
   toldIssues,
   toldSoFar,
+  wordingIssues,
   type ConsentTerms,
 } from './consent.ts';
 import { isInRecord } from './findings.ts';
@@ -157,6 +158,9 @@ function checkFactSource(ws: CompanyWorkspace, id: string, source: FactSource, r
     !(s.quotes as FactQuote[]).every((q) => (s.sessionIds as string[]).includes(q.sessionId))
   )
     report('fact.source', 'A company fact keeps the sessions its statement came from.', 'knowledge', id);
+  // Its engagement may since have been deleted: the id is kept so the export still finds the fact (decision 22).
+  if (!(s.engagementId === null || isId(s.engagementId)))
+    report('fact.source', 'A company fact keeps the engagement it came from, or none.', 'knowledge', id);
   if (s.findingId === null) {
     if (!isTimestamp(s.deletedAt)) report('fact.source', 'A deleted source says when it was deleted.', 'knowledge', id);
     return;
@@ -299,7 +303,7 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
     }
     if (!isNonEmptyText(c.wordingVersion))
       report('consent.wording', 'The consent record names the wording shown.', 'consents', c.id);
-    // The record must be able to say exactly what the client heard (rule C9).
+    // The record must be able to say exactly what the client heard (rule C9), so its wording has every statement told.
     else if (!wordingFor(c.wordingVersion))
       report(
         'consent.wording',
@@ -307,6 +311,9 @@ function checkConsents(ws: CompanyWorkspace, report: Report) {
         'consents',
         c.id,
       );
+    else if (!toldProblems.length)
+      for (const issue of wordingIssues(c.told, c.wordingVersion))
+        report(issue.code, `The consent record: ${lowerFirst(issue.message)}`, 'consents', c.id);
     // Consent given, or given with limits, to nothing at all contradicts itself.
     const given = c.given as Partial<ConsentRecord['given']> | null;
     if (c.confirmed && given && typeof given === 'object' && c.outcome?.kind !== 'declined') {
