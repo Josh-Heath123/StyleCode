@@ -25,6 +25,10 @@ During one local full run on 19 November, the browser tests' dev server stopped 
 - *If it happens again:* CI now keeps the dev server's stdout in the log (pull request #27); a local run can show it with `DEBUG=pw:webserver`. A line from those handlers saying which signal arrived would answer it.
 
 
+## A standalone canvas request doesn't take the heavy slot
+
+On an engagement's design, a canvas request on a model on this computer takes the heavy slot and waits for a hot graphics card to cool (Phase 4, decision 17). The standalone editor's requests don't (decision 18 keeps its behaviour as it was). So a standalone request on a local model can run at the same time as a transcription or an extraction run, and the two compete for the GPU, which Phase 3 measured at 5.6 times slower transcription and 83% slower extraction (`docs/research/TRANSCRIPTION.md`, "Recommendation"). *For the brief:* whether the standalone editor's local requests should take the slot too, now that the slot and the cooling pause have a place in the assistant (`RecordSource.takeTurn`).
+
 ## Flakes to watch
 
 Seen once each, not yet explained. None is retried or skipped; each fails its run if it comes back.
