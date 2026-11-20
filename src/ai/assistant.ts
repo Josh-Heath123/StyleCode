@@ -249,6 +249,10 @@ export class Assistant {
               },
             }
           : {};
+      // A thinking model on Ollama (qwen3, the default) reasons first when `think` isn't sent, and its reasoning never
+      // reaches the reply: the request would stall. Off, as for extraction; other providers get nothing (the server
+      // passes `think` to Ollama only).
+      const thinking = current.provider === 'ollama' ? { think: false } : {};
       // The findings this request may use, checked now, just before it is sent (decision 14).
       const offered = record?.findings(current) ?? null;
       const context = this.context(offered?.findings);
@@ -262,7 +266,7 @@ export class Assistant {
       const schema = responseSchema({ findings: withFindings });
       const messages: { role: 'user' | 'assistant'; content: string }[] = [{ role: 'user', content: userMessage(context, text) }];
 
-      let reply = await chat({ system, messages, schema, ...pinned }, onText, controller.signal);
+      let reply = await chat({ system, messages, schema, ...pinned, ...thinking }, onText, controller.signal);
       if (controller.signal.aborted) return;
       let result = interpret(reply, this.editor.committedDoc, context);
       if (!result.ok) {
@@ -281,7 +285,7 @@ export class Assistant {
         // One repair attempt: show the model what was wrong, in its own terms.
         this.set({ phase: 'repairing', explanation: '' });
         messages.push({ role: 'assistant', content: reply }, { role: 'user', content: repairMessage(result.errors) });
-        reply = await chat({ system, messages, schema, ...pinned }, onText, controller.signal);
+        reply = await chat({ system, messages, schema, ...pinned, ...thinking }, onText, controller.signal);
         if (controller.signal.aborted) return;
         result = interpret(reply, this.editor.committedDoc, context);
       }
