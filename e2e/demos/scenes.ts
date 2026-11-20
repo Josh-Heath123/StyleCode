@@ -33,7 +33,7 @@ export function scriptedReply(body: FakeOllama['requests'][number]): FakeReply {
   return {
     text: JSON.stringify({
       explanation:
-        'Following your note: the card now has the brand blue background, with white text and a cantaloupe icon so it stands out from the other two.',
+        'Following your note: the card now has the brand blue background, with white text and a peach icon so it stands out from the other two.',
       operations,
     }),
     delay: 35,

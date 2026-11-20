@@ -12,6 +12,14 @@ describe('markdown for the docs site', () => {
     expect(inline('snake_case_names stay as they are')).toBe('snake_case_names stay as they are');
   });
 
+  it('renders a linked image, such as a CI badge, as an image inside the link', () => {
+    expect(inline('[![CI](https://example.com/badge.svg)](https://example.com/ci) and [a link](GUIDE.md)')).toBe(
+      '<a href="https://example.com/ci" rel="noopener"><img src="https://example.com/badge.svg" alt="CI" loading="lazy"></a> and <a href="GUIDE.md">a link</a>',
+    );
+    // The image's own link is still checked.
+    expect(inline('[![x](javascript:void)](https://example.com)')).toContain('src="#"');
+  });
+
   it('escapes HTML it does not know, and drops links that would run code', () => {
     expect(inline('<script>alert(1)</script>')).toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(inline('[x](javascript:alert(1))')).toContain('href="#"');

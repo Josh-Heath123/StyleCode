@@ -28,7 +28,7 @@ All of these are dated. From the repository brief onwards (18 November 2026), ev
 
 - **Claude Code**, Anthropic's coding tool, writes code and documents to the briefs, on the owner's computer and under the owner's account. Some commits say so in a `Co-Authored-By: Claude` line.
 - **A Claude chat acts as reviewer.** It writes the briefs, decides their questions on the owner's behalf as described above, and reviews the work after each merge.
-- **Images:** the logo (`public/favicon.svg`), the screenshot `docs/editor.png` and the three demo GIFs in `docs/media/` carry a Content Credentials (C2PA) record. It says: "Claude provided this file at the request of a user and may have created or modified the file contents."
+- **Images:** every picture in `docs/media/` is made by `npm run demos`: Playwright screenshots and recordings of the real app, with role-played data and a scripted stand-in model, and the HTML pages in `docs/brand/` rendered to PNG. Claude Code wrote the scripts and the pages to the briefs. The mark (`public/favicon.svg`, `docs/brand/mark.svg`) is SVG that Claude Code wrote to the identity brief. As of 19 November 2026 none of these files carries a Content Credentials (C2PA) record. Before then, the old logo, the screenshot `docs/editor.png` and the three demo GIFs carried one, which said: "Claude provided this file at the request of a user and may have created or modified the file contents." Those files have since been replaced.
 - **Outputs:** Anthropic's Consumer Terms say: "Subject to your compliance with our Terms, we assign to you all of our right, title, and interest—if any—in Outputs." The words "if any" leave open how far AI output is protected at all.
 
 No one other than the owner directs the work.

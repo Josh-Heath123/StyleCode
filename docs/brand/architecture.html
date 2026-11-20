@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>StyleCode: architecture at a glance</title>
+    <!--
+      The README's architecture diagram (docs/presentation/PRESENTATION-BRIEF.md, P2.6 and P5): the browser app, the local
+      Node servers, a folder per client, the local engines and models, and an external AI provider drawn dashed, used only
+      where a session's consent allows. Orange marks only the AI. Rendered to docs/media/architecture.png at 2× by
+      `npm run demos -- brand`.
+    -->
+    <link rel="stylesheet" href="../../src/styles/app.css" />
+    <link rel="stylesheet" href="brand.css" />
+    <style>
+      html,
+      body {
+        width: 1600px;
+        height: 870px;
+      }
+
+      .grid {
+        mask-image: linear-gradient(180deg, black 0, black 24px, transparent 56px);
+      }
+
+      main {
+        position: absolute;
+        inset: 56px 64px;
+      }
+
+      h1 {
+        font-size: 44px;
+      }
+
+      /* This computer: everything inside the solid outline; outside it, only the dashed provider. */
+      .computer {
+        position: absolute;
+        left: 0;
+        top: 32px;
+        width: 1140px;
+        height: 680px;
+        border: 1.5px solid var(--line-strong);
+        border-radius: 22px;
+      }
+      .computer > .caps {
+        position: absolute;
+        left: 28px;
+        top: -10px;
+        padding: 0 10px;
+        background: var(--surface-1);
+        color: var(--text-muted);
+      }
+
+      .box {
+        position: absolute;
+        padding: 18px 20px;
+        background: var(--surface-2);
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+      }
+      .box h2 {
+        margin: 0 0 6px;
+        font-size: 19px;
+        font-weight: 700;
+      }
+      .box p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+      .box ul {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .box li {
+        padding: 10px 14px;
+        background: var(--surface-3);
+        border-radius: 10px;
+        font-size: 15px;
+      }
+      .box li span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      /* The AI's parts: an orange dot beside the name, the words warm white. */
+      .ai::before {
+        content: '';
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: var(--ai);
+        vertical-align: 1px;
+      }
+
+      .browser {
+        left: 32px;
+        top: 40px;
+        width: 330px;
+      }
+      .servers {
+        left: 420px;
+        top: 40px;
+        width: 330px;
+      }
+      .data {
+        left: 808px;
+        top: 380px;
+        width: 300px;
+      }
+      .engines {
+        left: 808px;
+        top: 40px;
+        width: 300px;
+      }
+
+      .external {
+        position: absolute;
+        left: 1210px;
+        top: 240px;
+        width: 262px;
+        padding: 18px 20px;
+        border: 1.5px dashed var(--text-subtle);
+        border-radius: 14px;
+      }
+      .external h2 {
+        margin: 0 0 6px;
+        font-size: 19px;
+        font-weight: 700;
+      }
+      .external p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+
+      svg.links {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      .links path {
+        fill: none;
+        stroke: var(--text-muted);
+        stroke-width: 1.5;
+      }
+      .links path.dashed {
+        stroke-dasharray: 6 6;
+      }
+      .links text {
+        fill: var(--text-muted);
+        font-size: 13px;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .note {
+        position: absolute;
+        left: 0;
+        top: 736px;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <main>
+      <section class="computer">
+        <span class="caps">This computer</span>
+
+        <div class="box browser">
+          <h2>In the browser</h2>
+          <p>One React app, served from this computer</p>
+          <ul>
+            <li>The design editor<span>Canvas, auto layout, code export</span></li>
+            <li>The workspace<span>Clients, consent, transcripts, the record</span></li>
+          </ul>
+        </div>
+
+        <div class="box servers">
+          <h2>Local Node servers</h2>
+          <p>Started with StyleCode, on localhost only</p>
+          <ul>
+            <li>Workspace server<span>Checks consent, saves atomically</span></li>
+            <li class="ai">AI server<span>Keeps API keys out of the browser</span></li>
+            <li>Transcription<span>One heavy job at a time</span></li>
+          </ul>
+        </div>
+
+        <div class="box data">
+          <h2>StyleCode Data</h2>
+          <p>One folder per client, with a lock on the data folder</p>
+          <ul>
+            <li>Workspace, designs, files<span>Never inside a git repository</span></li>
+            <li>Recordings<span>Kept only as long as the client agreed</span></li>
+          </ul>
+        </div>
+
+        <div class="box engines">
+          <h2>Engines on this computer</h2>
+          <ul>
+            <li class="ai">Ollama<span>Local models, the default</span></li>
+            <li>whisper.cpp<span>The words, on the GPU</span></li>
+            <li>sherpa-onnx<span>The speakers, on the CPU</span></li>
+          </ul>
+        </div>
+
+        <svg class="links" aria-hidden="true">
+          <!-- Browser → servers -->
+          <path d="M 362 140 L 420 140" />
+          <path d="M 414 135 L 420 140 L 414 145" />
+          <!-- AI server → Ollama; transcription → whisper.cpp and sherpa-onnx -->
+          <path d="M 750 246 L 770 246 L 770 128 L 808 128" />
+          <path d="M 802 123 L 808 128 L 802 133" />
+          <path d="M 750 318 L 785 318 L 785 200 L 808 200" />
+          <path d="M 802 195 L 808 200 L 802 205" />
+          <!-- Workspace server → the data folder -->
+          <path d="M 585 365 L 585 510 L 808 510" />
+          <path d="M 802 505 L 808 510 L 802 515" />
+        </svg>
+      </section>
+
+      <div class="external">
+        <h2 class="ai">External AI provider</h2>
+        <p>With your own key, and only where the session’s consent allows</p>
+      </div>
+
+      <svg class="links" aria-hidden="true">
+        <!-- AI server → external provider, dashed: it leaves this computer, above it in the picture -->
+        <path class="dashed" d="M 700 72 L 700 12 L 1340 12 L 1340 240" />
+        <path d="M 1335 234 L 1340 240 L 1345 234" />
+        <text x="760" y="4">Only where the session’s consent allows</text>
+      </svg>
+
+      <p class="note">With AI off, or with a local model, nothing leaves this computer. Details in docs/ARCHITECTURE.md.</p>
+    </main>
+  </body>
+</html>

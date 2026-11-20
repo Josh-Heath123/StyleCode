@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>StyleCode: from conversation to interface</title>
+    <!--
+      The README's flow diagram (docs/presentation/PRESENTATION-BRIEF.md, P2.3 and P5): consent, capture, record, design
+      and code, each stage marked built or in progress. Warm white is the consultant's and the code's; orange marks only
+      the AI's steps. Rendered to docs/media/flow.png at 2× by `npm run demos -- brand`.
+    -->
+    <link rel="stylesheet" href="../../src/styles/app.css" />
+    <link rel="stylesheet" href="brand.css" />
+    <style>
+      html,
+      body {
+        width: 1600px;
+        height: 480px;
+      }
+
+      /* The grid shows only in the margins, never behind the stages (I4). */
+      .grid {
+        mask-image: linear-gradient(180deg, black 0, black 32px, transparent 56px, transparent 390px, black 440px);
+      }
+
+      main {
+        position: absolute;
+        inset: 56px 64px;
+      }
+
+      h1 {
+        font-size: 44px;
+      }
+
+      .stages {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 40px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .stage {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 300px;
+        padding: 24px;
+        background: var(--surface-2);
+        border: 1px solid var(--line-strong);
+        border-radius: 16px;
+      }
+
+      /* The arrow to the next stage, in the gap between them. */
+      .stage + .stage::before {
+        content: '';
+        position: absolute;
+        left: -33px;
+        top: 50%;
+        width: 26px;
+        height: 2px;
+        background: var(--text-muted);
+      }
+      .stage + .stage::after {
+        content: '';
+        position: absolute;
+        left: -13px;
+        top: calc(50% - 5px);
+        border-left: 8px solid var(--text-muted);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+      }
+
+      .step-number {
+        color: var(--text-subtle);
+      }
+
+      h2 {
+        margin: 8px 0 20px;
+        font-size: 30px;
+      }
+
+      .stage ul {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 16px;
+        color: var(--text-muted);
+      }
+
+      .stage li {
+        position: relative;
+        padding-left: 18px;
+      }
+      .stage li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 7px;
+        height: 7px;
+        border-radius: 2px;
+        background: var(--you);
+      }
+
+      /* The AI's steps: an orange dot and warm-white words (orange text never sits on a raised card's soft fill). */
+      .stage li.ai::before {
+        border-radius: 50%;
+        background: var(--ai);
+      }
+      .stage li.ai {
+        color: var(--text);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 16px;
+      }
+      .status::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .status.progress::before {
+        background: var(--warn);
+      }
+
+      .key {
+        display: flex;
+        gap: 32px;
+        margin-top: 28px;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+      .key span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .key i {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--you);
+      }
+      .key i.ai {
+        border-radius: 50%;
+        background: var(--ai);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <main>
+      <ol class="stages">
+        <li class="stage">
+          <span class="caps step-number">Step 1</span>
+          <h2 class="display">Consent</h2>
+          <ul>
+            <li>The consent form, with the client</li>
+            <li>Nothing is captured or sent to an AI without it</li>
+          </ul>
+          <span class="caps status">Built</span>
+        </li>
+        <li class="stage">
+          <span class="caps step-number">Step 2</span>
+          <h2 class="display">Capture</h2>
+          <ul>
+            <li>Record in the room, or import a transcript</li>
+            <li>Transcribed on this computer, with speakers</li>
+          </ul>
+          <span class="caps status">Built</span>
+        </li>
+        <li class="stage">
+          <span class="caps step-number">Step 3</span>
+          <h2 class="display">Record</h2>
+          <ul>
+            <li class="ai">The AI proposes findings</li>
+            <li>Every quote is checked in code</li>
+            <li>You accept, edit or reject each one</li>
+          </ul>
+          <span class="caps status">Built</span>
+        </li>
+        <li class="stage">
+          <span class="caps step-number">Step 4</span>
+          <h2 class="display">Design</h2>
+          <ul>
+            <li>The canvas inside the engagement</li>
+            <li>Layers linked to findings</li>
+            <li class="ai">Next: the AI drawing on the record</li>
+          </ul>
+          <span class="caps status progress">In progress</span>
+        </li>
+        <li class="stage">
+          <span class="caps step-number">Step 5</span>
+          <h2 class="display">Code</h2>
+          <ul>
+            <li>HTML and CSS, or a React app</li>
+            <li>Compiled from the design, the same every time</li>
+          </ul>
+          <span class="caps status">Built</span>
+        </li>
+      </ol>
+      <p class="key">
+        <span><i aria-hidden="true"></i>You, and the code</span>
+        <span><i class="ai" aria-hidden="true"></i>The AI’s steps: proposals you review</span>
+      </p>
+    </main>
+  </body>
+</html>

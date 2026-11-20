@@ -58,7 +58,12 @@ Hairlines in warm white at very low opacity, with one guide slanted at the itali
 
 ## The mark
 
-A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`). The wordmark is "StyleCode" in the display voice beside the mark; an outlined `docs/brand/wordmark.svg` isn't made yet.
+A warm-white square, yours, and an orange dot, the AI's (`docs/brand/mark.svg`, `public/favicon.svg`, `src/ui/Mark.tsx`). The wordmark is "StyleCode" in the display voice beside the mark.
+
+- **The drawing:** `src/ui/Mark.tsx` sets the proportions (a 15-unit square with a 2.6 stroke, and a dot of radius 6, in a 32-unit box). `docs/brand/mark.svg` and the rendered hero and social preview follow it.
+- **The favicon keeps its own drawing** (a 12-unit square with a 2.4 stroke, and a dot of radius 5), because it reads better at 16 px. Checked by Claude Code on 19 November 2026, rendering both drawings at 16 px in Chromium on light and dark tab colours: the favicon's square lands on whole pixels in full warm white, while the app's proportions blur two of its sides to grey and crowd the edge.
+
+*Note, 19 November 2026:* there is no outlined `wordmark.svg`, and no font library to make one. The wordmark is set live in Inter 800 italic in `docs/brand/`'s HTML pages (`hero.html`, `social.html`), which `npm run demos` renders to PNG with Playwright.
 
 ## Design content isn't chrome
 

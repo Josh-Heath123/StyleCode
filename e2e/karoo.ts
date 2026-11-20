@@ -6,7 +6,8 @@ import { expect, type Page } from '@playwright/test';
  * side, Thandi and Pieter asked for consent, Lerato not. The consent record
  * allows transcription and local AI, and is confirmed unless `confirmed` is
  * false. With `note`, the session has that note, written at 10:10 there;
- * `title` names the session (default "Kick-off"). With `recording`, the client
+ * `title` names the session (default "Kick-off"), and `name` the client (default:
+ * "Karoo Freight" and a suffix, unique per call). With `recording`, the client
  * agreed to audio recording too, kept as it says (Phase 3).
  * Opens the session page and returns the client's id.
  */
@@ -18,12 +19,13 @@ export async function kickoff(
     confirmed?: boolean;
     note?: string;
     title?: string;
+    name?: string;
     recording?: { kind: 'days'; days: number } | { kind: 'until-engagement-ends' } | { kind: 'delete-after-transcription' };
   } = {},
 ) {
   const res = await page.request.post('/api/workspace/companies', {
     headers: HEADERS,
-    data: { profile: { name: `Karoo Freight ${Math.random().toString(36).slice(2, 8)}` } },
+    data: { profile: { name: options.name ?? `Karoo Freight ${Math.random().toString(36).slice(2, 8)}` } },
   });
   const opened = (await res.json()) as { workspace: Record<string, unknown> & { company: { id: string } }; revision: string };
   const ws = opened.workspace;

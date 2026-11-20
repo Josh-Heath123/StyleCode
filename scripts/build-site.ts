@@ -116,7 +116,7 @@ function page(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>${escapeHtml(title)}</title>
-<meta name="description" content="StyleCode: a local-first visual UI editor where the canvas is the prompt. Draw interfaces, work with an AI on the same design, and export real HTML, CSS and React.">
+<meta name="description" content="StyleCode: a local-first workspace for software consultants. From a client conversation recorded with consent, to a requirements record you've reviewed, to the interface design.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>${CSS}</style>
 </head>
@@ -148,7 +148,7 @@ for (const p of PAGES) {
   const source = readFileSync(join(ROOT, p.src), 'utf8');
   const { html, headings } = renderMarkdown(source, (href) => linkFor(p.src, href));
   const h1 = headings.find((h) => h.level === 1)?.text ?? p.nav;
-  const title = p.out === 'index.html' ? 'StyleCode: the canvas is the prompt' : `${h1} · StyleCode`;
+  const title = p.out === 'index.html' ? 'StyleCode: a local-first workspace for software consultants' : `${h1} · StyleCode`;
   writeFileSync(
     join(OUT, p.out),
     page(
@@ -160,7 +160,6 @@ for (const p of PAGES) {
     ),
   );
 }
-copyFileSync(join(ROOT, 'docs', 'editor.png'), join(OUT, 'editor.png'));
 copyFileSync(join(ROOT, 'public', 'favicon.svg'), join(OUT, 'favicon.svg'));
 // Inter, upright and its true italic for the wordmark, from the installed package (never committed).
 mkdirSync(join(OUT, 'fonts'), { recursive: true });

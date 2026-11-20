@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>StyleCode: the README's hero</title>
+    <!--
+      The README's hero (docs/presentation/PRESENTATION-BRIEF.md, P2 and P5). Rendered to docs/media/hero.png at 2×
+      (3200×1000) by `npm run demos` (e2e/demos/brand.demo.ts), through the demo's dev server so the paths below resolve.
+      Colours come only from the app's tokens (src/styles/app.css); the type is the installed Inter, upright and its true
+      italic. One orange element only: the mark's dot, the AI's part.
+    -->
+    <link rel="stylesheet" href="../../src/styles/app.css" />
+    <link rel="stylesheet" href="brand.css" />
+    <style>
+      html,
+      body {
+        width: 1600px;
+        height: 500px;
+      }
+
+      /* The construction grid (I4): hairlines on a 40px grid, fading out to the right. */
+      .grid {
+        mask-image: linear-gradient(90deg, black 0%, black 55%, transparent 100%);
+      }
+
+      /* Construction lines for the wordmark: its cap height and baseline, and one guide at the italic's angle. */
+      .rule {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: var(--grid-guide);
+        mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 60%, transparent 92%);
+      }
+      .cap {
+        top: 118px;
+      }
+      .base {
+        top: 240px;
+      }
+      .slant {
+        position: absolute;
+        top: -40px;
+        bottom: -40px;
+        left: 213px;
+        width: 1px;
+        background: var(--grid-guide);
+        transform: skewX(-10deg);
+        transform-origin: 0 240px;
+        /* It guides the wordmark only, so it fades out before the line below. */
+        mask-image: linear-gradient(180deg, black 0, black 290px, transparent 330px);
+      }
+
+      .content {
+        position: absolute;
+        left: 80px;
+        top: 80px;
+        right: 80px;
+      }
+
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 36px;
+        height: 200px;
+      }
+
+      .mark {
+        width: 132px;
+        height: 132px;
+        flex: none;
+      }
+      .wordmark {
+        font-size: 168px;
+      }
+
+      .line {
+        margin: 16px 0 0;
+        max-width: 1120px;
+        font-size: 30px;
+        line-height: 1.35;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .line span {
+        color: var(--text-muted);
+      }
+
+      .labels {
+        display: flex;
+        gap: 20px;
+        margin: 28px 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .labels li + li::before {
+        content: '·';
+        margin-right: 20px;
+        color: var(--text-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <div class="rule cap" aria-hidden="true"></div>
+    <div class="rule base" aria-hidden="true"></div>
+    <div class="slant" aria-hidden="true"></div>
+    <main class="content">
+      <div class="lockup">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect class="mark-square" x="5" y="5" width="15" height="15" rx="3" fill="none" stroke-width="2.6" />
+          <circle class="mark-dot" cx="21.5" cy="21.5" r="6" />
+        </svg>
+        <h1 class="display wordmark">StyleCode</h1>
+      </div>
+      <p class="line">
+        A local-first workspace for software consultants.
+        <span
+          >From a client conversation recorded with consent, to a requirements record you’ve reviewed, to the interface
+          design.</span
+        >
+      </p>
+      <ul class="labels">
+        <li>Local-first</li>
+        <li>Consent-first</li>
+        <li>The AI proposes, you decide</li>
+      </ul>
+    </main>
+  </body>
+</html>

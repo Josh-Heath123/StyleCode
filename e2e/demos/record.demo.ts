@@ -1,13 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { startFakeOllama, type FakeOllama } from '../fakeOllama';
-import { snapshot } from '../helpers';
 import {
   box,
   clickAt,
   clickLocator,
   exampleProject,
   focusOn,
-  glide,
   pause,
   saveGif,
   SCRIPTED_MODEL,
@@ -24,6 +22,9 @@ import {
  */
 
 test.describe.configure({ mode: 'serial' });
+
+// At 1440×900, as the screenshots are (scaled to 960 wide in the GIF).
+test.use({ viewport: { width: 1440, height: 900 }, video: { mode: 'on', size: { width: 1440, height: 900 } } });
 
 let fake: FakeOllama;
 test.beforeAll(async () => {
@@ -61,11 +62,11 @@ test('sketch to layout to code', async ({ page }) => {
 
   // The code for it, highlighted, then the page at phone width.
   await clickLocator(page, page.getByRole('tab', { name: 'Code' }));
-  await pause(page, 2400);
+  await pause(page, 2000);
   await clickLocator(page, page.getByRole('button', { name: 'Preview', exact: true }).first());
   await pause(page, 1300);
   await clickLocator(page, page.getByRole('radio', { name: /Mobile/ }));
-  await pause(page, 2600);
+  await pause(page, 2000);
   await saveGif(page, 'sketch-to-code', startedAt, sceneStart);
 });
 
@@ -101,62 +102,4 @@ test('a note the AI follows (scripted model)', async ({ page }) => {
   await page.keyboard.press('Enter');
   await pause(page, 2200);
   await saveGif(page, 'notes-for-the-ai', startedAt, sceneStart);
-});
-
-test('grids and phones', async ({ page }) => {
-  const startedAt = Date.now();
-  const { find } = await exampleProject(page, true);
-  const first = await find('Tag as you go card');
-  const third = await find('Answers, not folders card');
-  const row = (await snapshot(page)).doc.nodes[first].parentId!;
-  await focusOn(page, row, 0.6, -40);
-  await pause(page, 300);
-  const sceneStart = Date.now();
-  await pause(page, 600);
-
-  // Select the row of cards (between two cards) and make it a grid of two columns.
-  const a = await box(page, first);
-  const b = await box(page, await find('Shared by default card'));
-  await clickAt(page, (a.x + a.width + b.x) / 2, a.y + a.height / 2, { modifiers: ['Control'] });
-  await pause(page, 600);
-  await clickLocator(page, page.getByRole('group', { name: 'Direction' }).getByRole('button', { name: 'Grid' }));
-  await pause(page, 1000);
-  const cols = page.getByRole('textbox', { name: 'Columns', exact: true });
-  await clickLocator(page, cols);
-  await page.keyboard.press('Control+a');
-  await page.keyboard.type('2', { delay: 60 });
-  await page.keyboard.press('Enter');
-  await pause(page, 1300);
-
-  // The last card spans both columns.
-  const c = await box(page, third);
-  await clickAt(page, c.x + 12, c.y + 12, { modifiers: ['Control'] });
-  await pause(page, 500);
-  const span = page.getByRole('textbox', { name: 'Column span', exact: true });
-  await clickLocator(page, span);
-  await page.keyboard.press('Control+a');
-  await page.keyboard.type('2', { delay: 60 });
-  await page.keyboard.press('Enter');
-  await pause(page, 1400);
-
-  // At full width the grid has two columns; on a phone, one.
-  await clickLocator(page, page.getByRole('button', { name: 'Preview', exact: true }).first());
-  await pause(page, 900);
-  const frame = (await page.locator('.preview iframe').boundingBox())!;
-  await glide(page, frame.x + frame.width / 2, frame.y + frame.height / 2);
-  for (let i = 0; i < 6; i++) {
-    await page.mouse.wheel(0, 120);
-    await pause(page, 60);
-  }
-  await pause(page, 1600);
-  await clickLocator(page, page.getByRole('radio', { name: /Mobile/ }));
-  await pause(page, 700);
-  const phone = (await page.locator('.preview iframe').boundingBox())!;
-  await glide(page, phone.x + phone.width / 2, phone.y + phone.height / 2);
-  for (let i = 0; i < 14; i++) {
-    await page.mouse.wheel(0, 120);
-    await pause(page, 60);
-  }
-  await pause(page, 2600);
-  await saveGif(page, 'grids-and-phones', startedAt, sceneStart);
 });
