@@ -156,7 +156,8 @@ async function streamReply(
   let text = '';
   const handle = (line: string) => {
     if (!line.trim()) return;
-    const message = JSON.parse(line) as { delta?: string; error?: string; done?: boolean };
+    // {"thinking":true}: a thinking model is still working. It has no text; arriving was the activity that matters.
+    const message = JSON.parse(line) as { delta?: string; error?: string; done?: boolean; thinking?: boolean };
     if (message.error) throw new Error(message.error);
     if (message.delta) {
       text += message.delta;

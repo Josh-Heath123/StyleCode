@@ -22,7 +22,14 @@ import type { AddressInfo } from 'node:net';
 export interface FakeOllama {
   url: string;
   /** Bodies of the chat requests received, oldest first. */
-  requests: { model: string; format: unknown; messages: { role: string; content: string }[]; options: Record<string, unknown> }[];
+  requests: {
+    model: string;
+    format: unknown;
+    messages: { role: string; content: string }[];
+    options: Record<string, unknown>;
+    /** Sent false to turn a thinking model's reasoning off; left out, the model thinks first, as qwen3 does. */
+    think?: boolean;
+  }[];
   close(): Promise<void>;
 }
 
@@ -218,6 +225,15 @@ export async function startFakeOllama(
       res.writeHead(200, { 'content-type': 'application/x-ndjson' });
       let closed = false;
       res.on('close', () => (closed = true));
+      // Like qwen3 with `think` left out: it reasons first, in message.thinking, which isn't part of the reply.
+      if (body.think !== false)
+        for (const thought of ['Let me look at the layers', ' I may change.']) {
+          if (closed) break;
+          res.write(
+            `${JSON.stringify({ model: body.model, message: { role: 'assistant', content: '', thinking: thought }, done: false })}\n`,
+          );
+          await new Promise((r) => setTimeout(r, answer.delay));
+        }
       for (let i = 0; i < answer.text.length && !closed; i += 16) {
         res.write(
           `${JSON.stringify({ model: body.model, message: { role: 'assistant', content: answer.text.slice(i, i + 16) }, done: false })}\n`,

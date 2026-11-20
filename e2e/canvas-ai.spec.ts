@@ -167,6 +167,8 @@ test('a request on an engagement’s design draws on its confirmed findings, and
   // What the model was given: the two confirmed findings of this engagement, statement and kind only, the Pay
   // button's first; never the assumption, the open question or the other engagement's.
   const [sent] = canvasRequests(from);
+  // Ollama is asked not to think first: a thinking model's reasoning never reaches the reply.
+  expect(fake.requests[from].think).toBe(false);
   expect(sent).toContain('- F1 functional-requirement: "Customers pay online when they order."');
   expect(sent).toContain('- F2 constraint: "Orders need two days’ notice."');
   expect(sent).toMatch(/\* e\d+ rect "Pay button" .*findings=F1/);

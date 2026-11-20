@@ -13,7 +13,15 @@ import {
   type ProviderKind,
   type ProviderSettings,
 } from './config.ts';
-import { listModels, ProviderError, streamChat, type ChatMessage, type ChatRequest } from './providers.ts';
+import {
+  listModels,
+  ProviderError,
+  streamChat,
+  THINKING,
+  type ChatMessage,
+  type ChatPiece,
+  type ChatRequest,
+} from './providers.ts';
 import {
   readJson as readJsonBody,
   rejectReason as checkRequest,
@@ -149,13 +157,19 @@ function abortOnClose(req: IncomingMessage, res: ServerResponse): AbortSignal {
   return controller.signal;
 }
 
+/** How often a thinking model's "still working" line is sent: well inside the page's stall time (STALL_MS, 2 minutes). */
+export const THINKING_EVERY_MS = 5000;
+
 /**
  * Streams the reply to the browser, one JSON object per line:
  * `{"delta":"…"}` for text, then `{"done":true}` or `{"error":"…"}`.
- * The status is sent with the first piece of text, so an error before any
- * text arrives still comes back as a plain HTTP error.
+ * While a thinking model reasons, `{"thinking":true}` at once and then at most
+ * every THINKING_EVERY_MS: no text, but the page counts it as activity, so a
+ * model that is thinking isn't taken for one that stopped. The status is sent
+ * with the first line, so an error before any arrives still comes back as a
+ * plain HTTP error.
  */
-async function relay(_req: IncomingMessage, res: ServerResponse, stream: AsyncGenerator<string>): Promise<void> {
+async function relay(_req: IncomingMessage, res: ServerResponse, stream: AsyncGenerator<ChatPiece>): Promise<void> {
   const start = () => {
     if (res.headersSent) return;
     res.statusCode = 200;
@@ -163,10 +177,18 @@ async function relay(_req: IncomingMessage, res: ServerResponse, stream: AsyncGe
     res.setHeader('cache-control', 'no-store');
     res.setHeader('x-accel-buffering', 'no');
   };
+  let thought = -Infinity;
   try {
-    for await (const delta of stream) {
+    for await (const piece of stream) {
+      if (piece === THINKING) {
+        if (Date.now() - thought < THINKING_EVERY_MS) continue;
+        thought = Date.now();
+        start();
+        res.write(`${JSON.stringify({ thinking: true })}\n`);
+        continue;
+      }
       start();
-      res.write(`${JSON.stringify({ delta })}\n`);
+      res.write(`${JSON.stringify({ delta: piece })}\n`);
     }
     start();
     res.end(`${JSON.stringify({ done: true })}\n`);
