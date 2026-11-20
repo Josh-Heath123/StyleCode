@@ -199,6 +199,8 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 
 ### Workspace Phase 4: Canvas in context
 
+*In progress: Slices A and B are merged (engagement designs in the client's folder, and the record beside the canvas with layers linked to findings). Slice C, the AI drawing on the record, is next.*
+
 **Scope:** the StyleCode editor in each engagement, informed by the record (ADR-0007).
 
 - Engagement designs stored in the company's folder; attach a new design or a copy of an existing project.

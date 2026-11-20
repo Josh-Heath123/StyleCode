@@ -10,9 +10,9 @@ This page describes how StyleCode is worked on: its few firm principles, the lay
 
 These come from the project's brief and every change keeps them:
 
-- **Local-first.** Projects and images stay in the browser on the user's device. Nothing is uploaded, there is no account, and the app must keep working with no network.
+- **Local-first.** Client data, recordings, designs and images stay on the user's computer: client work in the `StyleCode Data` folder, the standalone editor's designs in the browser. Nothing is uploaded, there is no account, and the app must keep working with no network.
 - **No cost to run.** No paid services or hosting are required. The app is static; the optional AI server is a Vite plugin that runs on the user's own computer.
-- **Keys never reach the browser.** API keys are typed once, saved by the local server in a file only the user can read, and used only by that server. Never put a key, or anything that could reveal one, in frontend code, the project file or logs.
+- **Keys never reach the browser.** API keys are typed once, saved by the local server in its own file (readable only by the user on macOS and Linux; on Windows, protected by the home folder's default permissions), and used only by that server. Never put a key, or anything that could reveal one, in frontend code, the project file or logs.
 - **AI is optional.** Every feature works with AI off. The AI changes the design document through the same validated operations as the user, never the code, and its changes are always a proposal the user accepts or rejects.
 - **One source of truth.** The design document is the model; the canvas, the code panel and exports are all derived from it. Edits are invertible operations, so everything can be undone.
 - **Nothing that doesn't work.** No placeholder buttons, mock data or half-finished controls. If a feature isn't ready, it isn't shown.
@@ -104,6 +104,8 @@ React 19 and TypeScript, built with Vite. The canvas renders layers as real DOM 
 6. If the change is visible, update the README or [the guide](docs/GUIDE.md), and the roadmap if it finishes something listed there.
 
 ## Tests
+
+CI runs on every pull request: formatting, the type-check, the hygiene, token and README checks, the licence checks (REUSE and third-party notices), the unit tests, a production build and the browser tests (a pull request that changes only documentation skips the browser tests). The browser tests also run on Windows every night. The owner merges a pull request only when every required check passes.
 
 - **Model, layout, codegen and AI logic** get unit tests in a `*.test.ts` file next to the code. They run in Node, so they must not need the DOM.
 - **Anything a user does** gets a browser test in `e2e/`: drive the real editor with the mouse and keyboard and check the document (`snapshot(page)` in `e2e/helpers.ts` reads the editor's state).

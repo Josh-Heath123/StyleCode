@@ -2,10 +2,11 @@
  * The README's truth check (docs/presentation/PRESENTATION-BRIEF.md, P7), as pure functions so the tests can show each
  * rule failing on a mutation. `scripts/check-readme.ts` runs them over the repository.
  *
- * 1. Links: every relative link and image in every tracked Markdown file resolves, and every `#anchor` names a heading
- *    in its target (as GitHub and the docs site make them).
+ * 1. Links: every relative link and image in every tracked Markdown file resolves (reference-style definitions too),
+ *    and every `#anchor` names a heading in its target, with the anchor GitHub and the docs site both give it.
  * 2. Figures: every figure the README quotes from research (a percentage, or a number of minutes) sits in a paragraph
- *    or list item that links to a section of a research document, and appears in one of the sections it links to.
+ *    or list item that links to a section of a research document, and appears in one of the sections it links to, as
+ *    a whole number.
  * 3. Counts: the README names no count that drifts with every merge (tests, files, lines, commits).
  */
 import { slugify } from './markdown.ts';
@@ -19,8 +20,11 @@ export interface Problem {
 /** Research documents, whose sections the README's figures come from. */
 export const RESEARCH = /^docs\/research\/[^/]+\.md$/;
 
-/** Lines outside fenced code blocks, with their line numbers; inline code spans blanked so their text isn't read. */
-function prose(source: string): { text: string; line: number }[] {
+/**
+ * Lines outside fenced code blocks, with their line numbers. For prose, inline code spans are blanked so their text
+ * isn't read as links or figures; headings are read raw, because code in a heading is part of its anchor.
+ */
+function prose(source: string, blankCode = true): { text: string; line: number }[] {
   const out: { text: string; line: number }[] = [];
   let fenced = false;
   source
@@ -31,56 +35,81 @@ function prose(source: string): { text: string; line: number }[] {
         fenced = !fenced;
         return;
       }
-      if (!fenced) out.push({ text: text.replace(/`[^`]*`/g, (m) => ' '.repeat(m.length)), line: i + 1 });
+      if (fenced) return;
+      out.push({ text: blankCode ? text.replace(/`[^`]*`/g, (m) => ' '.repeat(m.length)) : text, line: i + 1 });
     });
   return out;
 }
 
-/** The anchors a document's headings get: the docs site's (scripts/markdown.ts) and GitHub's, numbered when repeated. */
+/** GitHub's anchor for a heading: lower case, punctuation dropped (code's backticks too), each space a hyphen. */
+export function githubSlug(heading: string): string {
+  return heading
+    .replace(/<[^>]+>/g, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .trim()
+    .replace(/ /g, '-');
+}
+
+interface Heading {
+  level: number;
+  /** The anchor GitHub gives it, and the one the docs site gives it (scripts/markdown.ts), each numbered when repeated. */
+  github: string;
+  site: string;
+  /** Its index in the document's lines outside code blocks. */
+  index: number;
+}
+
+function headings(source: string): Heading[] {
+  const out: Heading[] = [];
+  const usedGithub = new Map<string, number>();
+  const usedSite = new Map<string, number>();
+  const unique = (used: Map<string, number>, base: string) => {
+    const n = used.get(base) ?? 0;
+    used.set(base, n + 1);
+    return n ? `${base}-${n}` : base;
+  };
+  prose(source, false).forEach(({ text }, index) => {
+    const m = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(text);
+    if (!m) return;
+    out.push({
+      level: m[1].length,
+      github: unique(usedGithub, githubSlug(m[2])),
+      site: unique(usedSite, slugify(m[2]) || 'section'),
+      index,
+    });
+  });
+  return out;
+}
+
+/** The anchors a link may use: those that work both on GitHub and on the docs site. */
 export function anchors(source: string): Set<string> {
-  const found = new Set<string>();
-  const used = new Map<string, number>();
-  for (const { text } of prose(source)) {
-    const heading = /^#{1,6}\s+(.+?)\s*#*\s*$/.exec(text)?.[1];
-    if (!heading) continue;
-    const github = heading
-      .replace(/<[^>]+>/g, '')
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-      .trim()
-      .replace(/ /g, '-');
-    for (const base of new Set([slugify(heading) || 'section', github])) {
-      const n = used.get(base) ?? 0;
-      used.set(base, n + 1);
-      found.add(n ? `${base}-${n}` : base);
-    }
-  }
-  return found;
+  return new Set(headings(source).flatMap((h) => (h.github === h.site ? [h.github] : [])));
+}
+
+/** The anchors GitHub gives a document's headings, to say why a link that works on GitHub alone fails. */
+export function githubAnchors(source: string): Set<string> {
+  return new Set(headings(source).map((h) => h.github));
 }
 
 /** The text of the section a heading anchor starts: up to the next heading of the same level or higher. */
 export function section(source: string, anchor: string): string | null {
+  const all = headings(source);
+  const at = all.findIndex((h) => h.github === anchor || h.site === anchor);
+  if (at < 0) return null;
   const lines = prose(source).map((l) => l.text);
-  const used = new Map<string, number>();
-  for (let i = 0; i < lines.length; i++) {
-    const m = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(lines[i]);
-    if (!m) continue;
-    const base = slugify(m[2]) || 'section';
-    const n = used.get(base) ?? 0;
-    used.set(base, n + 1);
-    if ((n ? `${base}-${n}` : base) !== anchor) continue;
-    const level = m[1].length;
-    const end = lines.findIndex((l, j) => j > i && /^(#{1,6})\s/.test(l) && /^#+/.exec(l)![0].length <= level);
-    return lines.slice(i + 1, end < 0 ? undefined : end).join('\n');
-  }
-  return null;
+  const end = all.slice(at + 1).find((h) => h.level <= all[at].level);
+  return lines.slice(all[at].index + 1, end ? end.index : undefined).join('\n');
 }
 
-/** Every link and image target in a document's prose, with its line. */
+/** Every link and image target in a document's prose, and every reference-style definition's, with its line. */
 export function links(source: string): { target: string; line: number }[] {
   const out: { target: string; line: number }[] = [];
-  for (const { text, line } of prose(source))
+  for (const { text, line } of prose(source)) {
     for (const m of text.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) out.push({ target: m[1], line });
+    const definition = /^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?/.exec(text);
+    if (definition) out.push({ target: definition[1], line });
+  }
   return out;
 }
 
@@ -108,13 +137,26 @@ export function linkProblems(
   for (const { target, line } of links(source)) {
     if (/^[a-z][a-z0-9+.-]*:/i.test(target)) continue; // https:, mailto: and the like
     const [rawPath, anchor] = target.split('#') as [string, string | undefined];
-    const path = rawPath ? join(dir, decodeURIComponent(rawPath)) : file;
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(rawPath);
+    } catch {
+      problems.push({ file, line, message: `${target}: the path isn't valid URL encoding` });
+      continue;
+    }
+    const path = rawPath ? join(dir, decoded) : file;
     if (!exists(path)) {
       problems.push({ file, line, message: `${target}: ${path} doesn't exist` });
       continue;
     }
     if (anchor && path.endsWith('.md') && !anchors(read(path)).has(anchor))
-      problems.push({ file, line, message: `${target}: ${path} has no heading #${anchor}` });
+      problems.push({
+        file,
+        line,
+        message: githubAnchors(read(path)).has(anchor)
+          ? `${target}: the docs site gives that heading another anchor, so the link works on GitHub only`
+          : `${target}: ${path} has no heading #${anchor}`,
+      });
   }
   return problems;
 }
@@ -126,6 +168,16 @@ export function figures(text: string): string[] {
   for (const m of text.matchAll(/\b\d+(?:\.\d+)?%/g)) found.push(m[0]);
   for (const m of text.matchAll(/\b(\d+(?:\.\d+)?) minutes\b/g)) found.push(`${m[1]} minutes`);
   return [...new Set(found)];
+}
+
+/**
+ * Whether a figure appears in a section as a whole number: "4%" isn't in "94%", and "1.7 minutes" isn't in "11.7". A
+ * number of minutes may stand alone, as in a table's "Minutes per hour" column.
+ */
+export function appears(figure: string, text: string): boolean {
+  const number = /^\d+(?:\.\d+)?/.exec(figure)![0].replace('.', '\\.');
+  const after = figure.endsWith('%') ? '%' : '(?!\\.?\\d)';
+  return new RegExp(`(?<![\\d.])${number}${after}`).test(text);
 }
 
 /** A README's paragraphs, list items and table rows, each with its first line. */
@@ -171,7 +223,7 @@ export function readmeProblems(file: string, source: string, read: (path: string
       return section(read(path), anchor) ?? '';
     });
     for (const figure of quoted)
-      if (!texts.some((t) => t.includes(figure)))
+      if (!texts.some((t) => appears(figure, t)))
         problems.push({ file, line, message: `${figure} isn't in ${sources.join(' or ')}` });
   }
   return problems;

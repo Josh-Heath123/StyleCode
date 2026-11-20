@@ -9,19 +9,19 @@ A consultant's meeting usually becomes scattered notes and a guessed spec. Style
 
 ## From conversation to interface
 
-![Five steps from left to right. Step 1, Consent: the consent form, with the client; nothing is captured or sent to an AI without it. Built. Step 2, Capture: record in the room or import a transcript, transcribed on this computer with speakers. Built. Step 3, Record: the AI proposes findings (marked in orange), every quote is checked in code, and you accept, edit or reject each one. Built. Step 4, Design: the canvas inside the engagement, layers linked to findings, and the AI drawing on the record (marked in orange). In progress. Step 5, Code: HTML and CSS or a React app, compiled from the design the same every time. Built.](docs/media/flow.png)
+![Five steps from left to right. Step 1, Consent: the consent form, with the client; nothing is captured or sent to an AI without it. Built. Step 2, Capture: record in the room or import a transcript, transcribed on this computer with speakers. Built. Step 3, Record: the AI proposes findings (marked in orange), every quote is checked in code, and you accept, edit or reject each one. Built. Step 4, Design: the canvas inside the engagement and layers linked to findings, built; the AI drawing on the record (marked in orange) is next. In progress. Step 5, Code: HTML and CSS or a React app, compiled from the design the same every time. Built.](docs/media/flow.png)
 
 ## A visual tour
 
 The AI in these pictures is a scripted stand-in model, so they can be made again the same way; a real model words and decides things its own way. The clients are role-played.
 
-![A session page: on the right, five findings the AI proposed from Karoo Freight's kick-off, each marked "Proposed by the AI" in orange with its kind and "Suggested (not agreed yet)". The selected one quotes "We miss collections because messages get buried", said by Thandi Mokoena, and offers Accept, Edit and Reject. On the left, the transcript, with that passage highlighted.](docs/media/review-proposals.png)
+![A session page: on the right, five findings the AI proposed from Karoo Freight's kick-off, each marked "Proposed by the AI" in orange with its kind and "Suggested (not agreed yet)". The selected one quotes "We miss collections because messages get buried", said by Thandi Mokoena, and offers Accept, Edit and Reject. On the left, the transcript, with that passage highlighted, and a yellow warning above it: Lerato Dlamini, a guest, wasn't asked for consent, so the consultant checks before using what they said.](docs/media/review-proposals.png)
 
-**Review what the AI proposes beside what was said.** Each finding quotes the transcript, the quote is checked before you see it, and nothing joins the record until you accept it.
+**Review what the AI proposes beside what was said.** Each finding quotes the transcript, the quote is checked before you see it, and nothing joins the record until you accept it. A speaker who wasn't asked for consent is flagged.
 
-![A transcript made on this computer: speakers 1 to 3 matched to Sam Naidoo, Pieter van Wyk and Thandi Mokoena, the short labels left to check, and words the transcriber was unsure of underlined with dots, marked "may be misheard".](docs/media/transcript.png)
+![A transcript made on this computer: its speakers matched to Sam Naidoo, Pieter van Wyk and Thandi Mokoena, the short labels left to check, and words the transcriber was unsure of underlined with dots, marked "may be misheard".](docs/media/transcript.png)
 
-**Transcribe on your own computer.** Match each speaker to a participant, and see which words may be misheard before you rely on them.
+**Transcribe on your own computer,** with an NVIDIA graphics card. Match each speaker to a participant, and see which words may be misheard before you rely on them.
 
 ![The editor on Harbour Bakery's order page, a cake checkout. On the left, the Record panel lists the engagement's findings in groups (confirmed, assumptions, open). The Pay button is selected, and its properties show the finding it is linked to: "Customers pay online when they order", a confirmed functional requirement.](docs/media/design-and-record.png)
 
@@ -42,15 +42,15 @@ The AI in these pictures is a scripted stand-in model, so they can be made again
 ## Engineering highlights
 
 - **One design document, changed only through operations.** Every edit, yours or the AI's, is a validated, invertible operation, so undo is exact and code is compiled from the document deterministically: the canvas, the code and the preview can't drift apart. [Architecture §4](docs/ARCHITECTURE.md#4-operations-transactions-and-undo), [`src/model`](src/model).
-- **A layout engine that matches the browser.** Auto layout (rows, columns, wrapping, grids, size limits) is resolved by a pure engine in the model. A randomised browser test lays out random nested trees with the engine and with real CSS, and checks they agree to half a pixel, a pixel for text. [`e2e/layout-parity.spec.ts`](e2e/layout-parity.spec.ts), [Architecture §5](docs/ARCHITECTURE.md#parity-with-the-browser).
+- **A layout engine that matches the browser.** Auto layout (rows, columns, wrapping, grids, size limits) is resolved by a pure engine in the model. A seeded random browser test lays out 200 nested trees with the engine and with real CSS, and checks they agree to half a pixel, a pixel for text. [`e2e/layout-parity.spec.ts`](e2e/layout-parity.spec.ts), [Architecture §5](docs/ARCHITECTURE.md#parity-with-the-browser).
 - **The AI can only propose.** Its reply must fit a schema generated from the property registry; it may touch only what you selected, never locked layers, and its change waits on the canvas until you accept it as one undoable step or reject it. [`src/ai/schema.ts`](src/ai/schema.ts), [Architecture §8](docs/ARCHITECTURE.md#8-ai-collaboration).
-- **Consent as code.** Rules C1 to C11 live in a pure, versioned domain model with migrations. They gate every recording, import and AI run in the page, and the local servers check again before they store a recording, add a WAV or start a transcription. [Consent rules](docs/spec/CONSENT.md#rules), [`src/workspace/model`](src/workspace/model).
+- **Consent as code.** Rules C1 to C11 live in a pure, versioned domain model with migrations. They gate every recording, import and AI run in the page, and the local servers check again only before they store a recording or an added WAV and before they start a transcription. [Consent rules](docs/spec/CONSENT.md#rules), [`src/workspace/model`](src/workspace/model).
 - **Extraction whose quotes are checked.** A proposal whose quote isn't in the cited passage is dropped before the consultant sees it. On three short role-played meetings, qwen3:4b on the laptop's GPU reached 98% precision and 63 to 69% recall over two runs; real meetings will differ. [Extraction: results](docs/research/EXTRACTION.md#results).
-- **Transcription on the consultant's own GPU.** whisper.cpp and sherpa-onnx, measured on the laptop: on clean audio, 2.4% word errors and 94% of words given the right speaker, with the words transcribed at 2.6 minutes per hour of meeting ([recommendation](docs/research/TRANSCRIPTION.md#recommendation)). Through the app, an hour's meeting went from Transcribe to the AI's proposals in 37 minutes ([an hour, through the app](docs/research/TRANSCRIPTION.md#an-hour-through-the-app)). All on synthetic speech, so a lower bound on errors.
+- **Transcription on the consultant's own computer.** With an NVIDIA graphics card, the words come from whisper.cpp on the GPU and the speakers from sherpa-onnx on the CPU. Measured on the laptop, on clean audio: 2.4% word errors and 94% of words given the right speaker, with the words alone transcribed at 2.6 minutes per hour of meeting ([recommendation](docs/research/TRANSCRIPTION.md#recommendation)). Through the app, an hour's meeting went from Transcribe to the AI's proposals in 37 minutes ([an hour, through the app](docs/research/TRANSCRIPTION.md#an-hour-through-the-app)). All on synthetic speech, so a lower bound on errors.
 
 ## Architecture at a glance
 
-![This computer holds everything but one box. In the browser: one React app with the design editor and the workspace. Local Node servers: the workspace server (checks consent, saves atomically), the AI server (keeps API keys out of the browser) and transcription (one heavy job at a time). Engines on this computer: Ollama, the default for AI, and whisper.cpp and sherpa-onnx for words and speakers on the GPU. StyleCode Data: one folder per client, with a lock on the data folder, never inside a git repository, recordings kept only as long as the client agreed. Outside this computer, drawn dashed: an external AI provider, with your own key, only where the session's consent allows.](docs/media/architecture.png)
+![This computer holds everything but one box. In the browser: one React app with the design editor and the workspace. Local Node servers: the workspace server (checks consent, saves atomically), the AI server (keeps API keys out of the browser) and transcription (one heavy job at a time). Engines on this computer: Ollama, the default for AI, and whisper.cpp for words on the GPU and sherpa-onnx for speakers on the CPU. StyleCode Data: one folder per client, with a lock on the data folder, never inside a git repository, recordings kept only as long as the client agreed. Outside this computer, drawn dashed: an external AI provider, with your own key, only where the session's consent allows.](docs/media/architecture.png)
 
 [ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the design and the reasons behind it.
 
@@ -62,9 +62,9 @@ The AI in these pictures is a scripted stand-in model, so they can be made again
 | Workspace Phases 0 to 3: clients, consent, notes, the record, transcripts, AI extraction, company knowledge, recording and transcription | Built |
 | Workspace Phase 4: designs in the engagement and the record beside the canvas | Built |
 | Workspace Phase 4: the AI drawing on the record | Next |
-| Phase 5: a technology catalogue and a rules engine for architecture | Planned |
-| Phase 6: costs and capacity, computed from sourced, dated prices | Planned |
-| Phase 7: the full specification export, live transcription and follow-up questions | Planned |
+| Workspace Phase 5: a technology catalogue and a rules engine for architecture | Planned |
+| Workspace Phase 6: costs and capacity, computed from sourced, dated prices | Planned |
+| Workspace Phase 7: the full specification export, live transcription and follow-up questions | Planned |
 
 StyleCode isn't used with real clients yet: the consent wording awaits a POPIA review, and transcription has been measured on synthetic speech only.
 

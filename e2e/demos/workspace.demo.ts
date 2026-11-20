@@ -22,6 +22,12 @@ const forget = (page: Page, id: string, name: string) =>
     headers: { 'x-stylecode-workspace': '1' },
     data: { confirmName: name },
   });
+/** The consultant in the role-play is Sam Naidoo; the fixtures name the settings' consultant "Sam Consultant". */
+const asSamNaidoo = (page: Page) =>
+  page.request.put('/api/workspace/settings', {
+    headers: { 'x-stylecode-workspace': '1' },
+    data: { consultantName: 'Sam Naidoo' },
+  });
 const shot = (page: Page, name: string) => page.screenshot({ path: join(process.cwd(), 'docs', 'media', `${name}.png`) });
 
 /**
@@ -87,6 +93,8 @@ test('reviewing the AI’s proposals beside the transcript', async ({ page }) =>
   await page.goto('/');
   await useScriptedModel(page, fake);
   const id = await kickoff(page, { name: 'Karoo Freight' });
+  await asSamNaidoo(page);
+  await page.reload();
   await page.getByRole('button', { name: 'Import transcript…' }).click();
   const dialog = page.getByRole('dialog', { name: 'Import a transcript' });
   await dialog.getByLabel('File (.vtt, .docx or .txt)').setInputFiles(join(SAMPLES, 'teams-transcript.vtt'));
@@ -98,7 +106,18 @@ test('reviewing the AI’s proposals beside the transcript', async ({ page }) =>
   const first = proposals.first();
   await first.focus();
   await expect(page.locator('.ws-segment.is-quoted mark').first()).toBeVisible();
-  await first.scrollIntoViewIfNeeded();
+  // The transcript card's top at the top of the picture, so no sentence is cut in half.
+  await page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: 'Transcript', exact: true }) })
+    .evaluate((el) => {
+      // The page scrolls inside its own element, not the window: bring the card's top 16px below the top bar,
+      // measured, because the scroller's top isn't the top bar's bottom.
+      let scroller = el.parentElement;
+      while (scroller && scroller.scrollHeight <= scroller.clientHeight) scroller = scroller.parentElement;
+      const barBottom = document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 0;
+      scroller?.scrollBy(0, el.getBoundingClientRect().top - barBottom - 16);
+    });
   await page.waitForTimeout(400);
   await shot(page, 'review-proposals');
   expect((await forget(page, id, 'Karoo Freight')).ok()).toBe(true);

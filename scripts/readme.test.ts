@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anchors, figures, linkProblems, readmeProblems, section } from './readme.ts';
+import { anchors, appears, figures, linkProblems, readmeProblems, section } from './readme.ts';
 
 /** A small repository: the README, the guide and a research document. Each test mutates one thing and sees it fail. */
 const RESEARCH = `# Extraction
@@ -96,6 +96,34 @@ describe('the README check', () => {
   it('rule 3: a count that drifts with every merge fails', () => {
     expect(check(README.replace('Unit tests,', '847 unit tests,'))[0].message).toContain('"847 unit tests"');
     expect(check(README.replace('Unit tests,', 'Unit tests in 212 files,'))).toHaveLength(1);
+  });
+
+  it('rule 1: a heading with code in it has the anchor GitHub gives it, code included', () => {
+    const doc = '# Notices\n\n## Downloaded by `npm run x:setup`\n';
+    expect(anchors(doc).has('downloaded-by-npm-run-xsetup')).toBe(true);
+    expect(anchors(doc).has('downloaded-by')).toBe(false);
+  });
+
+  it('rule 1: an anchor that works on GitHub but not on the docs site fails, saying so', () => {
+    // GitHub keeps the underscore in "snake_case"; the docs site drops it.
+    const files: Record<string, string> = { ...FILES, 'docs/GUIDE.md': `${GUIDE}\n## The snake_case names\n` };
+    const problems = linkProblems('README.md', '[x](docs/GUIDE.md#the-snake_case-names)', exists, (p) => files[p]);
+    expect(problems.map((p) => p.message)).toEqual([
+      'docs/GUIDE.md#the-snake_case-names: the docs site gives that heading another anchor, so the link works on GitHub only',
+    ]);
+  });
+
+  it('rule 1: a reference-style link’s target is checked, and bad URL encoding is a problem, not a crash', () => {
+    expect(check(`${README}\nSee [the guide][g].\n\n[g]: docs/GUIDEZ.md\n`)[0].message).toContain('docs/GUIDEZ.md doesn');
+    expect(check(`${README}\n[x](docs/%E0%A4%A.md)\n`)[0].message).toContain("isn't valid URL encoding");
+  });
+
+  it('rule 2: a figure must appear as a whole number: "4%" isn’t in "94%", and minutes may stand alone in a table', () => {
+    expect(appears('4%', 'and 94% of words')).toBe(false);
+    expect(appears('94%', 'and 94% of words')).toBe(true);
+    expect(appears('1.7 minutes', '| With no previous text | 11.7 |')).toBe(false);
+    expect(appears('1.7 minutes', '| With no previous text | **1.7** |')).toBe(true);
+    expect(appears('17 minutes', '| 1.7 |')).toBe(false);
   });
 
   it('reads figures: percentages, ranges and minutes', () => {
