@@ -29,6 +29,16 @@ During one local full run on 19 November, the browser tests' dev server stopped 
 
 On an engagement's design, a canvas request on a model on this computer takes the heavy slot and waits for a hot graphics card to cool (Phase 4, decision 17). The standalone editor's requests don't (decision 18 keeps its behaviour as it was). So a standalone request on a local model can run at the same time as a transcription or an extraction run, and the two compete for the GPU, which Phase 3 measured at 5.6 times slower transcription and 83% slower extraction (`docs/research/TRANSCRIPTION.md`, "Recommendation"). *For the brief:* whether the standalone editor's local requests should take the slot too, now that the slot and the cooling pause have a place in the assistant (`RecordSource.takeTurn`).
 
+## `think: false` goes to every Ollama model
+
+Canvas requests (Phase 4, after the live check's first run, `docs/research/CANVAS-AI.md`) and extraction both send `think: false` to whatever Ollama model is chosen, thinking or not. People report Ollama refusing requests with "… does not support thinking". Checked on 21 November 2026 whether `false` alone causes that:
+- **On this laptop's Ollama (0.40.16) it doesn't.** Phase 2's gemma3:4b extraction runs (11 November 2026, `eval/runs/gemma3-4b/`, each recording `"think": false`) sent `false` to a model with no thinking capability through the AI server's Ollama adapter, and all three got their replies.
+- **Ollama's code refuses only `true`.** In `server/routes.go` on Ollama's main branch (read 21 November 2026, <https://raw.githubusercontent.com/ollama/ollama/main/server/routes.go>), the generate handler refuses a model without thinking only `if req.Think != nil && req.Think.Bool()`. The chat handler's check wasn't read word for word.
+- **The reports look like `true`.** In the ones found (for example <https://github.com/continuedev/continue/issues/11265>, <https://github.com/musistudio/claude-code-router/issues/1046>), the tool asked for thinking, or by its users' account kept asking after a setting turned it off. None showed the request body.
+- *Not verified:* releases older than 0.40.16. Whether an early release with `think` (it arrived in 0.9.0, May 2025) refused `false` wasn't found.
+
+So no code changed: gating `think` on `/api/show` listing the `thinking` capability isn't needed for the Ollama in use. *For the brief:* whether to gate it anyway, for consultants on older Ollama releases, or instead to state the oldest Ollama StyleCode supports.
+
 ## Flakes to watch
 
 Seen once each, not yet explained. None is retried or skipped; each fails its run if it comes back.
