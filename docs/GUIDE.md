@@ -73,7 +73,7 @@ In **AI settings**, choose **Ollama** and press **Test connection**: it lists yo
 
 **Where keys go.** The key is sent once to StyleCode's local server and saved in `~/.stylecode/ai.json` (set `STYLECODE_AI_CONFIG` to use another file). On macOS and Linux the file is readable only by you; on Windows it relies on your home folder's default Windows permissions. It is never sent back to the browser, stored in the browser, or written into the design, and it is only ever sent to the API address it was saved with: change the address and you'll be asked for the key again. You can also leave the key out of the settings and set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in the environment you start StyleCode from; that key is sent to whichever address you save for that provider.
 
-**What is sent.** With AI on, each request sends a text description of the page you are working on (layer names, text and properties, and your notes on it, but not images) to the provider you chose. Asking the AI for findings sends one session's transcript and notes, and only to a provider that session's consent allows. With Ollama on your own computer, nothing leaves it.
+**What is sent.** With AI on, each request sends a text description of the page you are working on (layer names, text and properties, and your notes on it, but not images) to the provider you chose. Asking the AI for findings sends one session's transcript and notes, and only to a provider that session's consent allows. On a client's design, a request also sends the engagement's confirmed findings that consent allows, statement and kind only (see [Designing for a client](#designing-for-a-client)). With Ollama on your own computer, nothing leaves it.
 
 **Using it.** Select what you want to change (or nothing, for the whole page), press <kbd>/</kbd> and describe the change, or pick a suggestion. The AI sees the page as a compact list of layers, not a picture. It explains what it is doing while it works, then shows its proposal on the canvas in orange: <kbd>Enter</kbd> accepts it as one step you can undo, <kbd>Esc</kbd> rejects it. It only changes what you selected (plus new layers inside or next to it), never locked layers (lock a layer to protect it), and asks before deleting a lot. It changes the design, never the code, through the same validated operations as your own edits. While a proposal is on the canvas you can select, pan, zoom and look at its properties and code, but edits wait until you accept or reject it.
 
@@ -190,6 +190,7 @@ Inside it, `companies` holds one folder per client, named by the client's id:
 - `workspace.json`: everything about the client (engagements, meetings, consent records, notes and findings);
 - `workspace.previous.json`: the copy from before the last save;
 - `files`: documents and recordings, stored by id (their names are kept in `workspace.json`). A recording is a WAV file, about 115 MB an hour.
+- `designs`: the engagements' designs, one `.stylecode.json` file each, in the design editor's format, with their images in `designs/assets`, each stored once however many of the client's designs use it.
 
 `settings.json`, next to `companies`, holds your own settings, such as your name.
 
@@ -216,7 +217,8 @@ StyleCode opens on your clients. This is one consultation from start to end, wit
 
 **At the start of the meeting**
 
-4. **Ask for consent, then fill in the consent form** (**Fill in consent form** at the top of the session). In the order the conversation went: tick who you asked, how you asked, and each statement you said or sent to them, as it is written on the form (wording `draft-1`). Then answer what they agreed to.
+4. **Ask for consent, then fill in the consent form** (**Fill in consent form** at the top of the session). In the order the conversation went: tick who you asked, how you asked, and each statement you said or sent to them, as it is written on the form (wording `draft-2`). Then answer what they agreed to.
+   - "I may also use AI to help sketch the screens from what we agree. It sees my summary of what you said, not the recording or the transcript." is a statement to tick, not a further yes: the AI answers still decide where the AI may run. Without it, this session's findings never go to the AI on a design (see [Designing for a client](#designing-for-a-client)). If you say it later, tick it and confirm the form again, or, once an import has locked the record, record it with **Amend…** as newly told ([Consent after an import](#consent-after-an-import)). Records made before StyleCode added the statement count it as not told.
    - Each "yes" needs the statements behind it ticked. If one is missing, the form says which beside that answer, and the form can be saved as a draft but not confirmed.
    - Choosing how long audio is kept changes the words of that statement, so its tick is cleared: tick it again if those are the words you said.
    - **Declined** sets every answer to no: the session can have notes, and nothing else.
@@ -293,6 +295,8 @@ Two choices before it starts:
 - **Then ask the AI for findings,** where consent allows the AI. With both, nobody needs to be at the keyboard between the end of the meeting and the AI's proposals, as long as StyleCode stays open.
 
 The transcription runs in StyleCode's server, so it carries on if you close the page. **Cancel** stops it and keeps nothing. One heavy job runs at a time: a transcription waits for an AI run on a local model to finish, and the other way round, and each says so. Before a transcription, and before each part of an AI run on a local model, a graphics card at 87 °C or more is left to cool under 75 °C ("Letting the graphics card cool: 92 °C"). **Don't wait** starts it anyway. On a laptop, Windows can stop the computer if the card overheats, so it's worth the wait.
+
+**Power mode.** On a laptop, use the balanced or quiet power mode for transcription and long AI runs: they run slower, but cooler, and Windows stops the laptop for heat less often. StyleCode's time estimates come from this computer's own past runs, so they follow the mode you use. On the laptop StyleCode was measured on, its long runs use OMEN's Balanced mode.
 
 Adding the transcript is permanent. If the client was told recordings are deleted after transcription, they are deleted in the same step, and the session keeps a line saying when. A session still has one transcript: transcribing again replaces it, under the same rules as **Replace…**.
 
@@ -389,6 +393,39 @@ An engagement's export lists the facts promoted from that engagement's findings,
 A fact outlives its source. If the finding or its engagement is deleted, or a deleted session was all the finding rested on, the fact stays and says "source deleted". If a session's transcript is deleted, the fact loses its quotes from that session.
 
 **Delete** removes a finding from the record. Its links go with it, and you can undo it.
+
+## Designing for a client
+
+An engagement's designs are kept with the client, in its folder, not in the browser.
+
+**Starting a design.** The engagement's page has a **Designs** card:
+- **New design** makes one 1440×900 desktop frame and opens it.
+- **Copy one of the editor's designs…** lists the designs in this browser's design editor and copies the one you choose. The copy keeps the name and gets its images, which go into the client's folder. Its links to findings (below) are dropped. The original stays as it was. Nothing is moved into a client on its own.
+- Each design has **Open**, **Rename…** and **Delete…**. A rename in the editor or on the engagement renames it in both places.
+
+**In the editor**, the top bar names the client and the design, with **Back to the engagement**. The editor's own **Designs** list still shows only the designs in this browser. A client's design saves itself to the client's folder a moment after each change, with the editor's usual save status, retries and warning before you close the page. It is never stored in the browser, and none of the browser's designs are stored in a client's folder.
+- If the same design is open in two tabs, the later save is refused: "This design changed in another tab. Reload it to carry on."
+- If its client or engagement is deleted while it is open, the design closes without saving, and says why.
+- A design that can't be opened, because its file is damaged or its client opens read-only, is listed with the reason and **Download**. It isn't opened, and never saved over.
+
+**Deleting** a design is permanent: it removes the design and the images no other design of that client uses. Deleting an engagement or a client removes its designs.
+
+**The record beside the canvas.** With a client's design open, the **Record** panel beside the layers lists the engagement's findings in the record's groups, with their kind and status and a filter. <kbd>Alt</kbd>+<kbd>R</kbd> shows or hides it, as does the top bar's menu. It is read-only: **Open the record to change findings**. Only this engagement's findings are there.
+
+**Linking a layer to findings.** Select one or more layers, then choose **Link to the selected layers** on a finding in the Record panel. A selected layer's properties list its findings, each with **Unlink** and **Open in the record**. On the record page, a finding lists **In designs:**, each a link that opens the design at that layer. Links are part of the design: undo undoes them, and they move, copy and delete with their layer. Pasted into another design, a layer loses them. A link to a finding that has left the record says "No longer in the record", with **Remove link**. The AI can't link or unlink layers.
+
+**The AI with the record.** On a client's design, the AI (see [Working with the AI](#working-with-the-ai)) is also given the engagement's record:
+- **Only confirmed findings, and only their statement and kind.** Never assumptions, open or suggested findings, proposals waiting for review, quotes, notes, transcripts or recordings.
+- **Only where consent allows it.** A finding goes only if every session it rests on allows the AI set up now (on this computer, or the provider the client named), and the client was told "I may also use AI to help sketch the screens from what we agree" (see step 4 of [Running a consultation](#running-a-consultation)). A finding you entered without citing any session goes only to an AI on this computer. This is checked again before every request.
+- **At most a third of the room.** The screen comes first. Findings linked to the layers you selected come next, then the kinds most useful to a design. What doesn't fit is counted: "… 6 more findings not shown".
+
+The assistant says how many findings were left out and why, for example "1 finding left out: the client wasn't told the AI may help sketch the screens." With its proposal, **Drew on:** lists the findings the AI says it used, each a link to the record. That is the model's own account, so check it against the change.
+
+The design itself is sent as it always is, to the provider in AI settings: whatever you type into a design goes with every request.
+
+On a model on this computer, a request waits its turn behind a transcription or an AI run, and lets a hot graphics card cool first, saying so; **Stop** and **Don't wait** work as they do for transcription. Requests to Ollama ask the model not to think first, because a thinking model's reasoning never reaches the reply, so the request would look as if nothing came back.
+
+Small local models often propose changes that don't fit the design, and then StyleCode says so and changes nothing. In a role-played check with qwen3:4b, 4 of 16 changes fitted ([CANVAS-AI.md](research/CANVAS-AI.md)).
 
 ## Consent after an import
 

@@ -29,6 +29,20 @@ During one local full run on 19 November, the browser tests' dev server stopped 
 
 On an engagement's design, a canvas request on a model on this computer takes the heavy slot and waits for a hot graphics card to cool (Phase 4, decision 17). The standalone editor's requests don't (decision 18 keeps its behaviour as it was). So a standalone request on a local model can run at the same time as a transcription or an extraction run, and the two compete for the GPU, which Phase 3 measured at 5.6 times slower transcription and 83% slower extraction (`docs/research/TRANSCRIPTION.md`, "Recommendation"). *For the brief:* whether the standalone editor's local requests should take the slot too, now that the slot and the cooling pause have a place in the assistant (`RecordSource.takeTurn`).
 
+## The canvas AI's changes rarely fit these designs
+
+Phase 4's live check (`docs/research/CANVAS-AI.md`, 21 November 2026, qwen3:4b with `think: false`, role-played, one run): changes fitted the design in 4 of 16 requests, 3 of 8 with the record and 1 of 8 without. The repair attempt was asked for in 14 and rescued 2. The 12 that still didn't fit broke three of the design's rules, as often without the record as with it:
+- changed a layer that wasn't marked as changeable (5 replies);
+- put a new layer somewhere other than inside or next to a marked layer (6);
+- set a property a rectangle doesn't have: `text`, `textResize`, padding, mobile text settings (4).
+
+So the limit is the model's grip on the design, not the record. *For the brief, each to be measured, not assumed:*
+- **Thinking on.** It no longer stalls since `6646f00` (reasoning counts as activity), but it is slower, and in Phase 2 qwen3:4b with thinking spent its whole reply limit reasoning (`EXTRACTION.md`). It may help with the structure rules above.
+- **A bigger model.** qwen3:8b doesn't fit in the laptop's 6 GB GPU with its context (`EXTRACTION.md`), so it would be slower; a hosted model would need the client's consent to that provider.
+- **A simpler schema or prompt.** For example, saying which layer types take which properties next to each marked layer, listing the marked ids again at the end, or a worked example of adding a layer next to the selection.
+
+A re-run of the live check (`spikes/canvas-ai/start-live-check.cmd`) against each change would show which helps, on the same requests. One run of 16 is noisy, so more than one run per setting.
+
 ## `think: false` goes to every Ollama model
 
 Canvas requests (Phase 4, after the live check's first run, `docs/research/CANVAS-AI.md`) and extraction both send `think: false` to whatever Ollama model is chosen, thinking or not. People report Ollama refusing requests with "… does not support thinking". Checked on 21 November 2026 whether `false` alone causes that:

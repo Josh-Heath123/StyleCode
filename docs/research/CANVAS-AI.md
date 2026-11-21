@@ -64,6 +64,7 @@ Every request with the record offered the whole record: 20 findings for Harbour 
 | Longest model time | 90.2 s | 144.0 s |
 | Model time, all 8 | 361.5 s | 339.9 s |
 
+- **In all,** the changes fitted the design in 4 of 16 requests. Each of the 3 with the record cited findings.
 - **The median** is the mean of the two middle values of eight. `results.json`'s summary holds 44.9 s and 41.2 s instead, because the runner then took `times[length / 2]`, the upper middle value. It now averages the two (`spikes/canvas-ai/live.ts`); the file is left as recorded.
 - **Compare times by model time only.** "Without the record" is made by giving the assistant no record (`setRecord(null)`), which also skips the heavy slot and the cooling pause. So total time isn't comparable between the two. In this run the wait added at most 0.26 s to any request with the record: no request waited for the graphics card to cool.
 - **Model time includes the repair,** where there was one: 14 of the 16 replies are two requests to the model, and 2 are one. A pair's times therefore aren't like for like when only one of them was repaired.
