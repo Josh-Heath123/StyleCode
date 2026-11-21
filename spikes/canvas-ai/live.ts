@@ -331,6 +331,13 @@ async function run(page: Page, companyId: string, e: LiveEngagement, r: LiveRequ
   };
 }
 
+/** The middle of sorted times, or the mean of the two middle ones when there's an even number. */
+function median(sorted: number[]): number | null {
+  if (!sorted.length) return null;
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
 function summary(outcomes: Outcome[]) {
   const of = (withRecord: boolean) => {
     const rows = outcomes.filter((o) => o.withRecord === withRecord);
@@ -346,7 +353,7 @@ function summary(outcomes: Outcome[]) {
       citedAny: rows.filter((o) => o.cited.length > 0).length,
       citedRelevant: rows.filter((o) => o.citedRelevant).length,
       citedNotOffered: rows.reduce((n, o) => n + o.ignored, 0),
-      medianModelMs: times.length ? times[Math.floor(times.length / 2)] : null,
+      medianModelMs: median(times),
       maxModelMs: times.length ? times[times.length - 1] : null,
     };
   };
