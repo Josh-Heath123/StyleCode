@@ -221,6 +221,27 @@ describe('who may use the AI routes', () => {
 });
 
 describe('providers', () => {
+  it('passes a thinking model’s reasoning on only as “still thinking”, at once and then at most every 5 s, never as text', async () => {
+    fake.respond = (_seen, res) => {
+      res.setHeader('content-type', 'application/x-ndjson');
+      const line = (message: Record<string, string>, done = false) =>
+        `${JSON.stringify({ model: 'qwen3:4b', message: { role: 'assistant', content: '', ...message }, done })}\n`;
+      for (const thought of ['The user wants', ' a premium card,', ' so a dark fill.']) res.write(line({ thinking: thought }));
+      for (const p of pieces(REPLY)) res.write(line({ content: p }));
+      res.end(
+        `${JSON.stringify({ model: 'qwen3:4b', message: { role: 'assistant', content: '' }, done: true, done_reason: 'stop' })}\n`,
+      );
+    };
+    await configure({ provider: 'ollama', providers: { ollama: { baseUrl: fake.url, model: 'qwen3:4b' } } });
+    const result = await chat();
+    expect(result.reply).toBe(REPLY);
+    expect(result.text).not.toContain('premium card');
+    // Three thinking chunks within 5 s: one line, before the text.
+    expect(result.lines.filter((l) => l.thinking)).toEqual([{ thinking: true }]);
+    expect(result.lines[0]).toEqual({ thinking: true });
+    expect(result.lines.at(-1)).toEqual({ done: true });
+  });
+
   it('streams from Ollama with the schema as its format and an explicit context size', async () => {
     fake.respond = (_seen, res) => {
       res.setHeader('content-type', 'application/x-ndjson');

@@ -15,7 +15,7 @@ import {
   type Alignment,
   type ClipboardData,
 } from '../model/commands';
-import { getAncestors, sortByDocumentOrder, topLevelIds } from '../model/document';
+import { collectSubtree, getAncestors, sortByDocumentOrder, topLevelIds } from '../model/document';
 import { unionWorldBounds } from '../model/geometry';
 import { isAutoLayout, isInFlow } from '../model/layout';
 import { removeAutoLayoutOps, tidyFrameOps, wrapInAutoLayoutOps } from '../model/autolayout';
@@ -324,12 +324,22 @@ function pasteTarget(editor: Editor, data: ClipboardData): string | null {
 
 export function pasteData(editor: Editor, data: ClipboardData): void {
   const { ops, newIds } = pasteOps(editor.getState().doc, data, pasteTarget(editor, data));
-  editor.apply(ops, { label: 'Paste', selection: newIds });
+  const pasted = editor.apply(ops, { label: 'Paste', selection: newIds });
   // Images come with the layers only where the design's store allows (Phase 4, decision 2).
   const images = data.items.flatMap((item) => item.nodes.flatMap((n) => (n.type === 'image' && n.src ? [n.src] : [])));
   if (images.length)
     void bringImages(images).then((missing) => {
       if (!missing.length) return;
+      // An image that stayed behind isn't named here either: the pasted layer shows a placeholder, and this design never
+      // names an image of another client's. Part of the paste's undo step while it is still the last one.
+      const gone = new Set(missing);
+      const doc = editor.getState().doc;
+      const clear: Op[] = newIds
+        .filter((id) => doc.nodes[id])
+        .flatMap((id) => collectSubtree(doc, id))
+        .filter((n) => n.type === 'image' && gone.has(n.src))
+        .map((n) => ({ type: 'update', id: n.id, props: { src: '' } }));
+      if (clear.length) editor.apply(clear, { label: 'Paste', mergeInto: pasted?.id });
       editor.notify(
         assetSource().kind === 'company'
           ? `${missing.length === 1 ? 'An image' : `${missing.length} images`} couldn’t come with the pasted layers: only images from the editor’s own designs, or this client’s, can be used here.`

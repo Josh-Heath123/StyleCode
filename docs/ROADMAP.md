@@ -197,9 +197,9 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 - **Adding recordings in other formats** (decision 15): M4A, MP3 and MP4 need a decoder, so Phase 3 adds WAV only and asks for the rest to be converted.
 - **A short real role-play** (two people, five minutes), measured as the synthetic meetings were, when the user can spare it.
 
-### Workspace Phase 4: Canvas in context
+### Workspace Phase 4: Canvas in context ✅
 
-*In progress: Slices A and B are merged (engagement designs in the client's folder, and the record beside the canvas with layers linked to findings). Slice C, the AI drawing on the record, is next.*
+*Done in three slices (`docs/phase-4/PHASE-4-BRIEF.md`; the handover is `docs/phase-4/HANDOVER.md`): engagement designs in the client's folder with their images, copied in from the editor or made new (MVP story 9.1); the record beside the canvas, with layers linked to findings and the link shown from both sides; and the canvas AI drawing on the engagement's confirmed findings where consent allows (a new statement, `aiDesign`, in wording `draft-2`), saying which and how many it left out. A live check on the laptop with qwen3:4b is in `docs/research/CANVAS-AI.md`: the record didn't lower how often changes fitted, but few did (4 of 16).*
 
 **Scope:** the StyleCode editor in each engagement, informed by the record (ADR-0007).
 
@@ -214,6 +214,13 @@ Built in three slices (pull requests #15 and #16 for transcripts, #17 for extrac
 - The AI's suggestions for a screen can draw on the engagement's confirmed findings, and say which.
 
 **Depends on:** Workspace Phase 1; better after Phase 2, when the record has extracted findings.
+
+**Waiting, from Phase 3 (Phase 4 brief, decision 19).** Three extraction questions, each needing about an hour of the laptop's GPU and the user's time, go to the first phase that changes extraction, or to a short measurement slice before real client use, whichever comes first. The part size goes first, because it may raise recall the most (82 to 83% against 65 to 70%):
+1. the extraction part size;
+2. decision 8's downstream check for `--max-context 0` (extraction scored on transcripts made here);
+3. the quote check on transcripts (18 of 127 raw proposals failed it in Phase 3's hour).
+
+The questions are set out in `docs/phase-4/NOTES-FOR-THE-BRIEF.md`, "Extraction on transcripts made here".
 
 ### Workspace Phase 5: Technology catalogue, rules engine and architecture
 

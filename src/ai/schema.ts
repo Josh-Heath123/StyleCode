@@ -55,11 +55,15 @@ const op = (name: string, properties: Record<string, unknown>, required: string[
   additionalProperties: false,
 });
 
-export function responseSchema(): Record<string, unknown> {
+/**
+ * With findings offered (Workspace Phase 4, decision 16), the reply also lists the short ids of the findings it drew on.
+ * Without, the schema is as it always was.
+ */
+export function responseSchema(options: { findings?: boolean } = {}): Record<string, unknown> {
   const set = setSchema();
   const id = { type: 'string' };
   const index = { type: 'integer' };
-  return {
+  const schema = {
     type: 'object',
     properties: {
       explanation: { type: 'string' },
@@ -83,5 +87,11 @@ export function responseSchema(): Record<string, unknown> {
     },
     required: ['explanation', 'operations'],
     additionalProperties: false,
+  };
+  if (!options.findings) return schema;
+  return {
+    ...schema,
+    properties: { ...(schema.properties as Record<string, unknown>), findings: { type: 'array', items: { type: 'string' } } },
+    required: ['explanation', 'operations', 'findings'],
   };
 }

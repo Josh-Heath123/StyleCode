@@ -2,6 +2,7 @@ import { defaultProps } from '../model/defaults';
 import { isAncestorOf, isEffectivelyLocked, topLevelIds } from '../model/document';
 import { rectsIntersect, worldBounds } from '../model/geometry';
 import type { DesignDocument, DesignNode, NodeProps, PropKey } from '../model/types';
+import { orderFindings, type RecordFinding } from './record';
 import { AI_PROPERTIES } from './schema';
 
 /**
@@ -33,6 +34,17 @@ export interface AiContext {
   targetLabel: string;
   /** How many of the designer's notes are on (or point at) this screen. */
   notes: number;
+  /** The engagement's findings the model was shown (Workspace Phase 4, decisions 15 and 16); empty in the standalone editor. */
+  findings: ContextFindings;
+}
+
+export interface ContextFindings {
+  /** Those shown, in the order shown: F1 is the first. */
+  shown: RecordFinding[];
+  /** Short id (F1) → finding id, for those shown. */
+  real: Map<string, string>;
+  /** How many were offered but didn't fit. */
+  notShown: number;
 }
 
 /**
@@ -89,7 +101,7 @@ function summary(node: DesignNode): string[] {
   return parts;
 }
 
-function line(node: DesignNode, alias: string, full: boolean, marked: boolean, locked: boolean): string {
+function line(node: DesignNode, alias: string, full: boolean, marked: boolean, locked: boolean, findings: string[]): string {
   const parts = [
     `${marked ? '* ' : ''}${alias}`,
     node.type,
@@ -99,6 +111,8 @@ function line(node: DesignNode, alias: string, full: boolean, marked: boolean, l
   if (node.type === 'text') parts.push(`text=${formatValue(node.text, full ? 2000 : 80)}`);
   parts.push(...(full ? changedProps(node) : summary(node)));
   if (locked) parts.push('locked');
+  // The findings a layer answers, by their short ids (decision 16).
+  if (findings.length) parts.push(`findings=${findings.join(',')}`);
   return parts.join(' ');
 }
 
@@ -107,6 +121,8 @@ export interface ContextOptions {
   maxChars?: number;
   /** The screen to use when nothing is selected. */
   fallbackScreen?: string | null;
+  /** The engagement's findings this request may use, already checked against consent (decision 14). */
+  findings?: readonly RecordFinding[];
 }
 
 /** The screen (top-level frame) a layer is in. */
@@ -197,15 +213,28 @@ export function buildContext(
   }
   if (noteLines.length) noteLines.unshift('', 'Notes from the designer:');
 
+  // The findings offered, in their order (decision 15): those linked to the layers in scope first. Each gets a short id.
+  const offered = options.findings ?? [];
+  const offeredIds = new Set(offered.map((f) => f.id));
+  const linked = new Set<string>();
+  for (const id of order)
+    if (inScope(doc, scope, id)) for (const fid of doc.nodes[id].findings ?? []) if (offeredIds.has(fid)) linked.add(fid);
+  const ordered = orderFindings(offered, linked);
+  const findingAlias = new Map(ordered.map((f, i) => [f.id, `F${i + 1}`]));
+  let tagged = (fid: string) => findingAlias.has(fid);
+  const tags = (id: string) => (doc.nodes[id].findings ?? []).filter(tagged).map((fid) => findingAlias.get(fid)!);
+
   // Every layer that may change is shown in full; ancestors always; the rest while there is room.
   const lines = new Map<string, string>();
+  const fullLayers = new Set<string>();
   let used = noteLines.reduce((sum, l) => sum + l.length + 1, 0);
-  const render = (id: string) => {
+  const render = (id: string, full?: boolean) => {
     const node = doc.nodes[id];
     const marked = inScope(doc, scope, id);
     // On a very large screen, layers past the budget are summarised even when they may change.
-    const full = marked && used < maxChars * 0.8;
-    return `${'  '.repeat(depth.get(id)!)}${line(node, alias.get(id)!, full, marked, isEffectivelyLocked(doc, id))}`;
+    const isFull = full ?? (marked && used < maxChars * 0.8);
+    if (isFull) fullLayers.add(id);
+    return `${'  '.repeat(depth.get(id)!)}${line(node, alias.get(id)!, isFull, marked, isEffectivelyLocked(doc, id), tags(id))}`;
   };
   const include = (id: string) => {
     if (lines.has(id)) return;
@@ -225,6 +254,34 @@ export function buildContext(
     if (used + text.length + 1 > maxChars) continue;
     lines.set(id, text);
     used += text.length + 1;
+  }
+
+  // The findings use what is left of the budget, at most a third of it (decision 15).
+  const findingLines: string[] = [];
+  const shown: RecordFinding[] = [];
+  if (ordered.length) {
+    const budget = Math.min(maxChars / 3, maxChars - used);
+    let spent = 0;
+    for (const f of ordered) {
+      const text = `- ${findingAlias.get(f.id)} ${f.kind}: ${formatValue(f.statement, 400)}`;
+      if (spent + text.length + 1 > budget) break;
+      findingLines.push(text);
+      shown.push(f);
+      spent += text.length + 1;
+    }
+    const more = ordered.length - shown.length;
+    // None fits: the request goes as one without findings, with no findings section here, as its instructions and
+    // schema have none (decision 16).
+    if (shown.length) {
+      if (more) findingLines.push(`- … ${more} more ${more === 1 ? 'finding' : 'findings'} not shown`);
+      findingLines.unshift('', "Confirmed findings from the client's record (short id, kind, statement):");
+    }
+    // A layer names only the findings shown.
+    if (more) {
+      const shownIds = new Set(shown.map((f) => f.id));
+      tagged = (fid) => shownIds.has(fid);
+      for (const id of lines.keys()) lines.set(id, render(id, fullLayers.has(id)));
+    }
   }
 
   const out: string[] = [];
@@ -251,5 +308,18 @@ export function buildContext(
       : `Selected: ${scope.roots.map((r) => alias.get(r)).join(', ')}. You may change the layers marked * and add layers inside or next to them.`,
     '',
   ];
-  return { screenId, scope, text: [...header, ...out, ...noteLines].join('\n'), real, alias, targetLabel, notes: notes.length };
+  return {
+    screenId,
+    scope,
+    text: [...header, ...out, ...noteLines, ...findingLines].join('\n'),
+    real,
+    alias,
+    targetLabel,
+    notes: notes.length,
+    findings: {
+      shown,
+      real: new Map(shown.map((f) => [findingAlias.get(f.id)!, f.id])),
+      notShown: ordered.length - shown.length,
+    },
+  };
 }

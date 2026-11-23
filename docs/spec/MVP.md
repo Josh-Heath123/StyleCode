@@ -17,7 +17,7 @@ The first version is one end-to-end path through a consultation, for one consult
 7. See the engagement's consolidated record: confirmed findings, assumptions and open questions.
 8. Export a specification from the record (Markdown first).
 
-The StyleCode canvas can be opened from an engagement, but isn't yet informed by the record.
+The StyleCode canvas can be opened from an engagement. In the first version it wasn't informed by the record; Workspace Phase 4 added that (story 9.1).
 
 **How it maps to the roadmap.** Steps 1–3, 5 and 7 (with findings entered by hand), the Markdown export in step 8, and opening the canvas are Phase 1, "Workspace spine". Steps 4 and 6 are Phase 2, "Extraction", which also adds evidence quotes to the export (Q1). Recording and local transcription come in Phase 3, "Capture".
 
@@ -194,13 +194,15 @@ The form, its fields and its rules are specified in `docs/spec/CONSENT.md` (WP5)
 - The editor works exactly as today. It doesn't yet use the record.
 - How designs are stored, and how existing StyleCode projects relate to engagements, is decided in WP4.
 
+*Built in Workspace Phase 4, "Canvas in context"* (`docs/phase-4/PHASE-4-BRIEF.md`). It was planned for Phase 1 but wasn't built then. An engagement's designs live in its client's folder with their images; one of the editor's own designs can be copied in; **Back to the engagement** is one step away. Beyond the story, the record shows beside the canvas, a layer can be linked to the findings it answers, and the canvas AI can draw on the confirmed findings consent allows, saying which (the guide's "Designing for a client").
+
 ## Out of scope for the first version
 
 - Recording, audio import and local transcription with speakers. Out of the first version, and built since in Workspace Phase 3, "Capture": recording meetings in the room, adding a WAV, transcription on the computer with speakers (on an NVIDIA GPU), and audio retention (`docs/phase-3/HANDOVER.md`). Online meetings still come in through their platform's transcript.
 - Live follow-up questions during a session.
 - The technology catalogue and rules engine.
 - The cost engine.
-- A canvas informed by the record.
+- A canvas informed by the record. Out of the first version, and built since in Workspace Phase 4, "Canvas in context": the record beside the canvas, layers linked to findings, and the canvas AI drawing on confirmed findings where consent allows.
 - Sync between devices, sharing, and more than one consultant.
 - Accumulated company knowledge beyond the profile. Promoting an accepted finding to company knowledge came in the phase straight after extraction (Workspace Phase 2, Q3), and facts entered directly in Workspace Phase 3.
 - Export formats other than Markdown.

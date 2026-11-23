@@ -16,12 +16,20 @@ import type { AddressInfo } from 'node:net';
  *   "nothing"  → proposes no changes
  *   "slow"     → streams slowly (to test Stop)
  *   "fail"     → the model server returns an error
+ *   "from the record" → changes the first layer it may change, naming every finding it was given, and F99
  */
 
 export interface FakeOllama {
   url: string;
   /** Bodies of the chat requests received, oldest first. */
-  requests: { model: string; format: unknown; messages: { role: string; content: string }[]; options: Record<string, unknown> }[];
+  requests: {
+    model: string;
+    format: unknown;
+    messages: { role: string; content: string }[];
+    options: Record<string, unknown>;
+    /** Sent false to turn a thinking model's reasoning off; left out, the model thinks first, as qwen3 does. */
+    think?: boolean;
+  }[];
   close(): Promise<void>;
 }
 
@@ -84,6 +92,18 @@ function reply(body: FakeOllama['requests'][number]): FakeReply {
   const repairing = last.startsWith('That reply had problems');
 
   if (request.includes('fail')) return { status: 500, error: 'model runner has unexpectedly stopped' };
+  if (request.includes('from the record')) {
+    // Says it drew on every finding it was given (Workspace Phase 4, decision 16), and one it wasn't, F99.
+    const offered = [...first.matchAll(/^- (F\d+) /gm)].map((m) => m[1]);
+    return {
+      text: JSON.stringify({
+        explanation: 'Made it stand out, as the record asks.',
+        operations: [{ op: 'update', id: target, set: { fill: '#2f7bff' } }],
+        findings: [...offered, 'F99'],
+      }),
+      delay: 2,
+    };
+  }
   if (request.includes('nonsense')) return { text: 'Sure! I would make it blue.', delay: 2 };
   if (request.includes('broken') && !repairing) {
     return { text: json('Made it dark.', [{ op: 'update', id: 'e999', set: { fill: '#11141a' } }]), delay: 2 };
@@ -205,6 +225,15 @@ export async function startFakeOllama(
       res.writeHead(200, { 'content-type': 'application/x-ndjson' });
       let closed = false;
       res.on('close', () => (closed = true));
+      // Like qwen3 with `think` left out: it reasons first, in message.thinking, which isn't part of the reply.
+      if (body.think !== false)
+        for (const thought of ['Let me look at the layers', ' I may change.']) {
+          if (closed) break;
+          res.write(
+            `${JSON.stringify({ model: body.model, message: { role: 'assistant', content: '', thinking: thought }, done: false })}\n`,
+          );
+          await new Promise((r) => setTimeout(r, answer.delay));
+        }
       for (let i = 0; i < answer.text.length && !closed; i += 16) {
         res.write(
           `${JSON.stringify({ model: body.model, message: { role: 'assistant', content: answer.text.slice(i, i + 16) }, done: false })}\n`,

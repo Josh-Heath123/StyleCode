@@ -196,6 +196,25 @@ describe('clearing up after a permanent save', () => {
     expect(assets(c.id)).toEqual([]);
   });
 
+  it('deleting a design keeps an image another design uploaded since, before that design has saved it', async () => {
+    const c = await withImages();
+    // Design B, open in a tab, has just added the image A uses only; its save hasn't arrived yet.
+    await designs.addAsset(c.id, OTHER_PNG, 'image/png');
+    await store.save(c.id, withDesigns(c.ws, ['doc_b']), c.revision, true);
+    expect(readdirSync(folder(c.id)).filter((n) => n.endsWith('.json'))).toEqual(['doc_b.stylecode.json']);
+    expect(assets(c.id).sort()).toEqual([c.shared, c.own].sort());
+  });
+
+  it('deleting a design still removes an image it added itself before its last save', async () => {
+    const c = await client('Harbour Bakery', ['doc_a']);
+    await designs.create(c.id, 'doc_a', designFile('doc_a', 'A'));
+    const image = (await designs.addAsset(c.id, PNG, 'image/png')).id;
+    const base = (await designs.read(c.id, 'doc_a')).revision;
+    await designs.save(c.id, 'doc_a', designFile('doc_a', 'A', [image]), base);
+    await store.save(c.id, withDesigns(c.ws, []), c.revision, true);
+    expect(assets(c.id)).toEqual([]);
+  });
+
   it('deleting the engagement removes its designs and images, as a save without them', async () => {
     const c = await withImages();
     const ws = { ...c.ws, engagements: {}, designs: {} };

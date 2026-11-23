@@ -2,13 +2,14 @@
 
 - **Status:** Approved by the user on 2026-11-04, with their changes (see "Decisions"). The wording stays a draft until the POPIA review.
 - **Date:** 2026-11-04
-- **Code:** `src/workspace/model/consent.ts` (rules), `consentForm.ts` (the form, amending and withdrawing), `validate.ts` (checks), tests in `consent.test.ts`, `rules.test.ts`, `review.test.ts`, `phase1.test.ts`, `phase2.test.ts`, `recordings.test.ts` and `wp9.test.ts`; recordings and retention in `recordings.ts`; the interface in `src/workspace/ui/consent/`, with browser tests in `e2e/consent.spec.ts`, `e2e/consent-after-import.spec.ts`, `e2e/transcripts.spec.ts`, `e2e/extraction.spec.ts`, `e2e/recording.spec.ts`, `e2e/transcription.spec.ts` and `e2e/retention.spec.ts`
+- **Code:** `src/workspace/model/consent.ts` (rules), `consentForm.ts` (the form, amending and withdrawing), `validate.ts` (checks), tests in `consent.test.ts`, `rules.test.ts`, `review.test.ts`, `phase1.test.ts`, `phase2.test.ts`, `recordings.test.ts`, `wp9.test.ts` and `version6.test.ts`; what the canvas AI may be given in `designContext.ts` (`designContext.test.ts`); recordings and retention in `recordings.ts`; the interface in `src/workspace/ui/consent/`, with browser tests in `e2e/consent.spec.ts`, `e2e/consent-after-import.spec.ts`, `e2e/transcripts.spec.ts`, `e2e/extraction.spec.ts`, `e2e/recording.spec.ts`, `e2e/transcription.spec.ts`, `e2e/retention.spec.ts` and `e2e/canvas-ai.spec.ts`
 - **Changed in Workspace Phase 1 (WP4):** two statements for where the AI runs, amendments that record what the client was newly told, and withdrawal of a record that isn't locked yet (Phase 1 brief, decisions 2 and 3; see "Changes from Workspace Phase 1")
 - **Built in Workspace Phase 2:** the import block (C1), the speaker check (C11), the AI checks before every request (C5, C6), amending a locked record, the review after a withdrawal (C8) and the attachment (see "Changes from Workspace Phase 2")
 - **Built in Workspace Phase 3:** the recording block (C1), the lock on the first recording (C4), retention of audio (C10), the speaker check for recordings (C11), and recordings in the withdrawal flow (C8) (see "Changes from Workspace Phase 3")
+- **Changed in Workspace Phase 4:** a statement that the AI may help sketch the screens (`aiDesign`, wording `draft-2`), and C5 extended to the canvas AI (see "Changes from Workspace Phase 4")
 - **Sources:** ADR-0002 and ADR-0003; `docs/spec/MVP.md` story 3.1 and Q15, Q16; `docs/spec/DOMAIN-MODEL.md`; the Phase 0 brief, WP5
 
-> **Not legal advice, and not a compliance feature.** This form helps the consultant ask for consent and keep an honest record of the answer. It does not make anyone compliant with POPIA or any other law. The wording shown to the client must be reviewed by someone qualified in POPIA before real use, and until then it stays a draft (version `draft-1`). For reference, POPIA defines consent as "any voluntary, specific and informed expression of will in terms of which permission is given for the processing of personal information" (section 1, [popia.co.za](https://popia.co.za/section-1-definitions/), checked 2026-11-04). The form is built around those three words: the client is told each thing (informed), answers each one separately (specific), and can decline without losing the meeting (voluntary).
+> **Not legal advice, and not a compliance feature.** This form helps the consultant ask for consent and keep an honest record of the answer. It does not make anyone compliant with POPIA or any other law. The wording shown to the client must be reviewed by someone qualified in POPIA before real use, and until then it stays a draft (versions `draft-1` and `draft-2`). For reference, POPIA defines consent as "any voluntary, specific and informed expression of will in terms of which permission is given for the processing of personal information" (section 1, [popia.co.za](https://popia.co.za/section-1-definitions/), checked 2026-11-04). The form is built around those three words: the client is told each thing (informed), answers each one separately (specific), and can decline without losing the meeting (voluntary).
 
 ## When
 
@@ -31,7 +32,7 @@ The consultant fills in the form for each session, **before** a transcript is im
 
 The external provider isn't typed. The form offers the name of the external provider set up in AI settings, such as "Anthropic (api.anthropic.com)" (rule C6), so the record names exactly what will be used.
 
-## Wording shown to the client (draft-1)
+## Wording shown to the client (draft-2)
 
 Each statement is shown on the form exactly as it should be said or sent to the client. The consultant ticks those they actually told the client. *Draft wording, to be reviewed before real use.*
 
@@ -40,12 +41,13 @@ Each statement is shown on the form exactly as it should be said or sent to the 
 | recorded | "I'd like to record the audio of this meeting." |
 | transcribed | "What we say will be turned into a written transcript, by the meeting software or on my computer." |
 | aiExtraction | "I'll use AI to help pick out requirements, questions and risks from the transcript and my notes. I check everything it suggests." |
+| aiDesign | "I may also use AI to help sketch the screens from what we agree. It sees my summary of what you said, not the recording or the transcript." New in `draft-2` (Workspace Phase 4). |
 | processingLocal | "The AI runs on my computer only; nothing is sent elsewhere." |
 | processingExternal | "The transcript and my notes may be sent to *[provider]*, which processes them under its own terms, possibly outside South Africa." The record keeps the provider named. |
 | retention | "The recording is kept for *[N days / until the project ends / only until it's transcribed]*. The transcript and my notes are kept with the project's records." |
 | canStopOrDelete | "You can ask me to stop recording at any time, and ask me to delete the recording and the transcript." |
 
-The wording is versioned. Each record keeps the version it was shown with, and the export prints that version's text, so a record always says exactly what the client heard.
+`draft-1` is the same wording without `aiDesign`; a version's text never changes. The wording is versioned. Each record keeps the version it was shown with, and the export prints that version's text, so a record always says exactly what the client heard.
 
 ## Rules
 
@@ -57,7 +59,7 @@ Each rule is checked in code and covered by a unit test, except where marked as 
 | **C2** | **Told before agreed.** The client can only agree to what they were told. Each "yes" needs its statements ticked: recording needs *recorded* and *retention*; transcription needs *transcribed*; AI on this computer needs *aiExtraction* and *processingLocal*; AI by an external provider needs *aiExtraction* and *processingExternal*, naming that same provider. If anything is agreed, *canStopOrDelete* must be ticked too. The same holds for amendments: each "yes" is checked against everything the client has been told up to then, on the form and in earlier amendments, including statements the amendment itself records as newly told. | `missingStatements`, `missingFor`, `toldSoFar`, `amendConsent`; `consent.told`, `consent.provider`, `consent.wording` |
 | **C3** | **A record counts only when confirmed.** A draft allows nothing. Changing anything on a confirmed record that isn't locked yet clears the confirmation, so the consultant confirms what the record now says. Adding an attachment doesn't. Since the confirmation covers who was asked and when, changing the name, role or organisation of someone named as asked, or the session's date or time, clears it too; the app warns before such a change. A locked record refuses these changes. | `consentState`, `editConsent` |
 | **C4** | **Locked once used.** Importing a transcript (or starting a recording) locks the record, and so does a withdrawal. After that it changes only by dated amendments, in order, each saying who and why, each checked like the record itself. An amendment can record statements the client was newly told, for example by email after the meeting, with the wording version shown. A withdrawal is final: renewed consent means a new session. | `lockConsent`, `amendConsent`; `consent.lock`, `consent.amendment`; `startRecording` and `addRecordingFile` lock it |
-| **C5** | **AI processing needs consent.** The AI processes a session's transcript and notes (MVP Q15) only if its consent allows it at that time. A declined, withdrawn or unconfirmed session's notes are never sent to the AI. Every AI proposal records where it ran and every session it was given (the sessions it cites are among them), and is invalid if any of those sessions didn't allow that. | `canUseAi`; `finding.aiConsent`, `finding.origin` |
+| **C5** | **AI processing needs consent.** The AI processes a session's transcript and notes (MVP Q15) only if its consent allows it at that time. A declined, withdrawn or unconfirmed session's notes are never sent to the AI. Every AI proposal records where it ran and every session it was given (the sessions it cites are among them), and is invalid if any of those sessions didn't allow that. **The canvas AI** (Workspace Phase 4) is given only an engagement's confirmed findings, statement and kind only, and only those whose every session (its evidence's, and every session the AI was given for a finding it proposed) allows the AI set up now and was told `aiDesign`; a finding resting on no session goes only to an AI on this computer. Checked before every request. | `canUseAi`; `finding.aiConsent`, `finding.origin`; `findingsForDesign` |
 | **C6** | **Local or external** (MVP Q16). AI processing is *local* only when the provider is Ollama or an OpenAI-compatible server at a loopback address (`localhost`, `127.x.x.x`, `::1`). Anything else is *external*, including Ollama on another computer, and is named by company and host. An Ollama cloud model (its name ends in `-cloud` or `:cloud`) is also external, as "Ollama Cloud (ollama.com)", because Ollama sends it to ollama.com even when Ollama runs on this computer. Local needs "AI processing on this computer = yes". External needs "external provider = yes" and the same provider named on the form; another provider is refused, with the reason. | `classifyProvider`, `canUseAi` |
 | **C7** | **Declined means notes only.** The session can have manual notes, which the AI doesn't process; transcript import, recording and AI stay unavailable, each saying why. | `canCapture`, `canUseAi` |
 | **C8** | **Withdrawal.** Recorded as a dated amendment with the reason, on any confirmed record, locked or not; it locks the record. From then on nothing more is captured or processed by the AI. What was imported before the withdrawal stays valid until it is deleted. The app offers to delete the audio (Phase 3) and the transcript. Deleting the transcript removes every copy of its words: each cited segment becomes *deleted evidence* (no words, only the session and the date) in the finding, in what the AI proposed and in its history, and company facts lose their quotes from the session. Findings left with nothing to rest on are removed. A finding that keeps other evidence, such as a note, keeps its statement, and its provenance follows what is left (Phase 2 brief, decision 9): with no transcript segment left it is no longer "said in a session". Afterwards the consultant is shown the findings and company facts that keep a statement from that session, so they can remove those too if the client asks. | `amendConsent`, `consentState`, `removeTranscript`, `deleteTranscript`, `keptFromSession`; the interface in Phases 1 and 2 |
@@ -94,10 +96,11 @@ Who was asked        [x] Alex Owner, Owner, Harbour Bakery
 Asked by             Sam Consultant
 How                  (•) Verbally at the start   ( ) In writing before   ( ) Other: ____
 
-What you told them   (wording draft-1, shown in full)
+What you told them   (wording draft-2, shown in full)
   [x] "I'd like to record the audio of this meeting."
   [x] "What we say will be turned into a written transcript…"
   [x] "I'll use AI to help pick out requirements…"
+  [x] "I may also use AI to help sketch the screens from what we agree…"
   [x] "The AI runs on my computer only; nothing is sent elsewhere."
   [ ] "The transcript and my notes may be sent to Anthropic (api.anthropic.com)…"
   [x] "The recording is kept until the project ends…"
@@ -151,6 +154,7 @@ For someone qualified in POPIA, before StyleCode is used with real clients. Noth
 3. **Sending personal information to an AI provider outside South Africa.** Section 72 limits transfers of personal information about a data subject outside the Republic, allowing them for example where the recipient is bound by comparable protection or the data subject consents ([popia.co.za, section 72](https://popia.co.za/section-72-transfers-of-personal-information-outside-republic/), checked 2026-11-04). Is the external-AI statement and its "yes" enough, and should the form name the country or the provider's terms?
 4. **Keeping the consultant's own statements after a withdrawal.** C8 deletes the client's words but keeps findings and company facts in the consultant's wording, which may still describe what the client said. Is that acceptable, or should a withdrawal remove them too unless the client agrees otherwise?
 5. **People in the meeting who weren't asked** (C11): what should the consultant do when a transcript includes speakers who weren't asked?
+6. **The AI sketching screens from the record** (`aiDesign`, `draft-2`, Workspace Phase 4). Confirmed findings, in the consultant's words, go to the AI that designs the screens, under the AI "yes" already given for extraction: the new statement is something the client is told, not a separate yes. Is telling them enough for this further use, or does it need its own yes? Findings the consultant entered without citing any session go to an AI on this computer with no consent record behind them: is that acceptable, given they may still describe what a client said?
 
 ## Changes from Workspace Phase 1
 
@@ -188,3 +192,13 @@ Made from `docs/phase-3/PHASE-3-BRIEF.md` (decisions 12 to 25), with tests in `s
 6. **Speakers in recordings** (C11, decision 20). The warning follows the matching, as above. Matching still changes only who spoke, never who was asked.
 7. **Recordings can't be downloaded** (decision 13), so no copy outlives what the client was told. They can be played in StyleCode.
 8. **Real client use still waits for the POPIA review** (decision 31). Transcription is local only, so it adds no transfer outside South Africa; the guide says so where it explains recording.
+
+## Changes from Workspace Phase 4
+
+Made from `docs/phase-4/PHASE-4-BRIEF.md` (decisions 13 and 14), with tests in `src/workspace/model/version6.test.ts` and `designContext.test.ts` and the browser tests in `e2e/consent.spec.ts` and `e2e/canvas-ai.spec.ts`. What the consultant sees is in the guide (`docs/GUIDE.md`, "Running a consultation", step 4, and "Designing for a client").
+
+1. **Wording `draft-2`** (decision 13) adds the statement `aiDesign`: "I may also use AI to help sketch the screens from what we agree. It sees my summary of what you said, not the recording or the transcript." New forms show `draft-2`. `draft-1` keeps its text, and its records keep it.
+2. **A statement told, not a new yes.** The AI answers (on this computer, or by the named provider, C2 and C6) still decide where the AI may run. `aiDesign` decides only whether a session's findings may go to the canvas AI. It can be told on the form or, later, recorded as newly told by an amendment (C4). A record or amendment can't say a statement was told in a wording that doesn't have it.
+3. **Workspace version 6** migrates every existing record with `aiDesign` not told (`DOMAIN-MODEL.md`, "Versioning").
+4. **C5, extended to the canvas AI** (decision 14): see the rule. When findings are left out, the assistant says how many and why, for example "1 finding left out: the client wasn't told the AI may help sketch the screens." Only one engagement's findings are ever offered.
+5. **Real client use still waits for the POPIA review.** Question 6 is new.

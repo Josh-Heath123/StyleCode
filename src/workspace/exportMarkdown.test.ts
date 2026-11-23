@@ -77,6 +77,7 @@ function record(): CompanyWorkspace {
       ...knowledge.kf_1.source!,
       findingId: null,
       deletedAt: T3,
+      engagementId: 'en_other',
       engagementName: 'Secret other engagement',
       sessionIds: ['se_other'],
     },

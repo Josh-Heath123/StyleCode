@@ -43,7 +43,7 @@ describe('a stopped AI run kept with its session (version 5)', () => {
     const parsed = parseWorkspace(v4);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect(parsed.workspace.version).toBe(5);
+    expect(parsed.workspace.version).toBe(6);
     expect(parsed.workspace.sessions.se_1.aiStop).toBeNull();
     expect(parsed.problems).toEqual([]);
   });

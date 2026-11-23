@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { startFakeOllama, type FakeOllama } from '../fakeOllama';
-import { BAKERY, harbourBakery, openOrderPage } from '../harbour';
+import { BAKERY, harbourBakery, openOrderPage, withUntoldSession } from '../harbour';
 import { kickoff } from '../karoo';
 import { card as transcriptCard, withRecording } from '../kickoffRecording';
 import { focusOn, SCRIPTED_MODEL, scriptedReply, useScriptedModel } from './scenes';
@@ -62,7 +62,32 @@ const FINDINGS = [
   },
 ];
 
+/**
+ * Asked to change the order page's Pay button with the record (Workspace Phase 4, decision 16), the scripted model
+ * words the button from the findings it was given and names the two it drew on, by the short ids the request used.
+ */
+function fromTheRecord(first: string) {
+  const layer = (name: string) => new RegExp(`^ *\\* (e\\d+) \\w+ "${name}"`, 'm').exec(first)?.[1];
+  const finding = (words: string) => new RegExp(`^- (F\\d+) [\\w-]+: ".*${words}.*"$`, 'm').exec(first)?.[1];
+  const label = layer('Pay label');
+  const button = layer('Pay button');
+  return {
+    text: JSON.stringify({
+      explanation:
+        'The button now says the cake is paid for online when it’s ordered, as agreed. The two days’ notice is already shown under the date, so I left it there.',
+      operations: [
+        ...(button ? [{ op: 'update', id: button, set: { fill: '#1f5a41' } }] : []),
+        ...(label ? [{ op: 'update', id: label, set: { text: 'Pay R 450 online and order' } }] : []),
+      ],
+      findings: [finding('pay online'), finding('notice')].filter(Boolean),
+    }),
+    delay: 30,
+  };
+}
+
 function respond(body: FakeOllama['requests'][number]) {
+  const first = body.messages.find((m) => m.role === 'user')?.content ?? '';
+  if (/^- F\d+ /m.test(first)) return fromTheRecord(first);
   if (!body.messages[0]?.content.includes('list the findings a careful consultant would record')) return scriptedReply(body);
   const message = body.messages[body.messages.length - 1].content;
   const findings = [];
@@ -272,18 +297,36 @@ async function dressOrderPage(page: Page) {
   }, BAKERY.layers);
 }
 
-test('a client’s design beside its record, a layer showing its findings', async ({ page }) => {
+test('the canvas AI drawing on the record, saying which findings and how many were left out', async ({ page }) => {
   await page.goto('/');
+  await useScriptedModel(page, fake);
   const { id } = await harbourBakery(page, 'Harbour Bakery');
+  await asSamNaidoo(page);
+  // A kick-off whose consent never told the client the AI may help sketch the screens: its finding is left out.
+  await withUntoldSession(page, id);
   await openOrderPage(page, id);
-  await expect(page.getByRole('complementary', { name: 'Record' })).toBeVisible();
   await dressOrderPage(page);
-  await page.evaluate((pay) => (window as any).stylecode.editor.select([pay]), BAKERY.layers.pay);
-  // Every operation applied: the order page's own layers and the copies.
-  await expect
-    .poll(() => page.evaluate(() => Object.keys((window as any).stylecode.editor.getState().doc.nodes).length))
-    .toBeGreaterThan(15);
-  await focusOn(page, BAKERY.layers.frame, 0.43, 20);
+  const label = await page.evaluate(
+    () =>
+      Object.values((window as any).stylecode.editor.getState().doc.nodes as Record<string, { id: string; name: string }>).find(
+        (n) => n.name === 'Pay label',
+      )!.id,
+  );
+  await page.evaluate((ids) => (window as any).stylecode.editor.select(ids), [BAKERY.layers.pay, label]);
+  await focusOn(page, BAKERY.layers.frame, 0.43, -96);
+  await page.keyboard.press('/');
+  const input = page.getByRole('textbox', { name: 'Ask AI' });
+  await input.fill('Make the pay button say how the customer pays');
+  await input.press('Enter');
+  const panel = page.getByRole('region', { name: 'AI assistant' });
+  await expect(panel.getByRole('list', { name: 'Drew on:' }).getByRole('link')).toHaveText([
+    BAKERY.findings.pay.statement,
+    BAKERY.findings.notice.statement,
+  ]);
+  await expect(panel).toContainText('1 finding left out: the client wasn’t told the AI may help sketch the screens.');
   await page.waitForTimeout(600);
-  await shot(page, 'design-and-record');
+  await shot(page, 'canvas-ai-record');
+  await page.keyboard.press('Escape');
+  await page.goto('/');
+  expect((await forget(page, id, 'Harbour Bakery')).ok()).toBe(true);
 });

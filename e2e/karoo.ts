@@ -83,6 +83,7 @@ export async function kickoff(
         recorded: !!options.recording,
         transcribed: true,
         aiExtraction: true,
+        aiDesign: false,
         processingLocal: true,
         processingExternal: false,
         retention: !!options.recording,

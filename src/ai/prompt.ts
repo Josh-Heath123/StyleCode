@@ -70,10 +70,18 @@ const EXAMPLE_REPLY = JSON.stringify({
   ],
 });
 
-export function systemPrompt(): string {
+/** What the model is told about the record's findings, when a request offers them (Workspace Phase 4, decision 16). */
+const FINDINGS_SECTION = `
+
+FINDINGS FROM THE CLIENT'S RECORD
+After the layers there may be confirmed findings from the client's record, each with a short id such as F3 and its kind. They are what the client and the consultant agreed. Use those that relate to the request to decide what to change, and don't contradict them. A layer that answers a finding shows it on its line, for example findings=F3,F7.
+List the short ids of the findings you drew on in "findings", or an empty list if none. You can't change findings or link layers to them.`;
+
+/** With findings offered, the instructions gain a section about them and the reply's "findings" list; without, they are as they always were. */
+export function systemPrompt(options: { findings?: boolean } = {}): string {
   return `You are the design assistant in StyleCode, a visual UI editor. You change a design by proposing operations on its layers, and the user reviews them before they are applied.
 
-Reply with one JSON object only, no other text: {"explanation": "...", "operations": [...]}.
+Reply with one JSON object only, no other text: {"explanation": "...", "operations": [...]${options.findings ? ', "findings": [...]' : ''}}.
 
 THE DESIGN
 A tree of layers. Types: frame (a container), rect, ellipse, text, image. Each layer has a short id such as e12. Layers you create get a ref such as n1, which later operations may use as an id or parent.
@@ -104,7 +112,7 @@ EXAMPLE
 ${EXAMPLE_REQUEST}
 
 Reply:
-${EXAMPLE_REPLY}`;
+${EXAMPLE_REPLY}${options.findings ? FINDINGS_SECTION : ''}`;
 }
 
 export function userMessage(context: AiContext, request: string): string {

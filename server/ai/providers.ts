@@ -210,13 +210,21 @@ function parseJson(text: string): Record<string, unknown> | null {
 // Chat
 // ---------------------------------------------------------------------------
 
+/**
+ * Yielded while a thinking model reasons before it writes (Ollama's message.thinking): no text, and the reasoning
+ * itself isn't passed on, but the model is working, so the page shouldn't take it for a stall.
+ */
+export const THINKING = Symbol('thinking');
+/** A piece of the reply: its text, or a sign that the model is still thinking. */
+export type ChatPiece = string | typeof THINKING;
+
 export async function* streamChat(
   kind: ProviderKind,
   settings: ProviderSettings,
   key: string | undefined,
   request: ChatRequest,
   signal: AbortSignal,
-): AsyncGenerator<string> {
+): AsyncGenerator<ChatPiece> {
   if (!settings.model) throw new ProviderError('Choose a model in AI settings first.', 400);
   if (kind === 'anthropic' && !key) throw new ProviderError('Add your Anthropic API key in AI settings first.', 400);
   if (kind === 'ollama') yield* ollamaChat(settings, request, signal);
@@ -224,7 +232,7 @@ export async function* streamChat(
   else yield* anthropicChat(settings, key, request, signal);
 }
 
-async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, signal: AbortSignal): AsyncGenerator<string> {
+async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, signal: AbortSignal): AsyncGenerator<ChatPiece> {
   const response = await post(
     'ollama',
     settings,
@@ -246,7 +254,9 @@ async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, sig
     const chunk = parseJson(line);
     if (!chunk) continue;
     if (typeof chunk.error === 'string') throw new ProviderError(`Ollama: ${chunk.error}`);
-    const content = (chunk.message as { content?: unknown } | undefined)?.content;
+    const message = chunk.message as { content?: unknown; thinking?: unknown } | undefined;
+    if (typeof message?.thinking === 'string' && message.thinking) yield THINKING;
+    const content = message?.content;
     if (typeof content === 'string' && content) yield content;
     if (chunk.done === true) {
       if (chunk.done_reason === 'length') throw cutOff('Ollama', 'or raise the context size in AI settings');

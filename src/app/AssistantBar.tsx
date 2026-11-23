@@ -138,6 +138,43 @@ export function DockArea({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
+/** Why some of the record's findings weren't given to the AI (Workspace Phase 4, decision 14). */
+function LeftOut({ text }: { text: string | null }) {
+  return text ? <p className="assistant-note assistant-left-out">{text}</p> : null;
+}
+
+/**
+ * The findings the AI's proposal drew on (decision 16), each linking to the record. The AI's, so in orange while the
+ * proposal is under review. Ids it named that it wasn't given are only counted.
+ */
+function DrewOn({ drewOn, ignored }: { drewOn: { id: string; statement: string; href: string }[]; ignored: number }) {
+  if (!drewOn.length && !ignored) return null;
+  return (
+    <div className="assistant-drew-on">
+      {drewOn.length > 0 && (
+        <>
+          <p className="assistant-drew-on-label" id="assistant-drew-on">
+            <Icon name="sparkle" size={12} /> Drew on:
+          </p>
+          <ul aria-labelledby="assistant-drew-on">
+            {drewOn.map((f) => (
+              <li key={f.id}>
+                <a href={f.href}>{f.statement}</a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {ignored > 0 && (
+        <p className="assistant-note">
+          The AI also named {ignored === 1 ? 'a finding' : `${ignored} findings`} it wasn’t given, so{' '}
+          {ignored === 1 ? 'it is' : 'they are'} ignored.
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface PanelProps {
   draft: string;
   setDraft: (text: string) => void;
@@ -211,18 +248,37 @@ function AssistantPanel({
       <>
         {head(<>Working on {state.targetLabel}</>)}
         <p className="assistant-request">{state.request}</p>
-        <p className="assistant-explanation is-streaming" aria-live="polite">
-          {state.explanation || (state.phase === 'repairing' ? '' : 'Thinking…')}
-        </p>
+        {state.wait ? (
+          <p className="assistant-note" role="status">
+            {state.wait.message}
+          </p>
+        ) : (
+          <p className="assistant-explanation is-streaming" aria-live="polite">
+            {state.explanation || (state.phase === 'repairing' ? '' : 'Thinking…')}
+          </p>
+        )}
+        <LeftOut text={state.leftOut} />
         <footer className="assistant-actions">
           <span className="assistant-phase">
             <span className="assistant-pulse" />
-            {state.phase === 'repairing'
-              ? 'Fixing a problem in the reply…'
-              : state.phase === 'waiting'
-                ? 'Ready: finish your edit to see the changes.'
-                : 'Writing changes…'}
+            {state.wait
+              ? 'Waiting to start…'
+              : state.phase === 'repairing'
+                ? 'Fixing a problem in the reply…'
+                : state.phase === 'waiting'
+                  ? 'Ready: finish your edit to see the changes.'
+                  : 'Writing changes…'}
           </span>
+          {state.wait?.cooling && (
+            <button
+              type="button"
+              className="button"
+              aria-label="Don’t wait for the graphics card to cool"
+              onClick={() => assistant.dontWait()}
+            >
+              Don’t wait
+            </button>
+          )}
           <button type="button" className="button" onClick={onStop}>
             <Icon name="stop" size={12} /> Stop
           </button>
@@ -235,6 +291,8 @@ function AssistantPanel({
         {head(state.noChanges ? 'No changes' : 'Review the changes')}
         <p className="assistant-request">{state.request}</p>
         {state.explanation && <p className="assistant-explanation">{state.explanation}</p>}
+        <DrewOn drewOn={state.drewOn} ignored={state.ignoredFindings} />
+        <LeftOut text={state.leftOut} />
         {!state.noChanges && (
           <p className="assistant-summary">
             <span className="assistant-swatch" aria-hidden="true" />

@@ -7,6 +7,7 @@ import { BROWSER_ASSETS, imageSize, type AssetRecord, type AssetSource } from '.
 import {
   createStarterDocument,
   DesignSaveError,
+  OpenCancelledError,
   type CompanyDesignTarget,
   type ProjectSession,
 } from '../../../persistence/session';
@@ -110,6 +111,7 @@ export async function openCompanyDesign(
   client: WorkspaceSession,
   companyId: string,
   link: DesignLink,
+  wanted: () => boolean = () => true,
 ): Promise<void> {
   let read: { file: unknown; revision: string };
   try {
@@ -119,6 +121,9 @@ export async function openCompanyDesign(
       throw new DesignUnavailableError(error.message);
     throw error;
   }
+  // Left, or replaced by another design, while its file was read: another design, perhaps another client's, may be
+  // open now, and this one mustn't take its place.
+  if (!wanted()) throw new OpenCancelledError();
   const parsed = parseProject(read.file);
   if (!parsed.ok) throw new DesignUnavailableError(parsed.error);
   const syncName = (doc: DesignDocument) => {
@@ -134,7 +139,7 @@ export async function openCompanyDesign(
     if (stopWatching) stopWatching();
     else closedEarly = true;
   };
-  await session.openCompanyDesign(target, parsed.doc);
+  await session.openCompanyDesign(target, parsed.doc, wanted);
   if (closedEarly || session.companyDesign() !== link.documentId) return;
   syncName(parsed.doc);
 

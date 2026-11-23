@@ -238,6 +238,75 @@ test('a design never opens under another client’s route', async ({ page }) => 
   await expect(page.locator('.canvas')).toHaveCount(0);
 });
 
+/**
+ * Opens client A's design with its file held back, goes somewhere else while it is, then lets the file arrive. Returns
+ * the ids, and `release` to let it arrive.
+ */
+async function slowOpen(page: Page) {
+  const a = await kickoff(page);
+  await newDesign(page, a, 'Slow to open');
+  const rectA = await draw(page, 'r', [700, 300], [840, 400]);
+  await saved(page);
+  const [linkA] = Object.values(onDisk(a).designs);
+  const b = await kickoff(page);
+  await newDesign(page, b, 'Quick to open');
+  const rectB = await draw(page, 'r', [600, 200], [700, 260]);
+  await saved(page);
+  const [linkB] = Object.values(onDisk(b).designs);
+  // Back to client A's engagement, so neither design is open, then hold A's file back while it opens.
+  await page.goto(`/#/c/${a}/e/en_1`);
+  await expect(card(page)).toBeVisible();
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => (release = resolve));
+  let held!: () => void;
+  const holding = new Promise<void>((resolve) => (held = resolve));
+  await page.route(
+    (url) => url.pathname.endsWith(`/designs/${linkA.documentId}`),
+    async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      held();
+      await released;
+      await route.continue();
+    },
+  );
+  await page.goto(`/#/c/${a}/e/en_1/d/${linkA.id}`);
+  await holding;
+  return { a, b, linkA, linkB, rectA, rectB, release };
+}
+
+test('a design still opening when another client’s design opens never takes its place', async ({ page }) => {
+  const { b, linkA, linkB, rectA, rectB, release } = await slowOpen(page);
+  const fileB = readFileSync(join(designsDir(b), `${linkB.documentId}.stylecode.json`), 'utf8');
+  await page.goto(`/#/c/${b}/e/en_1/d/${linkB.id}`);
+  await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes)).toContain(rectB);
+  release();
+  // A's file arrives; the editor stays on B, under B's client, with B's record.
+  await page.waitForResponse((r) => r.url().endsWith(`/designs/${linkA.documentId}`));
+  await page.waitForTimeout(500);
+  const doc = (await snapshot(page)).doc as { id: string; nodes: Record<string, unknown> };
+  expect(doc.id).toBe(linkB.documentId);
+  expect(Object.keys(doc.nodes)).not.toContain(rectA);
+  await expect(page.getByLabel('Design name')).toHaveValue('Quick to open');
+  await expect(page.getByRole('link', { name: 'Back to the engagement' })).toHaveAttribute('href', `#/c/${b}/e/en_1`);
+  await saved(page);
+  expect(readFileSync(join(designsDir(b), `${linkB.documentId}.stylecode.json`), 'utf8')).toBe(fileB);
+});
+
+test('a design still opening when the editor’s own designs open never appears in the editor', async ({ page }) => {
+  const { linkA, rectA, release } = await slowOpen(page);
+  await page.goto('/#/editor');
+  await page.waitForSelector('.canvas');
+  release();
+  await page.waitForResponse((r) => r.url().endsWith(`/designs/${linkA.documentId}`));
+  await page.waitForTimeout(500);
+  await expect(page.getByText('Closing the design…')).toHaveCount(0);
+  await expect(page.locator('.canvas')).toBeVisible();
+  const doc = (await snapshot(page)).doc as { id: string; nodes: Record<string, unknown> };
+  expect(doc.id).not.toBe(linkA.documentId);
+  expect(Object.keys(doc.nodes)).not.toContain(rectA);
+  await expect(page.getByRole('link', { name: 'Back to the engagement' })).toHaveCount(0);
+});
+
 test('one name: renaming in the editor renames it on the engagement, and the other way round', async ({ page }) => {
   const id = await kickoff(page);
   await newDesign(page, id, 'First name');
@@ -327,6 +396,17 @@ test('pasting: an image comes into a client’s design only from the editor’s 
   await pasteLayer();
   await expect(page.getByText(/couldn’t come with the pasted layers/).first()).toBeVisible();
   expect(assetFiles(bakery)).not.toContain(karooImage.src);
+  // The pasted layer doesn't name Karoo's image either, in the editor or in the bakery's file, and undo takes the
+  // paste back in one step.
+  await expect.poll(async () => (await selectedNode(page)).src).toBe('');
+  await saved(page);
+  const [bakeryLink] = Object.values(onDisk(bakery).designs);
+  expect(readFileSync(join(designsDir(bakery), `${bakeryLink.documentId}.stylecode.json`), 'utf8')).not.toContain(
+    karooImage.src!,
+  );
+  const pastedId = (await selectedNode(page)).id;
+  await page.keyboard.press('Control+z');
+  await expect.poll(async () => Object.keys((await snapshot(page)).doc.nodes)).not.toContain(pastedId);
 
   // 3. From a client's design into the editor's own: nothing goes into this browser's storage.
   await page.goto('/#/editor');
@@ -334,6 +414,7 @@ test('pasting: an image comes into a client’s design only from the editor’s 
   await pasteLayer();
   await expect(page.getByText(/stay with that client/).first()).toBeVisible();
   expect((await browserStore(page)).assets).not.toContain(karooImage.src);
+  await expect.poll(async () => (await selectedNode(page)).src).toBe('');
 });
 
 test('a layer’s route opens its design with that layer selected', async ({ page }) => {

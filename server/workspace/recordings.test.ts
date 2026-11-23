@@ -243,6 +243,17 @@ describe('adding a WAV made elsewhere (decision 15)', () => {
     expect(readdirSync(join(root, 'companies', c.id, 'files'))).toEqual([]);
   });
 
+  it('makes the client’s files folder if it is missing, as an added file does, and so does a new recording', async () => {
+    const c = await client();
+    const filesDir = join(root, 'companies', c.id, 'files');
+    rmSync(filesDir, { recursive: true });
+    const added = await files.addWav(c.id, 'se_2', inPieces(floatWav(1), 4096));
+    expect(readdirSync(filesDir)).toEqual([added.id]);
+    rmSync(filesDir, { recursive: true });
+    const started = await files.start(c.id);
+    expect(readdirSync(filesDir)).toEqual([started.id]);
+  });
+
   it('converts it to 16 kHz mono 16-bit as it streams in', async () => {
     const c = await client();
     const added = await files.addWav(c.id, 'se_2', inPieces(floatWav(2), 7777));

@@ -193,7 +193,47 @@ function migrate(raw: Record<string, unknown>, timeZone: string): Record<string,
     // Version 5 keeps why an AI run stopped part-way; nothing had stopped that way before.
     ws = { ...ws, version: 5, sessions: mapRecord(ws.sessions, (s) => ('aiStop' in s ? s : { ...s, aiStop: null })) };
   }
+  if (ws.version === 5) ws = toVersion6(ws);
   return ws;
+}
+
+/**
+ * Version 6 (Workspace Phase 4, decisions 13 and 22):
+ * - every consent record's `told` gains `aiDesign`, not told: no wording before draft-2 had it. Amendments list only
+ *   what was newly told, so they are left as they are;
+ * - a company fact's source gains its engagement: its finding's, or else the one its sessions belong to (when they all
+ *   belong to one), or else none.
+ */
+function toVersion6(ws: Record<string, unknown>): Record<string, unknown> {
+  const findings = (ws.findings && typeof ws.findings === 'object' ? ws.findings : {}) as Record<string, unknown>;
+  const sessions = (ws.sessions && typeof ws.sessions === 'object' ? ws.sessions : {}) as Record<string, unknown>;
+  const engagementOf = (map: Record<string, unknown>, id: unknown): string | null => {
+    const entry = typeof id === 'string' && Object.prototype.hasOwnProperty.call(map, id) ? map[id] : undefined;
+    const engagementId = (entry as { engagementId?: unknown } | undefined)?.engagementId;
+    return typeof engagementId === 'string' ? engagementId : null;
+  };
+  return {
+    ...ws,
+    version: 6,
+    consents: mapRecord(ws.consents, (c) => {
+      const told = c.told as Record<string, unknown> | null | undefined;
+      if (!told || typeof told !== 'object' || Array.isArray(told) || 'aiDesign' in told) return c;
+      return { ...c, told: { ...told, aiDesign: false } };
+    }),
+    knowledge: mapRecord(ws.knowledge, (fact) => {
+      const source = fact.source as Record<string, unknown> | null | undefined;
+      if (!source || typeof source !== 'object' || Array.isArray(source) || 'engagementId' in source) return fact;
+      const fromSessions = [
+        ...new Set(
+          (Array.isArray(source.sessionIds) ? source.sessionIds : [])
+            .map((id: unknown) => engagementOf(sessions, id))
+            .filter((id): id is string => id !== null),
+        ),
+      ];
+      const engagementId = engagementOf(findings, source.findingId) ?? (fromSessions.length === 1 ? fromSessions[0] : null);
+      return { ...fact, source: { ...source, engagementId } };
+    }),
+  };
 }
 
 /**

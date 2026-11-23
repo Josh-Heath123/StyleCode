@@ -162,3 +162,27 @@ describe('Assistant', () => {
     expect(assistant.getState().error).toBe('Draw a frame first, or select the layers to change.');
   });
 });
+
+describe('a thinking model', () => {
+  /** The bodies the assistant sends, for a provider set up as `provider`. */
+  async function sent(provider: AiConfig['provider']): Promise<Record<string, unknown>> {
+    const { assistant } = setup();
+    const anthropic = { ...CONFIG.providers.anthropic, model: 'claude' };
+    assistant.setConfig({ ...CONFIG, provider, providers: { ...CONFIG.providers, anthropic } });
+    const bodies: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        bodies.push(JSON.parse(init.body as string));
+        return stream([JSON.stringify({ delta: reply([]) }), '{"done":true}']);
+      }),
+    );
+    await assistant.ask('anything');
+    return bodies[0];
+  }
+
+  it('asks Ollama not to think first, whose reasoning would never reach the reply; other providers are sent no "think"', async () => {
+    expect(await sent('ollama')).toMatchObject({ think: false });
+    expect(await sent('anthropic')).not.toHaveProperty('think');
+  });
+});

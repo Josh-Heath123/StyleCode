@@ -166,3 +166,92 @@ export async function openOrderPage(page: Page, companyId: string, layerId?: str
   await page.waitForSelector('.canvas');
   await expect(page.getByLabel('Design name')).toHaveValue('Order page');
 }
+
+/**
+ * A kick-off session in Online ordering, with consent in wording draft-1 (AI on this computer agreed, but the client
+ * never told the AI may help sketch the screens), a note, and a confirmed finding resting on that note.
+ */
+export async function withUntoldSession(page: Page, id: string) {
+  const opened = (await (await page.request.get(`/api/workspace/companies/${id}`, { headers: HEADERS })).json()) as {
+    workspace: Record<string, Record<string, unknown>>;
+    revision: string;
+  };
+  const ws = opened.workspace;
+  const at = '2026-11-10T08:00:00.000Z';
+  ws.sessions.se_1 = {
+    id: 'se_1',
+    engagementId: BAKERY.engagementId,
+    title: 'Kick-off',
+    startsAt: at,
+    timeZone: 'Africa/Johannesburg',
+    audioFileIds: [],
+    deletedRecordings: [],
+    aiStop: null,
+    createdAt: at,
+    updatedAt: at,
+  };
+  ws.participants.pa_nomsa = {
+    id: 'pa_nomsa',
+    sessionId: 'se_1',
+    name: 'Nomsa Dube',
+    role: 'Owner',
+    organisation: 'Harbour Bakery',
+    side: 'client',
+    speakerLabels: [],
+  };
+  ws.consents.cr_1 = {
+    id: 'cr_1',
+    sessionId: 'se_1',
+    askedParticipantIds: ['pa_nomsa'],
+    askedBy: 'Sam Consultant',
+    method: { kind: 'verbal-at-start' },
+    wordingVersion: 'draft-1',
+    told: {
+      recorded: false,
+      transcribed: false,
+      aiExtraction: true,
+      aiDesign: false,
+      processingLocal: true,
+      processingExternal: false,
+      retention: false,
+      canStopOrDelete: true,
+      externalProvider: null,
+    },
+    given: { audioRecording: false, transcription: false, aiLocal: true, aiExternal: false, externalProvider: null },
+    retention: { kind: 'until-engagement-ends' },
+    outcome: { kind: 'given' },
+    confirmed: { by: 'Sam Consultant', at },
+    attachmentFileId: null,
+    lockedAt: null,
+    amendments: [],
+    createdAt: at,
+    updatedAt: at,
+  };
+  ws.notes.no_1 = {
+    id: 'no_1',
+    sessionId: 'se_1',
+    text: 'Nomsa wants the cake photos big on the order page.',
+    writtenAt: at,
+    updatedAt: at,
+  };
+  const when = '2026-11-10T09:30:00.000Z';
+  ws.findings.fd_photos = {
+    id: 'fd_photos',
+    engagementId: BAKERY.engagementId,
+    kind: 'design-preference',
+    statement: 'Cake photos are shown large.',
+    status: 'confirmed',
+    statusSet: { by: { kind: 'consultant', name: 'Sam Consultant' }, at: when },
+    provenance: { kind: 'consultant' },
+    evidence: [{ kind: 'note', noteId: 'no_1', quote: 'cake photos big' }],
+    origin: { kind: 'consultant', by: 'Sam Consultant', at: when },
+    history: [],
+    createdAt: when,
+    updatedAt: when,
+  };
+  const saved = await page.request.put(`/api/workspace/companies/${id}`, {
+    headers: HEADERS,
+    data: { workspace: ws, baseRevision: opened.revision },
+  });
+  expect(saved.status(), await saved.text()).toBe(200);
+}

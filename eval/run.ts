@@ -148,7 +148,8 @@ for (const id of readdirSync(CONSULTATIONS).sort()) {
           },
           signal,
         ))
-          reply += delta;
+          // A thinking model's "still working" marker isn't text.
+          if (typeof delta === 'string') reply += delta;
       } catch (error) {
         console.error(`${id}: ${(error as Error).message}`);
         return '';

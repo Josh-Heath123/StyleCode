@@ -39,6 +39,39 @@ describe('chat', () => {
     await expect(chat(input, () => {}, new AbortController().signal, 50)).rejects.toThrow(/The model stopped responding/);
   });
 
+  it('keeps waiting while a thinking model says it is still thinking, and shows none of it as the reply', async () => {
+    // "Still thinking" every 20 ms for 200 ms, four times the stall time, then the reply.
+    const encoder = new TextEncoder();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            new ReadableStream<Uint8Array>({
+              async start(controller) {
+                for (let i = 0; i < 10; i++) {
+                  controller.enqueue(encoder.encode('{"thinking":true}\n'));
+                  await new Promise((r) => setTimeout(r, 20));
+                }
+                controller.enqueue(encoder.encode(`${JSON.stringify({ delta: '{}' })}\n{"done":true}\n`));
+                controller.close();
+              },
+            }),
+            { status: 200 },
+          ),
+        ),
+      ),
+    );
+    const seen: string[] = [];
+    await expect(chat(input, (t) => seen.push(t), new AbortController().signal, 50)).resolves.toBe('{}');
+    expect(seen).toEqual(['{}']);
+  });
+
+  it('still gives up when nothing at all arrives, thinking or not', async () => {
+    mockServer(['{"thinking":true}'], true);
+    await expect(chat(input, () => {}, new AbortController().signal, 50)).rejects.toThrow(/The model stopped responding/);
+  });
+
   it('treats the caller stopping it as a cancel, not a stall', async () => {
     mockServer([], true);
     const controller = new AbortController();

@@ -1,4 +1,4 @@
-import { open, readdir, readFile, rm, stat, statfs } from 'node:fs/promises';
+import { mkdir, open, readdir, readFile, rm, stat, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readWavHeader, WavConverter, WavError, wavHeader, WAV_HEADER_BYTES } from '../../src/workspace/audio/wav.ts';
 import { canCapture, consentFor, consentState } from '../../src/workspace/model/consent.ts';
@@ -71,6 +71,17 @@ export class RecordingFiles {
     return join(this.store.companyFolder(companyId), 'files', fileId);
   }
 
+  /**
+   * Makes the client's `files/` if it is missing, as `WorkspaceStore.addFile` does, before a file is opened in it:
+   * a client folder put back from a copy that leaves out empty folders has none. Never recursive, so the client's own
+   * folder must already exist.
+   */
+  private async filesFolder(companyId: string): Promise<void> {
+    await mkdir(join(this.store.companyFolder(companyId), 'files'), { mode: 0o700 }).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== 'EEXIST') throw error;
+    });
+  }
+
   private now(): number {
     return this.options.now?.() ?? Date.now();
   }
@@ -102,6 +113,7 @@ export class RecordingFiles {
         if (opened.access !== 'editable')
           throw new RequestError('This client’s file has problems, so nothing can be recorded to it.', 409);
       });
+      await this.filesFolder(companyId);
       const handle = await open(this.path(companyId, id), 'wx', 0o600);
       try {
         await handle.write(wavHeader(0, RECORDING_SAMPLE_RATE), 0, WAV_HEADER_BYTES, 0);
@@ -265,6 +277,7 @@ export class RecordingFiles {
       const allowed = canCapture(opened.workspace, sessionId, 'recording');
       if (!allowed.ok) throw new RequestError(allowed.error, 409);
       this.store.keepUpload(companyId, id);
+      await this.filesFolder(companyId);
       return open(temp, 'wx', 0o600);
     });
     try {
