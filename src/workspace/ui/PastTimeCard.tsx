@@ -29,49 +29,70 @@ interface Listed {
   readOnly: boolean;
 }
 
-/** Every client's recordings past their time, and those waiting for a transcript (decisions 22 and 23). */
-async function listAll(companies: CompanySummary[]): Promise<{ due: Listed[]; waiting: Listed[] }> {
+/** How many clients are read at once for the list: enough that many clients don't keep it waiting, few enough not to crowd the server. */
+const READ_AT_ONCE = 6;
+
+/**
+ * Every client's recordings past their time, and those waiting for a transcript (decisions 22 and 23), in the
+ * clients' order. Clients are read a few at a time: one after another, the list waited on two requests per client
+ * before it showed anything.
+ */
+export async function listAll(companies: CompanySummary[], at = now()): Promise<{ due: Listed[]; waiting: Listed[] }> {
+  const found: (Listed[][] | null)[] = new Array(companies.length).fill(null);
+  let next = 0;
+  const reader = async () => {
+    while (next < companies.length) {
+      const i = next++;
+      found[i] = await listOne(companies[i], at);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(READ_AT_ONCE, companies.length) }, reader));
   const due: Listed[] = [];
   const waiting: Listed[] = [];
-  const at = now();
-  for (const c of companies) {
-    if (c.access === 'unreadable' || !c.name) continue;
-    let ws: CompanyWorkspace;
-    try {
-      ws = (await openCompany(c.id)).workspace;
-    } catch {
-      continue;
-    }
-    // A transcript ready but not added keeps its recordings waiting "for adding" rather than "for a transcript".
-    const jobs = await listTranscriptions(c.id).catch(() => []);
-    const ready = new Set(jobs.filter((j) => j.state === 'done').flatMap((j) => j.recordingIds));
-    // A damaged file may not read as the model expects: that client is left out rather than hiding everyone else's.
-    const found: Listed[][] = [[], []];
-    try {
-      const { due: d, waiting: w } = recordingsPastTime(ws, at, ready);
-      for (const entry of [...d.map((x) => ({ ...x, list: 0 })), ...w.map((x) => ({ ...x, list: 1 }))]) {
-        const session = get(ws.sessions, entry.sessionId);
-        const file = get(ws.files, entry.fileId) as Recording | undefined;
-        if (!session || !file) continue;
-        found[entry.list].push({
-          companyId: c.id,
-          companyName: c.name,
-          engagementId: session.engagementId,
-          sessionId: session.id,
-          sessionTitle: session.title,
-          recording: file,
-          line: retentionText(retentionOf(ws, file, at, ready), session.timeZone),
-          reason: 'why' in entry ? deletionReasonFor(entry.why) : null,
-          readOnly: c.access === 'read-only',
-        });
-      }
-    } catch {
-      continue;
-    }
-    due.push(...found[0]);
-    waiting.push(...found[1]);
+  for (const lists of found) {
+    if (!lists) continue;
+    due.push(...lists[0]);
+    waiting.push(...lists[1]);
   }
   return { due, waiting };
+}
+
+/** One client's recordings past their time and waiting, or null if it can't be read. */
+async function listOne(c: CompanySummary, at: string): Promise<Listed[][] | null> {
+  if (c.access === 'unreadable' || !c.name) return null;
+  let ws: CompanyWorkspace;
+  try {
+    ws = (await openCompany(c.id)).workspace;
+  } catch {
+    return null;
+  }
+  // A transcript ready but not added keeps its recordings waiting "for adding" rather than "for a transcript".
+  const jobs = await listTranscriptions(c.id).catch(() => []);
+  const ready = new Set(jobs.filter((j) => j.state === 'done').flatMap((j) => j.recordingIds));
+  // A damaged file may not read as the model expects: that client is left out rather than hiding everyone else's.
+  const found: Listed[][] = [[], []];
+  try {
+    const { due: d, waiting: w } = recordingsPastTime(ws, at, ready);
+    for (const entry of [...d.map((x) => ({ ...x, list: 0 })), ...w.map((x) => ({ ...x, list: 1 }))]) {
+      const session = get(ws.sessions, entry.sessionId);
+      const file = get(ws.files, entry.fileId) as Recording | undefined;
+      if (!session || !file) continue;
+      found[entry.list].push({
+        companyId: c.id,
+        companyName: c.name,
+        engagementId: session.engagementId,
+        sessionId: session.id,
+        sessionTitle: session.title,
+        recording: file,
+        line: retentionText(retentionOf(ws, file, at, ready), session.timeZone),
+        reason: 'why' in entry ? deletionReasonFor(entry.why) : null,
+        readOnly: c.access === 'read-only',
+      });
+    }
+  } catch {
+    return null;
+  }
+  return found;
 }
 
 /**
