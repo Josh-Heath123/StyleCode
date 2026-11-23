@@ -112,7 +112,8 @@ export function DesignHost({
     const loaded = openDesign();
     if (loaded?.companyId === companyId && loaded.designId === designId) return shown();
     setOpening({ state: 'opening' });
-    openCompanyDesign(session, client, companyId, link)
+    // Called off if this page leaves, or asks for another design, before it opens (`alive`).
+    openCompanyDesign(session, client, companyId, link, () => alive)
       .then(() => {
         justOpened.current = true;
         shown();

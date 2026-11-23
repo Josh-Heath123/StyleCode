@@ -126,6 +126,7 @@ test('a finding whose session wasn’t told the AI may sketch the screens is lef
     BAKERY.findings.pay.statement,
     BAKERY.findings.notice.statement,
   ]);
+  expect((await new AxeBuilder({ page }).include('.assistant').analyze()).violations).toEqual([]);
   const [sent] = canvasRequests(from);
   expect(sent).not.toContain('Cake photos are shown large.');
   expect(sent).not.toContain('Nomsa');
@@ -152,6 +153,7 @@ test('a request on a model on this computer waits its turn behind a transcriptio
       'Waiting: a transcription is going on this computer, and one heavy job runs at a time. The AI starts when that finishes.',
     );
     await expect(panel.getByRole('button', { name: 'Stop' })).toBeVisible();
+    expect((await new AxeBuilder({ page }).include('.assistant').analyze()).violations).toEqual([]);
     // Nothing is sent to the model while it waits.
     expect(fake.requests.length).toBe(from);
   } finally {
@@ -173,6 +175,7 @@ test('a request on this computer lets a hot graphics card cool first, and Don’
     const panel = assistant(page);
     await expect(panel).toContainText('Letting the graphics card cool: 90 °C. It starts again when the card is under 75 °C.');
     expect(fake.requests.length).toBe(from);
+    expect((await new AxeBuilder({ page }).include('.assistant').analyze()).violations).toEqual([]);
     await panel.getByRole('button', { name: 'Don’t wait for the graphics card to cool' }).click();
     // The wait reads the card every 5 s, and goes on at its next reading (as an extraction run does).
     await expect(panel).toContainText('Review the changes', { timeout: 20_000 });

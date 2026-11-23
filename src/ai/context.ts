@@ -270,8 +270,12 @@ export function buildContext(
       spent += text.length + 1;
     }
     const more = ordered.length - shown.length;
-    if (more) findingLines.push(`- … ${more} more ${more === 1 ? 'finding' : 'findings'} not shown`);
-    findingLines.unshift('', "Confirmed findings from the client's record (short id, kind, statement):");
+    // None fits: the request goes as one without findings, with no findings section here, as its instructions and
+    // schema have none (decision 16).
+    if (shown.length) {
+      if (more) findingLines.push(`- … ${more} more ${more === 1 ? 'finding' : 'findings'} not shown`);
+      findingLines.unshift('', "Confirmed findings from the client's record (short id, kind, statement):");
+    }
     // A layer names only the findings shown.
     if (more) {
       const shownIds = new Set(shown.map((f) => f.id));

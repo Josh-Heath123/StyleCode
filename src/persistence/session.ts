@@ -424,9 +424,11 @@ export class ProjectSession {
    * nothing unsaved would be lost. From then on it saves through `target`, and
    * images come from its client's folder.
    */
-  async openCompanyDesign(target: CompanyDesignTarget, doc: DesignDocument): Promise<void> {
+  async openCompanyDesign(target: CompanyDesignTarget, doc: DesignDocument, wanted: () => boolean = () => true): Promise<void> {
     if (doc.id !== target.documentId) throw new Error('The design file is for another document.');
     if (!(await this.mayReplace())) throw new KeptOpenError(this.canSave);
+    // The page that asked for it has gone, or asked for another design, while the last one saved: it isn't opened.
+    if (!wanted()) throw new OpenCancelledError();
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     this.companyDocs.add(doc.id);
@@ -653,6 +655,14 @@ export class KeptOpenError extends Error {
         : 'Kept this design open. This browser isn’t letting StyleCode save, so save it to a file first.',
     );
     this.name = 'KeptOpenError';
+  }
+}
+
+/** Opening an engagement's design was called off: the page that asked for it left, or asked for another, first. */
+export class OpenCancelledError extends Error {
+  constructor() {
+    super('Opening the design was called off.');
+    this.name = 'OpenCancelledError';
   }
 }
 

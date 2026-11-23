@@ -59,6 +59,13 @@ export interface DesignSummary {
 export class DesignFiles {
   /** Designs and images written since the server started: a save never removes them, so undo and redo can't lose one. */
   private readonly written = new Set<string>();
+  /**
+   * When each design and image was last written in this server's life, in order (a count, not a clock). An image
+   * uploaded after the last save of the design being deleted is wanted by another design whose save may not have
+   * arrived yet, so the deletion leaves it.
+   */
+  private readonly lastWrite = new Map<string, number>();
+  private writes = 0;
 
   constructor(
     private readonly store: WorkspaceStore,
@@ -195,6 +202,7 @@ export class DesignFiles {
       );
       if (exists) throw new RequestError('A design with this id exists already.', 409);
       this.written.add(`${companyId}/${documentId}`);
+      this.lastWrite.set(`${companyId}/${documentId}`, ++this.writes);
       await replaceFile(path, bytes, this.options.retry);
       return { revision: revisionOf(bytes) };
     });
@@ -220,6 +228,7 @@ export class DesignFiles {
         throw new RequestError('This design changed in another tab. Reload it to carry on.', 409);
       }
       await replaceFile(join(this.folder(companyId), `${documentId}.previous.stylecode.json`), current, this.options.retry);
+      this.lastWrite.set(`${companyId}/${documentId}`, ++this.writes);
       await replaceFile(path, bytes, this.options.retry);
       return { revision: revisionOf(bytes) };
     });
@@ -237,6 +246,7 @@ export class DesignFiles {
       await this.ensureFolders(companyId);
       const path = join(this.folder(companyId), 'assets', id);
       this.written.add(`${companyId}/${id}`);
+      this.lastWrite.set(`${companyId}/${id}`, ++this.writes);
       const exists = await stat(path).then(
         () => true,
         () => false,
@@ -293,7 +303,8 @@ export class DesignFiles {
 
     const used = new Set<string>();
     let unreadable = false;
-    const freed = new Set<string>();
+    // Each image a deleted design used, with when that design was last written (0: not in this server's life).
+    const freed = new Map<string, number>();
     for (const name of names) {
       const match = /^(.+?)(\.previous)?\.stylecode\.json$/.exec(name);
       if (!match) continue;
@@ -322,11 +333,14 @@ export class DesignFiles {
         for (const id of assets) used.add(id);
         continue;
       }
-      for (const id of assets) freed.add(id);
+      const lastSaved = this.lastWrite.get(`${companyId}/${documentId}`) ?? 0;
+      for (const id of assets) freed.set(id, Math.max(freed.get(id) ?? 0, lastSaved));
       this.written.delete(`${companyId}/${documentId}`);
       await rm(path, { force: true, maxRetries: 5, retryDelay: 200 });
     }
 
+    // Forgotten only now: a design's last good copy (`.previous`) is read before the design itself.
+    for (const documentId of removed) this.lastWrite.delete(`${companyId}/${documentId}`);
     // With a design that couldn't be read, which images it uses is unknown: none is deleted this time.
     if (unreadable) return;
     const assetDir = join(dir, 'assets');
@@ -335,7 +349,10 @@ export class DesignFiles {
       if (!ASSET_ID.test(id) || used.has(id)) continue;
       const path = join(assetDir, id);
       if (!freed.has(id) && (this.written.has(`${companyId}/${id}`) || !(await old(path)))) continue;
+      // Uploaded again since the deleted design was last saved: another design is using it and may not have saved yet.
+      if (freed.has(id) && (this.lastWrite.get(`${companyId}/${id}`) ?? 0) > freed.get(id)!) continue;
       this.written.delete(`${companyId}/${id}`);
+      this.lastWrite.delete(`${companyId}/${id}`);
       await rm(join(assetDir, name), { force: true, maxRetries: 5, retryDelay: 200 });
     }
   }

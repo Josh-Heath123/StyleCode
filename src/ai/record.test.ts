@@ -122,10 +122,12 @@ describe('the record in the context (decisions 15 and 16)', () => {
     expect(section).toContain(`- … ${ctx.findings.notShown} more findings not shown`);
   });
 
-  it('uses only what the screen leaves: on a crowded screen, none fits, and no layer names one', () => {
+  it('uses only what the screen leaves: on a crowded screen, none fits, no layer names one, and there is no findings section', () => {
     const ctx = buildContext(screen(), ['pay'], { findings: offered, maxChars: 150 }) as AiContext;
-    expect(ctx.findings.shown).toEqual([]);
-    expect(ctx.text).toContain('- … 3 more findings not shown');
+    expect(ctx.findings).toMatchObject({ shown: [], notShown: 3 });
+    // The instructions and schema then have no findings (withFindings is false), so the context mentions none either.
+    expect(ctx.text).not.toContain('Confirmed findings');
+    expect(ctx.text).not.toContain('not shown');
     expect(ctx.text).not.toContain('findings=');
   });
 });
@@ -209,7 +211,7 @@ function source(findings: () => RecordFinding[], leftOut: string | null = null) 
   return { record, calls, wait: (w: AiWait | null) => onWait?.(w) };
 }
 
-function setup(record: RecordSource | null) {
+function setup(record: RecordSource | null, configs: () => AiConfig = () => CONFIG) {
   const editor = new Editor(screen());
   editor.select(['pay']);
   const assistant = new Assistant(editor);
@@ -220,7 +222,7 @@ function setup(record: RecordSource | null) {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/config')) return new Response(JSON.stringify(CONFIG), { status: 200 });
+      if (url.endsWith('/config')) return new Response(JSON.stringify(configs()), { status: 200 });
       bodies.push(JSON.parse(init!.body as string));
       return stream(replies.shift()!);
     }),
@@ -292,6 +294,57 @@ describe('the assistant with the record', () => {
     expect(calls.released).toBe(1);
     expect(assistant.getState()).toMatchObject({ status: 'error', error: expect.stringContaining('consent changed') });
     expect(editor.getState().doc).toBe(before);
+  });
+
+  it('takes its turn on the settings read now, not on what the tab last saw', async () => {
+    // The tab still holds an external provider; the settings were changed to Ollama in another tab.
+    const external: AiConfig = {
+      ...CONFIG,
+      provider: 'openai',
+      providers: { ...CONFIG.providers, openai: { ...CONFIG.providers.openai, model: 'gpt-x', hasKey: true } },
+    };
+    const asked: AiConfig[] = [];
+    const record: RecordSource = {
+      findings: () => ({ findings: [PAY], leftOut: null }),
+      href: (id) => id,
+      takeTurn: async (config) => {
+        asked.push(config);
+        return () => undefined;
+      },
+    };
+    const { assistant, bodies, replies } = setup(record);
+    assistant.setConfig(external);
+    replies.push(JSON.stringify({ explanation: 'Done.', operations: [], findings: [] }));
+    await assistant.ask('make it taller');
+    expect(asked.map((c) => c.provider)).toEqual(['ollama']);
+    expect(bodies[0]).toMatchObject({ provider: 'ollama' });
+  });
+
+  it('takes its turn again when the settings change while it waits', async () => {
+    const external: AiConfig = {
+      ...CONFIG,
+      provider: 'openai',
+      providers: { ...CONFIG.providers, openai: { ...CONFIG.providers.openai, model: 'gpt-x', hasKey: true } },
+    };
+    // External when first read, Ollama by the time the turn is over.
+    let reads = 0;
+    const asked: string[] = [];
+    let released = 0;
+    const record: RecordSource = {
+      findings: () => ({ findings: [PAY], leftOut: null }),
+      href: (id) => id,
+      takeTurn: async (config) => {
+        asked.push(config.provider);
+        return () => released++;
+      },
+    };
+    const { assistant, bodies, replies } = setup(record, () => (reads++ === 0 ? external : CONFIG));
+    replies.push(JSON.stringify({ explanation: 'Done.', operations: [], findings: [] }));
+    await assistant.ask('make it taller');
+    expect(asked).toEqual(['openai', 'ollama']);
+    expect(released).toBe(2);
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]).toMatchObject({ provider: 'ollama' });
   });
 
   it('the standalone editor has no record: no turn, no findings, no pinning', async () => {

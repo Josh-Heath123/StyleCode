@@ -219,21 +219,32 @@ export class Assistant {
     let release: () => void = () => undefined;
 
     try {
-      // On an engagement's design, a request on a model on this computer takes its turn first, after a hot graphics
-      // card has cooled (decision 17). The standalone editor doesn't wait (decision 18).
+      // On an engagement's design, the settings are read again, and a request on a model on this computer takes its
+      // turn first, after a hot graphics card has cooled (decision 17). The turn is decided on the settings read now,
+      // not on what this tab last saw, and read once more after it: if they changed while waiting, the turn is taken
+      // again for the new ones. The findings are then checked for exactly those settings, and the request pinned to
+      // them, so a change in AI settings can't send the record elsewhere (decision 14; rules C5, C6). The standalone
+      // editor doesn't wait (decision 18).
+      let current = config;
       if (record) {
         this.skipCooling = false;
-        release = await record.takeTurn(config, {
-          signal: controller.signal,
-          onWait: (wait) => this.set({ wait }),
-          skipCooling: () => this.skipCooling,
-        });
+        current = await getAiConfig();
         if (controller.signal.aborted) return;
+        for (;;) {
+          release = await record.takeTurn(current, {
+            signal: controller.signal,
+            onWait: (wait) => this.set({ wait }),
+            skipCooling: () => this.skipCooling,
+          });
+          if (controller.signal.aborted) return;
+          const after = await getAiConfig();
+          if (controller.signal.aborted) return;
+          if (sameTarget(after, current)) break;
+          release();
+          release = () => undefined;
+          current = after;
+        }
       }
-      // On an engagement's design, the settings are read again now, the findings checked for exactly them, and the
-      // request pinned to them, so a change in AI settings can't send the record elsewhere (decision 14; rules C5, C6).
-      const current = record ? await getAiConfig() : config;
-      if (controller.signal.aborted) return;
       if (record && current.provider === 'off') {
         this.set({ status: 'error', phase: null, error: 'AI is turned off. Turn it on in AI settings.' });
         return;
@@ -411,4 +422,17 @@ export class Assistant {
     if (this.state.status === 'review') return this.reject();
     this.set({ ...IDLE, request: this.state.request });
   }
+}
+
+/** Whether two AI settings send a request to the same place: provider, address, model and, for Ollama, context size. */
+function sameTarget(a: AiConfig, b: AiConfig): boolean {
+  if (a.provider !== b.provider) return false;
+  if (a.provider === 'off' || b.provider === 'off') return true;
+  const x = a.providers[a.provider];
+  const y = b.providers[b.provider];
+  return (
+    x.baseUrl === y.baseUrl &&
+    x.model === y.model &&
+    (a.provider !== 'ollama' || a.providers.ollama.contextSize === b.providers.ollama.contextSize)
+  );
 }

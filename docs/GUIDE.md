@@ -408,7 +408,7 @@ An engagement's designs are kept with the client, in its folder, not in the brow
 - If its client or engagement is deleted while it is open, the design closes without saving, and says why.
 - A design that can't be opened, because its file is damaged or its client opens read-only, is listed with the reason and **Download**. It isn't opened, and never saved over.
 
-**Deleting** a design is permanent: it removes the design and the images no other design of that client uses. Deleting an engagement or a client removes its designs.
+**Deleting** a design is permanent: it removes the design and the images no other design of that client uses. An image another open design has just added is kept, even before that design has saved. Deleting an engagement or a client removes its designs.
 
 **The record beside the canvas.** With a client's design open, the **Record** panel beside the layers lists the engagement's findings in the record's groups, with their kind and status and a filter. <kbd>Alt</kbd>+<kbd>R</kbd> shows or hides it, as does the top bar's menu. It is read-only: **Open the record to change findings**. Only this engagement's findings are there.
 
@@ -417,7 +417,7 @@ An engagement's designs are kept with the client, in its folder, not in the brow
 **The AI with the record.** On a client's design, the AI (see [Working with the AI](#working-with-the-ai)) is also given the engagement's record:
 - **Only confirmed findings, and only their statement and kind.** Never assumptions, open or suggested findings, proposals waiting for review, quotes, notes, transcripts or recordings.
 - **Only where consent allows it.** A finding goes only if every session it rests on allows the AI set up now (on this computer, or the provider the client named), and the client was told "I may also use AI to help sketch the screens from what we agree" (see step 4 of [Running a consultation](#running-a-consultation)). A finding you entered without citing any session goes only to an AI on this computer. This is checked again before every request.
-- **At most a third of the room.** The screen comes first. Findings linked to the layers you selected come next, then the kinds most useful to a design. What doesn't fit is counted: "… 6 more findings not shown".
+- **At most a third of the room.** The screen comes first. Findings linked to the layers you selected come next, then the kinds most useful to a design. What doesn't fit is counted: "… 6 more findings not shown". If none fits, the request goes without findings.
 
 The assistant says how many findings were left out and why, for example "1 finding left out: the client wasn't told the AI may help sketch the screens." With its proposal, **Drew on:** lists the findings the AI says it used, each a link to the record. That is the model's own account, so check it against the change.
 
