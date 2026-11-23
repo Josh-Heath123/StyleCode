@@ -297,24 +297,6 @@ async function dressOrderPage(page: Page) {
   }, BAKERY.layers);
 }
 
-test('a client’s design beside its record, a layer showing its findings', async ({ page }) => {
-  await page.goto('/');
-  const { id } = await harbourBakery(page, 'Harbour Bakery');
-  await openOrderPage(page, id);
-  await expect(page.getByRole('complementary', { name: 'Record' })).toBeVisible();
-  await dressOrderPage(page);
-  await page.evaluate((pay) => (window as any).stylecode.editor.select([pay]), BAKERY.layers.pay);
-  // Every operation applied: the order page's own layers and the copies.
-  await expect
-    .poll(() => page.evaluate(() => Object.keys((window as any).stylecode.editor.getState().doc.nodes).length))
-    .toBeGreaterThan(15);
-  await focusOn(page, BAKERY.layers.frame, 0.43, 20);
-  await page.waitForTimeout(600);
-  await shot(page, 'design-and-record');
-  await page.goto('/');
-  expect((await forget(page, id, 'Harbour Bakery')).ok()).toBe(true);
-});
-
 test('the canvas AI drawing on the record, saying which findings and how many were left out', async ({ page }) => {
   await page.goto('/');
   await useScriptedModel(page, fake);

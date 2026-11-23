@@ -23,13 +23,9 @@ The AI in these pictures is a scripted stand-in model, so they can be made again
 
 **Transcribe on your own computer,** with an NVIDIA graphics card. Match each speaker to a participant, and see which words may be misheard before you rely on them.
 
-![The editor on Harbour Bakery's order page, a cake checkout. On the left, the Record panel lists the engagement's findings in groups (confirmed, assumptions, open). The Pay button is selected, and its properties show the finding it is linked to: "Customers pay online when they order", a confirmed functional requirement.](docs/media/design-and-record.png)
+![The editor on Harbour Bakery's order page, a cake checkout, with the Pay button and its label selected. On the left, the Record panel lists the engagement's findings in groups (confirmed, assumptions, open); "Customers pay online when they order" and "Orders need two days' notice" each show "1 layer linked". The assistant's proposal, outlined in orange on the canvas, changes the label to "Pay R 450 online and order". Its review panel explains the change, lists under "Drew on:" those two findings, each a link to the record, and says "1 finding left out: the client wasn't told the AI may help sketch the screens." The Record panel still lists that finding, "Cake photos are shown large".](docs/media/canvas-ai-record.png)
 
-**Design with the record beside the canvas.** Link a layer to the findings it answers, and see the link from both sides.
-
-![The same order page with the Pay button and its label selected. The assistant's proposal, outlined in orange on the canvas, changes the label to "Pay R 450 online and order". Its review panel explains the change, lists under "Drew on:" the two findings it used, "Customers pay online when they order" and "Orders need two days' notice", each a link to the record, and says "1 finding left out: the client wasn't told the AI may help sketch the screens." The Record panel beside it still lists that finding, "Cake photos are shown large".](docs/media/canvas-ai-record.png)
-
-**Ask the AI with the record in mind.** On a client's design, the AI is also given the engagement's confirmed findings, statement and kind only, and only those whose sessions' consent allows it. It says which findings it drew on, each a link to the record, and how many it left out and why.
+**Design with the record beside the canvas, and ask the AI with it in mind.** Link a layer to the findings it answers, and see the link from both sides. On a client's design, the AI is also given the engagement's confirmed findings, statement and kind only, and only those whose sessions' consent allows it. It says which findings it drew on, each a link to the record, and how many it left out and why.
 
 ![The editor on an example landing page: a note pinned to a card reads "Make this card stand out: brand blue, white text". The AI's proposal is outlined in orange on the card, the review bar explains the change and offers Accept or Reject, and the card's HTML and CSS are open beside the canvas.](docs/media/editor.png)
 

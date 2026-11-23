@@ -53,6 +53,10 @@ Canvas requests (Phase 4, after the live check's first run, `docs/research/CANVA
 
 So no code changed: gating `think` on `/api/show` listing the `thinking` capability isn't needed for the Ollama in use. *For the brief:* whether to gate it anyway, for consultants on older Ollama releases, or instead to state the oldest Ollama StyleCode supports.
 
+## The hygiene check reads compressed image bytes as text
+
+`scripts/hygiene.ts` looks for email addresses in a binary file's whole content (ASCII only, `ASCII_EMAIL`). In Phase 4's WP11 that matched random bytes in `docs/media/canvas-ai-record.png`'s compressed image data (`Q…@sm.Oo`): a false alarm, worked around by moving the demo's camera 4 px (`e2e/demos/workspace.demo.ts`, `cd55055`) so the bytes came out differently. Any re-recorded picture can hit it again, by chance. *For the brief:* in images, scan only the chunks that hold text for addresses (PNG's `tEXt`, `iTXt` and `zTXt`, the last two decompressed where compressed, and `eXIf`; their equivalents in JPEG and GIF), not the pixel data, without weakening the check for text files. Each part needs a test: an address in each text chunk is still refused, and the bytes that matched in WP11 pass.
+
 ## Flakes to watch
 
 Seen once each, not yet explained. None is retried or skipped; each fails its run if it comes back.
