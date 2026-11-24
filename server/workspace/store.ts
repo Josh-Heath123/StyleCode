@@ -114,6 +114,8 @@ export class WorkspaceStore {
   private readonly queues = new Map<string, Promise<unknown>>();
   /** Files uploaded since the server started. A save never removes them, so undo and redo can't lose one. */
   private readonly uploaded = new Set<string>();
+  /** Every company's name by id, once read (`knownNames`). */
+  private names: Map<string, string> | null = null;
   /** Run inside the company's queue after a permanent save: the design files clear up what the client no longer lists. */
   readonly afterPermanentSave: ((companyId: string, before: CompanyWorkspace, after: CompanyWorkspace) => Promise<void>)[] = [];
 
@@ -233,12 +235,30 @@ export class WorkspaceStore {
         activeEngagements: Object.values(parsed.workspace.engagements).filter((e) => e?.status?.state === 'active').length,
       });
     }
+    // A client folder put in the data folder by hand while the server runs joins the known names. Only
+    // ids not known yet are added: this read may predate a rename or delete still in the queue.
+    if (this.names) for (const c of out) if (c.name !== null && !this.names.has(c.id)) this.names.set(c.id, c.name);
     return out.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '') || a.id.localeCompare(b.id));
   }
 
-  /** The names of every company except one, for keeping names unique (MVP Q4). */
+  /**
+   * Every company's name by id, read from the folder once and then kept up to
+   * date by create, rename and delete, each inside the `names` queue (Phase 5,
+   * decision 24). So a create no longer reads every client's file. A company
+   * whose file can't be read has no name, as in the list.
+   */
+  private async knownNames(): Promise<Map<string, string>> {
+    if (!this.names) {
+      const names = new Map<string, string>();
+      for (const c of await this.list()) if (c.name !== null) names.set(c.id, c.name);
+      this.names = names;
+    }
+    return this.names;
+  }
+
+  /** The names of every company except one, for keeping names unique (MVP Q4). Runs inside the `names` queue. */
   private async otherNames(exceptId: string | null): Promise<string[]> {
-    return (await this.list()).flatMap((c) => (c.name === null || c.id === exceptId ? [] : [c.name]));
+    return [...(await this.knownNames())].flatMap(([id, name]) => (id === exceptId ? [] : [name]));
   }
 
   /** Creates a company, refusing a name another company already has (ignoring case). */
@@ -263,6 +283,7 @@ export class WorkspaceStore {
       await mkdir(join(folder, 'files'), { mode: 0o700 });
       const bytes = JSON.stringify(workspace);
       await this.replaceFile(join(folder, 'workspace.json'), bytes);
+      (await this.knownNames()).set(workspace.company.id, workspace.company.name);
       return { access: 'editable', workspace, problems: [], revision: revisionOf(bytes) };
     });
   }
@@ -307,44 +328,62 @@ export class WorkspaceStore {
       if (workspace.company?.id !== companyId) throw new RequestError('The workspace belongs to another client.', 400);
       const check = checkBeforeSave(workspace);
       if (!check.ok) throw new ProblemsError(check.error, 422, check.problems);
-      if (workspace.company.name.trim().toLocaleLowerCase() !== onDisk.workspace.company.name.trim().toLocaleLowerCase()) {
-        const names = await this.serial('names', () => this.otherNames(companyId));
-        if (!isCompanyNameFree(workspace.company.name, names)) {
+      if (workspace.company.name === onDisk.workspace.company.name)
+        return this.write(companyId, current, onDisk.workspace, workspace, permanent);
+      // A rename: the check, the write and the known names change together in the `names` queue,
+      // so a create can't take the new name between the check and the write.
+      return this.serial('names', async () => {
+        const sameIgnoringCase =
+          workspace.company.name.trim().toLocaleLowerCase() === onDisk.workspace.company.name.trim().toLocaleLowerCase();
+        if (!sameIgnoringCase && !isCompanyNameFree(workspace.company.name, await this.otherNames(companyId))) {
           throw new RequestError(`There is already a client called ${workspace.company.name.trim()}.`, 409);
         }
-      }
-
-      const removed = (map: (typeof PERMANENT_MAPS)[number]) =>
-        Object.keys(onDisk.workspace[map]).filter((id) => !Object.hasOwn(workspace[map], id));
-      const removedFiles = removed('files');
-      const isPermanent = permanent || PERMANENT_MAPS.some((map) => removed(map).length > 0);
-
-      const bytes = JSON.stringify(workspace);
-      const main = join(folder, 'workspace.json');
-      const previous = join(folder, 'workspace.previous.json');
-      if (isPermanent) {
-        // The previous copy first: if it can't take the new state, it is removed, and if even that fails
-        // the save stops before anything changes, so deleted data is never left only in the previous copy.
-        try {
-          await this.replaceFile(previous, bytes);
-        } catch (error) {
-          await rm(previous, { force: true, maxRetries: 5, retryDelay: 200 }).catch(() => {
-            throw error;
-          });
-        }
-        await this.replaceFile(main, bytes);
-        for (const id of removedFiles) {
-          this.uploaded.delete(`${companyId}/${id}`);
-          if (isSafeId(id)) await this.deleteBytes(companyId, id);
-        }
-        await this.removeOrphanedFiles(companyId, workspace);
-        for (const hook of this.afterPermanentSave) await hook(companyId, onDisk.workspace, workspace);
-      } else {
-        await this.replaceFile(previous, current);
-        await this.replaceFile(main, bytes);
-      }
-      return { revision: revisionOf(bytes) };
+        const result = await this.write(companyId, current, onDisk.workspace, workspace, permanent);
+        (await this.knownNames()).set(companyId, workspace.company.name);
+        return result;
+      });
     });
+  }
+
+  /** Writes a checked save (`save`). Runs inside the company's queue. */
+  private async write(
+    companyId: string,
+    current: Buffer,
+    before: CompanyWorkspace,
+    workspace: CompanyWorkspace,
+    permanent: boolean,
+  ): Promise<{ revision: string }> {
+    const folder = this.folderOf(companyId);
+    const removed = (map: (typeof PERMANENT_MAPS)[number]) =>
+      Object.keys(before[map]).filter((id) => !Object.hasOwn(workspace[map], id));
+    const removedFiles = removed('files');
+    const isPermanent = permanent || PERMANENT_MAPS.some((map) => removed(map).length > 0);
+
+    const bytes = JSON.stringify(workspace);
+    const main = join(folder, 'workspace.json');
+    const previous = join(folder, 'workspace.previous.json');
+    if (isPermanent) {
+      // The previous copy first: if it can't take the new state, it is removed, and if even that fails
+      // the save stops before anything changes, so deleted data is never left only in the previous copy.
+      try {
+        await this.replaceFile(previous, bytes);
+      } catch (error) {
+        await rm(previous, { force: true, maxRetries: 5, retryDelay: 200 }).catch(() => {
+          throw error;
+        });
+      }
+      await this.replaceFile(main, bytes);
+      for (const id of removedFiles) {
+        this.uploaded.delete(`${companyId}/${id}`);
+        if (isSafeId(id)) await this.deleteBytes(companyId, id);
+      }
+      await this.removeOrphanedFiles(companyId, workspace);
+      for (const hook of this.afterPermanentSave) await hook(companyId, before, workspace);
+    } else {
+      await this.replaceFile(previous, current);
+      await this.replaceFile(main, bytes);
+    }
+    return { revision: revisionOf(bytes) };
   }
 
   private async deleteBytes(companyId: string, fileId: string): Promise<void> {
@@ -397,6 +436,7 @@ export class WorkspaceStore {
       // Move it out of the list first, so a deletion interrupted by a busy file can't leave half a client.
       const doomed = join(this.companies, `.deleting-${companyId}-${randomBytes(4).toString('hex')}`);
       await renameWithRetry(folder, doomed, this.options.retry);
+      await this.serial('names', async () => void (await this.knownNames()).delete(companyId));
       for (const key of this.uploaded) if (key.startsWith(`${companyId}/`)) this.uploaded.delete(key);
       await rm(doomed, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }).catch(() => undefined);
     });
