@@ -1,5 +1,5 @@
 import type { AiConfig } from '../../../ai/client';
-import type { RecordSource } from '../../../ai/record';
+import type { LocalTurn, RecordSource } from '../../../ai/record';
 import { getTranscriptionStatus } from '../../api';
 import { classifyProvider } from '../../model/consent';
 import { findingsForDesign, leftOutMessage } from '../../model/designContext';
@@ -37,6 +37,16 @@ export function canvasRecord(client: WorkspaceSession, companyId: string, engage
       };
     },
     href: (findingId) => routeHref({ page: 'record', companyId, engagementId, findingId }),
+    ...localTurn(),
+  };
+}
+
+/**
+ * This computer's heavy slot for a canvas request: on an engagement's design (decision 17) and in the standalone
+ * editor (Workspace Phase 5, decision 24).
+ */
+export function localTurn(): LocalTurn {
+  return {
     async takeTurn(config, { signal, onWait, skipCooling }) {
       // Only a model on this computer takes the heavy slot; requests to an external provider don't (decision 17).
       if (processingOf(config)?.kind !== 'local') return () => undefined;

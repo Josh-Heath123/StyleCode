@@ -10,6 +10,7 @@ import { createDocument } from './model/document';
 import { ProjectSession } from './persistence/session';
 import { loadFonts } from './styles/fonts';
 import { getWorkspaceInfo } from './workspace/api';
+import { localTurn } from './workspace/ui/designs/canvasAi';
 import { Shell } from './workspace/ui/Shell';
 import './styles/app.css';
 
@@ -82,6 +83,9 @@ async function start(container: HTMLElement) {
   // AI is optional: its settings load in the background and the app works without them.
   const assistant = new Assistant(editor);
   void assistant.refresh();
+  // With the workspace server, the standalone editor's requests on a model on this computer take the heavy slot too
+  // (Workspace Phase 5, decision 24). A static build has no server, and no slot to take.
+  if (info) assistant.setTurn(localTurn());
 
   if (import.meta.env.DEV || new URLSearchParams(location.search).has('debug')) {
     // Exposes the editor to the browser console and to automated tests.

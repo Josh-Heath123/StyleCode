@@ -7,7 +7,7 @@ import type { AiConfig } from './client';
 import { buildContext, type AiContext } from './context';
 import { systemPrompt } from './prompt';
 import { findingsDrawnOn, interpret } from './proposal';
-import { orderFindings, type AiWait, type RecordFinding, type RecordSource } from './record';
+import { orderFindings, type AiWait, type LocalTurn, type RecordFinding, type RecordSource } from './record';
 import { responseSchema } from './schema';
 
 /** The canvas AI with the engagement's record (Workspace Phase 4, decisions 14 to 17). */
@@ -347,7 +347,7 @@ describe('the assistant with the record', () => {
     expect(bodies[0]).toMatchObject({ provider: 'ollama' });
   });
 
-  it('the standalone editor has no record: no turn, no findings, no pinning', async () => {
+  it('the standalone editor without the workspace server (a static build): no turn, no findings, no pinning', async () => {
     const { assistant, bodies, replies } = setup(null);
     replies.push(JSON.stringify({ explanation: 'Done.', operations: [{ op: 'update', id: 'e2', set: { height: 56 } }] }));
     await assistant.ask('make it taller');
@@ -379,6 +379,43 @@ describe('the assistant with the record', () => {
     expect(assistant.getState()).toMatchObject({ status: 'idle', wait: null });
     expect(started).not.toBeNull();
     expect(release).toBe(0);
+  });
+
+  it('the standalone editor takes the heavy slot too, on the settings read now, but sends no findings and isn’t pinned (Phase 5, decision 24)', async () => {
+    const asked: string[] = [];
+    let released = 0;
+    let waitSeen: AiWait | null = null;
+    const turn: LocalTurn = {
+      takeTurn: async (config, { onWait }) => {
+        asked.push(config.provider);
+        onWait({ message: 'Waiting: an AI run is going on this computer.', cooling: false });
+        waitSeen = assistant.getState().wait;
+        onWait(null);
+        return () => released++;
+      },
+    };
+    const { assistant, bodies, replies } = setup(null);
+    assistant.setTurn(turn);
+    replies.push(JSON.stringify({ explanation: 'Done.', operations: [{ op: 'update', id: 'e2', set: { height: 56 } }] }));
+    await assistant.ask('make it taller');
+    expect(asked).toEqual(['ollama']);
+    expect(waitSeen).toMatchObject({ message: 'Waiting: an AI run is going on this computer.' });
+    expect(released).toBe(1);
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]).not.toHaveProperty('provider');
+    expect((bodies[0] as { system: string }).system).toBe(systemPrompt());
+    expect(assistant.getState()).toMatchObject({ status: 'review', drewOn: [], leftOut: null, wait: null });
+  });
+
+  it('on an engagement’s design, the record’s turn is taken, not the standalone one', async () => {
+    let standalone = 0;
+    const { record, calls } = source(() => []);
+    const { assistant, replies } = setup(record);
+    assistant.setTurn({ takeTurn: async () => (standalone++, () => undefined) });
+    replies.push(JSON.stringify({ explanation: 'Done.', operations: [] }));
+    await assistant.ask('anything');
+    expect(calls.turns).toBe(1);
+    expect(standalone).toBe(0);
   });
 
   it('“Don’t wait” is passed to the cooling wait', async () => {

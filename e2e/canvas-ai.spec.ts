@@ -13,7 +13,7 @@ import { E2E_GPU_TEMPERATURE } from './workspacePath';
 /**
  * The canvas AI with the engagement's record (Workspace Phase 4, decisions 14 to 18), against the fake Ollama: it
  * draws on the confirmed findings it may use and says which, says how many were left out by consent and why, takes
- * its turn behind a transcription, and the standalone editor is as it was. All role-played.
+ * its turn behind a transcription, and the standalone editor takes its turn too but has no record. All role-played.
  */
 
 // One heavy job at a time on the one test server (decision 17): these tests run in the heavy jobs project.
@@ -185,8 +185,9 @@ test('a request on this computer lets a hot graphics card cool first, and Don’
   await page.keyboard.press('Escape');
 });
 
-test('the standalone editor is as it was: no findings, no consent check, no waiting for the slot', async ({ page }) => {
-  // Something holds the heavy slot; the standalone editor's request doesn't wait for it.
+test('the standalone editor waits its turn for the slot too, then sends no findings and no consent check', async ({ page }) => {
+  // Something holds the heavy slot: the standalone editor's request on a model on this computer waits for it too
+  // (Workspace Phase 5, decision 24), and runs when it's let go.
   const lease = (await (
     await page.request.post('/api/workspace/heavy', { headers: HEADERS, data: { kind: 'extraction' } })
   ).json()) as { id: string };
@@ -216,7 +217,15 @@ test('the standalone editor is as it was: no findings, no consent check, no wait
     );
     await select(page, [doc.nodes[doc.rootId].children[0]]);
     await ask(page, 'make it dark');
-    await expect(assistant(page)).toContainText('No changes');
+    const panel = assistant(page);
+    await expect(panel).toContainText(
+      'Waiting: an AI run is going on this computer, and one heavy job runs at a time. The AI starts when that finishes.',
+    );
+    await expect(panel.getByRole('button', { name: 'Stop' })).toBeVisible();
+    expect((await new AxeBuilder({ page }).include('.assistant').analyze()).violations).toEqual([]);
+    expect(sent).toHaveLength(0);
+    await page.request.delete(`/api/workspace/heavy/${lease.id}`, { headers: HEADERS });
+    await expect(panel).toContainText('No changes');
     expect(sent).toHaveLength(1);
     const body = sent[0] as { system: string; schema: { properties: Record<string, unknown> }; messages: { content: string }[] };
     expect(body).not.toHaveProperty('provider');

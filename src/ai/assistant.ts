@@ -7,7 +7,7 @@ import { AiUnavailableError, chat, getAiConfig, type AiConfig } from './client';
 import { buildContext, resolveTarget, type AiContext, type AiTarget } from './context';
 import { repairMessage, systemPrompt, userMessage } from './prompt';
 import { interpret, streamedExplanation, type Proposal } from './proposal';
-import type { AiWait, RecordFinding, RecordSource } from './record';
+import type { AiWait, LocalTurn, RecordFinding, RecordSource } from './record';
 import { responseSchema } from './schema';
 
 /**
@@ -102,6 +102,8 @@ export class Assistant {
   private settling = false;
   /** The engagement's record, while one of its designs is open; null in the standalone editor (decision 18). */
   private record: RecordSource | null = null;
+  /** The heavy slot for requests with no record open (the standalone editor), when the workspace server runs. */
+  private turn: LocalTurn | null = null;
   /** The consultant chose not to wait for the graphics card to cool, for this request. */
   private skipCooling = false;
 
@@ -158,6 +160,11 @@ export class Assistant {
   /** The engagement's record, when one of its designs opens; null when it closes. */
   setRecord(record: RecordSource | null): void {
     this.record = record;
+  }
+
+  /** The heavy slot for the standalone editor's requests (Workspace Phase 5, decision 24); null without the workspace server. */
+  setTurn(turn: LocalTurn | null): void {
+    this.turn = turn;
   }
 
   /** Starts a request waiting for the graphics card to cool without waiting (Phase 3, decision 10). */
@@ -224,14 +231,16 @@ export class Assistant {
       // not on what this tab last saw, and read once more after it: if they changed while waiting, the turn is taken
       // again for the new ones. The findings are then checked for exactly those settings, and the request pinned to
       // them, so a change in AI settings can't send the record elsewhere (decision 14; rules C5, C6). The standalone
-      // editor doesn't wait (decision 18).
+      // editor's requests take the turn in the same way (Workspace Phase 5, decision 24, reversing Phase 4's decision
+      // 18 on this point), but have no findings and aren't pinned.
       let current = config;
-      if (record) {
+      const turn: LocalTurn | null = record ?? this.turn;
+      if (turn) {
         this.skipCooling = false;
         current = await getAiConfig();
         if (controller.signal.aborted) return;
         for (;;) {
-          release = await record.takeTurn(current, {
+          release = await turn.takeTurn(current, {
             signal: controller.signal,
             onWait: (wait) => this.set({ wait }),
             skipCooling: () => this.skipCooling,
@@ -245,7 +254,7 @@ export class Assistant {
           current = after;
         }
       }
-      if (record && current.provider === 'off') {
+      if (turn && current.provider === 'off') {
         this.set({ status: 'error', phase: null, error: 'AI is turned off. Turn it on in AI settings.' });
         return;
       }

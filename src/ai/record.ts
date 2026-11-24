@@ -33,19 +33,27 @@ export interface AiWait {
   cooling: boolean;
 }
 
-export interface RecordSource {
-  /** The findings this request may use, for the AI set up now. Called before every request. */
-  findings(config: AiConfig): FindingsForRequest;
-  /** Where a finding opens on the record page, for "Drew on". */
-  href(findingId: string): string;
+/**
+ * This computer's heavy slot, as a canvas request takes it: on an engagement's design (decision 17) and, since
+ * Workspace Phase 5 (decision 24), in the standalone editor too.
+ */
+export interface LocalTurn {
   /**
    * For a model on this computer: waits for the heavy slot and lets a hot graphics card cool, saying so through
-   * `onWait`. Resolves with a function that lets the slot go. Rejects if `signal` aborts.
+   * `onWait`. Resolves with a function that lets the slot go. Rejects if `signal` aborts. For any other AI, resolves
+   * at once.
    */
   takeTurn(
     config: AiConfig,
     options: { signal: AbortSignal; onWait: (wait: AiWait | null) => void; skipCooling: () => boolean },
   ): Promise<() => void>;
+}
+
+export interface RecordSource extends LocalTurn {
+  /** The findings this request may use, for the AI set up now. Called before every request. */
+  findings(config: AiConfig): FindingsForRequest;
+  /** Where a finding opens on the record page, for "Drew on". */
+  href(findingId: string): string;
 }
 
 /** Kinds most useful to a design first (decision 15); the rest after them. */
