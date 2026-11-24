@@ -2,7 +2,7 @@ import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 
 /**
- * A stand-in for Ollama that speaks its HTTP API (`/api/tags`, streaming
+ * A stand-in for Ollama that speaks its HTTP API (`/api/tags`, `/api/show`, streaming
  * `/api/chat`) and answers like a small, predictable model: it reads the
  * layers marked * in the request and picks its reply from words in the
  * request. Lets the end-to-end tests run the whole AI flow, through the real
@@ -196,15 +196,30 @@ async function readChat(req: http.IncomingMessage): Promise<FakeOllama['requests
  * model name; the tests use the defaults above.
  */
 export async function startFakeOllama(
-  options: { respond?: (body: FakeOllama['requests'][number]) => FakeReply; models?: string[] } = {},
+  options: { respond?: (body: FakeOllama['requests'][number]) => FakeReply; models?: string[]; thinking?: string[] } = {},
 ): Promise<FakeOllama> {
   const requests: FakeOllama['requests'] = [];
   const respond = options.respond ?? reply;
   const models = options.models ?? [FAKE_MODEL, 'other-model:3b'];
+  // Which models think, as /api/show says: the default model does, as qwen3 does; 'other-model:3b' doesn't.
+  const thinking = new Set(options.thinking ?? options.models ?? [FAKE_MODEL]);
   const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && req.url === '/api/tags') {
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ models: models.map((name) => ({ name })) }));
+      return;
+    }
+    if (req.method === 'POST' && req.url === '/api/show') {
+      let raw = '';
+      for await (const chunk of req) raw += chunk;
+      const model = (JSON.parse(raw || '{}') as { model?: string }).model ?? '';
+      if (!models.includes(model)) {
+        res.writeHead(404, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: `model '${model}' not found` }));
+        return;
+      }
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ capabilities: thinking.has(model) ? ['completion', 'thinking'] : ['completion'] }));
       return;
     }
     if (req.method === 'POST' && req.url === '/api/chat') {
@@ -225,8 +240,9 @@ export async function startFakeOllama(
       res.writeHead(200, { 'content-type': 'application/x-ndjson' });
       let closed = false;
       res.on('close', () => (closed = true));
-      // Like qwen3 with `think` left out: it reasons first, in message.thinking, which isn't part of the reply.
-      if (body.think !== false)
+      // A thinking model with `think` left out, like qwen3, reasons first, in message.thinking, which isn't part of
+      // the reply. A model without thinking never does.
+      if (thinking.has(body.model) && body.think !== false)
         for (const thought of ['Let me look at the layers', ' I may change.']) {
           if (closed) break;
           res.write(

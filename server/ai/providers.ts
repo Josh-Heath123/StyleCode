@@ -31,6 +31,7 @@ export interface ChatRequest {
   /**
    * Ollama only: false turns a thinking model's reasoning off, so the whole
    * reply budget goes to the answer. Left out, the model's default applies.
+   * Sent only to a model that thinks (`thinkFor`).
    */
   think?: boolean;
 }
@@ -232,7 +233,48 @@ export async function* streamChat(
   else yield* anthropicChat(settings, key, request, signal);
 }
 
+/** Whether each Ollama model thinks, by server address and model, once Ollama has said (`thinkFor`). */
+const modelThinks = new Map<string, boolean>();
+
+/**
+ * Asks Ollama whether a model thinks: true when `/api/show` lists the `thinking` capability, false when it lists
+ * capabilities without it, and null when it can't say (an error, or a release without capabilities).
+ */
+async function askThinks(settings: ProviderSettings, signal: AbortSignal): Promise<boolean | null> {
+  try {
+    const response = await post('ollama', settings, undefined, '/api/show', { model: settings.model }, signal);
+    if (!response.ok) return null;
+    const body = (await response.json()) as { capabilities?: unknown };
+    return Array.isArray(body.capabilities) ? body.capabilities.includes('thinking') : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `think` for an Ollama request (Workspace Phase 5, decision 24): sent only to a model that thinks, as Ollama's
+ * `/api/show` says, asked once per server and model; a model without thinking gets none, so no Ollama release can
+ * refuse it. When Ollama can't say, `think` is sent as asked, as before, and Ollama is asked again next time.
+ */
+async function thinkFor(
+  settings: ProviderSettings,
+  think: boolean | undefined,
+  signal: AbortSignal,
+): Promise<boolean | undefined> {
+  if (think === undefined) return undefined;
+  const key = `${settings.baseUrl}\n${settings.model}`;
+  let thinks = modelThinks.get(key);
+  if (thinks === undefined) {
+    const said = await askThinks(settings, signal);
+    if (said === null) return think;
+    modelThinks.set(key, said);
+    thinks = said;
+  }
+  return thinks ? think : undefined;
+}
+
 async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, signal: AbortSignal): AsyncGenerator<ChatPiece> {
+  const think = await thinkFor(settings, request.think, signal);
   const response = await post(
     'ollama',
     settings,
@@ -242,7 +284,7 @@ async function* ollamaChat(settings: ProviderSettings, request: ChatRequest, sig
       model: settings.model,
       stream: true,
       format: request.schema,
-      ...(request.think === undefined ? {} : { think: request.think }),
+      ...(think === undefined ? {} : { think }),
       messages: [{ role: 'system', content: request.system }, ...request.messages],
       options: { temperature: 0.2, num_ctx: settings.contextSize ?? 8192, num_predict: request.maxTokens },
     },

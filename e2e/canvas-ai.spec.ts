@@ -33,7 +33,7 @@ test.afterAll(async () => {
 });
 
 /** The page reads the AI settings as the fake model on this computer; the shared settings file isn't touched. */
-async function aiOnFake(page: Page) {
+async function aiOnFake(page: Page, model = FAKE_MODEL) {
   await page.route('**/api/ai/config', (route) =>
     route.request().method() === 'GET'
       ? route.fulfill({
@@ -41,7 +41,7 @@ async function aiOnFake(page: Page) {
             provider: 'ollama',
             configPath: '',
             providers: {
-              ollama: { baseUrl: fake.url, model: FAKE_MODEL, contextSize: 8192, hasKey: false, keySource: null },
+              ollama: { baseUrl: fake.url, model, contextSize: 8192, hasKey: false, keySource: null },
               openai: { baseUrl: 'https://api.openai.com/v1', model: '', hasKey: false, keySource: null },
               anthropic: { baseUrl: 'https://api.anthropic.com', model: '', hasKey: false, keySource: null },
             },
@@ -161,6 +161,19 @@ test('a request on a model on this computer waits its turn behind a transcriptio
   }
   // The transcription finishes, and the request runs.
   await expect(assistant(page)).toContainText('Review the changes', { timeout: 30_000 });
+  await page.keyboard.press('Escape');
+});
+
+test('a model without thinking is sent no "think" at all, and still answers (Phase 5, decision 24)', async ({ page }) => {
+  // The fake's other model lists no thinking capability in /api/show; Ollama is asked, and the request leaves think out.
+  await aiOnFake(page, 'other-model:3b');
+  const { id } = await harbourBakery(page);
+  await openOrderPage(page, id, BAKERY.layers.pay);
+  const from = fake.requests.length;
+  await ask(page, 'make paying obvious, from the record');
+  await expect(assistant(page)).toContainText('Review the changes');
+  expect(fake.requests[from].model).toBe('other-model:3b');
+  expect(fake.requests[from]).not.toHaveProperty('think');
   await page.keyboard.press('Escape');
 });
 

@@ -272,8 +272,62 @@ describe('providers', () => {
     });
   });
 
+  describe('"think" goes only to a model that thinks (Phase 5, decision 24)', () => {
+    /** The fake Ollama: /api/show lists each model's capabilities as `capabilities` says; /api/chat answers "{}". */
+    function ollamaWith(capabilities: Record<string, string[] | null>) {
+      fake.respond = (seen, res) => {
+        if (seen.url === '/api/show') {
+          const model = String(seen.body?.model);
+          if (!(model in capabilities)) return void ((res.statusCode = 404), res.end('{"error":"model not found"}'));
+          const listed = capabilities[model];
+          return void res.end(JSON.stringify(listed === null ? { details: {} } : { details: {}, capabilities: listed }));
+        }
+        res.setHeader('content-type', 'application/x-ndjson');
+        res.end(`${JSON.stringify({ message: { role: 'assistant', content: '{}' }, done: true, done_reason: 'stop' })}\n`);
+      };
+    }
+    const chatOn = (model: string) =>
+      chat({ provider: 'ollama', settings: { baseUrl: fake.url, model }, think: false, schema: { type: 'object' } });
+    const chats = () => fake.seen.filter((s) => s.url === '/api/chat');
+    const shows = (model: string) => fake.seen.filter((s) => s.url === '/api/show' && s.body?.model === model).length;
+
+    it('a thinking model gets think: false, and Ollama is asked once per model', async () => {
+      ollamaWith({ 'thinker:4b': ['completion', 'thinking'] });
+      await chatOn('thinker:4b');
+      await chatOn('thinker:4b');
+      expect(chats().map((s) => s.body?.think)).toEqual([false, false]);
+      expect(shows('thinker:4b')).toBe(1);
+    });
+
+    it('a model without thinking gets no think at all', async () => {
+      ollamaWith({ 'plain:4b': ['completion', 'vision'] });
+      await chatOn('plain:4b');
+      expect(chats().at(-1)!.body).not.toHaveProperty('think');
+      expect(shows('plain:4b')).toBe(1);
+    });
+
+    it('when Ollama can’t say (no capabilities, or an error), think is sent as asked, and asked again next time', async () => {
+      ollamaWith({ 'old:1b': null });
+      await chatOn('old:1b');
+      await chatOn('old:1b');
+      expect(chats().map((s) => s.body?.think)).toEqual([false, false]);
+      expect(shows('old:1b')).toBe(2);
+      ollamaWith({});
+      await chatOn('missing:1b');
+      expect(chats().at(-1)!.body).toMatchObject({ think: false });
+    });
+
+    it('a request that doesn’t ask for think doesn’t ask Ollama', async () => {
+      ollamaWith({ 'quiet:4b': ['completion', 'thinking'] });
+      await chat({ provider: 'ollama', settings: { baseUrl: fake.url, model: 'quiet:4b' } });
+      expect(chats().at(-1)!.body).not.toHaveProperty('think');
+      expect(shows('quiet:4b')).toBe(0);
+    });
+  });
+
   it('uses the provider and model a request pins, and passes "think" to Ollama only', async () => {
-    fake.respond = (_seen, res) => {
+    fake.respond = (seen, res) => {
+      if (seen.url === '/api/show') return void res.end(JSON.stringify({ capabilities: ['completion', 'thinking'] }));
       res.setHeader('content-type', 'application/x-ndjson');
       res.end(`${JSON.stringify({ message: { role: 'assistant', content: '{}' }, done: true, done_reason: 'stop' })}\n`);
     };
