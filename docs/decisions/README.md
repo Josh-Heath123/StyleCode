@@ -15,3 +15,4 @@ An ADR is **Proposed** until the user accepts it. Accepted ADRs aren't reopened 
 | [0007](0007-editor-projects-and-engagement-designs.md) | Editor projects stay in IndexedDB; engagement designs are copied into the company | Accepted |
 | [0008](0008-local-api-security.md) | The workspace API has the AI server's protections, plus file-safety rules | Accepted |
 | [0009](0009-data-protection.md) | OS disk encryption now; no app-level encryption yet | Accepted |
+| [0010](0010-technology-catalogue.md) | The technology catalogue: shipped, sourced, dated, read-only, with no client data | Proposed |

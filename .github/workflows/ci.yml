@@ -72,6 +72,8 @@ jobs:
         run: npm run check:hygiene
       - name: Colours through the tokens, orange only for the AI (docs/brand/IDENTITY.md)
         run: npm run check:tokens
+      - name: The technology catalogue (src/catalogue/validate.ts)
+        run: npm run check:catalogue
       - name: Links, anchors and the README's figures (scripts/readme.ts)
         run: npm run check:readme
       - name: Third-party notices up to date
