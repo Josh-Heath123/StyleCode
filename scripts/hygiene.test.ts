@@ -1,8 +1,10 @@
+import { deflateSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import {
   addedDependencies,
   commitProblems,
   fileProblems,
+  imageText,
   isBinary,
   isNoreply,
   mediaOrArchive,
@@ -94,6 +96,83 @@ describe('files', () => {
       expect(problems.some((p) => p.includes('user’s folder'))).toBe(true);
       expect(problems.some((p) => p.includes('email address'))).toBe(true);
     }
+  });
+});
+
+/** Small, well-formed images (Workspace Phase 5, decision 24); CRCs and pixels aren't checked, so they're zeros. */
+const u32be = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
+const pngChunk = (type: string, data: Uint8Array) => bytes(u32be(data.length), type, [...data], [0, 0, 0, 0]);
+const png = (...chunks: Uint8Array[]) =>
+  bytes([0x89], 'PNG', [13, 10, 26, 10], [...pngChunk('IHDR', new Uint8Array(13))], ...chunks.map((c) => [...c]), [
+    ...pngChunk('IEND', new Uint8Array()),
+  ]);
+const NUL = String.fromCharCode(0);
+const jpegSegment = (marker: number, data: Uint8Array) => bytes([0xff, marker], u32be(data.length + 2).slice(2), [...data]);
+const jpeg = (...segments: Uint8Array[]) => bytes([0xff, 0xd8], ...segments.map((s) => [...s]), [0xff, 0xd9]);
+const gifBlocks = (data: Uint8Array) => {
+  const out: number[] = [];
+  for (let i = 0; i < data.length; i += 255) out.push(Math.min(255, data.length - i), ...data.subarray(i, i + 255));
+  return [...out, 0];
+};
+const gif = (...blocks: number[][]) => bytes('GIF89a', [1, 0, 1, 0, 0, 0, 0], ...blocks, [0x3b]);
+const latin1 = (text: string) => new Uint8Array(Buffer.from(text, 'latin1'));
+// The shape of what matched by chance in Phase 4's WP11 picture: an address-like run in compressed pixel bytes.
+const pixelNoise = bytes([0x78, 0x9c, 0xe3, 0x00], `Qz7k${at}sm.Oo`, [0x00, 0xff, 0x12]);
+
+describe('images: addresses only in the parts that hold text (Phase 5, decision 24)', () => {
+  const refused = (file: Uint8Array, name: string) =>
+    expect(
+      fileProblems(name, file).some((p) => p.includes('email address')),
+      name,
+    ).toBe(true);
+  const passes = (file: Uint8Array, name: string) => expect(fileProblems(name, file), name).toEqual([]);
+
+  it('refuses an address in every PNG text chunk: tEXt, zTXt, iTXt (plain and compressed) and eXIf', () => {
+    refused(png(pngChunk('tEXt', latin1(`Author${NUL}${madeUpAddress}`))), 'tEXt.png');
+    refused(png(pngChunk('zTXt', bytes('Comment', [0, 0], [...deflateSync(Buffer.from(madeUpAddress))]))), 'zTXt.png');
+    refused(
+      png(pngChunk('iTXt', bytes('Author', [0, 0, 0], 'en', [0], 'Autor', [0], [...Buffer.from(madeUpAddress, 'utf8')]))),
+      'iTXt.png',
+    );
+    refused(
+      png(pngChunk('iTXt', bytes('Author', [0, 1, 0], 'en', [0, 0], [...deflateSync(Buffer.from(madeUpAddress, 'utf8'))]))),
+      'iTXt-compressed.png',
+    );
+    refused(png(pngChunk('eXIf', bytes('MM', [0, 42, 0, 0, 0, 8], madeUpAddress))), 'eXIf.png');
+  });
+
+  it('refuses an address in a JPEG comment or application segment (EXIF, XMP)', () => {
+    refused(jpeg(jpegSegment(0xfe, latin1(madeUpAddress))), 'comment.jpg');
+    refused(jpeg(jpegSegment(0xe1, bytes('Exif', [0, 0], madeUpAddress))), 'exif.jpg');
+    refused(
+      jpeg(jpegSegment(0xe1, latin1(`http://ns.adobe.com/xap/1.0/${NUL}<x:xmpmeta>${madeUpAddress}</x:xmpmeta>`))),
+      'xmp.jpg',
+    );
+  });
+
+  it('refuses an address in a GIF comment, plain text or application extension', () => {
+    refused(gif([0x21, 0xfe, ...gifBlocks(latin1(madeUpAddress))]), 'comment.gif');
+    refused(gif([0x21, 0x01, ...gifBlocks(latin1(`${'x'.repeat(12)}${madeUpAddress}`))]), 'plain.gif');
+    refused(gif([0x21, 0xff, ...gifBlocks(latin1(`XMP DataXMP<x>${madeUpAddress}</x>`))]), 'xmp.gif');
+  });
+
+  it('passes the same address-like bytes when they are only the pixels', () => {
+    passes(png(pngChunk('IDAT', pixelNoise)), 'pixels.png');
+    passes(jpeg(jpegSegment(0xdb, new Uint8Array(65)), bytes([0xff, 0xda], [0, 8, 1, 1, 0, 0, 63, 0]), pixelNoise), 'pixels.jpg');
+    passes(gif([0x2c, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, ...gifBlocks(pixelNoise)]), 'pixels.gif');
+    // Without the image reading, those bytes are found, as they were in WP11.
+    expect(fileProblems('noise.bin', bytes([0], [...pixelNoise])).some((p) => p.includes('email address'))).toBe(true);
+  });
+
+  it('still reads a whole image for secrets and user folders, and reads a damaged or other image whole', () => {
+    const hidden = latin1(`key ${fakeKey('sk-', 48)} at C:\\${USERS}\\someone\\x`);
+    const problems = fileProblems('pixels.png', png(pngChunk('IDAT', hidden)));
+    expect(problems.some((p) => p.includes('API key'))).toBe(true);
+    expect(problems.some((p) => p.includes('user’s folder'))).toBe(true);
+    const damaged = png(pngChunk('IDAT', pixelNoise)).subarray(0, -16); // No IEND
+    expect(imageText(damaged)).toBeNull();
+    expect(fileProblems('damaged.png', damaged).some((p) => p.includes('email address'))).toBe(true);
+    expect(imageText(bytes('RIFF', [0, 0, 0, 0], 'WEBP'))).toBeNull();
   });
 });
 

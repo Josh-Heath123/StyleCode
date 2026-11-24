@@ -5,6 +5,8 @@
  * `scripts/check-new-dependencies.ts` runs the dependency rule (R4).
  */
 
+import { inflateSync } from 'node:zlib';
+
 /** Just above the largest tracked file when the check was written (docs/media/sketch-to-code.gif, 3,394,699 bytes). */
 export const SIZE_LIMIT = 3_500_000;
 
@@ -155,9 +157,113 @@ export function textProblems(path: string, text: string): string[] {
   ];
 }
 
+const u32 = (b: Uint8Array, at: number) => ((b[at] << 24) | (b[at + 1] << 16) | (b[at + 2] << 8) | b[at + 3]) >>> 0;
+const u16 = (b: Uint8Array, at: number) => (b[at] << 8) | b[at + 1];
+
+/** Text a PNG chunk holds: tEXt as it is; zTXt and a compressed iTXt inflated; eXIf as it is. */
+function pngChunkText(type: string, data: Uint8Array): Uint8Array[] {
+  if (type === 'tEXt' || type === 'eXIf') return [data];
+  const keywordEnd = data.indexOf(0);
+  if (keywordEnd < 0) throw new Error('no keyword');
+  if (type === 'zTXt') return [data.subarray(0, keywordEnd), inflateSync(data.subarray(keywordEnd + 2))];
+  // iTXt: keyword, NUL, compression flag, method, language tag, NUL, translated keyword, NUL, text.
+  const compressed = data[keywordEnd + 1] === 1;
+  const languageEnd = data.indexOf(0, keywordEnd + 3);
+  const translatedEnd = languageEnd < 0 ? -1 : data.indexOf(0, languageEnd + 1);
+  if (translatedEnd < 0) throw new Error('short iTXt');
+  const text = data.subarray(translatedEnd + 1);
+  return [data.subarray(0, translatedEnd), compressed ? inflateSync(text) : text];
+}
+
+function pngText(b: Uint8Array): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  for (let at = 8; ;) {
+    if (at + 12 > b.length) throw new Error('cut short');
+    const length = u32(b, at);
+    const type = String.fromCharCode(...b.subarray(at + 4, at + 8));
+    const end = at + 8 + length;
+    if (end + 4 > b.length) throw new Error('cut short');
+    if (['tEXt', 'zTXt', 'iTXt', 'eXIf'].includes(type)) out.push(...pngChunkText(type, b.subarray(at + 8, end)));
+    if (type === 'IEND') return out;
+    at = end + 4;
+  }
+}
+
+/** A JPEG's comments (COM) and application segments (APP0 to APP15: EXIF, XMP and the like), up to the image data. */
+function jpegText(b: Uint8Array): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  for (let at = 2; ;) {
+    if (b[at] !== 0xff || at + 4 > b.length) throw new Error('not a marker');
+    const marker = b[at + 1];
+    if (marker === 0xd9 || marker === 0xda) return out; // End of image, or start of the scan: only image data follows.
+    if (marker === 0xff) {
+      at += 1; // Padding.
+      continue;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      at += 2; // Markers without a length.
+      continue;
+    }
+    const length = u16(b, at + 2);
+    if (length < 2 || at + 2 + length > b.length) throw new Error('cut short');
+    if (marker === 0xfe || (marker >= 0xe0 && marker <= 0xef)) out.push(b.subarray(at + 4, at + 2 + length));
+    at += 2 + length;
+  }
+}
+
+/** A GIF's comment, plain text and application extensions (where XMP goes), skipping the image data. */
+function gifText(b: Uint8Array): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  const subBlocks = (from: number): [Uint8Array, number] => {
+    const parts: number[] = [];
+    let at = from;
+    for (;;) {
+      if (at >= b.length) throw new Error('cut short');
+      const size = b[at];
+      if (size === 0) return [new Uint8Array(parts), at + 1];
+      parts.push(...b.subarray(at + 1, at + 1 + size));
+      at += 1 + size;
+    }
+  };
+  const flags = b[10];
+  let at = 13 + (flags & 0x80 ? 3 * 2 ** ((flags & 7) + 1) : 0);
+  for (;;) {
+    if (at >= b.length) throw new Error('cut short');
+    const introducer = b[at];
+    if (introducer === 0x3b) return out; // Trailer.
+    if (introducer === 0x21) {
+      const label = b[at + 1];
+      const [data, next] = subBlocks(at + 2);
+      if (label === 0xfe || label === 0x01 || label === 0xff) out.push(data);
+      at = next;
+    } else if (introducer === 0x2c) {
+      const local = b[at + 9];
+      at += 10 + (local & 0x80 ? 3 * 2 ** ((local & 7) + 1) : 0) + 1; // Descriptor, colour table, LZW code size.
+      at = subBlocks(at)[1];
+    } else throw new Error('unknown block');
+  }
+}
+
+/**
+ * The parts of a PNG, JPEG or GIF that hold text, where an address could be written (Workspace Phase 5, decision 24);
+ * the compressed pixels, whose bytes can spell an address by chance, are left out. Null for any other file, or an
+ * image that can't be read this way, which is then read whole.
+ */
+export function imageText(b: Uint8Array): Uint8Array[] | null {
+  try {
+    if (startsWith(b, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return pngText(b);
+    if (startsWith(b, [0xff, 0xd8, 0xff])) return jpegText(b);
+    if (startsWith(b, ascii('GIF87a')) || startsWith(b, ascii('GIF89a'))) return gifText(b);
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 /**
  * Everything wrong with a file: its path, size and first bytes, and what it says. A binary file (an image, say) is
- * read as Latin-1 and as UTF-16 too, so text hidden in it, or a file saved as UTF-16, is still read.
+ * read as Latin-1 and as UTF-16 too, so text hidden in it, or a file saved as UTF-16, is still read. In a PNG, JPEG
+ * or GIF, addresses are looked for only in the parts that hold text (`imageText`), also read as UTF-8.
  */
 export function fileProblems(path: string, bytes: Uint8Array): string[] {
   const problems = pathProblems(path, bytes.length);
@@ -166,17 +272,31 @@ export function fileProblems(path: string, bytes: Uint8Array): string[] {
     problems.push(`${media}: audio, video and archive files are never committed`);
   const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (!isBinary(bytes)) return [...problems, ...textProblems(path, buffer.toString('utf8'))];
+  const emailsAllowed = LICENCE_TEXT_EXCEPTIONS.includes(path);
+  const texts = imageText(bytes);
   const seen = new Set<string>();
-  for (const encoding of ['latin1', 'utf16le'] as const) {
-    const text = buffer.toString(encoding);
-    for (const p of [
-      ...personalProblems(text, { emailsAllowed: LICENCE_TEXT_EXCEPTIONS.includes(path), binary: true }),
-      ...secretProblems(text),
-    ]) {
+  const add = (found: string[]) => {
+    for (const p of found) {
       const what = p.replace(/, line \d+$/, '');
       if (!seen.has(what)) problems.push(`${what}, in its binary content`);
       seen.add(what);
     }
+  };
+  for (const encoding of ['latin1', 'utf16le'] as const) {
+    const text = buffer.toString(encoding);
+    // In an image the whole file is still read for secrets and user folders, but not for addresses.
+    add(
+      texts
+        ? personalProblems(text, { emailsAllowed: true, binary: true })
+        : personalProblems(text, { emailsAllowed, binary: true }),
+    );
+    add(secretProblems(text));
+  }
+  for (const part of texts ?? []) {
+    const chunk = Buffer.from(part.buffer, part.byteOffset, part.byteLength);
+    for (const encoding of ['latin1', 'utf16le'] as const)
+      add(personalProblems(chunk.toString(encoding), { emailsAllowed, binary: true }));
+    add(personalProblems(chunk.toString('utf8'), { emailsAllowed }));
   }
   return problems;
 }
