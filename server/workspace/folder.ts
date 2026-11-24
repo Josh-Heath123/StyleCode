@@ -273,14 +273,26 @@ function held(): Held {
   // (SIGBREAK) and SIGTERM each release the locks first, then exit.
   const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGHUP'];
   if (process.platform === 'win32') signals.push('SIGBREAK');
-  for (const signal of signals) {
-    process.once(signal, () => {
-      releaseAll();
-      process.exit(128 + (constants.signals[signal] ?? 0));
-    });
-  }
+  for (const signal of signals) process.once(signal, () => stopForSignal(signal, releaseAll));
   process.once('exit', releaseAll);
   return state;
+}
+
+/**
+ * What StyleCode does when a signal stops it: says which signal, so a server
+ * that stops without a word can be told apart from one stopped this way
+ * (Phase 5, decision 24), releases the data folder's locks, then exits with
+ * the usual code for that signal.
+ */
+export function stopForSignal(
+  signal: NodeJS.Signals,
+  releaseAll: () => void,
+  exit: (code: number) => void = (code) => process.exit(code),
+  log: (line: string) => void = (line) => console.error(line),
+): void {
+  log(`StyleCode is stopping: it received ${signal}.`);
+  releaseAll();
+  exit(128 + (constants.signals[signal] ?? 0));
 }
 
 /** Keeps this process's lock fresh until the process stops, or another StyleCode takes the lock over. */

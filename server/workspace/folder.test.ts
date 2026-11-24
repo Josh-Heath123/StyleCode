@@ -16,6 +16,7 @@ import {
   prepareDataFolder,
   refreshLock,
   resolveDataFolder,
+  stopForSignal,
   type FolderEnvironment,
 } from './folder.ts';
 
@@ -267,7 +268,7 @@ function lockingProcess(folder: string) {
   const child = spawn(
     process.execPath,
     ['--experimental-strip-types', '--disable-warning=ExperimentalWarning', '--input-type=module', '-e', script, folder],
-    { stdio: ['ignore', 'pipe', 'inherit'] },
+    { stdio: ['ignore', 'pipe', 'pipe'] },
   );
   const ready = new Promise<number>((resolve, reject) => {
     child.stdout.on('data', (chunk: Buffer) => {
@@ -276,8 +277,10 @@ function lockingProcess(folder: string) {
     });
     child.once('exit', (code) => reject(new Error(`exited early (${code})`)));
   });
+  let stderr = '';
+  child.stderr.on('data', (chunk: Buffer) => (stderr += chunk.toString()));
   const exited = new Promise<number | null>((resolve) => child.once('exit', (code) => resolve(code)));
-  return { child, ready, exited };
+  return { child, ready, exited, stderr: () => stderr };
 }
 
 describe('the lock is released when StyleCode stops', () => {
@@ -295,10 +298,22 @@ describe('the lock is released when StyleCode stops', () => {
   it.skipIf(process.platform === 'win32')('removes the lock on Ctrl+C (SIGINT)', async () => {
     const folder = join(base, 'data');
     mkdirSync(folder);
-    const { child, ready, exited } = lockingProcess(folder);
+    const { child, ready, exited, stderr } = lockingProcess(folder);
     await ready;
     child.kill('SIGINT');
     expect(await exited).toBe(130);
     expect(existsSync(join(folder, LOCK_FILE))).toBe(false);
+    expect(stderr()).toContain('StyleCode is stopping: it received SIGINT.');
+  });
+
+  it('says which signal stopped it, then releases the locks and exits with that signal’s code', () => {
+    const steps: string[] = [];
+    stopForSignal(
+      'SIGTERM',
+      () => steps.push('release'),
+      (code) => steps.push(`exit ${code}`),
+      (line) => steps.push(line),
+    );
+    expect(steps).toEqual(['StyleCode is stopping: it received SIGTERM.', 'release', 'exit 143']);
   });
 });
