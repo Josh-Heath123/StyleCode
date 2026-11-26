@@ -1,0 +1,74 @@
+{
+  "id": "aspnet-core",
+  "name": "ASP.NET Core",
+  "parts": ["back-end", "web-front-end"],
+  "about": "Microsoft's framework for building web apps and APIs on .NET.",
+  "sources": {
+    "overview": {
+      "title": "Overview of ASP.NET Core",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core"
+    },
+    "repo": {
+      "title": "dotnet/aspnetcore",
+      "publisher": ".NET Foundation",
+      "url": "https://github.com/dotnet/aspnetcore"
+    },
+    "licence": {
+      "title": "aspnetcore/LICENSE.txt",
+      "publisher": ".NET Foundation",
+      "url": "https://github.com/dotnet/aspnetcore/blob/main/LICENSE.txt"
+    },
+    "support": {
+      "title": ".NET and .NET Core official support policy",
+      "publisher": "Microsoft",
+      "url": "https://dotnet.microsoft.com/platform/support/policy/dotnet-core"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["csharp"],
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["dotnet"],
+      "sources": ["repo"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "platforms",
+      "value": ["web", "windows", "macos", "linux"],
+      "sources": ["repo"],
+      "checkedOn": "2026-11-24",
+      "note": "Web is the kind of app it builds; Windows, macOS and Linux are where it runs."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "11.0.0",
+          "date": "2026-11-10"
+        },
+        "endOfSupport": "2028-11-14"
+      },
+      "sources": ["support"],
+      "checkedOn": "2026-11-24",
+      "note": "ASP.NET Core ships with .NET; .NET 11 is a standard-term release, and .NET 10 (long-term) ends on the same date."
+    }
+  ]
+}

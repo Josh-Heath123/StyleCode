@@ -1,0 +1,68 @@
+{
+  "id": "spring-boot",
+  "name": "Spring Boot",
+  "parts": ["back-end"],
+  "about": "An open-source Java framework for building stand-alone Spring applications and services.",
+  "sources": {
+    "readme": {
+      "title": "spring-boot/README.adoc at main · spring-projects/spring-boot · GitHub",
+      "publisher": "Spring (Broadcom)",
+      "url": "https://github.com/spring-projects/spring-boot/blob/main/README.adoc"
+    },
+    "initializr": {
+      "title": "Spring Initializr client metadata",
+      "publisher": "Spring (Broadcom)",
+      "url": "https://start.spring.io/metadata/client"
+    },
+    "requirements": {
+      "title": "System Requirements :: Spring Boot",
+      "publisher": "Spring (Broadcom)",
+      "url": "https://docs.spring.io/spring-boot/system-requirements.html"
+    },
+    "release": {
+      "title": "Release v4.2.0 · spring-projects/spring-boot · GitHub",
+      "publisher": "Spring (Broadcom)",
+      "url": "https://github.com/spring-projects/spring-boot/releases/tag/v4.2.0"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "Apache-2.0",
+      "sources": ["readme"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["readme"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["java", "kotlin"],
+      "sources": ["initializr"],
+      "checkedOn": "2026-11-24",
+      "note": "Groovy is also offered, which is outside the vocabulary."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["jvm"],
+      "sources": ["requirements"],
+      "checkedOn": "2026-11-24",
+      "note": "Needs Java 17 or later, tested up to Java 27."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "4.2.0",
+          "date": "2026-11-19"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "The release page gives no end of support date."
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "laravel",
+  "name": "Laravel",
+  "parts": ["back-end", "web-front-end"],
+  "about": "A PHP web application framework for building server-rendered web apps and APIs.",
+  "sources": {
+    "releases": {
+      "title": "Release Notes | Laravel 13.x",
+      "publisher": "Laravel",
+      "url": "https://laravel.com/docs/releases"
+    },
+    "repo": {
+      "title": "laravel/framework",
+      "publisher": "Laravel",
+      "url": "https://github.com/laravel/framework"
+    },
+    "licence": {
+      "title": "framework/LICENSE.md",
+      "publisher": "Laravel",
+      "url": "https://github.com/laravel/framework/blob/13.x/LICENSE.md"
+    },
+    "release": {
+      "title": "Release v13.44.1 · laravel/framework",
+      "publisher": "Laravel (GitHub)",
+      "url": "https://github.com/laravel/framework/releases/tag/v13.44.1"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["repo"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["php"],
+      "sources": ["releases"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["php"],
+      "sources": ["releases"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "13.44.1",
+          "date": "2026-11-24"
+        },
+        "endOfSupport": "2028-03-17"
+      },
+      "sources": ["release", "releases"],
+      "checkedOn": "2026-11-24",
+      "note": "The release is the newest on GitHub; the end of security fixes is the support policy's for 13.x, and bug fixes end in Q3 2027."
+    }
+  ]
+}

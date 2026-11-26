@@ -1,0 +1,69 @@
+{
+  "id": "express",
+  "name": "Node.js with Express",
+  "parts": ["back-end"],
+  "about": "A small web application framework for building web servers and APIs on Node.js.",
+  "sources": {
+    "installing": {
+      "title": "Installing",
+      "publisher": "OpenJS Foundation",
+      "url": "https://expressjs.com/en/starter/installing.html"
+    },
+    "licence": {
+      "title": "express/LICENSE",
+      "publisher": "OpenJS Foundation",
+      "url": "https://github.com/expressjs/express/blob/master/LICENSE"
+    },
+    "release": {
+      "title": "Release v5.3.0",
+      "publisher": "OpenJS Foundation",
+      "url": "https://github.com/expressjs/express/releases/tag/v5.3.0"
+    },
+    "versionsupport": {
+      "title": "Version Support",
+      "publisher": "OpenJS Foundation",
+      "url": "https://expressjs.com/en/support/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "The source code is public under the MIT licence."
+    },
+    {
+      "kind": "languages",
+      "value": ["javascript", "typescript"],
+      "sources": ["installing"],
+      "checkedOn": "2026-11-24",
+      "note": "TypeScript types for Express are community-maintained."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["node"],
+      "sources": ["installing"],
+      "checkedOn": "2026-11-24",
+      "note": "It needs Node.js 18 or newer."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "5.3.0",
+          "date": "2026-10-09"
+        }
+      },
+      "sources": ["release", "versionsupport"],
+      "checkedOn": "2026-11-24",
+      "note": "No end date is set: the version support page lists 5.x support as ongoing."
+    }
+  ]
+}
