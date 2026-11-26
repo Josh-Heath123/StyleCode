@@ -1,0 +1,39 @@
+{
+  "id": "sqlite",
+  "name": "SQLite",
+  "parts": ["database"],
+  "about": "A relational database engine that runs inside the application as a library and keeps each database in a single file.",
+  "sources": {
+    "copyright": {
+      "title": "SQLite Copyright",
+      "publisher": "SQLite",
+      "url": "https://www.sqlite.org/copyright.html"
+    },
+    "chronology": {
+      "title": "History Of SQLite Releases",
+      "publisher": "SQLite",
+      "url": "https://www.sqlite.org/chronology.html"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["copyright"],
+      "checkedOn": "2026-11-24",
+      "note": "The code is in the public domain; outside contributions are not accepted."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "3.54.1",
+          "date": "2026-10-16"
+        }
+      },
+      "sources": ["chronology"],
+      "checkedOn": "2026-11-24",
+      "note": "Newest version number; patch releases for older branches (3.53.6, 3.50.8, 3.44.7) came out later, on 2026-11-13. No end-of-support date is stated."
+    }
+  ]
+}

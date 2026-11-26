@@ -1,0 +1,638 @@
+{
+  "id": "mongodb",
+  "name": "MongoDB",
+  "parts": ["database"],
+  "about": "A document database that stores records as JSON-like documents, run yourself or used through the hosted Atlas service.",
+  "sources": {
+    "repo-licence": {
+      "title": "LICENSE-Community.txt (mongodb/mongo)",
+      "publisher": "MongoDB, Inc.",
+      "url": "https://github.com/mongodb/mongo/blob/master/LICENSE-Community.txt"
+    },
+    "install": {
+      "title": "Install MongoDB Community and Enterprise Editions",
+      "publisher": "MongoDB, Inc.",
+      "url": "https://www.mongodb.com/docs/manual/installation/"
+    },
+    "trust": {
+      "title": "MongoDB Atlas Trust Center",
+      "publisher": "MongoDB, Inc.",
+      "url": "https://www.mongodb.com/products/platform/trust"
+    },
+    "release-notes-9": {
+      "title": "Release Notes for MongoDB 9.0",
+      "publisher": "MongoDB, Inc.",
+      "url": "https://www.mongodb.com/docs/manual/release-notes/9.0/"
+    },
+    "lifecycle": {
+      "title": "MongoDB Software Lifecycle Schedules",
+      "publisher": "MongoDB, Inc.",
+      "url": "https://www.mongodb.com/legal/support-policy/lifecycles"
+    },
+    "atlas-aws": {
+      "title": "Amazon Web Services (AWS) - Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/docs/atlas/reference/amazon-aws/"
+    },
+    "atlas-azure": {
+      "title": "Microsoft Azure - Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/docs/atlas/reference/microsoft-azure/"
+    },
+    "atlas-gcp": {
+      "title": "Google Cloud - Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/docs/atlas/reference/google-gcp/"
+    },
+    "trust-iso": {
+      "title": "ISO/IEC 27001:2022 – MongoDB Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/products/platform/trust/iso"
+    },
+    "trust-soc": {
+      "title": "SOC Compliance — MongoDB Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/products/platform/trust/soc"
+    },
+    "trust-pci": {
+      "title": "PCI DSS – MongoDB Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/products/platform/trust/pci-dss"
+    },
+    "trust-hipaa": {
+      "title": "HIPAA Compliance — MongoDB Atlas",
+      "publisher": "MongoDB",
+      "url": "https://www.mongodb.com/products/platform/trust/hipaa"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "SSPL-1.0",
+      "sources": ["repo-licence"],
+      "checkedOn": "2026-11-24",
+      "note": "Covers the Community server; the repository says releases after 16 October 2018 use this licence and earlier ones used the AGPL."
+    },
+    {
+      "kind": "platforms",
+      "value": ["linux", "macos", "windows"],
+      "sources": ["install"],
+      "checkedOn": "2026-11-24",
+      "note": "Docker images are also offered."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["install"],
+      "checkedOn": "2026-11-24",
+      "note": "Both Community and Enterprise editions can be installed on your own machines."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["trust"],
+      "checkedOn": "2026-11-24",
+      "note": "Offered as MongoDB Atlas on AWS, Azure and Google Cloud."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "9.0.8",
+          "date": "2026-11-10"
+        },
+        "endOfSupport": "2031-10-31"
+      },
+      "sources": ["release-notes-9", "lifecycle"],
+      "checkedOn": "2026-11-24",
+      "note": "The release is the newest 9.0 patch; the end of support is the lifecycle page's end of life for MongoDB 9.0."
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "AWS us-east-1 (Northern Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "AWS us-west-2 (Oregon)"
+        },
+        {
+          "country": "CA",
+          "region": "AWS ca-central-1 (Montreal, QC, Canada)"
+        },
+        {
+          "country": "CA",
+          "region": "AWS ca-west-1 (Calgary, Canada)"
+        },
+        {
+          "country": "US",
+          "region": "AWS us-east-2 (Ohio)"
+        },
+        {
+          "country": "US",
+          "region": "AWS us-west-1 (Northern California)"
+        },
+        {
+          "country": "BR",
+          "region": "AWS sa-east-1 (Sao Paulo, Brazil)"
+        },
+        {
+          "country": "MX",
+          "region": "AWS mx-central-1 (Querétaro, Mexico)"
+        },
+        {
+          "country": "SG",
+          "region": "AWS ap-southeast-1 (Singapore)"
+        },
+        {
+          "country": "AU",
+          "region": "AWS ap-southeast-2 (Sydney, NSW, Australia)"
+        },
+        {
+          "country": "ID",
+          "region": "AWS ap-southeast-3 (Jakarta, Indonesia)"
+        },
+        {
+          "country": "IN",
+          "region": "AWS ap-south-1 (Mumbai, India)"
+        },
+        {
+          "country": "HK",
+          "region": "AWS ap-east-1 (Hong Kong, China)"
+        },
+        {
+          "country": "TW",
+          "region": "AWS ap-east-2 (Taiwan)"
+        },
+        {
+          "country": "JP",
+          "region": "AWS ap-northeast-1 (Tokyo, Japan)"
+        },
+        {
+          "country": "KR",
+          "region": "AWS ap-northeast-2 (Seoul, South Korea)"
+        },
+        {
+          "country": "JP",
+          "region": "AWS ap-northeast-3 (Osaka, Japan)"
+        },
+        {
+          "country": "IN",
+          "region": "AWS ap-south-2 (Hyderabad, India)"
+        },
+        {
+          "country": "AU",
+          "region": "AWS ap-southeast-4 (Melbourne, Victoria, Australia)"
+        },
+        {
+          "country": "MY",
+          "region": "AWS ap-southeast-5 (Malaysia)"
+        },
+        {
+          "country": "NZ",
+          "region": "AWS ap-southeast-6 (Auckland)"
+        },
+        {
+          "country": "TH",
+          "region": "AWS ap-southeast-7 (Thailand)"
+        },
+        {
+          "country": "IE",
+          "region": "AWS eu-west-1 (Ireland)"
+        },
+        {
+          "country": "DE",
+          "region": "AWS eu-central-1 (Frankfurt, Germany)"
+        },
+        {
+          "country": "SE",
+          "region": "AWS eu-north-1 (Stockholm, Sweden)"
+        },
+        {
+          "country": "GB",
+          "region": "AWS eu-west-2 (London, England)"
+        },
+        {
+          "country": "FR",
+          "region": "AWS eu-west-3 (Paris, France)"
+        },
+        {
+          "country": "IT",
+          "region": "AWS eu-south-1 (Milan, Italy)"
+        },
+        {
+          "country": "CH",
+          "region": "AWS eu-central-2 (Zurich, Switzerland)"
+        },
+        {
+          "country": "ES",
+          "region": "AWS eu-south-2 (Spain)"
+        },
+        {
+          "country": "BH",
+          "region": "AWS me-south-1 (Bahrain)"
+        },
+        {
+          "country": "ZA",
+          "region": "AWS af-south-1 (Cape Town, South Africa)"
+        },
+        {
+          "country": "IL",
+          "region": "AWS il-central-1 (Tel Aviv, Israel)"
+        },
+        {
+          "country": "US",
+          "region": "Azure centralus (Iowa)"
+        },
+        {
+          "country": "US",
+          "region": "Azure eastus (Virginia (East US))"
+        },
+        {
+          "country": "US",
+          "region": "Azure eastus2 (Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "Azure northcentralus (Illinois)"
+        },
+        {
+          "country": "US",
+          "region": "Azure westus (California)"
+        },
+        {
+          "country": "US",
+          "region": "Azure westus2 (Washington)"
+        },
+        {
+          "country": "US",
+          "region": "Azure westus3 (Arizona)"
+        },
+        {
+          "country": "US",
+          "region": "Azure westcentralus (Wyoming)"
+        },
+        {
+          "country": "US",
+          "region": "Azure southcentralus (Texas)"
+        },
+        {
+          "country": "BR",
+          "region": "Azure brazilsouth (Sao Paulo, Brazil)"
+        },
+        {
+          "country": "BR",
+          "region": "Azure brazilsoutheast (Rio de Janeiro, Brazil)"
+        },
+        {
+          "country": "CA",
+          "region": "Azure canadaeast (Quebec City, QC, Canada)"
+        },
+        {
+          "country": "CA",
+          "region": "Azure canadacentral (Toronto, ON, Canada)"
+        },
+        {
+          "country": "CL",
+          "region": "Azure chilecentral (Santiago)"
+        },
+        {
+          "country": "MX",
+          "region": "Azure mexicocentral (Querétaro State, Mexico)"
+        },
+        {
+          "country": "IE",
+          "region": "Azure northeurope (Ireland)"
+        },
+        {
+          "country": "NL",
+          "region": "Azure westeurope (Netherlands)"
+        },
+        {
+          "country": "GB",
+          "region": "Azure uksouth (London, England)"
+        },
+        {
+          "country": "GB",
+          "region": "Azure ukwest (Cardiff, Wales)"
+        },
+        {
+          "country": "FR",
+          "region": "Azure francecentral (Paris, France)"
+        },
+        {
+          "country": "FR",
+          "region": "Azure francesouth (Marseille, France)"
+        },
+        {
+          "country": "IT",
+          "region": "Azure italynorth (Milan, Italy)"
+        },
+        {
+          "country": "DE",
+          "region": "Azure germanywestcentral (Frankfurt, Germany)"
+        },
+        {
+          "country": "DE",
+          "region": "Azure germanynorth (Berlin, Germany)"
+        },
+        {
+          "country": "PL",
+          "region": "Azure polandcentral (Warsaw, Poland)"
+        },
+        {
+          "country": "CH",
+          "region": "Azure switzerlandnorth (Zurich, Switzerland)"
+        },
+        {
+          "country": "CH",
+          "region": "Azure switzerlandwest (Geneva, Switzerland)"
+        },
+        {
+          "country": "NO",
+          "region": "Azure norwayeast (Oslo, Norway)"
+        },
+        {
+          "country": "NO",
+          "region": "Azure norwaywest (Stavanger, Norway)"
+        },
+        {
+          "country": "SE",
+          "region": "Azure swedencentral (Gävle, Sweden)"
+        },
+        {
+          "country": "SE",
+          "region": "Azure swedensouth (Staffanstorp, Sweden)"
+        },
+        {
+          "country": "ES",
+          "region": "Azure spaincentral (Madrid, Spain)"
+        },
+        {
+          "country": "HK",
+          "region": "Azure eastasia (Hong Kong, China)"
+        },
+        {
+          "country": "SG",
+          "region": "Azure southeastasia (Singapore)"
+        },
+        {
+          "country": "AU",
+          "region": "Azure australiacentral (Canberra, Australia)"
+        },
+        {
+          "country": "AU",
+          "region": "Azure australiacentral2 (Canberra, Australia)"
+        },
+        {
+          "country": "AU",
+          "region": "Azure australiaeast (New South Wales, Australia)"
+        },
+        {
+          "country": "AU",
+          "region": "Azure australiasoutheast (Victoria, Australia)"
+        },
+        {
+          "country": "IN",
+          "region": "Azure centralindia (Pune (Central India))"
+        },
+        {
+          "country": "IN",
+          "region": "Azure southindia (Chennai, India)"
+        },
+        {
+          "country": "IN",
+          "region": "Azure westindia (Mumbai, India)"
+        },
+        {
+          "country": "ID",
+          "region": "Azure indonesiacentral (Jakarta)"
+        },
+        {
+          "country": "JP",
+          "region": "Azure japaneast (Tokyo, Japan)"
+        },
+        {
+          "country": "JP",
+          "region": "Azure japanwest (Osaka, Japan)"
+        },
+        {
+          "country": "KR",
+          "region": "Azure koreacentral (Seoul, South Korea)"
+        },
+        {
+          "country": "KR",
+          "region": "Azure koreasouth (Busan, South Korea)"
+        },
+        {
+          "country": "MY",
+          "region": "Azure malaysiawest (Malaysia)"
+        },
+        {
+          "country": "NZ",
+          "region": "Azure newzealandnorth (Auckland, New Zealand)"
+        },
+        {
+          "country": "ZA",
+          "region": "Azure southafricanorth (Johannesburg, South Africa)"
+        },
+        {
+          "country": "AE",
+          "region": "Azure uaenorth (Dubai, UAE)"
+        },
+        {
+          "country": "AE",
+          "region": "Azure uaecentral (Abu Dhabi, UAE)"
+        },
+        {
+          "country": "QA",
+          "region": "Azure qatarcentral (Qatar)"
+        },
+        {
+          "country": "IL",
+          "region": "Azure israelcentral (Israel)"
+        },
+        {
+          "country": "ZA",
+          "region": "Azure southafricawest (Cape Town, South Africa)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-central1 (Iowa)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-east1 (South Carolina)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-east4 (North Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-east5 (Columbus, OH)"
+        },
+        {
+          "country": "CA",
+          "region": "Google Cloud northamerica-northeast1 (Montreal, Canada)"
+        },
+        {
+          "country": "CA",
+          "region": "Google Cloud northamerica-northeast2 (Toronto, Canada)"
+        },
+        {
+          "country": "BR",
+          "region": "Google Cloud southamerica-east1 (Sao Paulo, Brazil)"
+        },
+        {
+          "country": "CL",
+          "region": "Google Cloud southamerica-west1 (Santiago, Chile)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-west1 (Oregon)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-west2 (Los Angeles, CA)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-west3 (Salt Lake City, UT)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-west4 (Las Vegas, NV)"
+        },
+        {
+          "country": "US",
+          "region": "Google Cloud us-south1 (Dallas, TX)"
+        },
+        {
+          "country": "MX",
+          "region": "Google Cloud northamerica-south1 (Querétaro, Mexico)"
+        },
+        {
+          "country": "TW",
+          "region": "Google Cloud asia-east1 (Taiwan)"
+        },
+        {
+          "country": "HK",
+          "region": "Google Cloud asia-east2 (Hong Kong, China)"
+        },
+        {
+          "country": "JP",
+          "region": "Google Cloud asia-northeast1 (Tokyo, Japan)"
+        },
+        {
+          "country": "JP",
+          "region": "Google Cloud asia-northeast2 (Osaka, Japan)"
+        },
+        {
+          "country": "KR",
+          "region": "Google Cloud asia-northeast3 (Seoul, Korea)"
+        },
+        {
+          "country": "SG",
+          "region": "Google Cloud asia-southeast1 (Singapore)"
+        },
+        {
+          "country": "IN",
+          "region": "Google Cloud asia-south1 (Mumbai, India)"
+        },
+        {
+          "country": "IN",
+          "region": "Google Cloud asia-south2 (Delhi, India)"
+        },
+        {
+          "country": "AU",
+          "region": "Google Cloud australia-southeast1 (Sydney, Australia)"
+        },
+        {
+          "country": "AU",
+          "region": "Google Cloud australia-southeast2 (Melbourne, Australia)"
+        },
+        {
+          "country": "ID",
+          "region": "Google Cloud asia-southeast2 (Jakarta, Indonesia)"
+        },
+        {
+          "country": "BE",
+          "region": "Google Cloud europe-west1 (Belgium)"
+        },
+        {
+          "country": "FI",
+          "region": "Google Cloud europe-north1 (Finland)"
+        },
+        {
+          "country": "GB",
+          "region": "Google Cloud europe-west2 (London)"
+        },
+        {
+          "country": "DE",
+          "region": "Google Cloud europe-west3 (Frankfurt, Germany)"
+        },
+        {
+          "country": "NL",
+          "region": "Google Cloud europe-west4 (Netherlands)"
+        },
+        {
+          "country": "CH",
+          "region": "Google Cloud europe-west6 (Zurich, Switzerland)"
+        },
+        {
+          "country": "DE",
+          "region": "Google Cloud europe-west10 (Berlin, Germany)"
+        },
+        {
+          "country": "PL",
+          "region": "Google Cloud europe-central2 (Warsaw, Poland)"
+        },
+        {
+          "country": "IT",
+          "region": "Google Cloud europe-west8 (Milan, Italy)"
+        },
+        {
+          "country": "FR",
+          "region": "Google Cloud europe-west9 (Paris, France)"
+        },
+        {
+          "country": "IT",
+          "region": "Google Cloud europe-west12 (Turin, Italy)"
+        },
+        {
+          "country": "ES",
+          "region": "Google Cloud europe-southwest1 (Madrid, Spain)"
+        },
+        {
+          "country": "IL",
+          "region": "Google Cloud me-west1 (Tel Aviv, Israel)"
+        },
+        {
+          "country": "QA",
+          "region": "Google Cloud me-central1 (Doha, Qatar)"
+        },
+        {
+          "country": "SA",
+          "region": "Google Cloud me-central2 (Dammam, Saudi Arabia)"
+        },
+        {
+          "country": "ZA",
+          "region": "Google Cloud africa-south1 (Johannesburg, South Africa)"
+        }
+      ],
+      "sources": ["atlas-aws", "atlas-azure", "atlas-gcp"],
+      "note": "Atlas's AWS, Azure and Google Cloud regions. AWS me-central-1 (UAE) is left out: no new clusters can be made there. Some Azure regions may need Azure support's approval first.",
+      "checkedOn": "2026-11-26"
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "hipaa-baa"],
+      "sources": ["trust-iso", "trust-soc", "trust-pci", "trust-hipaa"],
+      "note": "For Atlas. A BAA comes with self-service accounts and is asked for under an order form. PCI DSS is claimed as a service provider, but no level is given, so it is not recorded as Level 1.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

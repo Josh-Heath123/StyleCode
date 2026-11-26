@@ -1,0 +1,64 @@
+{
+  "id": "postgresql",
+  "name": "PostgreSQL",
+  "parts": ["database"],
+  "about": "An open-source relational database server.",
+  "sources": {
+    "versioning": {
+      "title": "PostgreSQL: Versioning Policy",
+      "publisher": "PostgreSQL Global Development Group",
+      "url": "https://www.postgresql.org/support/versioning/"
+    },
+    "licence": {
+      "title": "PostgreSQL: License",
+      "publisher": "PostgreSQL Global Development Group",
+      "url": "https://www.postgresql.org/about/licence/"
+    },
+    "download": {
+      "title": "PostgreSQL: Downloads",
+      "publisher": "PostgreSQL Global Development Group",
+      "url": "https://www.postgresql.org/download/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "PostgreSQL",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "platforms",
+      "value": ["linux", "macos", "windows"],
+      "sources": ["download"],
+      "checkedOn": "2026-11-24",
+      "note": "Packages are also offered for BSD and Solaris, which are outside the catalogue's list."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["download"],
+      "checkedOn": "2026-11-24",
+      "note": "Installers and packages are provided to run it on your own machines."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "19.0",
+          "date": "2026-11-19"
+        },
+        "endOfSupport": "2031-11-19"
+      },
+      "sources": ["versioning"],
+      "checkedOn": "2026-11-24",
+      "note": "End of support is for the newest major version, 19."
+    }
+  ]
+}

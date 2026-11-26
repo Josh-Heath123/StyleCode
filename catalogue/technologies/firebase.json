@@ -1,0 +1,242 @@
+{
+  "id": "firebase",
+  "name": "Firebase",
+  "parts": ["database", "authentication"],
+  "about": "Google's hosted app back-end platform, including the Cloud Firestore document database and Firebase Authentication.",
+  "sources": {
+    "docs": {
+      "title": "Firebase Documentation",
+      "publisher": "Google",
+      "url": "https://firebase.google.com/docs"
+    },
+    "pricing": {
+      "title": "Firebase Pricing",
+      "publisher": "Google",
+      "url": "https://firebase.google.com/pricing"
+    },
+    "offline": {
+      "title": "Access data offline | Firestore | Firebase",
+      "publisher": "Google",
+      "url": "https://firebase.google.com/docs/firestore/manage-data/enable-offline"
+    },
+    "firestore-locations": {
+      "title": "Cloud Firestore locations",
+      "publisher": "Firebase (Google)",
+      "url": "https://firebase.google.com/docs/firestore/locations"
+    },
+    "privacy": {
+      "title": "Privacy and Security in Firebase",
+      "publisher": "Firebase (Google)",
+      "url": "https://firebase.google.com/support/privacy"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "A no-cost Spark plan and a pay-as-you-go Blaze plan."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["docs"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offline",
+      "value": "partly",
+      "sources": ["offline"],
+      "checkedOn": "2026-11-24",
+      "note": "Cloud Firestore caches the data an app uses and syncs changes when back online; only in Android, Apple and web apps, on by default on mobile and off by default on the web."
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "us-west1 (Oregon)"
+        },
+        {
+          "country": "US",
+          "region": "us-west2 (Los Angeles)"
+        },
+        {
+          "country": "US",
+          "region": "us-west3 (Salt Lake City)"
+        },
+        {
+          "country": "US",
+          "region": "us-west4 (Las Vegas)"
+        },
+        {
+          "country": "US",
+          "region": "us-central1 (Iowa)"
+        },
+        {
+          "country": "CA",
+          "region": "northamerica-northeast1 (Montréal)"
+        },
+        {
+          "country": "CA",
+          "region": "northamerica-northeast2 (Toronto)"
+        },
+        {
+          "country": "MX",
+          "region": "northamerica-south1 (Querétaro)"
+        },
+        {
+          "country": "US",
+          "region": "us-east1 (South Carolina)"
+        },
+        {
+          "country": "US",
+          "region": "us-east4 (Northern Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "us-east5 (Columbus)"
+        },
+        {
+          "country": "US",
+          "region": "us-south1 (Dallas)"
+        },
+        {
+          "country": "CL",
+          "region": "southamerica-west1 (Santiago)"
+        },
+        {
+          "country": "BR",
+          "region": "southamerica-east1 (São Paulo)"
+        },
+        {
+          "country": "GB",
+          "region": "europe-west2 (London)"
+        },
+        {
+          "country": "BE",
+          "region": "europe-west1 (Belgium)"
+        },
+        {
+          "country": "NL",
+          "region": "europe-west4 (Netherlands)"
+        },
+        {
+          "country": "IT",
+          "region": "europe-west8 (Milan)"
+        },
+        {
+          "country": "ES",
+          "region": "europe-southwest1 (Madrid)"
+        },
+        {
+          "country": "FR",
+          "region": "europe-west9 (Paris)"
+        },
+        {
+          "country": "IT",
+          "region": "europe-west12 (Turin)"
+        },
+        {
+          "country": "DE",
+          "region": "europe-west10 (Berlin)"
+        },
+        {
+          "country": "DE",
+          "region": "europe-west3 (Frankfurt)"
+        },
+        {
+          "country": "FI",
+          "region": "europe-north1 (Finland)"
+        },
+        {
+          "country": "SE",
+          "region": "europe-north2 (Stockholm)"
+        },
+        {
+          "country": "PL",
+          "region": "europe-central2 (Warsaw)"
+        },
+        {
+          "country": "CH",
+          "region": "europe-west6 (Zürich)"
+        },
+        {
+          "country": "QA",
+          "region": "me-central1 (Doha)"
+        },
+        {
+          "country": "SA",
+          "region": "me-central2 (Dammam)"
+        },
+        {
+          "country": "IL",
+          "region": "me-west1 (Tel Aviv)"
+        },
+        {
+          "country": "IN",
+          "region": "asia-south1 (Mumbai)"
+        },
+        {
+          "country": "IN",
+          "region": "asia-south2 (Delhi)"
+        },
+        {
+          "country": "SG",
+          "region": "asia-southeast1 (Singapore)"
+        },
+        {
+          "country": "ID",
+          "region": "asia-southeast2 (Jakarta)"
+        },
+        {
+          "country": "TH",
+          "region": "asia-southeast3 (Bangkok)"
+        },
+        {
+          "country": "HK",
+          "region": "asia-east2 (Hong Kong)"
+        },
+        {
+          "country": "TW",
+          "region": "asia-east1 (Taiwan)"
+        },
+        {
+          "country": "JP",
+          "region": "asia-northeast1 (Tokyo)"
+        },
+        {
+          "country": "JP",
+          "region": "asia-northeast2 (Osaka)"
+        },
+        {
+          "country": "KR",
+          "region": "asia-northeast3 (Seoul)"
+        },
+        {
+          "country": "AU",
+          "region": "australia-southeast1 (Sydney)"
+        },
+        {
+          "country": "AU",
+          "region": "australia-southeast2 (Melbourne)"
+        },
+        {
+          "country": "ZA",
+          "region": "africa-south1 (Johannesburg)"
+        }
+      ],
+      "sources": ["firestore-locations"],
+      "note": "Cloud Firestore's regional locations. Multi-region locations in the US and in Europe (Belgium and the Netherlands) are also offered; Realtime Database has its own, shorter list.",
+      "checkedOn": "2026-11-26"
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001"],
+      "sources": ["privacy"],
+      "note": "Every Firebase service is listed under ISO 27001. SOC 2 is also named, but the page gives no type, so it is not recorded as Type II. No PCI DSS or HIPAA claim.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

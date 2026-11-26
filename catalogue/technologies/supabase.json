@@ -1,0 +1,145 @@
+{
+  "id": "supabase",
+  "name": "Supabase",
+  "parts": ["database", "authentication"],
+  "about": "A hosted back-end platform built on a Postgres database, with authentication, file storage and generated APIs, that can also be self-hosted.",
+  "sources": {
+    "repo-licence": {
+      "title": "LICENSE (supabase/supabase)",
+      "publisher": "Supabase, Inc.",
+      "url": "https://github.com/supabase/supabase/blob/master/LICENSE"
+    },
+    "pricing": {
+      "title": "Pricing & Fees | Supabase",
+      "publisher": "Supabase, Inc.",
+      "url": "https://supabase.com/pricing"
+    },
+    "self-hosting": {
+      "title": "Self-Hosting | Supabase Docs",
+      "publisher": "Supabase, Inc.",
+      "url": "https://supabase.com/docs/guides/self-hosting"
+    },
+    "regions": {
+      "title": "Available regions | Supabase Docs",
+      "publisher": "Supabase, Inc.",
+      "url": "https://supabase.com/docs/guides/platform/regions"
+    },
+    "security": {
+      "title": "Security at Supabase",
+      "publisher": "Supabase, Inc.",
+      "url": "https://supabase.com/security"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "Apache-2.0",
+      "sources": ["repo-licence"],
+      "checkedOn": "2026-11-24",
+      "note": "Licence of the main Supabase repository."
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Hosted plans start with a free tier; the code is also open source."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["self-hosting"],
+      "checkedOn": "2026-11-24",
+      "note": "Docker is the supported route; some hosted-platform features are missing when self-hosting."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["self-hosting"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "West US (North California)"
+        },
+        {
+          "country": "US",
+          "region": "West US (Oregon)"
+        },
+        {
+          "country": "US",
+          "region": "East US (North Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "East US (Ohio)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada (Central)"
+        },
+        {
+          "country": "IE",
+          "region": "West EU (Ireland)"
+        },
+        {
+          "country": "GB",
+          "region": "West Europe (London)"
+        },
+        {
+          "country": "FR",
+          "region": "West EU (Paris)"
+        },
+        {
+          "country": "DE",
+          "region": "Central EU (Frankfurt)"
+        },
+        {
+          "country": "CH",
+          "region": "Central Europe (Zurich)"
+        },
+        {
+          "country": "SE",
+          "region": "North EU (Stockholm)"
+        },
+        {
+          "country": "IN",
+          "region": "South Asia (Mumbai)"
+        },
+        {
+          "country": "SG",
+          "region": "Southeast Asia (Singapore)"
+        },
+        {
+          "country": "JP",
+          "region": "Northeast Asia (Tokyo)"
+        },
+        {
+          "country": "KR",
+          "region": "Northeast Asia (Seoul)"
+        },
+        {
+          "country": "AU",
+          "region": "Oceania (Sydney)"
+        },
+        {
+          "country": "BR",
+          "region": "South America (São Paulo)"
+        }
+      ],
+      "sources": ["regions"],
+      "checkedOn": "2026-11-24",
+      "note": "The exact AWS regions a project can be placed in. The general regions (Americas, Europe, APAC) deploy to an available AWS region in that area."
+    },
+    {
+      "kind": "compliance",
+      "value": ["soc2-type2", "hipaa-baa", "iso-27001"],
+      "sources": ["security"],
+      "checkedOn": "2026-11-24",
+      "note": "Covers the hosted platform. The same page says it is HIPAA compliant once a BAA is signed (Team and Enterprise customers) and ISO 27001 certified."
+    }
+  ]
+}

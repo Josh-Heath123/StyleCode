@@ -1,0 +1,71 @@
+{
+  "id": "sql-server",
+  "name": "SQL Server",
+  "parts": ["database"],
+  "about": "A relational database server from Microsoft that runs on Windows and Linux.",
+  "sources": {
+    "lifecycle": {
+      "title": "SQL Server 2025 - Microsoft Lifecycle",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/lifecycle/products/sql-server-2025"
+    },
+    "licensing": {
+      "title": "Microsoft SQL Server | Microsoft Licensing Resources",
+      "publisher": "Microsoft",
+      "url": "https://www.microsoft.com/licensing/product-licensing/sql-server"
+    },
+    "linux": {
+      "title": "What is SQL Server on Linux?",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/sql/linux/sql-server-linux-overview"
+    },
+    "managed-instance": {
+      "title": "What is Azure SQL Managed Instance?",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/azure/azure-sql/managed-instance/sql-managed-instance-paas-overview"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "proprietary",
+      "sources": ["licensing"],
+      "checkedOn": "2026-11-24",
+      "note": "Sold under Microsoft licences per core or per server plus client access licences."
+    },
+    {
+      "kind": "platforms",
+      "value": ["linux", "windows"],
+      "sources": ["lifecycle"],
+      "checkedOn": "2026-11-24",
+      "note": "These are the editions the SQL Server 2025 lifecycle covers."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["linux"],
+      "checkedOn": "2026-11-24",
+      "note": "Can be installed on your own machines, virtual machines or containers."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["managed-instance"],
+      "checkedOn": "2026-11-24",
+      "note": "Microsoft hosts it as Azure SQL Managed Instance, which is close to but not fully identical to SQL Server."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "2025",
+          "date": "2025-11-18"
+        },
+        "endOfSupport": "2036-01-07"
+      },
+      "sources": ["lifecycle"],
+      "checkedOn": "2026-11-24",
+      "note": "Newest major version and the end of its extended support; mainstream support ends 2031-01-07, and cumulative updates are released on top of it."
+    }
+  ]
+}

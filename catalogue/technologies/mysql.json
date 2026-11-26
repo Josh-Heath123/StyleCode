@@ -1,0 +1,77 @@
+{
+  "id": "mysql",
+  "name": "MySQL",
+  "parts": ["database"],
+  "about": "A relational database server from Oracle, with a GPL community edition and commercial editions.",
+  "sources": {
+    "relnotes": {
+      "title": "MySQL :: MySQL 26.10 Release Notes",
+      "publisher": "Oracle",
+      "url": "https://dev.mysql.com/doc/relnotes/mysql/26.10/en/"
+    },
+    "licence": {
+      "title": "mysql-server/LICENSE",
+      "publisher": "Oracle",
+      "url": "https://github.com/mysql/mysql-server/blob/trunk/LICENSE"
+    },
+    "download": {
+      "title": "MySQL :: Download MySQL Community Server",
+      "publisher": "Oracle",
+      "url": "https://dev.mysql.com/downloads/mysql/"
+    },
+    "products": {
+      "title": "MySQL :: MySQL Products",
+      "publisher": "Oracle",
+      "url": "https://www.mysql.com/products/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "GPL-2.0-only",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "This is the Community edition, with extra linking permissions; Enterprise editions are sold separately."
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "Applies to MySQL Community; Oracle also sells Enterprise editions."
+    },
+    {
+      "kind": "platforms",
+      "value": ["windows", "linux", "macos"],
+      "sources": ["download"],
+      "checkedOn": "2026-11-24",
+      "note": "Linux builds are offered for Ubuntu, Debian, SUSE, Red Hat or Oracle Linux, and Fedora; source code is also offered."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["download"],
+      "checkedOn": "2026-11-24",
+      "note": "The Community Server is offered as a download to run yourself."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["products"],
+      "checkedOn": "2026-11-24",
+      "note": "Oracle offers MySQL as the HeatWave cloud service."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "26.10.0.1",
+          "date": "2026-11-24"
+        }
+      },
+      "sources": ["relnotes"],
+      "checkedOn": "2026-11-24",
+      "note": "9.7.4.1 and 8.4.13.1 came out the same day; no end-of-support date was found on a readable page."
+    }
+  ]
+}
