@@ -24,6 +24,7 @@
     "format:check": "prettier --check .",
     "check:tokens": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-tokens.ts",
     "check:catalogue": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-catalogue.ts",
+    "sample:catalogue": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/sample-catalogue.ts",
     "check:readme": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-readme.ts",
     "check:hygiene": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-hygiene.ts",
     "check:dependencies": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-new-dependencies.ts",
