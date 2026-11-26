@@ -1,0 +1,48 @@
+{
+  "id": "sendgrid",
+  "name": "Twilio SendGrid",
+  "parts": ["email"],
+  "about": "A hosted service from Twilio for sending email through an API or SMTP.",
+  "sources": {
+    "libraries": {
+      "title": "API Libraries",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/sendgrid/for-developers/sending-email/libraries"
+    },
+    "gettingstarted": {
+      "title": "Getting started with the SendGrid API",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/sendgrid/for-developers/sending-email/api-getting-started"
+    },
+    "product": {
+      "title": "SendGrid Email API and Email Marketing Campaigns | Twilio",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/en-us/sendgrid"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["product"],
+      "checkedOn": "2026-11-24",
+      "note": "Paid plans with a free trial."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["product"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["csharp", "go", "java", "javascript", "php", "python", "ruby"],
+        "httpsApi": true
+      },
+      "sources": ["libraries", "gettingstarted"],
+      "checkedOn": "2026-11-24",
+      "note": "Languages are the official libraries section (Node.js counted as javascript); the HTTPS Web API host is stated on the gettingstarted source."
+    }
+  ]
+}

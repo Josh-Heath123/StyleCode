@@ -1,0 +1,220 @@
+{
+  "id": "amazon-ses",
+  "name": "Amazon SES",
+  "parts": ["email"],
+  "about": "Amazon Web Services' hosted service for sending and receiving email through an API or SMTP.",
+  "sources": {
+    "pricing": {
+      "title": "Pricing",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/ses/pricing/"
+    },
+    "endpoints": {
+      "title": "Amazon Simple Email Service endpoints and quotas",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/ses.html"
+    },
+    "sdks": {
+      "title": "Using Amazon SES with an AWS SDK",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/ses/latest/dg/sdk-general-information-section.html"
+    },
+    "aws-regions": {
+      "title": "AWS Regions",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html"
+    },
+    "iso-certified": {
+      "title": "AWS ISO and CSA STAR Certifications and Services",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/iso-certified/"
+    },
+    "pci-scope": {
+      "title": "AWS Services in Scope by Compliance Program: Payment Card Industry Standards",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/services-in-scope/PCI/"
+    },
+    "pci-faq": {
+      "title": "PCI DSS Level 1 FAQs",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/pci-dss-level-1-faqs/"
+    },
+    "hipaa": {
+      "title": "HIPAA Eligible Services Reference",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/hipaa-eligible-services-reference/"
+    },
+    "soc-faq": {
+      "title": "SOC FAQs",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/soc-faqs/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "US East (Ohio)"
+        },
+        {
+          "country": "US",
+          "region": "US East (N. Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "US West (N. California)"
+        },
+        {
+          "country": "US",
+          "region": "US West (Oregon)"
+        },
+        {
+          "country": "ZA",
+          "region": "Africa (Cape Town)"
+        },
+        {
+          "country": "IN",
+          "region": "Asia Pacific (Hyderabad)"
+        },
+        {
+          "country": "ID",
+          "region": "Asia Pacific (Jakarta)"
+        },
+        {
+          "country": "MY",
+          "region": "Asia Pacific (Malaysia)"
+        },
+        {
+          "country": "AU",
+          "region": "Asia Pacific (Melbourne)"
+        },
+        {
+          "country": "IN",
+          "region": "Asia Pacific (Mumbai)"
+        },
+        {
+          "country": "NZ",
+          "region": "Asia Pacific (New Zealand)"
+        },
+        {
+          "country": "JP",
+          "region": "Asia Pacific (Osaka)"
+        },
+        {
+          "country": "KR",
+          "region": "Asia Pacific (Seoul)"
+        },
+        {
+          "country": "SG",
+          "region": "Asia Pacific (Singapore)"
+        },
+        {
+          "country": "AU",
+          "region": "Asia Pacific (Sydney)"
+        },
+        {
+          "country": "TW",
+          "region": "Asia Pacific (Taipei)"
+        },
+        {
+          "country": "TH",
+          "region": "Asia Pacific (Thailand)"
+        },
+        {
+          "country": "JP",
+          "region": "Asia Pacific (Tokyo)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada (Central)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada West (Calgary)"
+        },
+        {
+          "country": "DE",
+          "region": "Europe (Frankfurt)"
+        },
+        {
+          "country": "IE",
+          "region": "Europe (Ireland)"
+        },
+        {
+          "country": "GB",
+          "region": "Europe (London)"
+        },
+        {
+          "country": "IT",
+          "region": "Europe (Milan)"
+        },
+        {
+          "country": "FR",
+          "region": "Europe (Paris)"
+        },
+        {
+          "country": "ES",
+          "region": "Europe (Spain)"
+        },
+        {
+          "country": "SE",
+          "region": "Europe (Stockholm)"
+        },
+        {
+          "country": "CH",
+          "region": "Europe (Zurich)"
+        },
+        {
+          "country": "IL",
+          "region": "Israel (Tel Aviv)"
+        },
+        {
+          "country": "MX",
+          "region": "Mexico (Central)"
+        },
+        {
+          "country": "BH",
+          "region": "Middle East (Bahrain)"
+        },
+        {
+          "country": "BR",
+          "region": "South America (São Paulo)"
+        }
+      ],
+      "sources": ["endpoints", "aws-regions"],
+      "checkedOn": "2026-11-26",
+      "note": "From the Service API endpoints table. AWS GovCloud (US) regions need separate accounts and are not included. Middle East (UAE) is in the DKIM and tracking tables but not the API endpoints table, so it is not listed."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["csharp", "go", "java", "javascript", "kotlin", "php", "python", "ruby", "swift"],
+        "httpsApi": true
+      },
+      "sources": ["sdks"],
+      "checkedOn": "2026-11-24",
+      "note": "The page lists SDKs for C++, Go, Java, JavaScript, Kotlin, .NET, PHP, Python, Ruby, Rust, SAP ABAP and Swift. The HTTPS API endpoints are on the endpoints page."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "pci-dss-l1-service-provider", "hipaa-baa"],
+      "sources": ["iso-certified", "pci-scope", "pci-faq", "hipaa", "soc-faq"],
+      "checkedOn": "2026-11-26",
+      "note": "SES is listed in scope for ISO/IEC 27001 and PCI DSS (AWS is a Level 1 service provider) and as HIPAA eligible under an AWS BAA. The SOC page names a 12-month SOC 2 report but not its type, so soc2-type2 is not listed."
+    }
+  ]
+}
