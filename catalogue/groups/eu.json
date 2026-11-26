@@ -1,0 +1,41 @@
+{
+  "id": "eu",
+  "name": "European Union",
+  "members": [
+    "AT",
+    "BE",
+    "BG",
+    "CY",
+    "CZ",
+    "DE",
+    "DK",
+    "EE",
+    "ES",
+    "FI",
+    "FR",
+    "GR",
+    "HR",
+    "HU",
+    "IE",
+    "IT",
+    "LT",
+    "LU",
+    "LV",
+    "MT",
+    "NL",
+    "PL",
+    "PT",
+    "RO",
+    "SE",
+    "SI",
+    "SK"
+  ],
+  "sources": [
+    {
+      "title": "EU countries",
+      "publisher": "European Union",
+      "url": "https://european-union.europa.eu/principles-countries-history/eu-countries_en"
+    }
+  ],
+  "checkedOn": "2026-11-24"
+}

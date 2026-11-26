@@ -1,0 +1,49 @@
+{
+  "id": "eea",
+  "name": "European Economic Area",
+  "members": [
+    "AT",
+    "BE",
+    "BG",
+    "CY",
+    "CZ",
+    "DE",
+    "DK",
+    "EE",
+    "ES",
+    "FI",
+    "FR",
+    "GR",
+    "HR",
+    "HU",
+    "IE",
+    "IS",
+    "IT",
+    "LI",
+    "LT",
+    "LU",
+    "LV",
+    "MT",
+    "NL",
+    "NO",
+    "PL",
+    "PT",
+    "RO",
+    "SE",
+    "SI",
+    "SK"
+  ],
+  "sources": [
+    {
+      "title": "EEA & Relations with the EU",
+      "publisher": "European Free Trade Association",
+      "url": "https://www.efta.int/eea"
+    },
+    {
+      "title": "EU countries",
+      "publisher": "European Union",
+      "url": "https://european-union.europa.eu/principles-countries-history/eu-countries_en"
+    }
+  ],
+  "checkedOn": "2026-11-24"
+}
