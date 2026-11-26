@@ -1,0 +1,28 @@
+{
+  "id": "quickbooks-online",
+  "name": "QuickBooks Online",
+  "parts": ["accounting"],
+  "about": "Intuit's online accounting software for small businesses, with an API for integrations.",
+  "sources": {
+    "pricing": {
+      "title": "QuickBooks® Online Pricing & Free Trial | Official Site",
+      "publisher": "Intuit",
+      "url": "https://quickbooks.intuit.com/pricing/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Subscription plans with a 30-day free trial."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "xero",
+  "name": "Xero",
+  "parts": ["accounting"],
+  "about": "Online accounting software for small businesses, with an API for integrations.",
+  "sources": {
+    "pricing": {
+      "title": "Pricing Plans | Xero ZA",
+      "publisher": "Xero",
+      "url": "https://www.xero.com/za/pricing-plans/"
+    },
+    "security": {
+      "title": "Security at Xero | Xero ZA",
+      "publisher": "Xero",
+      "url": "https://www.xero.com/za/security/"
+    },
+    "sdks": {
+      "title": "SDKs",
+      "publisher": "Xero",
+      "url": "https://developer.xero.com/documentation/sdks-and-tools/libraries/overview"
+    },
+    "requests": {
+      "title": "HTTP Requests and Responses",
+      "publisher": "Xero",
+      "url": "https://developer.xero.com/documentation/api/accounting/requests-and-responses"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Monthly subscriptions with a 30-day trial."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["security"],
+      "checkedOn": "2026-11-26"
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["csharp", "java", "javascript", "php", "ruby", "python"],
+        "httpsApi": true
+      },
+      "sources": ["sdks", "requests"],
+      "checkedOn": "2026-11-26",
+      "note": "The SDK table lists C#, Java, Node (here javascript), PHP, Ruby and Python. Requests go to https://api.xero.com."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001"],
+      "sources": ["security"],
+      "checkedOn": "2026-11-26",
+      "note": "ISO/IEC 27001:2022 certified. SOC 2 reports are offered but their type isn't named. For PCI DSS Xero is a level 2 merchant (SAQ A), not a Level 1 service provider."
+    }
+  ]
+}

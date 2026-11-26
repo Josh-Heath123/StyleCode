@@ -1,0 +1,49 @@
+{
+  "id": "sage-accounting",
+  "name": "Sage Accounting",
+  "parts": ["accounting"],
+  "about": "Sage's online accounting software for small businesses, with an API for integrations.",
+  "sources": {
+    "api-overview": {
+      "title": "Accounting API Overview",
+      "publisher": "Sage",
+      "url": "https://developer.sage.com/accounting/docs/v1.0.0/guides/learning/key-concepts/overview"
+    },
+    "sample-apps": {
+      "title": "Sample Apps",
+      "publisher": "Sage",
+      "url": "https://developer.sage.com/accounting/docs/v1.0.0/guides/learning/getting-started/sample_apps"
+    },
+    "product-uk": {
+      "title": "Sage Accounting | Sage UK",
+      "publisher": "Sage",
+      "url": "https://www.sage.com/en-gb/sage-business-cloud/sage-accounting/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["product-uk"],
+      "checkedOn": "2026-11-26",
+      "note": "Monthly plans, priced per month on the UK page."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["api-overview"],
+      "checkedOn": "2026-11-26",
+      "note": "A Sage Business Cloud product, used in a web browser or a mobile app."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": [],
+        "httpsApi": true
+      },
+      "sources": ["api-overview", "sample-apps"],
+      "checkedOn": "2026-11-26",
+      "note": "A RESTful API with OAuth 2.0. Sage offers sample apps in C# and PHP, not SDKs; other libraries listed are from other developers."
+    }
+  ]
+}
