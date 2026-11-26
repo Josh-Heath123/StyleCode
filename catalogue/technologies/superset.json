@@ -1,0 +1,62 @@
+{
+  "id": "superset",
+  "name": "Apache Superset",
+  "parts": ["data-reporting"],
+  "about": "An open-source data exploration and visualisation platform from the Apache Software Foundation that you run yourself.",
+  "sources": {
+    "licence": {
+      "title": "LICENSE.txt",
+      "publisher": "Apache Software Foundation",
+      "url": "https://github.com/apache/superset/blob/master/LICENSE.txt"
+    },
+    "install": {
+      "title": "Installation Methods | Superset",
+      "publisher": "Apache Software Foundation",
+      "url": "https://superset.apache.org/admin-docs/6.1.0/installation/installation-methods/"
+    },
+    "release": {
+      "title": "Release 6.1.0 · apache/superset",
+      "publisher": "Apache Software Foundation",
+      "url": "https://github.com/apache/superset/releases/tag/6.1.0"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "Apache-2.0",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["install"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["python", "container"],
+      "sources": ["install"],
+      "checkedOn": "2026-11-24",
+      "note": "The other methods are Docker Compose and Kubernetes."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "6.1.0",
+          "date": "2026-05-13"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Newest release on GitHub that isn't a pre-release; 7.0.0 release candidates exist. No end-of-support date was read."
+    }
+  ]
+}

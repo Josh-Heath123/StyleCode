@@ -1,0 +1,82 @@
+{
+  "id": "metabase",
+  "name": "Metabase",
+  "parts": ["data-reporting"],
+  "about": "An open-source business intelligence tool for querying databases and building charts and dashboards, also offered as a hosted service.",
+  "sources": {
+    "licence": {
+      "title": "LICENSE.txt",
+      "publisher": "Metabase",
+      "url": "https://github.com/metabase/metabase/blob/master/LICENSE.txt"
+    },
+    "install": {
+      "title": "Installing Metabase",
+      "publisher": "Metabase",
+      "url": "https://www.metabase.com/docs/latest/installation-and-operation/installing-metabase"
+    },
+    "security": {
+      "title": "Your data stays with you.",
+      "publisher": "Metabase",
+      "url": "https://www.metabase.com/security"
+    },
+    "release": {
+      "title": "Release Metabase 65.6 · metabase/metabase",
+      "publisher": "Metabase",
+      "url": "https://github.com/metabase/metabase/releases/tag/v0.65.6"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "AGPL-3.0-only",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "The enterprise directory and enterprise binaries use the Metabase Commercial License; the repository's AGPL file is version 3 and no 'or later' statement was found."
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "Metabase Cloud is a paid hosted option."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["install"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["install"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["jvm", "container"],
+      "sources": ["install"],
+      "checkedOn": "2026-11-24",
+      "note": "It also runs in Docker."
+    },
+    {
+      "kind": "compliance",
+      "value": ["soc2-type2"],
+      "sources": ["security"],
+      "checkedOn": "2026-11-24",
+      "note": "The page also names SOC 1 Type II, GDPR and CCPA, which are outside the vocabulary."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "0.65.6",
+          "date": "2026-11-18"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Open-source build, tag v0.65.6; no end-of-support date was read."
+    }
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "id": "power-bi",
+  "name": "Power BI",
+  "parts": ["data-reporting"],
+  "about": "Microsoft's business analytics product for building reports and dashboards from connected data and sharing them.",
+  "sources": {
+    "licences": {
+      "title": "Power BI service features by license type",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/power-bi/fundamentals/service-features-license-type"
+    },
+    "overview": {
+      "title": "What is Power BI?",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/power-bi/fundamentals/power-bi-overview"
+    },
+    "reportserver": {
+      "title": "What Is Power BI Report Server?",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/power-bi/report-server/get-started"
+    },
+    "fabric-regions": {
+      "title": "Fabric region availability",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/fabric/admin/region-availability"
+    },
+    "home-region": {
+      "title": "Find your Fabric home region",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/fabric/admin/find-fabric-home-region"
+    },
+    "azure-regions": {
+      "title": "List of Azure Regions",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    },
+    "ms-iso-27001": {
+      "title": "ISO/IEC 27001 - Microsoft Compliance",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-iso-27001"
+    },
+    "ms-soc-2": {
+      "title": "System and Organization Controls (SOC) 2 Type 2 - Microsoft Compliance",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-soc-2"
+    },
+    "ms-pci-dss": {
+      "title": "Payment Card Industry (PCI) Data Security Standard (DSS) - Microsoft Compliance",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-pci-dss"
+    },
+    "ms-hipaa": {
+      "title": "HIPAA and HITECH Act - Microsoft Compliance",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-hipaa-hitech"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["licences"],
+      "checkedOn": "2026-11-24",
+      "note": "A free licence exists, but sharing and collaboration need a paid one."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24",
+      "note": "This is the Power BI service."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["reportserver"],
+      "checkedOn": "2026-11-24",
+      "note": "Only through Power BI Report Server, which comes with certain Premium or Fabric capacities or SQL Server Enterprise with Software Assurance."
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "BR",
+          "region": "Brazil South"
+        },
+        {
+          "country": "CA",
+          "region": "Canada Central"
+        },
+        {
+          "country": "CA",
+          "region": "Canada East"
+        },
+        {
+          "country": "CL",
+          "region": "Chile Central"
+        },
+        {
+          "country": "MX",
+          "region": "Mexico Central"
+        },
+        {
+          "country": "US",
+          "region": "Central US"
+        },
+        {
+          "country": "US",
+          "region": "East US"
+        },
+        {
+          "country": "US",
+          "region": "East US 2"
+        },
+        {
+          "country": "US",
+          "region": "North Central US"
+        },
+        {
+          "country": "US",
+          "region": "South Central US"
+        },
+        {
+          "country": "US",
+          "region": "West US"
+        },
+        {
+          "country": "US",
+          "region": "West US 2"
+        },
+        {
+          "country": "US",
+          "region": "West US 3"
+        },
+        {
+          "country": "AT",
+          "region": "Austria East"
+        },
+        {
+          "country": "BE",
+          "region": "Belgium Central"
+        },
+        {
+          "country": "DK",
+          "region": "Denmark East"
+        },
+        {
+          "country": "IE",
+          "region": "North Europe"
+        },
+        {
+          "country": "NL",
+          "region": "West Europe"
+        },
+        {
+          "country": "FR",
+          "region": "France Central"
+        },
+        {
+          "country": "FR",
+          "region": "France South"
+        },
+        {
+          "country": "DE",
+          "region": "Germany North"
+        },
+        {
+          "country": "DE",
+          "region": "Germany West Central"
+        },
+        {
+          "country": "IT",
+          "region": "Italy North"
+        },
+        {
+          "country": "NO",
+          "region": "Norway East"
+        },
+        {
+          "country": "NO",
+          "region": "Norway West"
+        },
+        {
+          "country": "PL",
+          "region": "Poland Central"
+        },
+        {
+          "country": "ES",
+          "region": "Spain Central"
+        },
+        {
+          "country": "SE",
+          "region": "Sweden Central"
+        },
+        {
+          "country": "CH",
+          "region": "Switzerland North"
+        },
+        {
+          "country": "CH",
+          "region": "Switzerland West"
+        },
+        {
+          "country": "GB",
+          "region": "UK South"
+        },
+        {
+          "country": "GB",
+          "region": "UK West"
+        },
+        {
+          "country": "QA",
+          "region": "Qatar Central"
+        },
+        {
+          "country": "AE",
+          "region": "UAE Central"
+        },
+        {
+          "country": "AE",
+          "region": "UAE North"
+        },
+        {
+          "country": "ZA",
+          "region": "South Africa North"
+        },
+        {
+          "country": "ZA",
+          "region": "South Africa West"
+        },
+        {
+          "country": "HK",
+          "region": "East Asia"
+        },
+        {
+          "country": "SG",
+          "region": "Southeast Asia"
+        },
+        {
+          "country": "AU",
+          "region": "Australia East"
+        },
+        {
+          "country": "AU",
+          "region": "Australia Southeast"
+        },
+        {
+          "country": "IN",
+          "region": "Central India"
+        },
+        {
+          "country": "IN",
+          "region": "West India"
+        },
+        {
+          "country": "IN",
+          "region": "South India"
+        },
+        {
+          "country": "ID",
+          "region": "Indonesia Central"
+        },
+        {
+          "country": "IL",
+          "region": "Israel Central"
+        },
+        {
+          "country": "JP",
+          "region": "Japan East"
+        },
+        {
+          "country": "JP",
+          "region": "Japan West"
+        },
+        {
+          "country": "KR",
+          "region": "Korea Central"
+        },
+        {
+          "country": "KR",
+          "region": "Korea South"
+        },
+        {
+          "country": "MY",
+          "region": "Malaysia West"
+        },
+        {
+          "country": "NZ",
+          "region": "New Zealand North"
+        },
+        {
+          "country": "TW",
+          "region": "Taiwan North"
+        },
+        {
+          "country": "TW",
+          "region": "Taiwan Northwest"
+        }
+      ],
+      "sources": ["fabric-regions", "home-region", "azure-regions"],
+      "note": "Azure regions where Power BI is offered. Data is stored in the tenant's home region, and capacities can be in others. Countries are from Azure's region list; Taiwan Northwest isn't on it, so its country is from its name.",
+      "checkedOn": "2026-11-26"
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "hipaa-baa"],
+      "sources": ["ms-iso-27001", "ms-soc-2", "ms-pci-dss", "ms-hipaa"],
+      "note": "The Power BI cloud service is in scope on each page. It is in the PCI DSS scope too, but the Level 1 service provider statement names only Azure, OneDrive, SharePoint and Azure Communication Services.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}
