@@ -1,0 +1,74 @@
+{
+  "id": "twilio-messaging",
+  "name": "Twilio Messaging",
+  "parts": ["messaging"],
+  "about": "Twilio's hosted API for sending and receiving SMS and other messages.",
+  "sources": {
+    "libraries": {
+      "title": "SDKs",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/libraries"
+    },
+    "messagingapi": {
+      "title": "Messaging API Overview",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/messaging/api"
+    },
+    "regions": {
+      "title": "Twilio Regions",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/global-infrastructure/understanding-twilio-regions"
+    },
+    "pricing": {
+      "title": "SMS Pricing in United States for Text Messaging | Twilio",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/en-us/sms/pricing/us"
+    },
+    "availability": {
+      "title": "Regional product availability",
+      "publisher": "Twilio",
+      "url": "https://www.twilio.com/docs/global-infrastructure/regional-product-and-feature-availability"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Billed per use; text messages are charged per segment."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["regions"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["csharp", "go", "java", "javascript", "php", "python", "ruby"],
+        "httpsApi": true
+      },
+      "sources": ["libraries", "messagingapi"],
+      "checkedOn": "2026-11-24",
+      "note": "Languages are the server-side SDKs section (Node.js counted as javascript); the HTTPS REST API is stated on the messagingapi source."
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "US1 (eastern United States)"
+        },
+        {
+          "country": "IE",
+          "region": "IE1 (Dublin)"
+        }
+      ],
+      "sources": ["regions", "availability"],
+      "checkedOn": "2026-11-26",
+      "note": "US1 is the default Region. IE1 offers Programmable Messaging (SMS); Twilio's Australia Region (AU1) does not offer Messaging."
+    }
+  ]
+}

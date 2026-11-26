@@ -1,0 +1,82 @@
+{
+  "id": "clickatell",
+  "name": "Clickatell",
+  "parts": ["messaging"],
+  "about": "A hosted messaging platform offering SMS, WhatsApp and USSD through APIs.",
+  "sources": {
+    "smsoverview": {
+      "title": "SMS Overview",
+      "publisher": "Clickatell",
+      "url": "https://help.clickatell.com/sms/getting-started/sms-overview.md"
+    },
+    "pricing": {
+      "title": "SMS Pricing by Country | Bulk SMS Rates & Calculator | Clickatell",
+      "publisher": "Clickatell",
+      "url": "https://www.clickatell.com/pricing-and-coverage/message-pricing/"
+    },
+    "security-compliance": {
+      "title": "Security & Compliance",
+      "publisher": "Clickatell",
+      "url": "https://help.clickatell.com/clickatell-user-portal/security-and-compliance"
+    },
+    "gdpr": {
+      "title": "Clickatell maintaining GDPR compliance",
+      "publisher": "Clickatell",
+      "url": "https://www.clickatell.com/legal/general-terms-notices/clickatell-maintaining-gdpr-compliance/"
+    },
+    "one-api": {
+      "title": "One API",
+      "publisher": "Clickatell",
+      "url": "https://help.clickatell.com/developers-api-reference/reference/one-api"
+    },
+    "sdks-archive": {
+      "title": "SDKs",
+      "publisher": "Clickatell",
+      "url": "https://help.clickatell.com/developers-api-reference/developers-archive/sdks"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Messages are priced by destination country, with a calculator and sales contact."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["smsoverview"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2"],
+      "sources": ["security-compliance"],
+      "checkedOn": "2026-11-26",
+      "note": "Shown as badges. The page also shows PCI DSS without a level, GDPR, CCPA and CPRA, and POPIA; it states no Level 1 service provider status or HIPAA agreement."
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "IE",
+          "region": "AWS (Ireland)"
+        }
+      ],
+      "sources": ["gdpr"],
+      "checkedOn": "2026-11-26",
+      "note": "The page says Clickatell moved its data infrastructure to AWS in Ireland in April 2018, and hosts and processes the data it gathers there."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": [],
+        "httpsApi": true
+      },
+      "sources": ["one-api", "sdks-archive"],
+      "checkedOn": "2026-11-26",
+      "note": "The One API is served at an https address. The C#, Java, Node.js, Python and PHP SDK pages are marked archived, so no SDK is listed."
+    }
+  ]
+}

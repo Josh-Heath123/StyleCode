@@ -1,0 +1,129 @@
+{
+  "id": "whatsapp-cloud-api",
+  "name": "WhatsApp Business Platform (Cloud API)",
+  "parts": ["messaging"],
+  "about": "Meta's hosted API for businesses to send and receive WhatsApp messages.",
+  "sources": {
+    "privacy": {
+      "title": "Data Privacy & Security",
+      "publisher": "Meta",
+      "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/data-privacy-and-security"
+    },
+    "pricing": {
+      "title": "Pricing on the WhatsApp Business Platform",
+      "publisher": "Meta",
+      "url": "https://developers.facebook.com/docs/whatsapp/pricing/"
+    },
+    "local-storage": {
+      "title": "Local storage",
+      "publisher": "Meta",
+      "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/local-storage"
+    },
+    "registration": {
+      "title": "Register a business phone number",
+      "publisher": "Meta",
+      "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/business-phone-numbers/registration"
+    },
+    "platform": {
+      "title": "About the WhatsApp Business Platform",
+      "publisher": "Meta",
+      "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/about-the-platform"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "Meta bills per delivered message; messages from users to businesses are free."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["privacy"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "AU",
+          "region": "Australia (local storage)"
+        },
+        {
+          "country": "ID",
+          "region": "Indonesia (local storage)"
+        },
+        {
+          "country": "IN",
+          "region": "India (local storage)"
+        },
+        {
+          "country": "JP",
+          "region": "Japan (local storage)"
+        },
+        {
+          "country": "SG",
+          "region": "Singapore (local storage)"
+        },
+        {
+          "country": "KR",
+          "region": "South Korea (local storage)"
+        },
+        {
+          "country": "DE",
+          "region": "EU (Germany) (local storage)"
+        },
+        {
+          "country": "CH",
+          "region": "Switzerland (local storage)"
+        },
+        {
+          "country": "GB",
+          "region": "United Kingdom (local storage)"
+        },
+        {
+          "country": "BR",
+          "region": "Brazil (local storage)"
+        },
+        {
+          "country": "BH",
+          "region": "Bahrain (local storage)"
+        },
+        {
+          "country": "ZA",
+          "region": "South Africa (local storage)"
+        },
+        {
+          "country": "AE",
+          "region": "United Arab Emirates (local storage)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada (local storage)"
+        }
+      ],
+      "sources": ["local-storage", "registration"],
+      "checkedOn": "2026-11-26",
+      "note": "The countries a business can pick for message data at rest. Without local storage, data is kept in Meta data centres the pages do not list; with it, content may be held elsewhere for up to 60 minutes while in use."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2"],
+      "sources": ["privacy"],
+      "checkedOn": "2026-11-26",
+      "note": "Meta says it has SOC 2 Type II and ISO 27001 reports for Cloud API. The page makes no PCI DSS or HIPAA claim."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": [],
+        "httpsApi": true
+      },
+      "sources": ["platform"],
+      "checkedOn": "2026-11-26",
+      "note": "Meta offers no SDK of its own; the platform is built on Graph API over HTTP. Third-party SDKs are named but not maintained or endorsed by Meta."
+    }
+  ]
+}
