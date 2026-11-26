@@ -1,0 +1,61 @@
+{
+  "id": "auth0",
+  "name": "Auth0",
+  "parts": ["authentication"],
+  "about": "A hosted customer identity service from Okta for adding sign-in, sign-up and access control to applications.",
+  "sources": {
+    "pricing": {
+      "title": "Pricing - Auth0",
+      "publisher": "Okta (Auth0)",
+      "url": "https://auth0.com/pricing"
+    },
+    "deployment": {
+      "title": "Cloud Deployment | Auth0",
+      "publisher": "Okta (Auth0)",
+      "url": "https://auth0.com/platform/cloud-deployment"
+    },
+    "libraries": {
+      "title": "SDK Libraries",
+      "publisher": "Okta (Auth0)",
+      "url": "https://auth0.com/docs/libraries"
+    },
+    "compliance": {
+      "title": "Auth0 Data Privacy and Compliance",
+      "publisher": "Auth0 (Okta)",
+      "url": "https://auth0.com/docs/secure/data-privacy-and-compliance"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "There is a Free plan as well as paid plans."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["deployment"],
+      "checkedOn": "2026-11-24",
+      "note": "Public Cloud is a shared multi-tenant deployment; Private Cloud is a dedicated instance on AWS or Azure."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["csharp", "dart", "go", "java", "javascript", "kotlin", "php", "python", "ruby", "swift"],
+        "httpsApi": true
+      },
+      "sources": ["libraries"],
+      "checkedOn": "2026-11-24",
+      "note": "Mapped from the SDK cards (.NET, Flutter, Go, Java, JavaScript and Node, Kotlin Multiplatform, PHP, Python, Ruby, Auth0.swift); TypeScript isn't named. The HTTPS Authentication and Management APIs are documented at https://auth0.com/docs/api."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "hipaa-baa"],
+      "sources": ["compliance"],
+      "note": "Audited yearly for ISO 27001 and SOC 2 Type 2; a BAA is given on request, but not for Azure deployments. PCI DSS environments are offered with no level stated, so not recorded as Level 1.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

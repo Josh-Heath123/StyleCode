@@ -1,0 +1,68 @@
+{
+  "id": "keycloak",
+  "name": "Keycloak",
+  "parts": ["authentication"],
+  "about": "An identity and access management server that provides single sign-on, social login and user federation for applications.",
+  "sources": {
+    "repo-licence": {
+      "title": "LICENSE.txt (keycloak/keycloak)",
+      "publisher": "Keycloak Authors",
+      "url": "https://github.com/keycloak/keycloak/blob/main/LICENSE.txt"
+    },
+    "home": {
+      "title": "Keycloak",
+      "publisher": "Keycloak Authors",
+      "url": "https://www.keycloak.org/"
+    },
+    "guides": {
+      "title": "Guides - Keycloak",
+      "publisher": "Keycloak Authors",
+      "url": "https://www.keycloak.org/guides"
+    },
+    "release": {
+      "title": "Release 26.8.2 (keycloak/keycloak)",
+      "publisher": "Keycloak Authors",
+      "url": "https://github.com/keycloak/keycloak/releases/tag/26.8.2"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "Apache-2.0",
+      "sources": ["repo-licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["home"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["guides"],
+      "checkedOn": "2026-11-24",
+      "note": "You run the server yourself."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["jvm", "container"],
+      "sources": ["guides"],
+      "checkedOn": "2026-11-24",
+      "note": "The getting-started guides cover OpenJDK, and containers on Docker, Podman, Kubernetes and OpenShift."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "26.8.2",
+          "date": "2026-11-05"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Date the GitHub release was published (from the page markup, shown in the browser as a local date); no end-of-support date is stated."
+    }
+  ]
+}
