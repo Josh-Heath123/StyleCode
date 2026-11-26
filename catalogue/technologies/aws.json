@@ -1,0 +1,228 @@
+{
+  "id": "aws",
+  "name": "Amazon Web Services",
+  "parts": ["hosting"],
+  "about": "Amazon's public cloud platform for hosting applications, databases and other services.",
+  "sources": {
+    "regions": {
+      "title": "AWS Regions",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html"
+    },
+    "beanstalk": {
+      "title": "Elastic Beanstalk supported platforms",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/platforms/platforms-supported.html"
+    },
+    "rds": {
+      "title": "What is Amazon Relational Database Service (Amazon RDS)?",
+      "publisher": "Amazon Web Services",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html"
+    },
+    "beanstalkpricing": {
+      "title": "AWS Elastic Beanstalk Pricing",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/elasticbeanstalk/pricing/"
+    },
+    "iso-27001": {
+      "title": "ISO/IEC 27001:2022 Compliance",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/iso-27001-faqs/"
+    },
+    "soc": {
+      "title": "SOC Compliance",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/soc-faqs/"
+    },
+    "pci": {
+      "title": "PCI (Payment Card Industry Standards)",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/pci-faqs/"
+    },
+    "hipaa": {
+      "title": "HIPAA Compliance",
+      "publisher": "Amazon Web Services",
+      "url": "https://aws.amazon.com/compliance/hipaa-compliance/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "US",
+          "region": "US East (N. Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "US East (Ohio)"
+        },
+        {
+          "country": "US",
+          "region": "US West (N. California)"
+        },
+        {
+          "country": "US",
+          "region": "US West (Oregon)"
+        },
+        {
+          "country": "ZA",
+          "region": "Africa (Cape Town)"
+        },
+        {
+          "country": "HK",
+          "region": "Asia Pacific (Hong Kong)"
+        },
+        {
+          "country": "IN",
+          "region": "Asia Pacific (Hyderabad)"
+        },
+        {
+          "country": "ID",
+          "region": "Asia Pacific (Jakarta)"
+        },
+        {
+          "country": "MY",
+          "region": "Asia Pacific (Malaysia)"
+        },
+        {
+          "country": "AU",
+          "region": "Asia Pacific (Melbourne)"
+        },
+        {
+          "country": "IN",
+          "region": "Asia Pacific (Mumbai)"
+        },
+        {
+          "country": "NZ",
+          "region": "Asia Pacific (New Zealand)"
+        },
+        {
+          "country": "JP",
+          "region": "Asia Pacific (Osaka)"
+        },
+        {
+          "country": "KR",
+          "region": "Asia Pacific (Seoul)"
+        },
+        {
+          "country": "SG",
+          "region": "Asia Pacific (Singapore)"
+        },
+        {
+          "country": "AU",
+          "region": "Asia Pacific (Sydney)"
+        },
+        {
+          "country": "TW",
+          "region": "Asia Pacific (Taipei)"
+        },
+        {
+          "country": "TH",
+          "region": "Asia Pacific (Thailand)"
+        },
+        {
+          "country": "JP",
+          "region": "Asia Pacific (Tokyo)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada (Central)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada West (Calgary)"
+        },
+        {
+          "country": "DE",
+          "region": "Europe (Frankfurt)"
+        },
+        {
+          "country": "IE",
+          "region": "Europe (Ireland)"
+        },
+        {
+          "country": "GB",
+          "region": "Europe (London)"
+        },
+        {
+          "country": "IT",
+          "region": "Europe (Milan)"
+        },
+        {
+          "country": "FR",
+          "region": "Europe (Paris)"
+        },
+        {
+          "country": "ES",
+          "region": "Europe (Spain)"
+        },
+        {
+          "country": "SE",
+          "region": "Europe (Stockholm)"
+        },
+        {
+          "country": "CH",
+          "region": "Europe (Zurich)"
+        },
+        {
+          "country": "IL",
+          "region": "Israel (Tel Aviv)"
+        },
+        {
+          "country": "MX",
+          "region": "Mexico (Central)"
+        },
+        {
+          "country": "BH",
+          "region": "Middle East (Bahrain)"
+        },
+        {
+          "country": "AE",
+          "region": "Middle East (UAE)"
+        },
+        {
+          "country": "BR",
+          "region": "South America (São Paulo)"
+        }
+      ],
+      "sources": ["regions"],
+      "checkedOn": "2026-11-24",
+      "note": "Regions of a standard AWS account; those added after March 2019 must be enabled first. AWS GovCloud (US) and China regions need separate accounts and are not included."
+    },
+    {
+      "kind": "host-runtimes",
+      "value": ["container", "go", "jvm", "dotnet", "node", "php", "python", "ruby"],
+      "sources": ["beanstalk"],
+      "checkedOn": "2026-11-24",
+      "note": "For AWS Elastic Beanstalk; containers run on its Docker platform."
+    },
+    {
+      "kind": "host-databases",
+      "value": ["sql-server", "mysql", "postgresql"],
+      "sources": ["rds"],
+      "checkedOn": "2026-11-24",
+      "note": "Through Amazon RDS; MongoDB itself is not among its engines."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["rds"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["beanstalkpricing"],
+      "checkedOn": "2026-11-24",
+      "note": "You pay for the underlying resources you use."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "pci-dss-l1-service-provider", "hipaa-baa"],
+      "sources": ["iso-27001", "soc", "pci", "hipaa"],
+      "note": "Certified to ISO/IEC 27001:2022 and as a PCI DSS Level 1 service provider; offers a standard BAA. The SOC page names a 12-month SOC 2 report but not its type, so soc2-type2 is not listed. In-scope services are listed separately.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

@@ -1,0 +1,288 @@
+{
+  "id": "azure",
+  "name": "Microsoft Azure",
+  "parts": ["hosting"],
+  "about": "Microsoft's public cloud platform for hosting applications, databases and other services.",
+  "sources": {
+    "regions": {
+      "title": "List of Azure Regions",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    },
+    "appservice": {
+      "title": "Overview of Azure App Service",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/azure/app-service/overview"
+    },
+    "databases": {
+      "title": "Cloud Databases | Microsoft Azure",
+      "publisher": "Microsoft",
+      "url": "https://azure.microsoft.com/en-us/products/category/databases"
+    },
+    "compliance": {
+      "title": "Azure compliance documentation",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/azure/compliance/"
+    },
+    "iso27001": {
+      "title": "ISO/IEC 27001:2013 Information Security Management Standards",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-iso-27001"
+    },
+    "soc2": {
+      "title": "System and Organization Controls (SOC) 2 Type 2",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-soc-2"
+    },
+    "pcidss": {
+      "title": "Payment Card Industry (PCI) Data Security Standard (DSS)",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-pci-dss"
+    },
+    "hipaa": {
+      "title": "Health Insurance Portability and Accountability Act (HIPAA) & Health Information Technology for Economic and Clinical Health (HITECH) Act",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/compliance/regulatory/offering-hipaa-hitech"
+    }
+  },
+  "facts": [
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "AU",
+          "region": "Australia Central (Canberra)"
+        },
+        {
+          "country": "AU",
+          "region": "Australia East (New South Wales)"
+        },
+        {
+          "country": "AU",
+          "region": "Australia Southeast (Victoria)"
+        },
+        {
+          "country": "AT",
+          "region": "Austria East (Vienna)"
+        },
+        {
+          "country": "BE",
+          "region": "Belgium Central (Brussels)"
+        },
+        {
+          "country": "BR",
+          "region": "Brazil South (Sao Paulo State)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada Central (Toronto)"
+        },
+        {
+          "country": "CA",
+          "region": "Canada East (Quebec)"
+        },
+        {
+          "country": "IN",
+          "region": "Central India (Pune)"
+        },
+        {
+          "country": "US",
+          "region": "Central US (Iowa)"
+        },
+        {
+          "country": "CL",
+          "region": "Chile Central (Santiago)"
+        },
+        {
+          "country": "DK",
+          "region": "Denmark East (Copenhagen)"
+        },
+        {
+          "country": "HK",
+          "region": "East Asia (Hong Kong)"
+        },
+        {
+          "country": "US",
+          "region": "East US (Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "East US 2 (Virginia)"
+        },
+        {
+          "country": "FR",
+          "region": "France Central (Paris)"
+        },
+        {
+          "country": "DE",
+          "region": "Germany West Central (Frankfurt)"
+        },
+        {
+          "country": "IN",
+          "region": "India South Central (Hyderabad)"
+        },
+        {
+          "country": "ID",
+          "region": "Indonesia Central (Jakarta)"
+        },
+        {
+          "country": "IL",
+          "region": "Israel Central (Israel)"
+        },
+        {
+          "country": "IT",
+          "region": "Italy North (Milan)"
+        },
+        {
+          "country": "JP",
+          "region": "Japan East (Tokyo, Saitama)"
+        },
+        {
+          "country": "JP",
+          "region": "Japan West (Osaka)"
+        },
+        {
+          "country": "KR",
+          "region": "Korea Central (Seoul)"
+        },
+        {
+          "country": "KR",
+          "region": "Korea South (Busan)"
+        },
+        {
+          "country": "MY",
+          "region": "Malaysia West (Kuala Lumpur)"
+        },
+        {
+          "country": "MX",
+          "region": "Mexico Central (Querétaro State)"
+        },
+        {
+          "country": "NZ",
+          "region": "New Zealand North (Auckland)"
+        },
+        {
+          "country": "US",
+          "region": "North Central US (Illinois)"
+        },
+        {
+          "country": "IE",
+          "region": "North Europe (Ireland)"
+        },
+        {
+          "country": "NO",
+          "region": "Norway East (Norway)"
+        },
+        {
+          "country": "PL",
+          "region": "Poland Central (Warsaw)"
+        },
+        {
+          "country": "QA",
+          "region": "Qatar Central (Doha)"
+        },
+        {
+          "country": "ZA",
+          "region": "South Africa North (Johannesburg)"
+        },
+        {
+          "country": "US",
+          "region": "South Central US (Texas)"
+        },
+        {
+          "country": "IN",
+          "region": "South India (Chennai)"
+        },
+        {
+          "country": "SG",
+          "region": "Southeast Asia (Singapore)"
+        },
+        {
+          "country": "ES",
+          "region": "Spain Central (Madrid)"
+        },
+        {
+          "country": "SE",
+          "region": "Sweden Central (Gävle)"
+        },
+        {
+          "country": "CH",
+          "region": "Switzerland North (Zurich)"
+        },
+        {
+          "country": "AE",
+          "region": "UAE North (Dubai)"
+        },
+        {
+          "country": "GB",
+          "region": "UK South (London)"
+        },
+        {
+          "country": "GB",
+          "region": "UK West (Cardiff)"
+        },
+        {
+          "country": "US",
+          "region": "West Central US (Wyoming)"
+        },
+        {
+          "country": "NL",
+          "region": "West Europe (Netherlands)"
+        },
+        {
+          "country": "IN",
+          "region": "West India (Mumbai)"
+        },
+        {
+          "country": "US",
+          "region": "West US (California)"
+        },
+        {
+          "country": "US",
+          "region": "West US 2 (Washington)"
+        },
+        {
+          "country": "US",
+          "region": "West US 3 (Phoenix)"
+        }
+      ],
+      "sources": ["regions"],
+      "checkedOn": "2026-11-24",
+      "note": "Public cloud only; left out as not generally available: restricted-access regions (Australia Central 2, Brazil Southeast, France South, Germany North, Norway West, South Africa West, Switzerland West, UAE Central) and coming-soon regions (Saudi Arabia East, Southeast Asia 3, Taiwan North)."
+    },
+    {
+      "kind": "host-runtimes",
+      "value": ["dotnet", "jvm", "node", "python", "php", "container"],
+      "sources": ["appservice"],
+      "checkedOn": "2026-11-24",
+      "note": "For Azure App Service on Windows and Linux; containers run as custom containers."
+    },
+    {
+      "kind": "host-databases",
+      "value": ["sql-server", "postgresql", "mysql"],
+      "sources": ["databases"],
+      "checkedOn": "2026-11-24",
+      "note": "MongoDB is left out: Azure DocumentDB is MongoDB-compatible rather than MongoDB, and MongoDB Atlas on Azure is run by MongoDB, not Microsoft."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "pci-dss-l1-service-provider", "hipaa-baa"],
+      "sources": ["compliance", "iso27001", "soc2", "pcidss", "hipaa"],
+      "checkedOn": "2026-11-24",
+      "note": "The type, level and agreement are on the offering pages: SOC 2 Type 2 (soc2), ISO/IEC 27001 (iso27001), PCI DSS Service Provider Level 1 (pcidss), Business Associate Agreements (hipaa)."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["appservice"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["appservice"],
+      "checkedOn": "2026-11-24",
+      "note": "A free tier exists."
+    }
+  ]
+}

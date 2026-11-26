@@ -1,0 +1,141 @@
+{
+  "id": "vercel",
+  "name": "Vercel",
+  "parts": ["hosting"],
+  "about": "A cloud platform for deploying web front ends and serverless functions.",
+  "sources": {
+    "regions": {
+      "title": "Global network and regions",
+      "publisher": "Vercel",
+      "url": "https://vercel.com/docs/regions"
+    },
+    "runtimes": {
+      "title": "Runtimes",
+      "publisher": "Vercel",
+      "url": "https://vercel.com/docs/functions/runtimes"
+    },
+    "compliance": {
+      "title": "Security & Compliance Measures",
+      "publisher": "Vercel",
+      "url": "https://vercel.com/docs/security/compliance"
+    },
+    "pricing": {
+      "title": "Vercel Pricing: Hobby, Pro, and Enterprise plans",
+      "publisher": "Vercel",
+      "url": "https://vercel.com/pricing"
+    }
+  },
+  "facts": [
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "SE",
+          "region": "arn1 (Stockholm, Sweden)"
+        },
+        {
+          "country": "IN",
+          "region": "bom1 (Mumbai, India)"
+        },
+        {
+          "country": "FR",
+          "region": "cdg1 (Paris, France)"
+        },
+        {
+          "country": "US",
+          "region": "cle1 (Cleveland, USA)"
+        },
+        {
+          "country": "ZA",
+          "region": "cpt1 (Cape Town, South Africa)"
+        },
+        {
+          "country": "IE",
+          "region": "dub1 (Dublin, Ireland)"
+        },
+        {
+          "country": "DE",
+          "region": "fra1 (Frankfurt, Germany)"
+        },
+        {
+          "country": "BR",
+          "region": "gru1 (São Paulo, Brazil)"
+        },
+        {
+          "country": "HK",
+          "region": "hkg1 (Hong Kong)"
+        },
+        {
+          "country": "JP",
+          "region": "hnd1 (Tokyo, Japan)"
+        },
+        {
+          "country": "US",
+          "region": "iad1 (Washington, D.C., USA)"
+        },
+        {
+          "country": "KR",
+          "region": "icn1 (Seoul, South Korea)"
+        },
+        {
+          "country": "JP",
+          "region": "kix1 (Osaka, Japan)"
+        },
+        {
+          "country": "GB",
+          "region": "lhr1 (London, United Kingdom)"
+        },
+        {
+          "country": "US",
+          "region": "pdx1 (Portland, USA)"
+        },
+        {
+          "country": "US",
+          "region": "sfo1 (San Francisco, USA)"
+        },
+        {
+          "country": "SG",
+          "region": "sin1 (Singapore)"
+        },
+        {
+          "country": "AU",
+          "region": "syd1 (Sydney, Australia)"
+        },
+        {
+          "country": "CA",
+          "region": "yul1 (Montréal, Canada)"
+        }
+      ],
+      "sources": ["regions"],
+      "checkedOn": "2026-11-24",
+      "note": "These are the compute regions; content is also cached at points of presence worldwide. Functions default to iad1."
+    },
+    {
+      "kind": "host-runtimes",
+      "value": ["node", "python"],
+      "sources": ["runtimes"],
+      "checkedOn": "2026-11-24",
+      "note": "For Vercel Functions; the Go, Ruby and Container runtimes are in beta and left out, and Bun, Rust, Wasm and Edge are outside the vocabulary."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "hipaa-baa"],
+      "sources": ["compliance"],
+      "checkedOn": "2026-11-24",
+      "note": "Also stated: ISO 27001:2022 certified, and BAAs for eligible Pro and Enterprise customers; PCI DSS is a self-assessment (SAQ-D) for service providers, not a stated Level 1."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["runtimes"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24",
+      "note": "A free Hobby plan exists alongside paid plans."
+    }
+  ]
+}

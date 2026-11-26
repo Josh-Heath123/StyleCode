@@ -1,0 +1,72 @@
+{
+  "id": "xneelo",
+  "name": "xneelo",
+  "parts": ["hosting"],
+  "about": "A South African hosting company offering shared web hosting, managed and self-managed servers, cloud and colocation.",
+  "sources": {
+    "security": {
+      "title": "Security Statement - xneelo",
+      "publisher": "xneelo",
+      "url": "https://xneelo.co.za/legal/security/"
+    },
+    "software": {
+      "title": "Software used on xneelo servers",
+      "publisher": "xneelo",
+      "url": "https://xneelo.co.za/help-centre/products-and-services/software/"
+    },
+    "webhosting": {
+      "title": "Web Hosting - xneelo",
+      "publisher": "xneelo",
+      "url": "https://xneelo.co.za/web-hosting/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "ZA",
+          "region": "Samrand (Gauteng)"
+        },
+        {
+          "country": "ZA",
+          "region": "Cape Town"
+        },
+        {
+          "country": "DE",
+          "region": "Germany"
+        }
+      ],
+      "sources": ["security"],
+      "checkedOn": "2026-11-24",
+      "note": "Samrand is the default location; web hosting lets you choose South African or German servers."
+    },
+    {
+      "kind": "host-runtimes",
+      "value": ["php"],
+      "sources": ["software"],
+      "checkedOn": "2026-11-24",
+      "note": "For xneelo Web Hosting and Managed Servers; Perl and Python are installed but not supported."
+    },
+    {
+      "kind": "compliance",
+      "value": [],
+      "sources": ["security"],
+      "checkedOn": "2026-11-24",
+      "note": "The Samrand data centre is described as PCI DSS compliant as a facility, but no Level 1 service provider status or HIPAA BAA is stated."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["software"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["webhosting"],
+      "checkedOn": "2026-11-24",
+      "note": "Web hosting is sold as paid monthly packages."
+    }
+  ]
+}

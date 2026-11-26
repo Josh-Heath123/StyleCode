@@ -1,0 +1,280 @@
+{
+  "id": "google-cloud",
+  "name": "Google Cloud",
+  "parts": ["hosting"],
+  "about": "Google's public cloud platform for hosting applications, databases and other services.",
+  "sources": {
+    "regions": {
+      "title": "Regions and zones | Compute Engine",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/compute/docs/regions-zones"
+    },
+    "locations": {
+      "title": "Global Locations - Regions & Zones",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/about/locations"
+    },
+    "dammam": {
+      "title": "Dammam region access",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/docs/dammam-region-access"
+    },
+    "runsource": {
+      "title": "Deploy services from source code | Cloud Run",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/run/docs/deploying-source-code"
+    },
+    "cloudsql": {
+      "title": "Cloud SQL overview",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/sql/docs/introduction"
+    },
+    "compliance": {
+      "title": "Cloud compliance and regulations resources",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/security/compliance"
+    },
+    "iso27001": {
+      "title": "ISO/IEC 27001 - Compliance",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/security/compliance/iso-27001"
+    },
+    "soc2": {
+      "title": "SOC 2: compliance",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/security/compliance/soc-2"
+    },
+    "pcidss": {
+      "title": "PCI Data Security Standard compliance | Cloud Architecture Center",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/architecture/pci-dss-compliance-in-gcp"
+    },
+    "hipaa": {
+      "title": "HIPAA compliance on Google Cloud and Google Workspace",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/security/compliance/hipaa"
+    },
+    "whatisrun": {
+      "title": "What is Cloud Run",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/run/docs/overview/what-is-cloud-run"
+    },
+    "runpricing": {
+      "title": "Cloud Run pricing",
+      "publisher": "Google",
+      "url": "https://cloud.google.com/run/pricing"
+    }
+  },
+  "facts": [
+    {
+      "kind": "regions",
+      "value": [
+        {
+          "country": "ZA",
+          "region": "africa-south1 (Johannesburg, South Africa)"
+        },
+        {
+          "country": "TW",
+          "region": "asia-east1 (Changhua County, Taiwan)"
+        },
+        {
+          "country": "HK",
+          "region": "asia-east2 (Hong Kong)"
+        },
+        {
+          "country": "JP",
+          "region": "asia-northeast1 (Tokyo, Japan)"
+        },
+        {
+          "country": "JP",
+          "region": "asia-northeast2 (Osaka, Japan)"
+        },
+        {
+          "country": "KR",
+          "region": "asia-northeast3 (Seoul, South Korea)"
+        },
+        {
+          "country": "IN",
+          "region": "asia-south1 (Mumbai, India)"
+        },
+        {
+          "country": "IN",
+          "region": "asia-south2 (Delhi, India)"
+        },
+        {
+          "country": "SG",
+          "region": "asia-southeast1 (Jurong West, Singapore)"
+        },
+        {
+          "country": "ID",
+          "region": "asia-southeast2 (Jakarta, Indonesia)"
+        },
+        {
+          "country": "TH",
+          "region": "asia-southeast3 (Bangkok, Thailand)"
+        },
+        {
+          "country": "AU",
+          "region": "australia-southeast1 (Sydney, Australia)"
+        },
+        {
+          "country": "AU",
+          "region": "australia-southeast2 (Melbourne, Australia)"
+        },
+        {
+          "country": "PL",
+          "region": "europe-central2 (Warsaw, Poland)"
+        },
+        {
+          "country": "FI",
+          "region": "europe-north1 (Hamina, Finland)"
+        },
+        {
+          "country": "SE",
+          "region": "europe-north2 (Stockholm, Sweden)"
+        },
+        {
+          "country": "ES",
+          "region": "europe-southwest1 (Madrid, Spain)"
+        },
+        {
+          "country": "BE",
+          "region": "europe-west1 (St. Ghislain, Belgium)"
+        },
+        {
+          "country": "DE",
+          "region": "europe-west10 (Berlin, Germany)"
+        },
+        {
+          "country": "IT",
+          "region": "europe-west12 (Turin, Italy)"
+        },
+        {
+          "country": "GB",
+          "region": "europe-west2 (London, England)"
+        },
+        {
+          "country": "DE",
+          "region": "europe-west3 (Frankfurt, Germany)"
+        },
+        {
+          "country": "NL",
+          "region": "europe-west4 (Eemshaven, Netherlands)"
+        },
+        {
+          "country": "CH",
+          "region": "europe-west6 (Zurich, Switzerland)"
+        },
+        {
+          "country": "IT",
+          "region": "europe-west8 (Milan, Italy)"
+        },
+        {
+          "country": "FR",
+          "region": "europe-west9 (Paris, France)"
+        },
+        {
+          "country": "QA",
+          "region": "me-central1 (Doha, Qatar)"
+        },
+        {
+          "country": "IL",
+          "region": "me-west1 (Tel Aviv, Israel)"
+        },
+        {
+          "country": "CA",
+          "region": "northamerica-northeast1 (Montréal, Québec)"
+        },
+        {
+          "country": "CA",
+          "region": "northamerica-northeast2 (Toronto, Ontario)"
+        },
+        {
+          "country": "MX",
+          "region": "northamerica-south1 (Queretaro, Mexico)"
+        },
+        {
+          "country": "BR",
+          "region": "southamerica-east1 (Osasco, São Paulo, Brazil)"
+        },
+        {
+          "country": "CL",
+          "region": "southamerica-west1 (Santiago, Chile)"
+        },
+        {
+          "country": "US",
+          "region": "us-central1 (Council Bluffs, Iowa)"
+        },
+        {
+          "country": "US",
+          "region": "us-east1 (Moncks Corner, South Carolina)"
+        },
+        {
+          "country": "US",
+          "region": "us-east4 (Ashburn, Virginia)"
+        },
+        {
+          "country": "US",
+          "region": "us-east5 (Columbus, Ohio)"
+        },
+        {
+          "country": "US",
+          "region": "us-south1 (Dallas, Texas)"
+        },
+        {
+          "country": "US",
+          "region": "us-west1 (The Dalles, Oregon)"
+        },
+        {
+          "country": "US",
+          "region": "us-west2 (Los Angeles, California)"
+        },
+        {
+          "country": "US",
+          "region": "us-west3 (Salt Lake City, Utah)"
+        },
+        {
+          "country": "US",
+          "region": "us-west4 (Las Vegas, Nevada)"
+        }
+      ],
+      "sources": ["regions", "locations", "dammam"],
+      "checkedOn": "2026-11-24",
+      "note": "The table holds all 43 regions the locations page counts; Dammam (me-central2) is left out because only Saudi customers buying through Google's reseller there can use it (source dammam)."
+    },
+    {
+      "kind": "host-runtimes",
+      "value": ["container", "go", "node", "python", "jvm", "dotnet", "ruby", "php"],
+      "sources": ["runsource"],
+      "checkedOn": "2026-11-24",
+      "note": "For Cloud Run: a container, or source in Go, Node.js, Python, Java, .NET, Ruby or PHP."
+    },
+    {
+      "kind": "host-databases",
+      "value": ["mysql", "postgresql", "sql-server"],
+      "sources": ["cloudsql"],
+      "checkedOn": "2026-11-24",
+      "note": "Through Cloud SQL; MongoDB itself was not found as a Google managed service."
+    },
+    {
+      "kind": "compliance",
+      "value": ["iso-27001", "soc2-type2", "pci-dss-l1-service-provider", "hipaa-baa"],
+      "sources": ["compliance", "iso27001", "soc2", "pcidss", "hipaa"],
+      "checkedOn": "2026-11-24",
+      "note": "The type, level and agreement are on separate pages: SOC 2 Type II (soc2), ISO/IEC 27001 certification (iso27001), Level 1 service provider (pcidss), BAA for Google Cloud (hipaa)."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["whatisrun"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["runpricing"],
+      "checkedOn": "2026-11-24",
+      "note": "A free tier applies."
+    }
+  ]
+}
