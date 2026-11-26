@@ -1,0 +1,63 @@
+{
+  "id": "ios-native",
+  "name": "Native iOS (Swift and SwiftUI)",
+  "parts": ["mobile-app"],
+  "about": "iOS apps built directly on Apple's SDKs, written in Swift with the SwiftUI interface framework.",
+  "sources": {
+    "swiftui": {
+      "title": "SwiftUI",
+      "publisher": "Apple",
+      "url": "https://developer.apple.com/documentation/swiftui"
+    },
+    "swift-release": {
+      "title": "Release Swift 6.4.3 Release · swiftlang/swift · GitHub",
+      "publisher": "Swift project (swiftlang)",
+      "url": "https://github.com/swiftlang/swift/releases/tag/swift-6.4.3-RELEASE"
+    },
+    "core-data": {
+      "title": "Core Data",
+      "publisher": "Apple",
+      "url": "https://developer.apple.com/documentation/coredata"
+    }
+  },
+  "facts": [
+    {
+      "kind": "languages",
+      "value": ["swift"],
+      "sources": ["swiftui"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["ios"],
+      "sources": ["swiftui"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "platforms",
+      "value": ["ios", "macos"],
+      "sources": ["swiftui"],
+      "checkedOn": "2026-11-24",
+      "note": "SwiftUI also targets iPadOS, Mac Catalyst, tvOS, visionOS and watchOS, which are outside the vocabulary."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "6.4.3",
+          "date": "2026-11-20"
+        }
+      },
+      "sources": ["swift-release"],
+      "checkedOn": "2026-11-24",
+      "note": "The version is of the Swift language and compiler; no end of support date is stated."
+    },
+    {
+      "kind": "offline",
+      "value": "yes",
+      "sources": ["core-data"],
+      "note": "Apple's Core Data framework keeps an app's data on the device for offline use, and can sync it across devices through CloudKit.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

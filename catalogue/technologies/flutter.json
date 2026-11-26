@@ -1,0 +1,81 @@
+{
+  "id": "flutter",
+  "name": "Flutter",
+  "parts": ["mobile-app"],
+  "about": "Google's open-source framework for building apps for several platforms from one Dart codebase.",
+  "sources": {
+    "faq": {
+      "title": "FAQ",
+      "publisher": "Google (Flutter team)",
+      "url": "https://docs.flutter.dev/resources/faq"
+    },
+    "platforms": {
+      "title": "Supported deployment platforms",
+      "publisher": "Google (Flutter team)",
+      "url": "https://docs.flutter.dev/reference/supported-platforms"
+    },
+    "releases": {
+      "title": "Flutter SDK releases for Linux (releases_linux.json)",
+      "publisher": "Google (Flutter team)",
+      "url": "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json"
+    },
+    "offline-first": {
+      "title": "Offline-first support",
+      "publisher": "Google (Flutter team)",
+      "url": "https://docs.flutter.dev/app-architecture/design-patterns/offline-first"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "BSD-3-Clause",
+      "sources": ["faq"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["faq"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["dart"],
+      "sources": ["faq"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "runtimes",
+      "value": ["android", "ios", "browser"],
+      "sources": ["platforms"],
+      "checkedOn": "2026-11-24",
+      "note": "The page also lists Windows, macOS and Linux desktops, which are outside the runtime vocabulary; browsers are Chrome, Firefox, Safari and Edge."
+    },
+    {
+      "kind": "platforms",
+      "value": ["android", "ios", "windows", "macos", "linux", "web"],
+      "sources": ["platforms"],
+      "checkedOn": "2026-11-24",
+      "note": "Linux support is listed for Debian and Ubuntu."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "3.50.1",
+          "date": "2026-11-20"
+        }
+      },
+      "sources": ["releases"],
+      "checkedOn": "2026-11-24",
+      "note": "Latest stable-channel release; no end of support date is stated."
+    },
+    {
+      "kind": "offline",
+      "value": "yes",
+      "sources": ["offline-first"],
+      "note": "Flutter's architecture guide shows how to keep features working while disconnected, from data stored on the device; how much works offline is up to the app.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "dotnet-maui",
+  "name": ".NET MAUI",
+  "parts": ["mobile-app"],
+  "about": "Microsoft's open-source framework for building mobile and desktop apps from one C# codebase.",
+  "sources": {
+    "licence": {
+      "title": "maui/LICENSE.txt at main · dotnet/maui · GitHub",
+      "publisher": ".NET Foundation",
+      "url": "https://github.com/dotnet/maui/blob/main/LICENSE.txt"
+    },
+    "what-is": {
+      "title": "What is .NET MAUI? - .NET MAUI | Microsoft Learn",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/en-us/dotnet/maui/what-is-maui"
+    },
+    "support": {
+      "title": "The official .NET MAUI support policy | .NET",
+      "publisher": "Microsoft",
+      "url": "https://dotnet.microsoft.com/platform/support/policy/maui"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["what-is"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["csharp"],
+      "sources": ["what-is"],
+      "checkedOn": "2026-11-24",
+      "note": "Interfaces can also be written in XAML, a markup language."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["dotnet", "android", "ios"],
+      "sources": ["what-is"],
+      "checkedOn": "2026-11-24",
+      "note": "On Android, iOS and macOS the .NET runtime is Mono; Windows apps use WinUI 3."
+    },
+    {
+      "kind": "platforms",
+      "value": ["android", "ios", "macos", "windows"],
+      "sources": ["what-is"],
+      "checkedOn": "2026-11-24",
+      "note": "Building for iOS and macOS needs a Mac."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "11.0.10",
+          "date": "2026-11-11"
+        },
+        "endOfSupport": "2028-05-09"
+      },
+      "sources": ["support"],
+      "checkedOn": "2026-11-24",
+      "note": "End of support is for .NET MAUI 11; version 10 is supported until 2027-05-11."
+    }
+  ]
+}

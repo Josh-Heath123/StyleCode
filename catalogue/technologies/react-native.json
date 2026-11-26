@@ -1,0 +1,61 @@
+{
+  "id": "react-native",
+  "name": "React Native",
+  "parts": ["mobile-app"],
+  "about": "Meta's open-source framework for building native apps with React in JavaScript or TypeScript.",
+  "sources": {
+    "licence": {
+      "title": "react-native/LICENSE at main · react/react-native · GitHub",
+      "publisher": "Meta Platforms",
+      "url": "https://github.com/react/react-native/blob/main/LICENSE"
+    },
+    "contributing": {
+      "title": "Contributing Overview · React Native",
+      "publisher": "Meta Platforms",
+      "url": "https://reactnative.dev/contributing/overview"
+    },
+    "typescript": {
+      "title": "Using TypeScript · React Native",
+      "publisher": "Meta Platforms",
+      "url": "https://reactnative.dev/docs/typescript"
+    },
+    "release": {
+      "title": "Release 0.88.1 · react/react-native · GitHub",
+      "publisher": "Meta Platforms",
+      "url": "https://github.com/react/react-native/releases/tag/v0.88.1"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["contributing"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["javascript", "typescript"],
+      "sources": ["typescript"],
+      "checkedOn": "2026-11-24",
+      "note": "New projects default to TypeScript."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "0.88.1",
+          "date": "2026-10-27"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Latest stable release; 0.89 was at release candidate stage. The project supports the latest three minor series but gives no end dates."
+    }
+  ]
+}

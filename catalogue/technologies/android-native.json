@@ -1,0 +1,82 @@
+{
+  "id": "android-native",
+  "name": "Native Android (Kotlin)",
+  "parts": ["mobile-app"],
+  "about": "Android apps built directly on Google's Android SDK, written mainly in Kotlin.",
+  "sources": {
+    "kotlin-android": {
+      "title": "Kotlin and Android | Android Developers",
+      "publisher": "Google",
+      "url": "https://developer.android.com/kotlin"
+    },
+    "kotlin-first": {
+      "title": "Android's Kotlin-first approach | Android Developers",
+      "publisher": "Google",
+      "url": "https://developer.android.com/kotlin/first"
+    },
+    "kotlin-release": {
+      "title": "Release Kotlin 2.4.21 · JetBrains/kotlin · GitHub",
+      "publisher": "JetBrains",
+      "url": "https://github.com/JetBrains/kotlin/releases/tag/v2.4.21"
+    },
+    "offline-first": {
+      "title": "Build an offline-first app | Android Developers",
+      "publisher": "Google",
+      "url": "https://developer.android.com/topic/architecture/data-layer/offline-first"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "Apache-2.0",
+      "sources": ["kotlin-android"],
+      "checkedOn": "2026-11-24",
+      "note": "This is the licence of the Kotlin language and tools, not of every Android SDK component."
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["kotlin-android"],
+      "checkedOn": "2026-11-24",
+      "note": "Stated for the Kotlin language."
+    },
+    {
+      "kind": "languages",
+      "value": ["kotlin", "java"],
+      "sources": ["kotlin-first"],
+      "checkedOn": "2026-11-24",
+      "note": "Kotlin is the recommended language; the Java language stays supported."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["android"],
+      "sources": ["kotlin-first"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "platforms",
+      "value": ["android"],
+      "sources": ["kotlin-first"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "2.4.21",
+          "date": "2026-10-08"
+        }
+      },
+      "sources": ["kotlin-release"],
+      "checkedOn": "2026-11-24",
+      "note": "The version is of the Kotlin compiler; no end of support date is stated."
+    },
+    {
+      "kind": "offline",
+      "value": "yes",
+      "sources": ["offline-first"],
+      "note": "Android's architecture guide shows how to build an app that keeps all or its core features working without the internet, from data kept on the device.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}
