@@ -1,0 +1,72 @@
+{
+  "id": "vue",
+  "name": "Vue.js",
+  "parts": ["web-front-end"],
+  "about": "A JavaScript framework for building web user interfaces from components.",
+  "sources": {
+    "licence": {
+      "title": "core/LICENSE at main · vuejs/core",
+      "publisher": "Vue.js (GitHub repository)",
+      "url": "https://github.com/vuejs/core/blob/main/LICENSE"
+    },
+    "sponsor": {
+      "title": "Become a Vue.js Sponsor",
+      "publisher": "Vue.js",
+      "url": "https://vuejs.org/sponsor/"
+    },
+    "typescript": {
+      "title": "Using Vue with TypeScript",
+      "publisher": "Vue.js",
+      "url": "https://vuejs.org/guide/typescript/overview"
+    },
+    "home": {
+      "title": "Vue.js - The Progressive JavaScript Framework",
+      "publisher": "Vue.js",
+      "url": "https://vuejs.org/"
+    },
+    "release": {
+      "title": "Release v3.5.46 · vuejs/core",
+      "publisher": "Vue.js (GitHub repository)",
+      "url": "https://github.com/vuejs/core/releases/tag/v3.5.46"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["sponsor"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["javascript", "typescript"],
+      "sources": ["typescript"],
+      "checkedOn": "2026-11-24",
+      "note": "TypeScript is supported but optional; components can be plain JavaScript."
+    },
+    {
+      "kind": "platforms",
+      "value": ["web"],
+      "sources": ["home"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "3.5.46",
+          "date": "2026-11-20"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Newest stable release; 3.6 is still a release candidate. Vue publishes no end-of-support date for 3.x."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "pwa",
+  "name": "Progressive web app",
+  "parts": ["web-front-end", "mobile-app"],
+  "about": "An approach to building a web app that can be installed on a device and behave like a platform-specific app.",
+  "sources": {
+    "mdn": {
+      "title": "Progressive web apps",
+      "publisher": "MDN Web Docs (Mozilla)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps"
+    },
+    "installation": {
+      "title": "Installation",
+      "publisher": "web.dev (Google)",
+      "url": "https://web.dev/learn/pwa/installation"
+    }
+  },
+  "facts": [
+    {
+      "kind": "offline",
+      "value": "yes",
+      "sources": ["mdn"],
+      "checkedOn": "2026-11-24",
+      "note": "Works offline when the app caches what it needs."
+    },
+    {
+      "kind": "platforms",
+      "value": ["web", "android", "ios", "linux", "windows", "macos"],
+      "sources": ["installation"],
+      "checkedOn": "2026-11-24",
+      "note": "Runs in the browser; the page covers installing on desktop, iOS and iPadOS, and Android, and says Safari on macOS cannot install one."
+    }
+  ]
+}

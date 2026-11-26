@@ -1,0 +1,83 @@
+{
+  "id": "blazor",
+  "name": "Blazor",
+  "parts": ["web-front-end"],
+  "about": "A .NET web front-end framework, part of ASP.NET Core, in which components are written in C# and Razor.",
+  "sources": {
+    "licence": {
+      "title": "aspnetcore/LICENSE.txt at main · dotnet/aspnetcore",
+      "publisher": ".NET Foundation (GitHub repository)",
+      "url": "https://github.com/dotnet/aspnetcore/blob/main/LICENSE.txt"
+    },
+    "aspnet": {
+      "title": "ASP.NET Core, an open-source web development framework",
+      "publisher": "Microsoft",
+      "url": "https://dotnet.microsoft.com/apps/aspnet"
+    },
+    "overview": {
+      "title": "ASP.NET Core Blazor",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/aspnet/core/blazor/"
+    },
+    "hosting": {
+      "title": "ASP.NET Core Blazor hosting models",
+      "publisher": "Microsoft",
+      "url": "https://learn.microsoft.com/aspnet/core/blazor/hosting-models"
+    },
+    "policy": {
+      "title": ".NET and .NET Core official support policy",
+      "publisher": "Microsoft",
+      "url": "https://dotnet.microsoft.com/platform/support/policy/dotnet-core"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "Blazor's source lives in the ASP.NET Core repository (src/Components)."
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["aspnet"],
+      "checkedOn": "2026-11-24",
+      "note": "The page says ASP.NET Core is open source and that it includes Blazor."
+    },
+    {
+      "kind": "languages",
+      "value": ["csharp"],
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24",
+      "note": "JavaScript can be called through interop but is not the main language."
+    },
+    {
+      "kind": "runtimes",
+      "value": ["dotnet", "browser"],
+      "sources": ["hosting"],
+      "checkedOn": "2026-11-24",
+      "note": "Blazor Server runs .NET on the server; Blazor WebAssembly runs .NET inside the browser."
+    },
+    {
+      "kind": "offline",
+      "value": "partly",
+      "sources": ["hosting"],
+      "checkedOn": "2026-11-24",
+      "note": "WebAssembly apps built as PWAs and Hybrid apps can run offline; Blazor Server apps cannot."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "11.0.0",
+          "date": "2026-11-10"
+        },
+        "endOfSupport": "2028-11-14"
+      },
+      "sources": ["policy"],
+      "checkedOn": "2026-11-24",
+      "note": "Blazor ships with .NET, so these are the .NET 11 dates; the policy covers ASP.NET Core."
+    }
+  ]
+}

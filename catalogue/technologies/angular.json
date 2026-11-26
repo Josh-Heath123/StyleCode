@@ -1,0 +1,78 @@
+{
+  "id": "angular",
+  "name": "Angular",
+  "parts": ["web-front-end"],
+  "about": "A TypeScript web framework, maintained by Google, for building client-side and server-rendered applications.",
+  "sources": {
+    "licence": {
+      "title": "angular/LICENSE at main · angular/angular",
+      "publisher": "Google (GitHub repository)",
+      "url": "https://github.com/angular/angular/blob/main/LICENSE"
+    },
+    "overview": {
+      "title": "What is Angular?",
+      "publisher": "Google (Angular)",
+      "url": "https://angular.dev/overview"
+    },
+    "essentials": {
+      "title": "Essentials • Overview",
+      "publisher": "Google (Angular)",
+      "url": "https://angular.dev/essentials"
+    },
+    "serviceworkers": {
+      "title": "Service Workers & PWAs • Overview",
+      "publisher": "Google (Angular)",
+      "url": "https://angular.dev/ecosystem/service-workers"
+    },
+    "release": {
+      "title": "Release 22.3.0 · angular/angular",
+      "publisher": "Google (GitHub repository)",
+      "url": "https://github.com/angular/angular/releases/tag/v22.3.0"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["typescript"],
+      "sources": ["essentials"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "platforms",
+      "value": ["web"],
+      "sources": ["overview"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offline",
+      "value": "partly",
+      "sources": ["serviceworkers"],
+      "checkedOn": "2026-11-24",
+      "note": "Angular's own service worker gives only basic offline caching and gets no new features."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "22.3.0",
+          "date": "2026-11-18"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "The release policy at angular.dev/reference/releases gives v22 long-term support ending in June 2028, by month only."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "react",
+  "name": "React",
+  "parts": ["web-front-end"],
+  "about": "A JavaScript library for building user interfaces out of components.",
+  "sources": {
+    "licence": {
+      "title": "react/LICENSE at main · react/react",
+      "publisher": "React (GitHub repository)",
+      "url": "https://github.com/react/react/blob/main/LICENSE"
+    },
+    "foundation": {
+      "title": "Introducing the React Foundation",
+      "publisher": "React",
+      "url": "https://react.dev/blog/2025/10/07/introducing-the-react-foundation"
+    },
+    "typescript": {
+      "title": "Using TypeScript",
+      "publisher": "React",
+      "url": "https://react.dev/learn/typescript"
+    },
+    "release": {
+      "title": "Release 19.3.1 (October 14th, 2026) · react/react",
+      "publisher": "React (GitHub repository)",
+      "url": "https://github.com/react/react/releases/tag/v19.3.1"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24",
+      "note": "The repository has moved from facebook/react to react/react."
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["foundation"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["javascript", "typescript"],
+      "sources": ["typescript"],
+      "checkedOn": "2026-11-24",
+      "note": "TypeScript is optional on top of JavaScript."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "19.3.1",
+          "date": "2026-10-14"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "No end-of-support date is published for React versions."
+    }
+  ]
+}

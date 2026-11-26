@@ -1,0 +1,100 @@
+{
+  "id": "nextjs",
+  "name": "Next.js",
+  "parts": ["web-front-end", "back-end"],
+  "about": "A React framework for building full-stack web applications, with server rendering and routing.",
+  "sources": {
+    "licence": {
+      "title": "next.js/license.md at canary · vercel/next.js",
+      "publisher": "Vercel (GitHub repository)",
+      "url": "https://github.com/vercel/next.js/blob/canary/license.md"
+    },
+    "oss": {
+      "title": "Open Source Software by Vercel",
+      "publisher": "Vercel",
+      "url": "https://vercel.com/oss"
+    },
+    "typescript": {
+      "title": "TypeScript",
+      "publisher": "Vercel (Next.js docs)",
+      "url": "https://nextjs.org/docs/app/api-reference/config/typescript"
+    },
+    "selfhosting": {
+      "title": "How to self-host your Next.js application",
+      "publisher": "Vercel (Next.js docs)",
+      "url": "https://nextjs.org/docs/app/guides/self-hosting"
+    },
+    "installation": {
+      "title": "Installation",
+      "publisher": "Vercel (Next.js docs)",
+      "url": "https://nextjs.org/docs/app/getting-started/installation"
+    },
+    "release": {
+      "title": "Release v16.4.6 · vercel/next.js",
+      "publisher": "Vercel (GitHub repository)",
+      "url": "https://github.com/vercel/next.js/releases/tag/v16.4.6"
+    },
+    "pwa": {
+      "title": "How to build a Progressive Web Application (PWA) with Next.js",
+      "publisher": "Vercel (Next.js docs)",
+      "url": "https://nextjs.org/docs/app/guides/progressive-web-apps"
+    }
+  },
+  "facts": [
+    {
+      "kind": "licence",
+      "value": "MIT",
+      "sources": ["licence"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "open-source",
+      "sources": ["oss"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "languages",
+      "value": ["javascript", "typescript"],
+      "sources": ["typescript"],
+      "checkedOn": "2026-11-24",
+      "note": "TypeScript is built in; projects can also use plain JavaScript."
+    },
+    {
+      "kind": "self-hostable",
+      "value": true,
+      "sources": ["selfhosting"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "requires",
+      "value": [
+        {
+          "technology": "react"
+        }
+      ],
+      "sources": ["installation"],
+      "checkedOn": "2026-11-24",
+      "note": "A Next.js app installs React and React DOM alongside Next.js."
+    },
+    {
+      "kind": "support",
+      "value": {
+        "latestRelease": {
+          "version": "16.4.6",
+          "date": "2026-11-09"
+        }
+      },
+      "sources": ["release"],
+      "checkedOn": "2026-11-24",
+      "note": "Newest stable release; 16.5 is still in canary. The support policy gives no end date for 16.x."
+    },
+    {
+      "kind": "offline",
+      "value": "partly",
+      "sources": ["pwa"],
+      "note": "Next.js itself offers only an experimental connectivity-aware hook with retries; the docs point to a separate library, Serwist, for full offline caching through a service worker.",
+      "checkedOn": "2026-11-26"
+    }
+  ]
+}
