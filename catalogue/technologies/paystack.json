@@ -1,0 +1,52 @@
+{
+  "id": "paystack",
+  "name": "Paystack",
+  "parts": ["payments"],
+  "about": "An African payments provider, owned by Stripe, for accepting online and in-person payments through an API.",
+  "sources": {
+    "docsindex": {
+      "title": "Paystack Documentation",
+      "publisher": "Paystack",
+      "url": "https://paystack.com/docs/llms.txt"
+    },
+    "compliance": {
+      "title": "Compliance at Paystack",
+      "publisher": "Paystack",
+      "url": "https://paystack.com/compliance"
+    }
+  },
+  "facts": [
+    {
+      "kind": "available-in",
+      "value": {
+        "countries": ["NG", "GH", "ZA", "KE", "CI"]
+      },
+      "sources": ["docsindex"],
+      "checkedOn": "2026-11-26",
+      "note": "The documentation names these five. The home page also offers a private beta in Côte d'Ivoire, Egypt and Rwanda; Egypt and Rwanda aren't in the documentation's list, so they are left out."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["javascript", "python", "swift", "kotlin", "java", "dart"],
+        "httpsApi": true
+      },
+      "sources": ["docsindex"],
+      "checkedOn": "2026-11-24",
+      "note": "Official SDKs: InlineJS, Node.js, Python, iOS (Swift/Objective-C), Android (Kotlin/Java) and Flutter (mapped to Dart); community libraries are excluded."
+    },
+    {
+      "kind": "compliance",
+      "value": ["pci-dss-l1-service-provider"],
+      "sources": ["compliance"],
+      "checkedOn": "2026-11-26",
+      "note": "Audited as a PCI DSS 3.2 Level 1 service provider; the page makes no ISO 27001 or SOC 2 claim."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["docsindex"],
+      "checkedOn": "2026-11-24"
+    }
+  ]
+}

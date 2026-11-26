@@ -1,0 +1,33 @@
+{
+  "id": "paypal",
+  "name": "PayPal",
+  "parts": ["payments"],
+  "about": "A hosted online payments service with wallet, card and checkout APIs.",
+  "sources": {
+    "rest": {
+      "title": "Get started with PayPal REST APIs | PayPal Developer",
+      "publisher": "PayPal",
+      "url": "https://developer.paypal.com/api/rest/"
+    },
+    "pricing": {
+      "title": "PayPal Business Pricing",
+      "publisher": "PayPal",
+      "url": "https://www.paypal.com/us/business/pricing"
+    }
+  },
+  "facts": [
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["rest"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-26",
+      "note": "The page sets out the fees a business pays to accept payments."
+    }
+  ]
+}

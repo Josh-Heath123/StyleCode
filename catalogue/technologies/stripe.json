@@ -1,0 +1,125 @@
+{
+  "id": "stripe",
+  "name": "Stripe",
+  "parts": ["payments"],
+  "about": "A hosted payments platform for accepting online and in-person payments through an API.",
+  "sources": {
+    "global": {
+      "title": "Stripe global availability",
+      "publisher": "Stripe",
+      "url": "https://stripe.com/global"
+    },
+    "libraries": {
+      "title": "Stripe SDKs",
+      "publisher": "Stripe",
+      "url": "https://docs.stripe.com/libraries"
+    },
+    "security": {
+      "title": "Security at Stripe",
+      "publisher": "Stripe",
+      "url": "https://docs.stripe.com/security"
+    },
+    "api": {
+      "title": "API Reference",
+      "publisher": "Stripe",
+      "url": "https://docs.stripe.com/api"
+    },
+    "pricing": {
+      "title": "Pricing & Fees",
+      "publisher": "Stripe",
+      "url": "https://stripe.com/pricing"
+    }
+  },
+  "facts": [
+    {
+      "kind": "available-in",
+      "value": {
+        "countries": [
+          "AU",
+          "AT",
+          "BE",
+          "BR",
+          "BG",
+          "CA",
+          "CI",
+          "HR",
+          "CY",
+          "CZ",
+          "DK",
+          "EE",
+          "FI",
+          "FR",
+          "DE",
+          "GH",
+          "GI",
+          "GR",
+          "HK",
+          "HU",
+          "IN",
+          "ID",
+          "IE",
+          "IT",
+          "JP",
+          "KE",
+          "LV",
+          "LI",
+          "LT",
+          "LU",
+          "MY",
+          "MT",
+          "MX",
+          "NL",
+          "NZ",
+          "NG",
+          "NO",
+          "PL",
+          "PT",
+          "RO",
+          "SG",
+          "SK",
+          "SI",
+          "ZA",
+          "ES",
+          "SE",
+          "CH",
+          "TH",
+          "AE",
+          "GB",
+          "US"
+        ]
+      },
+      "sources": ["global"],
+      "checkedOn": "2026-11-24",
+      "note": "India and Indonesia are marked Preview; Côte d'Ivoire, Ghana, Kenya, Nigeria and South Africa are marked Extended network."
+    },
+    {
+      "kind": "sdks",
+      "value": {
+        "languages": ["ruby", "python", "go", "java", "javascript", "php", "csharp", "swift"],
+        "httpsApi": true
+      },
+      "sources": ["libraries"],
+      "checkedOn": "2026-11-24",
+      "note": "Swift is from the iOS SDK page (docs.stripe.com/sdks/ios); the Android SDK page names no language, so kotlin is not listed."
+    },
+    {
+      "kind": "compliance",
+      "value": ["pci-dss-l1-service-provider", "soc2-type2"],
+      "sources": ["security"],
+      "checkedOn": "2026-11-24",
+      "note": "SOC 2 Type II reports are produced yearly and given on request."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["api"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24"
+    }
+  ]
+}

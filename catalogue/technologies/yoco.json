@@ -1,0 +1,46 @@
+{
+  "id": "yoco",
+  "name": "Yoco",
+  "parts": ["payments"],
+  "about": "A South African payments provider offering card machines, point-of-sale software and online checkout through an API.",
+  "sources": {
+    "terms": {
+      "title": "Yoco Terms & Conditions | Yoco Help Centre",
+      "publisher": "Yoco",
+      "url": "https://support.yoco.help/en/articles/109524-yoco-terms-faqs"
+    },
+    "restapi": {
+      "title": "Using the REST API | Yoco Developer Hub",
+      "publisher": "Yoco",
+      "url": "https://developer.yoco.com/docs/api/using-the-rest-api"
+    },
+    "pricing": {
+      "title": "Yoco Plans | Transparent Pricing & Fees",
+      "publisher": "Yoco",
+      "url": "https://www.yoco.com/za/pricing/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "available-in",
+      "value": {
+        "countries": ["ZA"]
+      },
+      "sources": ["terms"],
+      "checkedOn": "2026-11-26",
+      "note": "Card machines work only in South Africa; online payments from abroad are accepted but must be processed from South Africa, in rand."
+    },
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["restapi"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["pricing"],
+      "checkedOn": "2026-11-24"
+    }
+  ]
+}

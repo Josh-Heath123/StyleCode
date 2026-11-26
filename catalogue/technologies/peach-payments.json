@@ -1,0 +1,32 @@
+{
+  "id": "peach-payments",
+  "name": "Peach Payments",
+  "parts": ["payments"],
+  "about": "An African payment service provider offering hosted and embedded checkout, payment links and payment APIs.",
+  "sources": {
+    "hub": {
+      "title": "Peach Payments documentation hub",
+      "publisher": "Peach Payments",
+      "url": "https://developer.peachpayments.com/"
+    },
+    "fees": {
+      "title": "Fees | Peach Payments",
+      "publisher": "Peach Payments",
+      "url": "https://www.peachpayments.com/pricing/"
+    }
+  },
+  "facts": [
+    {
+      "kind": "managed-service",
+      "value": true,
+      "sources": ["hub"],
+      "checkedOn": "2026-11-24"
+    },
+    {
+      "kind": "offering",
+      "value": "paid-service",
+      "sources": ["fees"],
+      "checkedOn": "2026-11-24"
+    }
+  ]
+}
